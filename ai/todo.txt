@@ -1,0 +1,6 @@
+Check for handling security related to chat questions like 'show schema' event_scheduler
+Implementing Graph Neural Networks (GNN) for Infrastructure Connections in Python
+Adding train Questions and Queries for the model
+Authentication implementation
+Security Aspects
+FastAPI Deployment

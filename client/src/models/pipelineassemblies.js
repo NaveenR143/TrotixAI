@@ -1,0 +1,16 @@
+export const palist = [
+	'Regulatory Station',
+	'Metering Station Delivery',
+	'Metering Station Receipt',
+	'Metering Station Bidirectional',
+	'Rural Tap',
+	'Field Gathering Station',
+	'Gas Oil Seperation Point',
+	'Tee Junction',
+	'Dehydration Equipment',
+	'Pooling Point',
+	'Tank',
+	'Town Border Station',
+	'LDC',
+	'Interconnect',
+];
