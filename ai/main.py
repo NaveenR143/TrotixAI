@@ -11,11 +11,23 @@ from sqlalchemy import select, text
 from pydantic import BaseModel
 from pathlib import Path
 from contextlib import asynccontextmanager
+from uuid import uuid4
 import io
 import re
+import logging
 
 from api.database import engine, get_db, Base
 from api.models import Job
+
+# ── Resume Pipeline ───────────────────────────────────────────────────────────
+from ai.Resume_Pipeline import (
+    ResumeProcessor,
+    JobSeekerRepository,
+    AzureOpenAIResumeRefiner,
+    ResumeProcessingError,
+    FileValidationError,
+    ParsingError,
+)
 
 # ── Optional deps ─────────────────────────────────────────────────────────────
 try:
@@ -32,18 +44,49 @@ try:
 except ImportError:
     DOCX_SUPPORT = False
 
+# ── Logging ───────────────────────────────────────────────────────────────────
+LOGGER = logging.getLogger("main")
+
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 PUBLIC_DIR = BASE_DIR / "client" / "public"
 SRC_DIR = BASE_DIR / "client" / "src"
 
+# ── Global state for resume processing ────────────────────────────────────────
+resume_processor: ResumeProcessor | None = None
+repository: JobSeekerRepository | None = None
+
 
 # ── Startup: create tables if they don't exist ────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global resume_processor, repository
+    
+    # Initialize database tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    
+    # Initialize resume processor components
+    try:
+        repository = JobSeekerRepository()
+        await repository.connect()
+        
+        ai_refiner = AzureOpenAIResumeRefiner()
+        resume_processor = ResumeProcessor(
+            repository=repository,
+            ai_refiner=ai_refiner,
+        )
+        LOGGER.info("Resume processor initialized successfully")
+    except Exception as e:
+        LOGGER.warning(f"Resume processor initialization failed (optional): {e}")
+        resume_processor = None
+        repository = None
+    
     yield
+    
+    # Cleanup
+    if repository:
+        await repository.close()
     await engine.dispose()
 
 
@@ -222,7 +265,7 @@ async def fetch_matching_jobs(resume_data: dict, db: AsyncSession) -> list[dict]
 
 @app.post("/api/resume/parse")
 async def parse_resume_endpoint(resume: UploadFile = File(...)):
-    """Accept resume file → return structured extracted data."""
+    """Accept resume file → process with AI pipeline → return structured extracted data & job matches."""
     allowed = [
         "application/pdf",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -235,11 +278,55 @@ async def parse_resume_endpoint(resume: UploadFile = File(...)):
     if len(contents) > 5 * 1024 * 1024:
         raise HTTPException(400, "File too large. Max 5 MB.")
 
+    # Use resume processor if available
+    if resume_processor:
+        try:
+            user_id = uuid4()
+            profile = await resume_processor.process_resume(
+                user_id=user_id,
+                file_name=resume.filename or "resume",
+                file_bytes=contents,
+                file_url=f"upload://{resume.filename}",
+                mime_type=resume.content_type,
+            )
+            LOGGER.info(f"Resume processed successfully for user {user_id}")
+            return {
+                "user_id": str(user_id),
+                "profile": {
+                    "headline": profile.headline,
+                    "summary": profile.summary,
+                    "current_location": profile.current_location,
+                    "preferred_locations": profile.preferred_locations,
+                    "years_of_experience": str(profile.years_of_experience) if profile.years_of_experience else None,
+                    "notice_period_days": profile.notice_period_days,
+                    "current_salary": str(profile.current_salary) if profile.current_salary else None,
+                    "expected_salary": str(profile.expected_salary) if profile.expected_salary else None,
+                    "salary_currency": profile.salary_currency,
+                    "linkedin_url": profile.linkedin_url,
+                    "github_url": profile.github_url,
+                    "portfolio_url": profile.portfolio_url,
+                    "skills": profile.skills,
+                    "parsed_job_titles": profile.parsed_job_titles,
+                },
+                "status": "processed",
+            }
+        except (FileValidationError, ParsingError) as e:
+            LOGGER.warning(f"Resume processing validation error: {e}")
+            raise HTTPException(422, f"Resume processing error: {str(e)}")
+        except ResumeProcessingError as e:
+            LOGGER.error(f"Resume processing error: {e}")
+            raise HTTPException(503, f"Resume processing failed: {str(e)}")
+        except Exception as e:
+            LOGGER.error(f"Unexpected error processing resume: {e}")
+            raise HTTPException(503, f"Unexpected error: {str(e)}")
+    
+    # Fallback to basic parsing if processor is not available
+    LOGGER.warning("Resume processor not available, using basic parsing")
     text = extract_text(contents, resume.content_type)
     if not text.strip():
         raise HTTPException(422, "Could not extract text from resume.")
 
-    return {"resume_data": parse_resume(text)}
+    return {"resume_data": parse_resume(text), "status": "basic_parse"}
 
 
 @app.post("/api/jobs/match")

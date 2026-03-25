@@ -1,0 +1,104 @@
+Create a Python module under an `ai` package that implements a class-based solution for processing user resumes.
+
+### Requirements:
+
+1. **Input Handling**
+
+   * Accept resume uploads in PDF or CSV format.
+   * Validate file type and handle errors gracefully.
+
+2. **Resume Text Extraction (Open Source First)**
+
+   * Use open-source libraries before any LLM usage (e.g., `pdfplumber`, `PyMuPDF`, `spaCy`, `resume-parser`, etc.).
+   * Extract structured/semi-structured data such as:
+
+     * Name
+     * Email / contact info
+     * Skills
+     * Experience
+     * Education
+   * Maximize deterministic extraction to reduce dependency on AI.
+
+3. **Preprocessing (Critical Step)**
+
+   * Clean and normalize text:
+
+     * Remove noise (headers/footers, duplicates)
+     * Normalize whitespace
+     * Deduplicate repeated sections
+   * Convert extracted data into a structured intermediate format.
+   * Chunk large content if needed.
+   * This step must minimize hallucinations before sending to the model.
+
+4. **AI Processing (Azure OpenAI - GPT Mini)**
+
+   * Use Azure OpenAI ChatGPT **mini model**.
+   * DO NOT send raw unstructured text.
+   * Send **preprocessed structured data**.
+
+   ⚠️ Important:
+
+   * Use **TOON (Typed Object-Oriented Notation / schema-based structured format)** instead of plain JSON.
+
+   * Define a clear schema/class for the expected output (e.g., `JobSeekerProfile`).
+
+   * Ensure the model response strictly adheres to this schema.
+
+   * Avoid free-form responses.
+
+   * The model should:
+
+     * Refine extracted data
+     * Fill missing fields cautiously
+     * Normalize skills, roles, durations, etc.
+
+5. **Database Integration**
+
+   * Use schema:
+     `ai/db_schemas/003_jobseeker_profiles_and_resumes.sql`
+   * Insert processed data into PostgreSQL.
+   * Implement a clean **Repository pattern** for DB operations.
+
+6. **Architecture & Design**
+
+   * Single Python file implementation.
+   * Follow:
+
+     * PEP8
+     * Type hints
+     * Proper docstrings
+   * Apply **SOLID principles**:
+
+     * Single Responsibility Principle
+     * Dependency Injection where applicable
+   * Follow **DRY principles**.
+   * Use design patterns:
+
+     * Service Layer
+     * Repository
+     * Strategy pattern (for PDF vs CSV parsing)
+
+7. **Core Class**
+
+   * Create a main orchestrator class (e.g., `ResumeProcessor`) responsible for:
+
+     * File validation
+     * Extraction
+     * Preprocessing
+     * AI interaction
+     * Data transformation
+     * Database insertion
+
+8. **Other Requirements**
+
+   * Add structured logging.
+   * Add robust error handling (file parsing, API failures, DB issues).
+   * Use environment variables for:
+
+     * Azure OpenAI credentials
+     * PostgreSQL config
+   * Ensure production-ready and extensible design.
+
+### Output:
+
+Provide a complete, clean, production-ready Python implementation in a single file, using TOON-based structured interaction with the GPT model instead of raw JSON.

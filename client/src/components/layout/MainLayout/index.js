@@ -1,574 +1,195 @@
-import React, { createRef, Fragment, useEffect, useRef, useState, lazy, Suspense } from "react";
-import Grid from "@mui/material/Grid2";
-import Box from "@mui/material/Box";
-import { keyframes } from "@mui/system";
-import { makeStyles, styled } from "@mui/styles";
+// MainLayout/index.js
+import React from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { ThemeProvider, createTheme, CssBaseline, Box, Typography, Button, Chip } from "@mui/material";
 import { Helmet } from "react-helmet-async";
-import shpwrite from "@mapbox/shp-write";
-import filedownload from "js-file-download";
 
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import DoubleArrowIcon from "@mui/icons-material/DoubleArrow";
-import ContactSupportIcon from "@mui/icons-material/ContactSupport";
-import FilterAltIcon from "@mui/icons-material/FilterAlt";
-import DownloadIcon from "@mui/icons-material/Download";
-import StarIcon from "@mui/icons-material/Star";
-import LogoutIcon from "@mui/icons-material/Logout";
-import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
-
-import {
-  Alert,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Fab,
-  Fade,
-  FormControl,
-  IconButton,
-  InputAdornment,
-  InputLabel,
-  Link,
-  Stack,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-  OutlinedInput,
-  Paper,
-  Slide,
-  Switch,
-  TextField,
-  Tooltip,
-  Typography,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Badge,
-} from "@mui/material";
-
-import { useAuth } from "../../../authContext";
-
-import HomeIcon from "@mui/icons-material/Home";
-import SettingsIcon from "@mui/icons-material/Settings";
-import InfoIcon from "@mui/icons-material/Info";
-import MenuIcon from "@mui/icons-material/Menu";
-import PrecisionManufacturingIcon from "@mui/icons-material/PrecisionManufacturing";
-import LoginIcon from "@mui/icons-material/Login";
-import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
-// import { fnAddFacilityMapLayer } from "../../../esrijs/FeatureLayers/facilityfeaturelayer";
-// import { fnAddPipelineMapLayer } from "../../../esrijs/FeatureLayers/pipelinefeaturelayer";
-import { getCurrentDateTime, getDistinctValues, getDeviceType } from "../../../models/utils";
-
-import { displaySearching } from "../../../redux/searching/Action";
-import { addRecentSearch } from "../../../redux/recentsearches/Action";
-// import SearchingSpinnerComp from "../../common/customsearchspinner";
-// import { FacilityDataView } from "../../data-view/facilitydataview";
-// import ExploreGPTsComp from "../../common/ExploreGPTs";
-// import fnFetchRenderer from "../../../esrijs/MapProps/facilityrenderer";
-import shortid from "shortid";
-import { datamessages } from "../../../models/usercontent";
-
-import { ChartFacilityTypes } from "../../../models/facilitytypes";
-// import { EChartComp } from "../../../charts/echartcomp";
-// import { ShipperDetailsDataView } from "../../data-view/shipperdetailsdataview";
-// import DataCoverageComp from "../../common/DataCoverage";
-
-import ThumbUpIcon from "@mui/icons-material/ThumbUp";
-import ThumbDownIcon from "@mui/icons-material/ThumbDown";
-
-
-import logo from "./logo.png";
-
-import { fnAddVirtualMapLayer } from "../../../openlayer/FeatureLayers/virtualfeaturelayer";
-import { displaySpinner } from "../../../redux/spinner/Action";
-// import PlansComp from "../../dialog/plans";
-// import ContactUsComp from "../../dialog/contactus";
-// import FilterComp from "../../dialog/filter";
-// import SignIn from "../../common/SignIn";
-import { signOut } from "firebase/auth";
-import { auth } from "../../../firebase";
-// import SidebarComp from "../../common/SidebarComp";
-// import Signup from "../../common/SignUp";
-import baseurl from "../../../models/config";
-// import RecentSearchesComp from "../../common/RecentSearchesComp";
-// import PromptSuggestionsComp from "../../common/SuggestionsComp";
-
-const SearchingSpinnerComp = lazy(() => import("../../common/customsearchspinner"));
-
-
-const useStyles = makeStyles((theme) => ({
-  logo: {
-    padding: "10px",
-    fontSize: "medium",
-    fontWeight: 700,
-    color: "#575656",
-    lineHeight: "2vh",
-    fontFamily: "system-ui",
+// ── Premium design system ──────────────────────────────────────────────────────
+const theme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: { main: '#0f172a', dark: '#020617', light: '#334155' },
+    secondary: { main: '#6366f1' },
+    success: { main: '#10b981' },
+    error: { main: '#f43f5e' },
+    warning: { main: '#f59e0b' },
+    info: { main: '#0ea5e9' },
+    background: { default: '#f8fafc', paper: '#ffffff' },
+    text: { primary: '#0f172a', secondary: '#64748b' },
+    divider: '#e2e8f0',
   },
-  logoimg: {
-    width: "150px",
-    height: "auto",
+  typography: {
+    fontFamily: '"Plus Jakarta Sans", "DM Sans", system-ui, sans-serif',
+    h1: { fontWeight: 800, letterSpacing: '-0.03em' },
+    h2: { fontWeight: 800, letterSpacing: '-0.02em' },
+    h3: { fontWeight: 800, letterSpacing: '-0.02em' },
+    h4: { fontWeight: 700, letterSpacing: '-0.01em' },
+    h5: { fontWeight: 700, letterSpacing: '-0.01em' },
+    h6: { fontWeight: 600 },
+    button: { fontWeight: 600, letterSpacing: '0.01em' },
   },
-  webmap: {
-    "& .esri-ui": {
-      zIndex: 100,
+  shape: { borderRadius: 12 },
+  shadows: [
+    'none',
+    '0 1px 2px rgba(15,23,42,0.04)',
+    '0 2px 4px rgba(15,23,42,0.06)',
+    '0 4px 8px rgba(15,23,42,0.06)',
+    '0 6px 16px rgba(15,23,42,0.08)',
+    '0 8px 24px rgba(15,23,42,0.08)',
+    '0 12px 32px rgba(15,23,42,0.10)',
+    '0 16px 40px rgba(15,23,42,0.10)',
+    '0 20px 48px rgba(15,23,42,0.12)',
+    ...Array(16).fill('0 24px 64px rgba(15,23,42,0.14)'),
+  ],
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          borderRadius: 10,
+          fontWeight: 600,
+          transition: 'all 0.18s cubic-bezier(0.4,0,0.2,1)',
+        },
+        containedPrimary: {
+          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+          boxShadow: '0 1px 2px rgba(15,23,42,0.2), inset 0 1px 0 rgba(255,255,255,0.08)',
+          '&:hover': {
+            background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+            boxShadow: '0 4px 12px rgba(15,23,42,0.2)',
+            transform: 'translateY(-1px)',
+          },
+        },
+      },
     },
-    "& .esri-ui .esri-popup": {
-      zIndex: 100,
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#ffffff',
+          borderRadius: 10,
+          transition: 'all 0.18s',
+          '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e2e8f0' },
+          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#94a3b8' },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#0f172a', borderWidth: 2 },
+        },
+      },
     },
-    "& .esri-popup__main-container": {
-      zIndex: 100,
+    MuiChip: {
+      styleOverrides: {
+        root: { borderRadius: 6, fontWeight: 500, fontSize: '0.75rem' },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: { borderRadius: 16, boxShadow: '0 2px 8px rgba(15,23,42,0.06)' },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: { borderRadius: 16 },
+      },
     },
   },
-}));
-
-const pulseHighlight = keyframes`
-  0% {
-    transform: scale(1);
-    opacity: 1;
-    text-shadow: 0 0 0px rgba(139, 0, 0, 0);   /* merlot */
-  }
-  50% {
-    transform: scale(1.06);
-    opacity: 0.85;
-    text-shadow: 0 0 6px rgba(139, 0, 0, 0.6); /* merlot glow */
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-    text-shadow: 0 0 0px rgba(139, 0, 0, 0);   /* merlot */
-  }
-`;
-
-const googleAiGlow = keyframes`
-  0% {
-    border-color: #4285F4;
-    box-shadow: 0 0 10px rgba(66, 133, 244, 0.7);
-  }
-  25% {
-    border-color: #DB4437;
-    box-shadow: 0 0 10px rgba(219, 68, 55, 0.7);
-  }
-  50% {
-    border-color: #F4B400;
-    box-shadow: 0 0 10px rgba(244, 180, 0, 0.7);
-  }
-  75% {
-    border-color: #0F9D58;
-    box-shadow: 0 0 10px rgba(15, 157, 88, 0.7);
-  }
-  100% {
-    border-color: #4285F4;
-    box-shadow: 0 0 10px rgba(66, 133, 244, 0.7);
-  }
-`;
-
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const LayerSwitch = styled(Switch)(({ theme }) => ({
-  // '& .MuiSwitch-switchBase.Mui-checked': {
-  //   color: pink[600],
-  //   '&:hover': {
-  //     backgroundColor: alpha(pink[600], theme.palette.action.hoverOpacity),
-  //   },
-  // },
-  // "& .MuiSwitch-switchBase.Mui + .MuiSwitch-track": {
-  //   // backgroundColor: pink[600],
-  //   opacity: "0.3 !important",
-  //   padding: "10px !important",
-  //   marginTop: "-3px !important",
-  // },
-  // "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-  //   // backgroundColor: pink[600],
-  //   opacity: "0.3 !important",
-  //   padding: "10px !important",
-  //   marginTop: "-3px !important",
-  // },
-  "& .MuiSwitch-track": {
-    width: "80% !important",
-    opacity: "0.3 !important",
-    padding: "10px !important",
-    marginTop: "-3px !important",
-  },
-}));
+// ── Top navigation bar ─────────────────────────────────────────────────────────
+const NavBar = ({ activeState, onLogoClick }) => (
+  <Box
+    component="nav"
+    sx={{
+      minHeight: 64,
+      px: { xs: 1.25, sm: 2, md: 4 },
+      py: { xs: 0.75, sm: 0 },
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderBottom: '1px solid #e2e8f0',
+      bgcolor: 'rgba(255,255,255,0.85)',
+      backdropFilter: 'blur(12px)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100,
+    }}
+  >
+    {/* Logo */}
+    <Box
+      onClick={onLogoClick}
+      sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, cursor: 'pointer', userSelect: 'none', minWidth: 0 }}
+    >
+      <Box
+        sx={{
+          width: { xs: 30, sm: 34 }, height: { xs: 30, sm: 34 }, borderRadius: '10px',
+          background: 'linear-gradient(135deg, #0f172a, #334155)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        <Typography sx={{ color: '#fff', fontWeight: 900, fontSize: { xs: '0.76rem', sm: '0.85rem' }, letterSpacing: '-0.03em' }}>T</Typography>
+      </Box>
+      <Typography sx={{ fontWeight: 800, fontSize: { xs: '0.95rem', sm: '1.1rem' }, letterSpacing: '-0.03em', color: '#0f172a', whiteSpace: 'nowrap' }}>
+        Trotix<Box component="span" sx={{ color: '#6366f1' }}>AI</Box>
+      </Typography>
+      <Chip
+        label="BETA"
+        size="small"
+        sx={{ display: { xs: 'none', sm: 'inline-flex' }, height: 18, fontSize: '0.6rem', fontWeight: 700, bgcolor: '#f0f9ff', color: '#0ea5e9', border: '1px solid #bae6fd', letterSpacing: '0.05em' }}
+      />
+    </Box>
 
+    {/* Nav actions */}
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, flexShrink: 0 }}>
+      {activeState === 'feed' && (
+        <Chip
+          label="💎 94 Credits"
+          size="small"
+          sx={{ display: { xs: 'none', md: 'inline-flex' }, bgcolor: '#faf5ff', color: '#7c3aed', border: '1px solid #ddd6fe', fontWeight: 600, cursor: 'pointer', '&:hover': { bgcolor: '#f3e8ff' } }}
+        />
+      )}
+      <Button
+        size="small"
+        sx={{ display: { xs: 'none', sm: 'inline-flex' }, color: '#64748b', fontWeight: 600, px: 2, '&:hover': { bgcolor: '#f8fafc', color: '#0f172a' } }}
+      >
+        Sign In
+      </Button>
+      <Button
+        variant="contained"
+        size="small"
+        sx={{ px: { xs: 1.6, sm: 2.5 }, py: { xs: 0.6, sm: 0.75 }, fontSize: { xs: '0.72rem', sm: '0.82rem' }, minWidth: { xs: 96, sm: 124 } }}
+      >
+        Get Started
+      </Button>
+    </Box>
+  </Box>
+);
+
+// ── Main layout ────────────────────────────────────────────────────────────────
 const MainLayout = () => {
-  const classes = useStyles();
-  const mapRef = useRef(null);
-  const mapInitialized = useRef(false);
-  const popupRef = useRef(null);
-  const userinputRef = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const [openLogin, setOpenLogin] = useState(false);
-  const [opensignup, setOpenSignup] = useState(false);
+  // Compute active state for NavBar
+  const currentPath = location.pathname.replace(/^\/|\/$/g, '').split('/')[0];
+  const activeState = currentPath === '' ? 'entry' : currentPath;
 
-  // const baseurl = "http://localhost:7000/api/";
-
-  // const baseurl = "/api/";
-
-
-  const exploreRef = useRef([]);
-  const dispatch = useDispatch();
-  const [isMounted, setIsMounted] = useState(false);
-
-  const ri = useSelector((state) => state.UserReducer.ri);
-
-  const isSearching = useSelector((state) => state.SearchingReducer.searching);
-
-  const recentsearches = useSelector(
-    (state) => state.RecentSearchesReducer.recentsearches
-  );
-
-  const { user } = useAuth();
-
-  const [displayname, setDisplayname] = useState("Guest");
-
-  const [userinput, setUserInput] = useState("");
-  const [userqueries, setUserQueries] = useState([]);
-  const [userprompts, setUserPrompts] = useState([]);
-  const [lastindex, setLastIndex] = useState(-1);
-  const [session_id, setSessionId] = useState("");
-
-  useEffect(() => {
-    let sid = sessionStorage.getItem("session_id");
-    if (!sid) {
-      sid = shortid.generate();
-      sessionStorage.setItem("session_id", sid);
-    }
-    setSessionId(sid);
-  }, []);
-
-
-
-  const [filterdialogopen, setFilterDialogOpen] = useState(false);
-  const fnOpenFilterDialog = () => {
-    setFilterDialogOpen(true);
-  };
-
-  const fnCloseFilterDialog = () => {
-    setFilterDialogOpen(false);
-  };
-
-  const fnHandleClearChat = () => {
-    // if (userqueries.length > 0) {
-
-    //   setUserPrompts([]);
-
-    // }
-
-    window.location.reload();
-  };
-
-  const fnHandleFeedback = async (feedback, qry) => {
-    const updatedqueries = userprompts.map((query) => {
-      if (query.position === qry.position) {
-        return {
-          ...query,
-
-          feedback: feedback,
-        };
-      }
-      return query;
-    });
-
-    setUserPrompts(updatedqueries);
-
-    // setUserQueries(updatedqueries);
-
-    try {
-      const queryDetails = {
-        prompt: qry.question,
-        feedback: feedback,
-      };
-
-      const options = {
-        headers: {
-          //   authorization: token ? `Bearer ${token}` : "",
-        },
-      };
-
-      const response = await axios.post(
-        `${baseurl}feedback`,
-        queryDetails,
-        options
-      );
-
-      if (
-        response.data[0] !== undefined &&
-        response.data[0].status === "error"
-      ) {
-        let errorMessage = "Error occurred while submitting feedback.";
-
-        setNotification({
-          ...notification,
-          show: true,
-          message: errorMessage,
-          severity: "error",
-        });
-      }
-    } catch (error) {
-      // Hide the spinner and handle errors
-
-      let errorMessage = "Error occurred while submitting feedback.";
-
-      if (error.response && error.response.status === 500) {
-        errorMessage = "Server error occurred. Please try again later.";
-        // navigate("/", { replace: true });
-      }
-
-      setNotification({
-        ...notification,
-        show: true,
-        message: errorMessage,
-        severity: "error",
-      });
-    }
-  };
-
-  const [plansdialogopen, setPlansDialogOpen] = useState(false);
-  const fnOpenPlansDialog = (id) => {
-    setPlansDialogOpen(true);
-  };
-
-  const fnClosePlansDialog = () => {
-    setPlansDialogOpen(false);
-  };
-
-  const [notification, setNotification] = useState({
-    message: "",
-    severity: "",
-    show: false,
-  });
-
-  const fnContactUsChange = (e) => {
-    setContactusData({
-      ...contactusdata,
-      [e.target.name]: e.target.value,
-    });
-
-    setErrors({ ...errors, [e.target.name]: "" }); // Clear specific field error
-  };
-
-
-  const [contactusdialogopen, setContactUsDialogOpen] = useState(false);
-  const fnOpenContactUsDialog = () => {
-    setContactUsDialogOpen(true);
-  };
-
-  const fnCloseContactUsDialog = () => {
-    setContactUsDialogOpen(false);
-  };
-
-
-  const formatToHtml = (text) => {
-    if (!text || typeof text !== "string") return ""; // <-- prevents crash
-
-    return text
-      .replace(/\n/g, "<br/>")
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      .replace(/(\d+)\.\s\*\*(.*?)\*\*:/g, "<br/><strong>$1. $2:</strong>");
-  };
-
-
-
-  const fnHandleKeyDown = (event) => {
-    if (event.key === "Enter") {
-      fnSearchQuery(event);
-    }
-  };
-
-  const fnHandleChange = (event) => {
-    setUserInput(event.target.value);
-  };
-
-
-
-  // Function to focus the TextField
-  const fnFocusUserInputField = () => {
-    if (userinputRef.current) {
-      userinputRef.current.focus();
-    }
-  };
-
-  const validateuser = async () => {
-    // Make the axios request with Authorization header
-    const response = await axios.get(`${baseurl}validateuser`, {
-      headers: {
-        Authorization: `Bearer ${usertoken}`,
-      },
-    });
-
-    // console.log(response);
-  };
-
-  const fetchUser = async () => {
-    const token = await user.getIdToken();
-
-    // console.log(token);
-
-    validateuser();
-  };
-
-  const fnSignout = async () => {
-    try {
-      const response = await signOut(auth);
-
-      // setDisplayname("Guest");
-
-      setNotification({
-        ...notification,
-        show: true,
-        message: "You’ve been logged out. Come back soon!",
-        severity: "success",
-      });
-
-      window.location.reload(true);
-    } catch (error) {
-      console.error("Sign Out Error:", error);
-
-      setNotification({
-        ...notification,
-        show: true,
-        message: "Sign-out failed. Please check your connection and try again.",
-        severity: "error",
-      });
-    }
-  };
-
-  const [usertoken, setUserToken] = useState("");
-  const fnFetchUserToken = async () => {
-    const token = await user.getIdToken();
-
-    setUserToken(token);
-  };
-
-
-
-
-  useEffect(() => {
-    setTimeout(() => {
-      setNotification({ ...notification, show: false });
-    }, 5000);
-  }, [notification]);
-
-
-  const [termscontent, setTermsContent] = useState({
-    start: "",
-    end: "",
-  });
-
-
-
-  const [ismobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const deviceType = getDeviceType();
-    if (deviceType === "mobile") {
-      setIsMobile(true);
-    }
-
-    // dispatch(displaySpinner(true));
-    // dispatch(displaySearching(false));
-
-
-    // fnLoadMapView(); // Removed to avoid race conditions; using callback ref instead
-
-    setTermsContent({
-      start: "AI-powered insights for U.S. midstream energy infrastructure. ",
-      end: "By messaging OilGasGPT, you agree to our",
-    });
-  }, []);
+  const handleLogoClick = () => navigate('/');
 
   return (
-    <Suspense fallback={<SearchingSpinnerComp />}>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       <Helmet>
-        <title>TrotixAI</title>
-        <meta
-          name="description"
-          content="AI-powered job search using your resume"
-        />
+        <title>TrotixAI — AI Job Matching</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </Helmet>
 
-      <Box sx={{ flexGrow: 1, height: ismobile ? "auto" : "100%" }}>
-        <Grid
-          container
-          direction={ismobile ? "column" : "row"}
-          sx={{
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            height: ismobile ? "auto" : "100vh",
-          }}
-        >
-          <Grid item size={ismobile ? 12 : 4}>
-            <Box position="relative">
-              <Grid
-                container
-                justifyContent="space-between"
-                alignItems="flex-start"
-              >
-                {/* Logo on the left */}
-                <Grid item>
-                  <Box className={classes.logo}>
-                    <img
-                      className={classes.logoimg}
-                      src={logo}
-                      alt="Logo"
-                    />
-                  </Box>
-                </Grid>
-              </Grid>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
+        <NavBar activeState={activeState} onLogoClick={handleLogoClick} />
 
-              {/* Bottom-right inside container */}
-
-              <Box
-                position="absolute"
-                bottom={0}
-                right={0}
-                p={1}
-                textAlign="right"
-              >
-                <Button
-                  size="small"
-                  color="inherit"
-                  startIcon={<InfoIcon fontSize="small" />}
-                  onClick={() => window.open("/info", "_blank")}
-                  sx={{
-                    textTransform: "none",
-                    color: "text.secondary",
-                    fontSize: "0.875rem",
-                    "&:hover": {
-                      backgroundColor: "rgba(0, 0, 0, 0.04)",
-                    },
-                  }}
-                >
-                  More Info
-                </Button>
-                <Typography variant="body2" color="textSecondary">
-                  Welcome, <strong>{displayname}</strong>
-                </Typography>
-              </Box>
-            </Box>
-
-            <Divider />
-
-          </Grid>
-
-        </Grid>
-
+        <Box sx={{ minHeight: 'calc(100vh - 64px)' }}>
+          <Outlet />
+        </Box>
       </Box>
-    </Suspense>
+    </ThemeProvider>
   );
 };
 
