@@ -1,0 +1,33 @@
+Read the `workflow.md` file to understand the full app flow. Based on this:
+
+1. **Create screens**
+
+   * Implement all necessary screens following the app flow.
+   * Use the same **theme and styling** as the existing `JobFeedScreen`.
+   * Ensure all screens are visually consistent.
+
+2. **Client project restructuring**
+
+   * Restructure the frontend project directory for better organization.
+   * Follow a **modular folder structure** (e.g., `components/`, `screens/`, `services/`, `utils/`).
+   * Make maximum use of **reusable components**.
+
+3. **Data and flow**
+
+   * Implement screens with the **same data sources** as `JobFeedScreen`.
+   * Ensure the full end-to-end flow works as expected (navigation, state management, API calls).
+
+4. **Best practices**
+
+   * Use functional components with hooks.
+   * Use clear, commented code.
+   * Follow DRY and SOLID principles.
+   * Ensure scalability and maintainability.
+
+### Output
+
+Provide:
+
+* Full implementation of screens with navigation.
+* Properly structured folders and reusable components.
+* Integration of data flows and API calls consistent with `JobFeedScreen`.

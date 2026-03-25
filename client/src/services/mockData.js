@@ -1,4 +1,4 @@
-// mockData.js
+// services/mockData.js
 export const mockJobs = [
   {
     id: 1,

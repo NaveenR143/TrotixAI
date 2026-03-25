@@ -6,41 +6,56 @@ Importing from this file continues to work:
 
   from ai.Resume_Pipeline.resume_processor import ResumeProcessor
 """
-
 from __future__ import annotations
+
+# When executed directly (python resume_processor.py) Python doesn't set
+# a package context so relative imports (from .errors import ...) fail
+# with "attempted relative import with no known parent package".
+# This small bootstrap makes the package importable when run as a script by
+# adding the project root to sys.path and setting __package__.
+if __name__ == "__main__" and __package__ is None:
+    import sys
+    from pathlib import Path as _Path
+
+    # project root is two levels up: .../ai/Resume_Pipeline/resume_processor.py
+    _project_root = _Path(__file__).resolve().parents[2]
+    sys.path.insert(0, str(_project_root))
+    __package__ = "ai.Resume_Pipeline"
 
 import asyncio
 import logging
 from pathlib import Path
 from uuid import uuid4
 
-from .ai_refiner import AzureOpenAIResumeRefiner
-from .errors import (
+# Use absolute package imports so the module works both when imported
+# as a package and when executed directly as a script.
+from ai.Resume_Pipeline.ai_refiner import AzureOpenAIResumeRefiner
+from ai.Resume_Pipeline.errors import (
     AIRefinementError,
     FileValidationError,
     ParsingError,
     RepositoryError,
     ResumeProcessingError,
 )
-from .extractor import DeterministicExtractor
-from .models import (
+from ai.Resume_Pipeline.extractor import DeterministicExtractor
+from ai.Resume_Pipeline.models import (
     DeterministicResumeData,
     EducationEntry,
     JobSeekerProfile,
     WorkExperience,
 )
-from .parsers import (
+from ai.Resume_Pipeline.parsers import (
     CsvResumeParser,
     DocResumeParser,
     DocxResumeParser,
     PdfResumeParser,
     ResumeParserStrategy,
 )
-from .preprocessing import ResumePreprocessor
-from .repository import JobSeekerRepository
-from .service import ResumeProcessor, configure_logging
-from .toon import TOONFormatter
-from .validation import FileValidator
+from ai.Resume_Pipeline.preprocessing import ResumePreprocessor
+from ai.Resume_Pipeline.repository import JobSeekerRepository
+from ai.Resume_Pipeline.service import ResumeProcessor, configure_logging
+from ai.Resume_Pipeline.toon import TOONFormatter
+from ai.Resume_Pipeline.validation import FileValidator
 
 LOGGER = logging.getLogger("resume_processor")
 

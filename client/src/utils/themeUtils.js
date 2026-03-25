@@ -1,4 +1,4 @@
-// utils.js
+// utils/themeUtils.js
 import { keyframes } from "@mui/system";
 
 export const pulse = keyframes`

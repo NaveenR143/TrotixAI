@@ -1,23 +1,21 @@
+// routes/Router.js
 import React, { lazy } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import Loadable from "../layouts/full-layout/loadable/Loadable";
-import { mockJobs, mockProfileData } from "../components/layout/MainLayout/mockData";
+import { jobService } from "../services/jobService";
+import { profileService } from "../services/profileService";
+import { mockJobs, mockProfileData } from "../services/mockData";
 
-const MainLayout = Loadable(
-  lazy(() => import("../components/layout/MainLayout"))
-);
+const MainLayout = Loadable(lazy(() => import("../components/layout/MainLayout")));
 
-const EntryScreen = Loadable(lazy(() => import("../components/layout/MainLayout/components/EntryScreen")));
-const ProcessingScreen = Loadable(lazy(() => import("../components/layout/MainLayout/components/ProcessingScreen")));
-const ProfileEditScreen = Loadable(lazy(() => import("../components/layout/MainLayout/components/ProfileEditScreen")));
-const JobFeedScreen = Loadable(lazy(() => import("../components/layout/MainLayout/components/JobFeedScreen")));
-const JobDetailScreen = Loadable(lazy(() => import("../components/layout/MainLayout/components/JobDetailScreen")));
+const EntryScreen = Loadable(lazy(() => import("../screens/candidate/EntryScreen")));
+const ProcessingScreen = Loadable(lazy(() => import("../screens/candidate/ProcessingScreen")));
+const ProfileEditScreen = Loadable(lazy(() => import("../screens/candidate/ProfileEditScreen")));
+const JobFeedScreen = Loadable(lazy(() => import("../screens/candidate/JobFeedScreen")));
+const JobDetailScreen = Loadable(lazy(() => import("../screens/candidate/JobDetailScreen")));
 
 /* ***Layouts**** */
-const BlankLayout = Loadable(
-  lazy(() => import("../layouts/blank-layout/BlankLayout"))
-);
-/* ***End Layouts**** */
+const BlankLayout = Loadable(lazy(() => import("../layouts/blank-layout/BlankLayout")));
 
 /* ***Route Wrappers*** */
 const EntryRoute = () => {
@@ -32,11 +30,13 @@ const ProcessingRoute = () => {
 
 const ProfileRoute = () => {
   const navigate = useNavigate();
+  // In a real app, we'd fetch the parsed profile from state/service
   return <ProfileEditScreen initialData={mockProfileData} onSave={() => navigate('/feed')} />;
 };
 
 const FeedRoute = () => {
   const navigate = useNavigate();
+  // Using mockJobs directly for now, can be fetched in useEffect
   return <JobFeedScreen jobs={mockJobs} onOpenDetail={(job) => navigate('/detail/' + job.id)} onGoBack={() => navigate('/')} />;
 };
 
