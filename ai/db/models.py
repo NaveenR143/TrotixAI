@@ -4,7 +4,7 @@
 from sqlalchemy import Column, String, Integer, Boolean, Text, DateTime, ARRAY, func
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
-from api.database import Base
+from db.database import Base
 
 
 class Job(Base):

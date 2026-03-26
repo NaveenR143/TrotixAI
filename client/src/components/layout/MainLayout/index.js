@@ -1,6 +1,6 @@
-// MainLayout/index.js
 import React from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { ThemeProvider, createTheme, CssBaseline, Box, Typography, Button, Chip } from "@mui/material";
 import { Helmet } from "react-helmet-async";
 
@@ -92,7 +92,7 @@ const theme = createTheme({
 });
 
 // ── Top navigation bar ─────────────────────────────────────────────────────────
-const NavBar = ({ activeState, onLogoClick }) => (
+const NavBar = ({ activeState, onLogoClick, points }) => (
   <Box
     component="nav"
     sx={{
@@ -137,13 +137,11 @@ const NavBar = ({ activeState, onLogoClick }) => (
 
     {/* Nav actions */}
     <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, flexShrink: 0 }}>
-      {activeState === 'feed' && (
-        <Chip
-          label="💎 94 Credits"
-          size="small"
-          sx={{ display: { xs: 'none', md: 'inline-flex' }, bgcolor: '#faf5ff', color: '#7c3aed', border: '1px solid #ddd6fe', fontWeight: 600, cursor: 'pointer', '&:hover': { bgcolor: '#f3e8ff' } }}
-        />
-      )}
+      <Chip
+        label={`💎 ${points} Credits`}
+        size="small"
+        sx={{ display: { xs: 'none', md: 'inline-flex' }, bgcolor: '#faf5ff', color: '#7c3aed', border: '1px solid #ddd6fe', fontWeight: 600, cursor: 'pointer', '&:hover': { bgcolor: '#f3e8ff' } }}
+      />
       <Button
         size="small"
         sx={{ display: { xs: 'none', sm: 'inline-flex' }, color: '#64748b', fontWeight: 600, px: 2, '&:hover': { bgcolor: '#f8fafc', color: '#0f172a' } }}
@@ -169,6 +167,7 @@ const MainLayout = () => {
   // Compute active state for NavBar
   const currentPath = location.pathname.replace(/^\/|\/$/g, '').split('/')[0];
   const activeState = currentPath === '' ? 'entry' : currentPath;
+  const points = useSelector((state) => state.UserReducer.points);
 
   const handleLogoClick = () => navigate('/');
 
@@ -183,7 +182,7 @@ const MainLayout = () => {
       </Helmet>
 
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
-        <NavBar activeState={activeState} onLogoClick={handleLogoClick} />
+        <NavBar activeState={activeState} onLogoClick={handleLogoClick} points={points} />
 
         <Box sx={{ minHeight: 'calc(100vh - 64px)' }}>
           <Outlet />

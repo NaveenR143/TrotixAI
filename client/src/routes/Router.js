@@ -11,6 +11,7 @@ const MainLayout = Loadable(lazy(() => import("../components/layout/MainLayout")
 const EntryScreen = Loadable(lazy(() => import("../screens/candidate/EntryScreen")));
 const ProcessingScreen = Loadable(lazy(() => import("../screens/candidate/ProcessingScreen")));
 const ProfileEditScreen = Loadable(lazy(() => import("../screens/candidate/ProfileEditScreen")));
+const ManualProfileScreen = Loadable(lazy(() => import("../screens/candidate/ManualProfileScreen")));
 const JobFeedScreen = Loadable(lazy(() => import("../screens/candidate/JobFeedScreen")));
 const JobDetailScreen = Loadable(lazy(() => import("../screens/candidate/JobDetailScreen")));
 
@@ -20,7 +21,12 @@ const BlankLayout = Loadable(lazy(() => import("../layouts/blank-layout/BlankLay
 /* ***Route Wrappers*** */
 const EntryRoute = () => {
   const navigate = useNavigate();
-  return <EntryScreen onUpload={() => navigate('/processing')} onDirectSearch={() => navigate('/feed')} />;
+  return <EntryScreen onUpload={() => navigate('/processing')} onDirectSearch={() => navigate('/feed')} onManualEntry={() => navigate('/manual-profile')} />;
+};
+
+const ManualProfileRoute = () => {
+  const navigate = useNavigate();
+  return <ManualProfileScreen onSave={() => navigate('/feed')} onBack={() => navigate('/')} />;
 };
 
 const ProcessingRoute = () => {
@@ -59,6 +65,7 @@ const Router = [
         element: <MainLayout />,
         children: [
           { index: true, element: <EntryRoute /> },
+          { path: "manual-profile", element: <ManualProfileRoute /> },
           { path: "processing", element: <ProcessingRoute /> },
           { path: "profile", element: <ProfileRoute /> },
           { path: "feed", element: <FeedRoute /> },

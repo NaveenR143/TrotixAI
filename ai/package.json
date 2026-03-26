@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "openai": "^4.89.1"
+    "openai": "latest",
+    "@azure/identity": "latest"
   }
 }

@@ -86,5 +86,5 @@ export const mockProfileData = {
   skills: "React, JavaScript, HTML, CSS, Material UI, Redux, Frontend Architecture",
   experience: "5 years",
   rolePreferences: "Frontend Developer, Senior Frontend Engineer",
-  location: "Remote, United States",
+  preferredLocation: "Remote, United States",
 };

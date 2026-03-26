@@ -15,7 +15,7 @@ import { fadeSlideUp } from "../../utils/themeUtils";
 import StatPill from "../../components/common/StatPill";
 import ResumeUpload from "../../components/upload/ResumeUpload";
 
-const EntryScreen = ({ onUpload, onDirectSearch }) => {
+const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry }) => {
   const [searchValues, setSearchValues] = useState({ title: '', skills: '', location: '' });
 
   return (
@@ -77,7 +77,14 @@ const EntryScreen = ({ onUpload, onDirectSearch }) => {
                 ))}
               </Box>
               <ResumeUpload onSuccess={onUpload} />
-              <Button variant="text" size="small" onClick={onDirectSearch} sx={{ color: '#94a3b8', fontSize: '0.78rem', alignSelf: 'center', '&:hover': { color: '#64748b' } }}>Skip — I'm a returning user</Button>
+              <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                <Button variant="text" size="small" onClick={onManualEntry} sx={{ color: '#6366f1', fontWeight: 600, fontSize: '0.78rem', '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' } }}>
+                  Don't have a resume? Fill details manually
+                </Button>
+                <Button variant="text" size="small" onClick={onDirectSearch} sx={{ color: '#94a3b8', fontSize: '0.72rem', '&:hover': { color: '#64748b' } }}>
+                  Skip — I'm a returning user
+                </Button>
+              </Box>
             </Paper>
           </Grid>
 

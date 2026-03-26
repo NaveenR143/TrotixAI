@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import logging
 import asyncio
+import json
+from dataclasses import asdict
 from typing import Sequence
 from uuid import UUID
 
@@ -78,13 +80,15 @@ class ResumeProcessor:
             chunks = self._preprocessor.chunk(clean_text)
             deterministic = self._extractor.extract(clean_text)
             profile = self._ai_refiner.refine(user_id=user_id, deterministic_data=deterministic, chunks=chunks)
-            await self._repository.save_profile_and_resume(
-                profile=profile,
-                file_name=file_name,
-                file_url=file_url,
-                file_size_bytes=len(file_bytes),
-                mime_type=mime_type,
-            )
+            
+            print(f"Refined profile for user {user_id}:\n{json.dumps(asdict(profile), indent=2, default=str)}")  # Debug output
+            # await self._repository.save_profile_and_resume(
+            #     profile=profile,
+            #     file_name=file_name,
+            #     file_url=file_url,
+            #     file_size_bytes=len(file_bytes),
+            #     mime_type=mime_type,
+            # )
             LOGGER.info("Resume processing completed", extra={"user_id": str(user_id)})
             return profile
         except ResumeProcessingError:

@@ -1,13 +1,17 @@
 // screens/candidate/JobFeedScreen.js
 import React, { useState } from "react";
 import {
-  Box, Typography, Button, Stack, useMediaQuery, useTheme, Tooltip, IconButton, Chip,
+  Box, Typography, Button, Stack, useMediaQuery, useTheme, Tooltip, IconButton, Chip, Drawer,
 } from "@mui/material";
 import TuneIcon from "@mui/icons-material/Tune";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CareerCoach from "../../components/profile/CareerCoach";
 import JobDetailScreen from "./JobDetailScreen";
 import JobListItem from "../../components/jobs/JobListItem";
 import MobileJobCard from "../../components/jobs/MobileJobCard";
+import { useSelector } from "react-redux";
 
 const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
   const theme = useTheme();
@@ -19,6 +23,8 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
   const [savedJobs, setSavedJobs] = useState(new Set());
   const [selectedDesktopJob, setSelectedDesktopJob] = useState(jobs[0] || null);
   const [filterMode, setFilterMode] = useState('all');
+  const [showCoach, setShowCoach] = useState(false);
+  const profile = useSelector((state) => state.UserReducer);
 
   const handleSwipe = (dir) => {
     if (animating || currentIndex >= jobs.length) return;
@@ -88,7 +94,18 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
         <Box sx={{ p: 2.5, borderBottom: '1px solid #e2e8f0', bgcolor: '#fff' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
             <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>Recommended <Box component="span" sx={{ ml: 1, px: 1, py: 0.25, bgcolor: '#ede9fe', color: '#4f46e5', borderRadius: 100, fontSize: '0.72rem', fontWeight: 700 }}>{jobs.length}</Box></Typography>
-            <Tooltip title="Filters"><IconButton size="small" sx={{ color: '#64748b', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', '&:hover': { bgcolor: '#f1f5f9' } }}><TuneIcon fontSize="small" /></IconButton></Tooltip>
+            <Stack direction="row" spacing={1}>
+              <Tooltip title="AI Career Coach">
+                <IconButton size="small" onClick={() => setShowCoach(true)} sx={{ color: '#6366f1', bgcolor: '#f5f3ff', border: '1px solid #c4b5fd', '&:hover': { bgcolor: '#ede9fe' } }}>
+                  <AutoAwesomeIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Filters">
+                <IconButton size="small" sx={{ color: '#64748b', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', '&:hover': { bgcolor: '#f1f5f9' } }}>
+                  <TuneIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Stack>
           </Box>
           <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
             {['all', 'remote', '90%+'].map((f) => (
@@ -110,6 +127,20 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
           <Box sx={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}><Typography sx={{ color: '#94a3b8', fontSize: '0.9rem' }}>Select a job to view details</Typography></Box>
         )}
       </Box>
+
+      {/* AI Career Coach Drawer */}
+      <Drawer
+        anchor="right"
+        open={showCoach}
+        onClose={() => setShowCoach(false)}
+        PaperProps={{ sx: { width: { xs: '100vw', sm: 400 }, borderLeft: '1px solid #e2e8f0', boxShadow: '-4px 0 20px rgba(0,0,0,0.05)' } }}
+      >
+        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0' }}>
+          <Typography sx={{ fontWeight: 700, color: '#0f172a' }}>AI Career Assistant</Typography>
+          <IconButton onClick={() => setShowCoach(false)} size="small"><CloseIcon /></IconButton>
+        </Box>
+        <CareerCoach profile={profile} />
+      </Drawer>
     </Box>
   );
 };

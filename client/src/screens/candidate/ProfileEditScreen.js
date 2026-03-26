@@ -30,7 +30,7 @@ const ProfileEditScreen = ({ initialData, onSave }) => {
     setProfile(p => ({ ...p, skillList: p.skillList.filter(s => s !== skill) }));
 
   const completeness = Math.min(
-    20 * [profile.rolePreferences, profile.skillList.length > 0, profile.experience, profile.location, true].filter(Boolean).length,
+    20 * [profile.rolePreferences, profile.skillList.length > 0, profile.experience, profile.preferredLocation, true].filter(Boolean).length,
     100
   );
 
@@ -73,8 +73,8 @@ const ProfileEditScreen = ({ initialData, onSave }) => {
                 <TextField fullWidth size="small" placeholder="e.g. 5 years" value={profile.experience} onChange={(e) => setProfile({ ...profile, experience: e.target.value })} />
               </Grid>
               <Grid size={{ xs: 6 }}>
-                <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1 }}>Location / Mode</Typography>
-                <TextField fullWidth size="small" placeholder="e.g. Remote, US" value={profile.location} onChange={(e) => setProfile({ ...profile, location: e.target.value })} />
+                <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1 }}>Job Preferred Location</Typography>
+                <TextField fullWidth size="small" placeholder="e.g. Remote, US" value={profile.preferredLocation} onChange={(e) => setProfile({ ...profile, preferredLocation: e.target.value })} />
               </Grid>
             </Grid>
           </Stack>

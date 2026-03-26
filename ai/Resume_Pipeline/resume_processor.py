@@ -90,9 +90,17 @@ async def _demo() -> None:
     """Local usage example for manual verification."""
     configure_logging()
 
-    demo_file = Path("sample_resume.pdf")
+    demo_candidates = [
+        Path.cwd() / "sample_resume.docx",
+        Path(__file__).resolve().parent / "sample_resume.docx",
+    ]
+    demo_file = next(
+        (p for p in demo_candidates if p.exists()), demo_candidates[0])
     if not demo_file.exists():
-        LOGGER.warning("Demo skipped: sample_resume.pdf not found in current directory.")
+        LOGGER.warning(
+            "Demo skipped: sample_resume.pdf not found. Looked in: %s",
+            ", ".join(str(p) for p in demo_candidates),
+        )
         return
 
     repository = JobSeekerRepository()

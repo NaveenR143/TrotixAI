@@ -25,20 +25,21 @@ class TOONFormatter:
         skill_blob = ", ".join(data.skills)
         titles_blob = ", ".join(data.job_titles)
         edu_blob = " | ".join(data.education_lines[:5])
+        safe = lambda value: (value or "").replace('"', "'")
         return (
             "DeterministicResumeTOON(\n"
-            f"  name: \"{(data.name or '').replace('\"', \"'\")}\"\n"
-            f"  email: \"{(data.email or '').replace('\"', \"'\")}\"\n"
-            f"  phone: \"{(data.phone or '').replace('\"', \"'\")}\"\n"
+            f"  name: \"{safe(data.name)}\"\n"
+            f"  email: \"{safe(data.email)}\"\n"
+            f"  phone: \"{safe(data.phone)}\"\n"
             f"  skills: [{skill_blob}]\n"
             f"  experience_years: \"{data.experience_years or ''}\"\n"
             f"  job_titles: [{titles_blob}]\n"
             f"  education_lines: \"{edu_blob}\"\n"
-            f"  summary: \"{(data.summary or '').replace('\"', \"'\")}\"\n"
-            f"  location: \"{(data.current_location or '').replace('\"', \"'\")}\"\n"
-            f"  linkedin_url: \"{(data.linkedin_url or '').replace('\"', \"'\")}\"\n"
-            f"  github_url: \"{(data.github_url or '').replace('\"', \"'\")}\"\n"
-            f"  portfolio_url: \"{(data.portfolio_url or '').replace('\"', \"'\")}\"\n"
+            f"  summary: \"{safe(data.summary)}\"\n"
+            f"  location: \"{safe(data.current_location)}\"\n"
+            f"  linkedin_url: \"{safe(data.linkedin_url)}\"\n"
+            f"  github_url: \"{safe(data.github_url)}\"\n"
+            f"  portfolio_url: \"{safe(data.portfolio_url)}\"\n"
             f"  chunks: {len(chunks)}\n"
             ")\n"
         )
