@@ -1,2 +1,9 @@
 .venv
 .env
+*.pdf
+*.docx
+test*
+*.pyc
+**/__pycache__/
+*.txt
+*.log

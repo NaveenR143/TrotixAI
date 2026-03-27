@@ -20,6 +20,11 @@ const INIT_STATE = {
 };
 
 function UserReducer(state = INIT_STATE, action) {
+	// Safety check for points (handles old persisted states)
+	if (state && state.points === undefined) {
+		state = { ...state, points: INIT_STATE.points };
+	}
+
 	switch (action.type) {
 		case ADD_USERDETAILS:
 			return {

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from typing import Sequence
 from uuid import UUID
 
 from .errors import AIRefinementError
@@ -26,8 +25,10 @@ class AzureOpenAIResumeRefiner:
     ) -> None:
         self._endpoint = endpoint or os.getenv("AZURE_OPENAI_ENDPOINT", "")
         self._api_key = api_key or os.getenv("AZURE_OPENAI_API_KEY", "")
-        self._api_version = api_version or os.getenv("AZURE_OPENAI_API_VERSION", "2024-06-01")
-        self._deployment = deployment or os.getenv("AZURE_OPENAI_DEPLOYMENT", "")
+        self._api_version = api_version or os.getenv(
+            "AZURE_OPENAI_API_VERSION", "2024-06-01")
+        self._deployment = deployment or os.getenv(
+            "AZURE_OPENAI_DEPLOYMENT", "")
         self._formatter = TOONFormatter()
 
         if not self._endpoint or not self._api_key or not self._deployment:
@@ -37,7 +38,8 @@ class AzureOpenAIResumeRefiner:
             )
 
         if AzureOpenAI is None:
-            raise AIRefinementError("`openai` package is required for Azure OpenAI calls.")
+            raise AIRefinementError(
+                "`openai` package is required for Azure OpenAI calls.")
 
         self._client = AzureOpenAI(
             azure_endpoint=self._endpoint,
@@ -48,28 +50,27 @@ class AzureOpenAIResumeRefiner:
     def refine(
         self,
         user_id: UUID,
-        deterministic_data: DeterministicResumeData,
-        chunks: Sequence[str],
+        clean_text: str,
     ) -> JobSeekerProfile:
-        toon_input = self._formatter.build_input(deterministic_data, chunks)
         schema_instruction = self._formatter.build_schema_instructions()
-        chunk_preview = "\n\n".join(chunks[:3])
 
         messages = [
             {
                 "role": "system",
                 "content": (
-                    "You are a resume normalization engine. "
-                    "Respond with strict TOON only, matching the requested schema."
+                    "You are a strict resume normalization engine.\n"
+                    "Output ONLY valid TOON format.\n"
+                    "Do NOT explain, do NOT add extra text.\n"
+                    "Do NOT hallucinate missing data.\n"
+                    "Prefer provided deterministic data when available.\n"
                 ),
             },
             {
                 "role": "user",
                 "content": (
                     f"{schema_instruction}\n\n"
-                    f"Input TOON:\n{toon_input}\n"
-                    "Resume chunks (already cleaned and deduplicated):\n"
-                    f"{chunk_preview}\n"
+                    "Resume text (PII already removed, cleaned and deduplicated):\n"
+                    f"{clean_text}\n"
                 ),
             },
         ]
@@ -78,18 +79,29 @@ class AzureOpenAIResumeRefiner:
             response = self._client.chat.completions.create(
                 model=self._deployment,
                 messages=messages,
-                temperature=0.1,
+                temperature=0.0,  # 🔥 deterministic output
             )
-            content = response.choices[0].message.content or ""
-            if "JobSeekerProfileTOON(" not in content:
-                raise AIRefinementError("Model response is not valid TOON format.")
+
+            content = (response.choices[0].message.content or "").strip()
+
+            # 🔴 Strong validation
+            if not content.startswith("JobSeekerProfileTOON("):
+                raise AIRefinementError(
+                    "Invalid TOON format (missing root object)")
+
+            if not content.endswith(")"):
+                raise AIRefinementError(
+                    "Malformed TOON response (missing closing bracket)")
+
             return self._formatter.parse_profile(
                 user_id=user_id,
                 toon_text=content,
-                fallback=deterministic_data,
             )
+
         except AIRefinementError:
             raise
-        except Exception as exc:
-            raise AIRefinementError(f"Azure OpenAI refinement failed: {exc}") from exc
 
+        except Exception as exc:
+            raise AIRefinementError(
+                f"LLM refinement failed: {exc}"
+            ) from exc

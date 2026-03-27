@@ -65,23 +65,54 @@ class ResumeProcessor:
         file_url: str,
         mime_type: str,
     ) -> JobSeekerProfile:
-        LOGGER.info("Starting resume processing", extra={"user_id": str(user_id), "file_name": file_name})
+        LOGGER.info("Starting resume processing", extra={
+                    "user_id": str(user_id), "file_name": file_name})
 
         extension = self._validator.validate(file_name, file_bytes)
         parser = self._strategy_map.get(extension)
         if parser is None:
-            raise FileValidationError(f"No parser strategy registered for extension {extension}")
+            raise FileValidationError(
+                f"No parser strategy registered for extension {extension}")
 
         try:
             raw_text = parser.parse_text(file_bytes)
-            if not raw_text.strip():
-                raise ParsingError("No text extracted from resume.")
-            clean_text = self._preprocessor.preprocess(raw_text)
-            chunks = self._preprocessor.chunk(clean_text)
-            deterministic = self._extractor.extract(clean_text)
-            profile = self._ai_refiner.refine(user_id=user_id, deterministic_data=deterministic, chunks=chunks)
+
+            debug_path = Path.cwd() / f"output_generated.txt"
+            debug_path.write_text(raw_text, encoding="utf-8")
             
-            print(f"Refined profile for user {user_id}:\n{json.dumps(asdict(profile), indent=2, default=str)}")  # Debug output
+            print("Completed")
+
+            # if not raw_text.strip():
+            #     raise ParsingError("No text extracted from resume.")
+            # clean_text = self._preprocessor.preprocess(raw_text)
+
+            # token_count = self._preprocessor.count_tokens(raw_text)
+            # print(f"Token count for user {user_id}: {token_count}")
+
+            # # Debug output
+            # print(f"Cleaned text for user {user_id}:\n{clean_text[:500]}...")
+
+            # # Extract deterministic data first (name, email, phone, skills, etc.)
+            # deterministic = self._extractor.extract(clean_text)
+            # # Debug output
+            # print(
+            #     f"Deterministic data for user {user_id}:\n{asdict(deterministic)}")
+
+            # # Remove PII from clean text to reduce tokens sent to model
+            # clean_text_without_pii = self._preprocessor.remove_pii(
+            #     clean_text, deterministic)
+            # print(
+            #     f"Clean text after PII removal for user {user_id}:\n{clean_text_without_pii[:500]}...")
+            
+            profile = ''
+
+            # Pass complete clean_text (without PII) to AI refiner
+            # profile = self._ai_refiner.refine(
+            #     user_id=user_id, clean_text=clean_text_without_pii)
+
+            # # Debug output
+            # print(
+            #     f"Refined profile for user {user_id}:\n{json.dumps(asdict(profile), indent=2, default=str)}")
             # await self._repository.save_profile_and_resume(
             #     profile=profile,
             #     file_name=file_name,
@@ -89,14 +120,18 @@ class ResumeProcessor:
             #     file_size_bytes=len(file_bytes),
             #     mime_type=mime_type,
             # )
-            LOGGER.info("Resume processing completed", extra={"user_id": str(user_id)})
+            LOGGER.info("Resume processing completed",
+                        extra={"user_id": str(user_id)})
             return profile
         except ResumeProcessingError:
-            LOGGER.exception("Resume processing error", extra={"user_id": str(user_id)})
+            LOGGER.exception("Resume processing error",
+                             extra={"user_id": str(user_id)})
             raise
         except Exception as exc:
-            LOGGER.exception("Unhandled resume processing error", extra={"user_id": str(user_id)})
-            raise ResumeProcessingError(f"Unhandled processing error: {exc}") from exc
+            LOGGER.exception("Unhandled resume processing error",
+                             extra={"user_id": str(user_id)})
+            raise ResumeProcessingError(
+                f"Unhandled processing error: {exc}") from exc
 
 
 def configure_logging(level: int = logging.INFO) -> None:
@@ -104,4 +139,3 @@ def configure_logging(level: int = logging.INFO) -> None:
         level=level,
         format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
     )
-

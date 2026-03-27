@@ -1,7 +1,8 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box, Container, Paper, Stepper, Step, StepLabel, Typography, Button, TextField,
-  Stack, Grid, Divider, IconButton, Tooltip, Chip, Alert, Autocomplete
+  Stack, Grid, Divider, IconButton, Tooltip, Chip, Alert, Autocomplete, MenuItem
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -18,6 +19,8 @@ import PublicIcon from "@mui/icons-material/Public";
 import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import CakeIcon from "@mui/icons-material/Cake";
+import FamilyRestroomIcon from "@mui/icons-material/FamilyRestroom";
 import { updateUserProfile, debitPoints } from "../../redux/user/Action";
 
 const STEPS = ["Identity", "Experience & Education", "Summary & Skills"];
@@ -34,7 +37,8 @@ const LANGUAGES_OPTIONS = [
 
 const ManualProfileScreen = ({ onSave, onBack }) => {
   const dispatch = useDispatch();
-  const userPoints = useSelector((state) => state.UserReducer.points);
+  const navigate = useNavigate();
+  const userPoints = useSelector((state) => state.UserReducer.points ?? 100);
 
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState({
@@ -48,7 +52,10 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
     experience: [],
     education: [],
     skills: [],
-    languages: []
+    languages: [],
+    dob: "",
+    maritalStatus: "",
+    currentLocation: ""
   });
 
   const [aiLoading, setAiLoading] = useState(false);
@@ -72,6 +79,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
     } else if (step === 2) {
       if (formData.skills.length === 0) newErrors.skills = "At least one skill is required";
       if (formData.languages.length === 0) newErrors.languages = "At least one language is required";
+      if (!formData.dob) newErrors.dob = "Date of Birth is required";
       if (!formData.about.trim()) newErrors.about = "Summary is required";
     }
     setErrors(newErrors);
@@ -166,7 +174,10 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
       email: formData.email,
       about: formData.about,
       education: formData.education,
-      languages: formData.languages.join(", ")
+      languages: formData.languages.join(", "),
+      dob: formData.dob,
+      maritalStatus: formData.maritalStatus,
+      currentLocation: formData.currentLocation
     };
     dispatch(updateUserProfile(profileToPersist));
     if (onSave) onSave();
@@ -299,6 +310,31 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
               </Box>
               <TextField fullWidth multiline rows={4} name="about" value={formData.about} onChange={handleInputChange} placeholder="Tell us about yourself..." error={!!errors.about} helperText={errors.about} />
             </Box>
+
+            <Divider sx={{ my: 1 }} />
+            
+            <Box>
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <PersonIcon sx={{ fontSize: 18, color: '#64748b' }} /> PERSONAL DETAILS
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={4}>
+                  <TextField fullWidth label="Date of Birth *" name="dob" type="date" value={formData.dob} onChange={handleInputChange} error={!!errors.dob} helperText={errors.dob} size="small" InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <CakeIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField fullWidth select label="Marital Status" name="maritalStatus" value={formData.maritalStatus} onChange={handleInputChange} size="small" InputProps={{ startAdornment: <FamilyRestroomIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }}>
+                    <MenuItem value="Single">Single</MenuItem>
+                    <MenuItem value="Married">Married</MenuItem>
+                    <MenuItem value="Divorced">Divorced</MenuItem>
+                    <MenuItem value="Widowed">Widowed</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField fullWidth label="Current Location" name="currentLocation" value={formData.currentLocation} onChange={handleInputChange} size="small" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+                </Grid>
+              </Grid>
+            </Box>
+
             <Alert severity="info" icon={<CheckCircleIcon fontSize="inherit" />} sx={{ mt: 2, bgcolor: '#f0f9ff', color: '#0369a1', '& .MuiAlert-icon': { color: '#0ea5e9' } }}>
               Almost done! Saving will update your profile and redirect you to the job feed tailored for you.
             </Alert>
@@ -315,7 +351,13 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
           <Button startIcon={<ArrowBackIcon />} onClick={onBack} sx={{ color: '#64748b', textTransform: 'none' }}>Back</Button>
           <Box sx={{ flexGrow: 1 }} />
-          <Chip label={`💎 ${userPoints} Credits`} color="primary" variant="outlined" sx={{ fontWeight: 700, border: '1px solid #c4b5fd', color: '#4f46e5' }} />
+          <Chip 
+            label={`💎 ${userPoints || 0} Credits`} 
+            color="primary" 
+            variant="outlined" 
+            onClick={() => navigate('/credits')}
+            sx={{ fontWeight: 700, border: '1px solid #c4b5fd', color: '#4f46e5', cursor: 'pointer', '&:hover': { bgcolor: '#f5f3ff' } }} 
+          />
         </Box>
 
         <Paper elevation={0} sx={{ p: { xs: 3, md: 5 }, border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', borderRadius: 4 }}>

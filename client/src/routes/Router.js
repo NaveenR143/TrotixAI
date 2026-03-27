@@ -14,6 +14,8 @@ const ProfileEditScreen = Loadable(lazy(() => import("../screens/candidate/Profi
 const ManualProfileScreen = Loadable(lazy(() => import("../screens/candidate/ManualProfileScreen")));
 const JobFeedScreen = Loadable(lazy(() => import("../screens/candidate/JobFeedScreen")));
 const JobDetailScreen = Loadable(lazy(() => import("../screens/candidate/JobDetailScreen")));
+const AddCreditsScreen = Loadable(lazy(() => import("../screens/candidate/AddCreditsScreen")));
+const LoginScreen = Loadable(lazy(() => import("../screens/candidate/LoginScreen")));
 
 /* ***Layouts**** */
 const BlankLayout = Loadable(lazy(() => import("../layouts/blank-layout/BlankLayout")));
@@ -54,6 +56,10 @@ const DetailRoute = () => {
   return <JobDetailScreen job={job} onBack={() => navigate('/feed')} />;
 };
 
+const CreditsRoute = () => {
+  return <AddCreditsScreen />;
+};
+
 /* ****Routes***** */
 const Router = [
   {
@@ -70,6 +76,8 @@ const Router = [
           { path: "profile", element: <ProfileRoute /> },
           { path: "feed", element: <FeedRoute /> },
           { path: "detail/:id", element: <DetailRoute /> },
+          { path: "credits", element: <CreditsRoute /> },
+          { path: "login", element: <LoginScreen /> },
         ]
       },
       { path: "*", element: <Navigate to="/error/404" /> },

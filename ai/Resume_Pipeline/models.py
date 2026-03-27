@@ -59,14 +59,16 @@ class DeterministicResumeData:
     name: str | None
     email: str | None
     phone: str | None
-    skills: list[str]
-    experience_years: Decimal | None
-    education_lines: list[str]
-    job_titles: list[str]
-    summary: str | None
-    current_location: str | None
-    linkedin_url: str | None
-    github_url: str | None
-    portfolio_url: str | None
-    clean_text: str
+    languages: list[str]
+    education_lines: list[str] = field(default_factory=list)
+    project_lines: list[str] = field(default_factory=list)
+    # skills: list[str]
+    # experience_years: Decimal | None
+    # job_titles: list[str]
+    # summary: str | None
+    # current_location: str | None
+    # linkedin_url: str | None
+    # github_url: str | None
+    # portfolio_url: str | None
+    # clean_text: str
 

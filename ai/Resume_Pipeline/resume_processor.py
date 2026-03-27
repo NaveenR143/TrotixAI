@@ -91,8 +91,8 @@ async def _demo() -> None:
     configure_logging()
 
     demo_candidates = [
-        Path.cwd() / "sample_resume.docx",
-        Path(__file__).resolve().parent / "sample_resume.docx",
+        Path.cwd() / "sample_resume.pdf",
+        Path(__file__).resolve().parent / "sample_resume.pdf",
     ]
     demo_file = next(
         (p for p in demo_candidates if p.exists()), demo_candidates[0])

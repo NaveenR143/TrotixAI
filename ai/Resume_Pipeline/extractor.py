@@ -143,6 +143,31 @@ class DeterministicExtractor:
         "mbbs",
         "b.sc",
         "m.sc",
+        "b.a.",
+        "b.s.",
+        "m.a.",
+        "m.s.",
+        "b.s.c",
+        "m.s.c",
+        "degree",
+        "graduation",
+        "qualification",
+        "academic",
+    )
+
+    PROJECT_KEYWORDS = (
+        "project",
+        "academic project",
+        "mini project",
+        "major project",
+        "capstone",
+        "thesis",
+        "dissertation",
+        "portfolio project",
+        "freelance project",
+        "research project",
+        "development project",
+        "duration",
     )
 
     LOCATION_KEYWORDS = (
@@ -169,9 +194,11 @@ class DeterministicExtractor:
         "ahmedabad",
     )
 
-    EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
+    EMAIL_RE = re.compile(
+        r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
     PHONE_RE = re.compile(r"\+?\d[\d\-\s()]{7,}\d")
-    EXPERIENCE_RE = re.compile(r"(\d+(?:\.\d+)?)\+?\s*(years?|yrs?)", re.IGNORECASE)
+    EXPERIENCE_RE = re.compile(
+        r"(\d+(?:\.\d+)?)\+?\s*(years?|yrs?)", re.IGNORECASE)
 
     def extract(self, clean_text: str) -> DeterministicResumeData:
         lowered = clean_text.lower()
@@ -180,27 +207,31 @@ class DeterministicExtractor:
         email = self._first_match(self.EMAIL_RE, clean_text)
         phone = self._first_match(self.PHONE_RE, clean_text)
         name = self._extract_name(lines, email)
-        years = self._extract_experience_years(clean_text)
-        skills = sorted(skill for skill in self.SKILL_DICTIONARY if skill in lowered)
-        education_lines = [line for line in lines if any(keyword in line.lower() for keyword in self.EDUCATION_KEYWORDS)]
-        job_titles = self._extract_job_titles(lowered, lines)
-        summary = " ".join(lines[:3])[:500] if lines else None
+        languages = self.extract_languages(clean_text)
+        # years = self._extract_experience_years(clean_text)
+        # skills = sorted(skill for skill in self.SKILL_DICTIONARY if skill in lowered)
+        education_lines = self._extract_education_lines(lines)
+        project_lines = self._extract_project_lines(lines)
+        # job_titles = self._extract_job_titles(lowered, lines)
+        # summary = " ".join(lines[:3])[:500] if lines else None
         current_location = self._extract_location(lines)
 
         return DeterministicResumeData(
             name=name,
             email=email,
             phone=phone,
-            skills=skills,
-            experience_years=years,
-            education_lines=education_lines[:8],
-            job_titles=job_titles,
-            summary=summary,
-            current_location=current_location,
-            linkedin_url=self._extract_url(clean_text, "linkedin.com"),
-            github_url=self._extract_url(clean_text, "github.com"),
-            portfolio_url=self._extract_portfolio_url(clean_text),
-            clean_text=clean_text,
+            languages=languages,
+            education_lines=education_lines,
+            project_lines=project_lines,
+            # skills=skills,
+            # experience_years=years,
+            # job_titles=job_titles,
+            # summary=summary,
+            # current_location=current_location,
+            # linkedin_url=self._extract_url(clean_text, "linkedin.com"),
+            # github_url=self._extract_url(clean_text, "github.com"),
+            # portfolio_url=self._extract_portfolio_url(clean_text),
+            # clean_text=clean_text,
         )
 
     @staticmethod
@@ -216,6 +247,107 @@ class DeterministicExtractor:
                 return line.strip()
         return None
 
+    def extract_languages(self, resume_text: str) -> list[str]:
+        # Common spoken languages (expand as needed)
+        language_list = [
+            "english", "hindi", "kannada", "tamil", "telugu", "malayalam",
+            "marathi", "bengali", "gujarati", "punjabi", "urdu",
+            "spanish", "french", "german", "chinese", "mandarin",
+            "japanese", "korean", "arabic", "russian", "portuguese",
+            "italian", "dutch", "swedish", "polish", "turkish"
+        ]
+
+        text = resume_text.lower()
+
+        # 1. Try to extract "Languages" section
+        section_match = re.search(
+            r"(languages|language skills)\s*[:\-]?\s*(.+?)(\n\n|\n[A-Z]|$)", text, re.DOTALL)
+
+        extracted = set()
+
+        if section_match:
+            lang_section = section_match.group(2)
+        else:
+            lang_section = text  # fallback to full text
+
+        # 2. Match languages
+        for lang in language_list:
+            pattern = r'\b' + re.escape(lang) + r'\b'
+            if re.search(pattern, lang_section):
+                extracted.add(lang.capitalize())
+
+        return sorted(extracted)
+
+    def _extract_education_lines(self, lines: Sequence[str]) -> list[str]:
+        """Extract lines from the education section of the resume."""
+        education_lines = []
+        
+        # Strategy 1: Try to find structured education section headers
+        edu_section_start = None
+        for i, line in enumerate(lines):
+            line_lower = line.lower()
+            if any(keyword in line_lower for keyword in ("educational qualification", "qualification", "education")):
+                edu_section_start = i
+                break
+        
+        if edu_section_start is not None:
+            # Extract lines after education section header
+            # Skip the header itself and empty lines
+            for i in range(edu_section_start + 1, min(edu_section_start + 30, len(lines))):
+                line = lines[i].strip()
+                if not line:
+                    continue
+                
+                line_lower = line.lower()
+                
+                # Skip section headers (lines that are ONLY section titles, not data)
+                # But keep lines with table separators (|) or dates
+                if any(header in line_lower for header in ("academic project", "additional qualification", "experience", "skill", "certification", "declaration", "personal", "area", "strength")) and not ('|' in line or re.match(r'^\d{4}', line)):
+                    continue
+                
+                # Include lines that look like qualifications, dates, or table data
+                if any(keyword in line_lower for keyword in self.EDUCATION_KEYWORDS) or re.match(r'^\d{4}', line) or '|' in line:
+                    education_lines.append(line)
+        
+        # Strategy 2 (Fallback): Find all lines with education keywords
+        if len(education_lines) < 3:
+            fallback_lines = [line for line in lines if any(
+                keyword in line.lower() for keyword in self.EDUCATION_KEYWORDS)]
+            # Prefer fallback if it finds more lines
+            if len(fallback_lines) > len(education_lines):
+                education_lines = fallback_lines
+        
+        return education_lines[:12]
+
+    def _extract_project_lines(self, lines: Sequence[str]) -> list[str]:
+        """Extract lines from the academic/project section of the resume."""
+        project_lines = []
+        
+        # Find project/academic project section
+        project_section_start = None
+        for i, line in enumerate(lines):
+            if any(keyword in line.lower() for keyword in ("academic project", "project", "mini project", "major project", "capstone")):
+                project_section_start = i
+                break
+        
+        if project_section_start is None:
+            # Fallback: find lines with project keywords
+            project_lines = [line for line in lines if any(
+                keyword in line.lower() for keyword in self.PROJECT_KEYWORDS)]
+            return project_lines[:10]
+        
+        # Extract lines after project section header (limit to next 15 lines)
+        for i in range(project_section_start + 1, min(project_section_start + 15, len(lines))):
+            line = lines[i].strip()
+            if not line:
+                continue
+            # Stop if we hit another major section (but allow some subsections)
+            if any(section in line.lower() for section in ("experience", "education", "qualification", "certification", "declaration", "personal", "strength")):
+                break
+            project_lines.append(line)
+        
+        return project_lines[:10]
+
     def _extract_experience_years(self, text: str) -> Decimal | None:
         matches = self.EXPERIENCE_RE.findall(text)
         if not matches:
@@ -226,12 +358,15 @@ class DeterministicExtractor:
     def _extract_job_titles(self, lowered: str, lines: Sequence[str]) -> list[str]:
         found: set[str] = set()
         for pattern in self.TITLE_PATTERNS:
-            found.update(match.group(0) for match in re.finditer(pattern, lowered))
+            found.update(match.group(0)
+                         for match in re.finditer(pattern, lowered))
 
         # Generic fallback: infer from common role labels in resumes.
         label_patterns = (
-            re.compile(r"^(current|target|desired)?\s*(role|position|title|designation)\s*[:\-]\s*(.+)$", re.IGNORECASE),
-            re.compile(r"^(professional\s+title)\s*[:\-]\s*(.+)$", re.IGNORECASE),
+            re.compile(
+                r"^(current|target|desired)?\s*(role|position|title|designation)\s*[:\-]\s*(.+)$", re.IGNORECASE),
+            re.compile(
+                r"^(professional\s+title)\s*[:\-]\s*(.+)$", re.IGNORECASE),
         )
         for line in lines[:80]:
             stripped = line.strip()
@@ -240,7 +375,8 @@ class DeterministicExtractor:
             for pattern in label_patterns:
                 match = pattern.match(stripped)
                 if match:
-                    candidate = match.group(match.lastindex or 1).strip().lower()
+                    candidate = match.group(
+                        match.lastindex or 1).strip().lower()
                     if candidate and len(candidate) <= 80:
                         found.add(candidate)
 
@@ -255,7 +391,8 @@ class DeterministicExtractor:
 
     @staticmethod
     def _extract_url(text: str, domain: str) -> str | None:
-        url_re = re.compile(rf"https?://[^\s]*{re.escape(domain)}[^\s]*", re.IGNORECASE)
+        url_re = re.compile(
+            rf"https?://[^\s]*{re.escape(domain)}[^\s]*", re.IGNORECASE)
         match = url_re.search(text)
         return match.group(0) if match else None
 
@@ -266,4 +403,3 @@ class DeterministicExtractor:
             if "linkedin.com" not in low and "github.com" not in low:
                 return match
         return None
-

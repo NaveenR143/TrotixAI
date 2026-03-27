@@ -1,8 +1,18 @@
 import React from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { ThemeProvider, createTheme, CssBaseline, Box, Typography, Button, Chip } from "@mui/material";
+import { 
+  ThemeProvider, createTheme, CssBaseline, Box, Typography, Button, Chip, 
+  Tooltip, IconButton, useMediaQuery, Menu, MenuItem, ListItemIcon, Divider, Avatar
+} from "@mui/material";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import PersonIcon from "@mui/icons-material/Person";
+import SettingsIcon from "@mui/icons-material/Settings";
+import LogoutIcon from "@mui/icons-material/Logout";
+import MenuIcon from "@mui/icons-material/Menu";
 import { Helmet } from "react-helmet-async";
+import { useDispatch } from "react-redux";
+import { RESET_INITIAL_STATE } from "../../../redux/constants";
 
 // ── Premium design system ──────────────────────────────────────────────────────
 const theme = createTheme({
@@ -92,84 +102,211 @@ const theme = createTheme({
 });
 
 // ── Top navigation bar ─────────────────────────────────────────────────────────
-const NavBar = ({ activeState, onLogoClick, points }) => (
-  <Box
-    component="nav"
-    sx={{
-      minHeight: 64,
-      px: { xs: 1.25, sm: 2, md: 4 },
-      py: { xs: 0.75, sm: 0 },
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      borderBottom: '1px solid #e2e8f0',
-      bgcolor: 'rgba(255,255,255,0.85)',
-      backdropFilter: 'blur(12px)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 100,
-    }}
-  >
-    {/* Logo */}
-    <Box
-      onClick={onLogoClick}
-      sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, cursor: 'pointer', userSelect: 'none', minWidth: 0 }}
-    >
-      <Box
-        sx={{
-          width: { xs: 30, sm: 34 }, height: { xs: 30, sm: 34 }, borderRadius: '10px',
-          background: 'linear-gradient(135deg, #0f172a, #334155)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
-        <Typography sx={{ color: '#fff', fontWeight: 900, fontSize: { xs: '0.76rem', sm: '0.85rem' }, letterSpacing: '-0.03em' }}>T</Typography>
-      </Box>
-      <Typography sx={{ fontWeight: 800, fontSize: { xs: '0.95rem', sm: '1.1rem' }, letterSpacing: '-0.03em', color: '#0f172a', whiteSpace: 'nowrap' }}>
-        Trotix<Box component="span" sx={{ color: '#6366f1' }}>AI</Box>
-      </Typography>
-      <Chip
-        label="BETA"
-        size="small"
-        sx={{ display: { xs: 'none', sm: 'inline-flex' }, height: 18, fontSize: '0.6rem', fontWeight: 700, bgcolor: '#f0f9ff', color: '#0ea5e9', border: '1px solid #bae6fd', letterSpacing: '0.05em' }}
-      />
-    </Box>
+const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
+  const isMobile = useMediaQuery('(max-width:600px)');
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
 
-    {/* Nav actions */}
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, flexShrink: 0 }}>
-      <Chip
-        label={`💎 ${points} Credits`}
-        size="small"
-        sx={{ display: { xs: 'none', md: 'inline-flex' }, bgcolor: '#faf5ff', color: '#7c3aed', border: '1px solid #ddd6fe', fontWeight: 600, cursor: 'pointer', '&:hover': { bgcolor: '#f3e8ff' } }}
-      />
-      <Button
-        size="small"
-        sx={{ display: { xs: 'none', sm: 'inline-flex' }, color: '#64748b', fontWeight: 600, px: 2, '&:hover': { bgcolor: '#f8fafc', color: '#0f172a' } }}
+  const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
+
+  const handleAction = (path) => {
+    handleMenuClose();
+    if (path) onLogoClick(path);
+  };
+
+  const handleSignOut = () => {
+    handleMenuClose();
+    onLogout();
+  };
+
+  return (
+    <Box
+      component="nav"
+      sx={{
+        minHeight: 64,
+        px: { xs: 1.5, sm: 2, md: 4 },
+        py: { xs: 0.75, sm: 0 },
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottom: '1px solid #e2e8f0',
+        bgcolor: 'rgba(255,255,255,0.85)',
+        backdropFilter: 'blur(12px)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+      }}
+    >
+      {/* Logo */}
+      <Box
+        onClick={() => onLogoClick('/')}
+        sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, cursor: 'pointer', userSelect: 'none', minWidth: 0 }}
       >
-        Sign In
-      </Button>
-      <Button
-        variant="contained"
-        size="small"
-        sx={{ px: { xs: 1.6, sm: 2.5 }, py: { xs: 0.6, sm: 0.75 }, fontSize: { xs: '0.72rem', sm: '0.82rem' }, minWidth: { xs: 96, sm: 124 } }}
-      >
-        Get Started
-      </Button>
+        <Box
+          sx={{
+            width: { xs: 30, sm: 34 }, height: { xs: 30, sm: 34 }, borderRadius: '10px',
+            background: 'linear-gradient(135deg, #0f172a, #334155)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <Typography sx={{ color: '#fff', fontWeight: 900, fontSize: { xs: '0.76rem', sm: '0.85rem' }, letterSpacing: '-0.03em' }}>T</Typography>
+        </Box>
+        <Typography sx={{ fontWeight: 800, fontSize: { xs: '0.95rem', sm: '1.1rem' }, letterSpacing: '-0.03em', color: '#0f172a', whiteSpace: 'nowrap' }}>
+          Trotix<Box component="span" sx={{ color: '#6366f1' }}>AI</Box>
+        </Typography>
+        <Chip
+          label="BETA"
+          size="small"
+          sx={{ display: { xs: 'none', sm: 'inline-flex' }, height: 18, fontSize: '0.6rem', fontWeight: 700, bgcolor: '#f0f9ff', color: '#0ea5e9', border: '1px solid #bae6fd', letterSpacing: '0.05em' }}
+        />
+      </Box>
+
+      {/* Nav actions */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1.5 }, flexShrink: 0 }}>
+        <Tooltip title="Click to add credits" placement="top" arrow transitionDuration={300}>
+          {isMobile ? (
+            <IconButton 
+              color="secondary" 
+              onClick={() => onLogoClick('/credits')}
+              aria-label="Add credits"
+              sx={{ 
+                bgcolor: '#faf5ff', 
+                border: '1px solid #ddd6fe',
+                padding: '6px',
+                '&:hover': { bgcolor: '#f3e8ff' }
+              }}
+            >
+              <AccountBalanceWalletIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          ) : (
+            <Chip
+              icon={<AccountBalanceWalletIcon sx={{ fontSize: '18px !important', color: 'inherit !important' }} />}
+              label={`${points || 100} Credits`}
+              onClick={() => onLogoClick('/credits')}
+              aria-label="Add credits"
+              sx={{ 
+                bgcolor: '#faf5ff', 
+                color: '#6366f1', 
+                border: '1px solid #ddd6fe', 
+                fontWeight: 700, 
+                fontSize: '0.82rem',
+                cursor: 'pointer', 
+                px: 1,
+                py: 2,
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': { 
+                  bgcolor: '#f3e8ff', 
+                  borderColor: '#6366f1',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.12)'
+                },
+                '& .MuiChip-label': { px: 1.5 }
+              }}
+            />
+          )}
+        </Tooltip>
+        
+        {mobile ? (
+          <>
+            <IconButton
+              onClick={handleMenuClick}
+              size="small"
+              sx={{ 
+                ml: 1, 
+                border: '1px solid #e2e8f0', 
+                bgcolor: '#fff',
+                '&:hover': { bgcolor: '#f8fafc' }
+              }}
+              aria-controls={open ? 'account-menu' : undefined}
+              aria-haspopup="true"
+              aria-expanded={open ? 'true' : undefined}
+            >
+              <MenuIcon sx={{ fontSize: 20, color: '#0f172a' }} />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              id="account-menu"
+              open={open}
+              onClose={handleMenuClose}
+              onClick={handleMenuClose}
+              PaperProps={{
+                elevation: 0,
+                sx: {
+                  overflow: 'visible',
+                  filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
+                  mt: 1.5,
+                  borderRadius: 2,
+                  width: 180,
+                  '& .MuiAvatar-root': {
+                    width: 32,
+                    height: 32,
+                    ml: -0.5,
+                    mr: 1,
+                  },
+                  '&:before': {
+                    content: '""',
+                    display: 'block',
+                    position: 'absolute',
+                    top: 0,
+                    right: 14,
+                    width: 10,
+                    height: 10,
+                    bgcolor: 'background.paper',
+                    transform: 'translateY(-50%) rotate(45deg)',
+                    zIndex: 0,
+                  },
+                },
+              }}
+              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            >
+              <MenuItem onClick={() => handleAction('/profile')}>
+                <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon>
+                View Profile
+              </MenuItem>
+              <MenuItem onClick={() => handleAction('/')}>
+                <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
+                Settings
+              </MenuItem>
+              <Divider sx={{ my: 1 }} />
+              <MenuItem onClick={handleSignOut} sx={{ color: 'error.main' }}>
+                <ListItemIcon><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
+                Sign Out
+              </MenuItem>
+            </Menu>
+          </>
+        ) : (
+          <Button
+            size="small"
+            onClick={() => onLogoClick('/login')}
+            sx={{ color: '#6366f1', fontWeight: 700, px: 2.5, py: 0.8, border: '1px solid #ddd6fe', borderRadius: 2, bgcolor: '#faf5ff', '&:hover': { bgcolor: '#f3e8ff', borderColor: '#6366f1' } }}
+          >
+            Sign In
+          </Button>
+        )}
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 // ── Main layout ────────────────────────────────────────────────────────────────
 const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
 
   // Compute active state for NavBar
   const currentPath = location.pathname.replace(/^\/|\/$/g, '').split('/')[0];
   const activeState = currentPath === '' ? 'entry' : currentPath;
-  const points = useSelector((state) => state.UserReducer.points);
+  const { points, mobile } = useSelector((state) => state.UserReducer);
 
-  const handleLogoClick = () => navigate('/');
+  const handleLogoClick = (path = '/') => navigate(path);
+  const handleLogout = () => {
+    dispatch({ type: RESET_INITIAL_STATE });
+    navigate('/login');
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -182,7 +319,13 @@ const MainLayout = () => {
       </Helmet>
 
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
-        <NavBar activeState={activeState} onLogoClick={handleLogoClick} points={points} />
+        <NavBar 
+          activeState={activeState} 
+          onLogoClick={handleLogoClick} 
+          points={points} 
+          mobile={mobile}
+          onLogout={handleLogout}
+        />
 
         <Box sx={{ minHeight: 'calc(100vh - 64px)' }}>
           <Outlet />
