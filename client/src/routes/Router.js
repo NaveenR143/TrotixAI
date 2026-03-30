@@ -10,7 +10,7 @@ const MainLayout = Loadable(lazy(() => import("../components/layout/MainLayout")
 
 const EntryScreen = Loadable(lazy(() => import("../screens/candidate/EntryScreen")));
 const ProcessingScreen = Loadable(lazy(() => import("../screens/candidate/ProcessingScreen")));
-const ProfileEditScreen = Loadable(lazy(() => import("../screens/candidate/ProfileEditScreen")));
+const UserProfileScreen = Loadable(lazy(() => import("../screens/candidate/UserProfile")));
 const ManualProfileScreen = Loadable(lazy(() => import("../screens/candidate/ManualProfileScreen")));
 const JobFeedScreen = Loadable(lazy(() => import("../screens/candidate/JobFeedScreen")));
 const JobDetailScreen = Loadable(lazy(() => import("../screens/candidate/JobDetailScreen")));
@@ -39,7 +39,7 @@ const ProcessingRoute = () => {
 const ProfileRoute = () => {
   const navigate = useNavigate();
   // In a real app, we'd fetch the parsed profile from state/service
-  return <ProfileEditScreen initialData={mockProfileData} onSave={() => navigate('/feed')} />;
+  return <UserProfileScreen initialData={mockProfileData} onSave={() => navigate('/feed')} />;
 };
 
 const FeedRoute = () => {
