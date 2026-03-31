@@ -5,7 +5,12 @@ from decimal import Decimal
 from typing import Sequence
 from uuid import UUID
 
-from .models import DeterministicResumeData, JobSeekerProfile, EducationEntry, WorkExperience
+from .models import (
+    DeterministicResumeData,
+    JobSeekerProfile,
+    EducationEntry,
+    WorkExperience,
+)
 
 
 class TOONFormatter:
@@ -25,21 +30,24 @@ class TOONFormatter:
         skill_blob = ", ".join(data.skills)
         titles_blob = ", ".join(data.job_titles)
         edu_blob = " | ".join(data.education_lines[:5])
-        def safe(value): return (value or "").replace('"', "'")
+
+        def safe(value):
+            return (value or "").replace('"', "'")
+
         return (
             "DeterministicResumeTOON(\n"
-            f"  name: \"{safe(data.name)}\"\n"
-            f"  email: \"{safe(data.email)}\"\n"
-            f"  phone: \"{safe(data.phone)}\"\n"
+            f'  name: "{safe(data.name)}"\n'
+            f'  email: "{safe(data.email)}"\n'
+            f'  phone: "{safe(data.phone)}"\n'
             f"  skills: [{skill_blob}]\n"
             f"  experience_years: \"{data.experience_years or ''}\"\n"
             f"  job_titles: [{titles_blob}]\n"
-            f"  education_lines: \"{edu_blob}\"\n"
-            f"  summary: \"{safe(data.summary)}\"\n"
-            f"  location: \"{safe(data.current_location)}\"\n"
-            f"  linkedin_url: \"{safe(data.linkedin_url)}\"\n"
-            f"  github_url: \"{safe(data.github_url)}\"\n"
-            f"  portfolio_url: \"{safe(data.portfolio_url)}\"\n"
+            f'  education_lines: "{edu_blob}"\n'
+            f'  summary: "{safe(data.summary)}"\n'
+            f'  location: "{safe(data.current_location)}"\n'
+            f'  linkedin_url: "{safe(data.linkedin_url)}"\n'
+            f'  github_url: "{safe(data.github_url)}"\n'
+            f'  portfolio_url: "{safe(data.portfolio_url)}"\n'
             f"  chunks: {len(chunks)}\n"
             ")\n"
         )
@@ -48,105 +56,99 @@ class TOONFormatter:
     def build_schema_instructions() -> str:
         return (
             "Return ONLY this TOON object and nothing else:\n\n"
-
             "JobSeekerProfileTOON(\n"
-            "  headline: \"str\",\n"
-            "  summary: \"str\",\n"
-            "  current_location: \"str\",\n"
-            "  preferred_locations: [\"str\", ...],\n"
+            '  headline: "str",\n'
+            '  summary: "str",\n'
+            '  current_location: "str",\n'
+            '  preferred_locations: ["str", ...],\n'
             "  years_of_experience: number,\n"
             "  notice_period_days: int|empty,\n"
             "  current_salary: number|empty,\n"
             "  expected_salary: number|empty,\n"
-            "  salary_currency: \"INR|USD|EUR|...\",\n"
-            "  linkedin_url: \"str|empty\",\n"
-            "  github_url: \"str|empty\",\n"
-            "  portfolio_url: \"str|empty\",\n"
-
-            "  skills: [\"str\", ...],\n"
-            "  parsed_job_titles: [\"str\", ...],\n\n"
-
+            '  salary_currency: "INR|USD|EUR|...",\n'
+            '  linkedin_url: "str|empty",\n'
+            '  github_url: "str|empty",\n'
+            '  portfolio_url: "str|empty",\n'
+            '  languages: ["str", ...],\n'
+            '  skills: ["str", ...],\n'
+            '  parsed_job_titles: ["str", ...],\n\n'
             "  work_experiences: [\n"
             "    ExperienceTOON(\n"
-            "      company_name: \"str\",\n"
-            "      title: \"str\",\n"
-            "      location: \"str|empty\",\n"
-            "      start_date: \"YYYY-MM-DD|empty\",\n"
-            "      end_date: \"YYYY-MM-DD|empty\",\n"
+            '      company_name: "str",\n'
+            '      title: "str",\n'
+            '      location: "str|empty",\n'
+            '      start_date: "YYYY-MM-DD|empty",\n'
+            '      end_date: "YYYY-MM-DD|empty",\n'
             "      is_current: true|false,\n"
-            "      description: \"str|empty\",\n"
-            "      skills_used: [\"str\", ...],\n"
-            "      achievements: [\"str\", ...],\n"
-            "      keywords: [\"str\", ...],\n"
+            '      description: "str|empty",\n'
+            '      skills_used: ["str", ...],\n'
+            '      achievements: ["str", ...],\n'
+            '      keywords: ["str", ...],\n'
             "      projects: [\n"
             "        ProjectTOON(\n"
-            "          name: \"str\",\n"
-            "          description: \"str|empty\",\n"
-            "          technologies: [\"str\", ...],\n"
-            "          role: \"str|empty\",\n"
-            "          start_date: \"YYYY-MM-DD|empty\",\n"
-            "          end_date: \"YYYY-MM-DD|empty\",\n"
+            '          name: "str",\n'
+            '          description: "str|empty",\n'
+            '          technologies: ["str", ...],\n'
+            '          role: "str|empty",\n'
+            '          start_date: "YYYY-MM-DD|empty",\n'
+            '          end_date: "YYYY-MM-DD|empty",\n'
             "          is_current: true|false,\n"
-            "          achievements: [\"str\", ...],\n"
-            "          keywords: [\"str\", ...]\n"
+            '          achievements: ["str", ...],\n'
+            '          keywords: ["str", ...]\n'
             "        )\n"
             "      ]\n"
             "    )\n"
             "  ],\n\n"
-
             "  education: [\n"
             "    EducationTOON(\n"
-            "      institution: \"str\",\n"
-            "      institution_type: \"college|university|school|board|empty\",\n"
-            "      degree: \"str|empty\",\n"
-            "      qualification: \"str|empty\",\n"
-            "      field_of_study: [\"str\", ...],\n"
-            "      grade: \"str|empty\",\n"
-            "      grade_type: \"cgpa|percentage|gpa|rank|empty\",\n"
+            '      institution: "str",\n'
+            '      institution_type: "college|university|school|board|empty",\n'
+            '      degree: "str|empty",\n'
+            '      qualification: "str|empty",\n'
+            '      field_of_study: ["str", ...],\n'
+            '      grade: "str|empty",\n'
+            '      grade_type: "cgpa|percentage|gpa|rank|empty",\n'
             "      start_year: int|empty,\n"
             "      end_year: int|empty,\n"
             "      is_current: true|false,\n"
-            "      description: \"str|empty\",\n"
-            "      keywords: [\"str\", ...],\n"
+            '      description: "str|empty",\n'
+            '      keywords: ["str", ...],\n'
             "      projects: [\n"
             "        ProjectTOON(\n"
-            "          name: \"str\",\n"
-            "          description: \"str|empty\",\n"
-            "          technologies: [\"str\", ...],\n"
-            "          role: \"str|empty\",\n"
-            "          start_date: \"YYYY-MM-DD|empty\",\n"
-            "          end_date: \"YYYY-MM-DD|empty\",\n"
+            '          name: "str",\n'
+            '          description: "str|empty",\n'
+            '          technologies: ["str", ...],\n'
+            '          role: "str|empty",\n'
+            '          start_date: "YYYY-MM-DD|empty",\n'
+            '          end_date: "YYYY-MM-DD|empty",\n'
             "          is_current: true|false,\n"
-            "          achievements: [\"str\", ...],\n"
-            "          keywords: [\"str\", ...]\n"
+            '          achievements: ["str", ...],\n'
+            '          keywords: ["str", ...]\n'
             "        )\n"
             "      ]\n"
             "    )\n"
             "  ],\n\n"
-
             "  projects: [\n"
             "    ProjectTOON(\n"
-            "      name: \"str\",\n"
-            "      description: \"str|empty\",\n"
-            "      technologies: [\"str\", ...],\n"
-            "      role: \"str|empty\",\n"
-            "      start_date: \"YYYY-MM-DD|empty\",\n"
-            "      end_date: \"YYYY-MM-DD|empty\",\n"
+            '      name: "str",\n'
+            '      description: "str|empty",\n'
+            '      technologies: ["str", ...],\n'
+            '      role: "str|empty",\n'
+            '      start_date: "YYYY-MM-DD|empty",\n'
+            '      end_date: "YYYY-MM-DD|empty",\n'
             "      is_current: true|false,\n"
-            "      achievements: [\"str\", ...],\n"
-            "      keywords: [\"str\", ...],\n"
-            "      project_type: \"professional|academic|personal|unknown\"\n"
+            '      achievements: ["str", ...],\n'
+            '      keywords: ["str", ...],\n'
+            '      project_type: "professional|academic|personal|unknown"\n'
             "    )\n"
             "  ]\n"
             ")\n\n"
-
             "STRICT RULES:\n"
             "- Return ONLY the object. No explanation.\n"
             "- Do NOT hallucinate data.\n"
             "- Use empty values when missing.\n"
             "- Normalize all skills, technologies, and keywords to lowercase.\n"
             "- Remove duplicates in arrays.\n\n"
-
             "PROJECT EXTRACTION RULES:\n"
             "- Extract projects from ANY section: experience, education, or separate 'projects' section.\n"
             "- Classify project_type:\n"
@@ -159,42 +161,41 @@ class TOONFormatter:
             "- Always extract technologies used in projects\n"
             "- Infer technologies from description if not explicitly listed\n"
             "- Extract achievements like impact, metrics, improvements\n\n"
-
             "EDUCATION RULES:\n"
             "- 'board', 'cbse', 'icse' → institution_type=board\n"
             "- '12th', '10th' → degree\n"
             "- 'year of completion', 'passed out' → end_year\n"
             "- Extract cgpa/percentage properly\n\n"
-
             "DATE RULES:\n"
             "- Use YYYY-MM-DD format\n"
             "- If only year is available → YYYY-01-01\n"
         )
 
     def parse_profile(self, user_id: UUID, toon_text: str) -> JobSeekerProfile:
+        with open("toon.txt", "w", encoding="utf-8") as _debug_file:
+            _debug_file.write(toon_text)
+
         def extract_scalar(key: str) -> str | None:
             match = re.search(rf"{re.escape(key)}:\s*\"([^\"]*)\"", toon_text)
             return match.group(1).strip() if match else None
 
         def extract_list(key: str) -> list[str]:
             match = re.search(
-                rf"{re.escape(key)}:\s*\[([^\]]*)\]", toon_text, flags=re.DOTALL)
+                rf"{re.escape(key)}:\s*\[([^\]]*)\]", toon_text, flags=re.DOTALL
+            )
             if not match:
                 return []
             body = match.group(1)
             items = [item.strip().strip("\"'") for item in body.split(",")]
             return sorted({i for i in items if i})
 
-        years = self._to_decimal(extract_scalar(
-            "years_of_experience"))
+        years = self._to_decimal(extract_scalar("years_of_experience"))
         headline = extract_scalar("headline")
         summary = extract_scalar("summary")
         parsed_summary = summary
-        location = extract_scalar(
-            "current_location")
+        location = extract_scalar("current_location")
         skills = extract_list("skills")
-        parsed_titles = extract_list(
-            "parsed_job_titles")
+        parsed_titles = extract_list("parsed_job_titles")
 
         # Parse education entries
         education = self._parse_education_entries(toon_text)
@@ -206,11 +207,9 @@ class TOONFormatter:
             current_location=location,
             preferred_locations=extract_list("preferred_locations"),
             years_of_experience=years,
-            notice_period_days=self._to_int(
-                extract_scalar("notice_period_days")),
+            notice_period_days=self._to_int(extract_scalar("notice_period_days")),
             current_salary=self._to_decimal(extract_scalar("current_salary")),
-            expected_salary=self._to_decimal(
-                extract_scalar("expected_salary")),
+            expected_salary=self._to_decimal(extract_scalar("expected_salary")),
             salary_currency=(extract_scalar("salary_currency") or "INR"),
             linkedin_url=extract_scalar("linkedin_url"),
             github_url=extract_scalar("github_url"),
@@ -228,15 +227,16 @@ class TOONFormatter:
         education_list = []
 
         # Find the education array in the TOON response
-        match = re.search(
-            r"education:\s*\[(.*?)\](?=\s*[\),])", toon_text, re.DOTALL)
+        match = re.search(r"education:\s*\[(.*?)\](?=\s*[\),])", toon_text, re.DOTALL)
         if not match:
             return education_list
 
         education_block = match.group(1)
 
         # Find all EducationTOON(...) entries
-        for edu_match in re.finditer(r"EducationTOON\((.*?)\)", education_block, re.DOTALL):
+        for edu_match in re.finditer(
+            r"EducationTOON\((.*?)\)", education_block, re.DOTALL
+        ):
             edu_content = edu_match.group(1)
 
             # Extract fields from EducationTOON
@@ -251,16 +251,18 @@ class TOONFormatter:
 
             # Only add if institution is present
             if institution:
-                education_list.append(EducationEntry(
-                    institution=institution,
-                    degree=degree,
-                    field_of_study=field_of_study,
-                    grade=grade,
-                    start_year=self._to_int(start_year_str),
-                    end_year=self._to_int(end_year_str),
-                    is_current=is_current_str and is_current_str.lower() == "true",
-                    description=description,
-                ))
+                education_list.append(
+                    EducationEntry(
+                        institution=institution,
+                        degree=degree,
+                        field_of_study=field_of_study,
+                        grade=grade,
+                        start_year=self._to_int(start_year_str),
+                        end_year=self._to_int(end_year_str),
+                        is_current=is_current_str and is_current_str.lower() == "true",
+                        description=description,
+                    )
+                )
 
         return education_list
 

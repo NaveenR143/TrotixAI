@@ -17,7 +17,8 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
+from io import BytesIO
 import sys
 import time
 
@@ -197,7 +198,7 @@ class DocumentAnalyzer:
 
     def __init__(
         self,
-        pdf_path: str,
+        pdf_stream: Union[str, BytesIO],
         output_path: Optional[str] = None,
         log_level: int = logging.INFO
     ) -> None:
@@ -205,19 +206,20 @@ class DocumentAnalyzer:
         Initialize the DocumentAnalyzer.
 
         Args:
-            pdf_path: Path to PDF file to analyze
+            pdf_stream: Path to PDF file or BytesIO stream to analyze
             output_path: Optional custom output path (file or directory)
             log_level: Logging level (default: INFO)
 
         Raises:
-            ValueError: If PDF file does not exist
+            ValueError: If PDF file path does not exist (when string is provided)
         """
-        self.pdf_path = str(pdf_path)
+        self.pdf_stream = pdf_stream
         self.logger = setup_logger(self.__class__.__name__)
         self.logger.setLevel(log_level)
 
-        if not os.path.exists(self.pdf_path):
-            error_msg = f"PDF file not found: {self.pdf_path}"
+        # Validate if it's a file path (string)
+        if isinstance(pdf_stream, str) and not os.path.exists(pdf_stream):
+            error_msg = f"PDF file not found: {pdf_stream}"
             self.logger.error(error_msg)
             raise ValueError(error_msg)
 
@@ -226,24 +228,33 @@ class DocumentAnalyzer:
             output_path = str(output_path)
             if os.path.isdir(output_path):
                 # Directory provided - generate filename in it
-                pdf_path = Path(self.pdf_path)
-                self.output_path = os.path.join(
-                    output_path, f"{pdf_path.stem}_analysis.txt")
+                if isinstance(pdf_stream, str):
+                    pdf_path = Path(pdf_stream)
+                    self.output_path = os.path.join(
+                        output_path, f"{pdf_path.stem}_analysis.txt")
+                else:
+                    self.output_path = os.path.join(output_path, "analysis.txt")
             else:
                 # File path provided
                 self.output_path = output_path
         else:
-            # Auto-generate in same folder as PDF
+            # Auto-generate output path
             self.output_path = self._generate_output_path()
 
-        self.logger.info(f"Initialized DocumentAnalyzer for {self.pdf_path}")
+        self.logger.info(f"Initialized DocumentAnalyzer")
 
     def _generate_output_path(self) -> str:
         """Generate output path in the same folder as input PDF."""
-        pdf_path = Path(self.pdf_path)
-        output_path = pdf_path.parent / f"{pdf_path.stem}_analysis.txt"
-        self.logger.debug(f"Generated output path: {output_path}")
-        return str(output_path)
+        if isinstance(self.pdf_stream, str):
+            pdf_path = Path(self.pdf_stream)
+            output_path = pdf_path.parent / f"{pdf_path.stem}_analysis.txt"
+            self.logger.debug(f"Generated output path: {output_path}")
+            return str(output_path)
+        else:
+            # For BytesIO, use temp directory or current directory
+            output_path = Path.cwd() / "analysis.txt"
+            self.logger.debug(f"Generated output path: {output_path}")
+            return str(output_path)
 
     def analyze(self) -> AnalysisResult:
         """
@@ -261,14 +272,15 @@ class DocumentAnalyzer:
         Raises:
             PDFProcessingError: If fundamental PDF processing fails
         """
-        self.logger.info(f"Starting document analysis for {self.pdf_path}")
+        self.logger.info("Starting document analysis")
 
         import time
         start_time = time.time()
 
         try:
+            pdf_path_str = self.pdf_stream if isinstance(self.pdf_stream, str) else "BytesIO stream"
             result = AnalysisResult(
-                pdf_path=self.pdf_path,
+                pdf_path=pdf_path_str,
                 output_path=self.output_path
             )
 
@@ -297,7 +309,7 @@ class DocumentAnalyzer:
                     result.content = partition_result[1]
 
             # Generate combined output
-            self._generate_output(result)
+            # self._generate_output(result)
 
             result.processing_time_seconds = time.time() - start_time
             self.logger.info(
@@ -317,7 +329,7 @@ class DocumentAnalyzer:
             self.logger.info("Table detection started")
 
             extractor = PDFTableExtractor()
-            table_lines = extractor.extract_tables(self.pdf_path)
+            table_lines = extractor.extract_tables(self.pdf_stream)
             raw_output = "\n".join(table_lines) if table_lines else ""
 
             table_data = TableData(raw_output=raw_output)
@@ -345,7 +357,7 @@ class DocumentAnalyzer:
             # Attempt partition detection using PDFMultiColumnProcessor
             multi_column_processor = PDFMultiColumnProcessor()
             partition_sections = multi_column_processor.process_pdf(
-                self.pdf_path)
+                self.pdf_stream)
 
             if partition_sections:
                 self.logger.info(
@@ -363,7 +375,7 @@ class DocumentAnalyzer:
                 "No partitions found. Falling back to content detection")
 
             processor = PDFProcessor()
-            content_sections = processor.process_pdf(self.pdf_path)
+            content_sections = processor.process_pdf(self.pdf_stream)
 
             if content_sections:
                 self.logger.info(
@@ -596,7 +608,14 @@ def main() -> int:
         output_file = sys.argv[2] if len(sys.argv) > 2 else None
 
     try:
-        analyzer = DocumentAnalyzer(pdf_file, output_path=output_file)
+        # Example 1: Using file path directly (backward compatible)
+        # analyzer = DocumentAnalyzer(pdf_stream=pdf_file, output_path=output_file)
+        
+        # Example 2: Using BytesIO stream (from file or uploaded file)
+        pdf_bytes = Path(pdf_file).read_bytes()
+        pdf_stream = BytesIO(pdf_bytes)
+        analyzer = DocumentAnalyzer(pdf_stream=pdf_stream, output_path=output_file)
+        
         result = analyzer.analyze()
 
         logger.info("=" * 80)

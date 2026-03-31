@@ -1,5 +1,6 @@
 import fitz  # PyMuPDF
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
+from io import BytesIO
 from sklearn.cluster import KMeans
 import numpy as np
 
@@ -243,10 +244,17 @@ class PDFMultiColumnProcessor:
     # ----------------------------
     # Process PDF
     # ----------------------------
-    def process_pdf(self, file_path: str) -> List[Dict[str, Any]]:
+    def process_pdf(self, pdf_stream: Union[str, BytesIO]) -> List[Dict[str, Any]]:
+        """Process PDF from file path or BytesIO stream."""
         all_sections = []
-        doc = fitz.open(file_path)
-        print(f"[INFO] Opened PDF: {file_path}")
+        
+        # Handle both file paths and BytesIO streams
+        if isinstance(pdf_stream, str):
+            doc = fitz.open(pdf_stream)
+        else:
+            doc = fitz.open(stream=pdf_stream, filetype="pdf")
+        
+        print(f"[INFO] Processing PDF")
 
         for page_num, page in enumerate(doc, start=1):
             print(f"[INFO] Processing page {page_num}")
@@ -292,6 +300,8 @@ class PDFMultiColumnProcessor:
 # Usage
 # ----------------------------
 if __name__ == "__main__":
+    from pathlib import Path
+    
     # pdf_file = (
     #     r"C:/Naveen/Jobs/Source/TrotixAI/ai/Resume_Pipeline/SampleResumes/Rinku.pdf"
     # )
@@ -301,7 +311,17 @@ if __name__ == "__main__":
     output_path = r"C:/Naveen/Jobs/Source/TrotixAI/ai/Resume_Pipeline/output.txt"
 
     processor = PDFMultiColumnProcessor()
-    structured_data = processor.process_pdf(pdf_file)
-    processor.save_to_txt(structured_data, output_path)
-
-    print("[DONE] Processing completed successfully.")
+    
+    try:
+        # Example 1: Using file path directly (backward compatible)
+        # structured_data = processor.process_pdf(pdf_file)
+        
+        # Example 2: Using BytesIO stream (from file)
+        pdf_bytes = Path(pdf_file).read_bytes()
+        pdf_stream = BytesIO(pdf_bytes)
+        structured_data = processor.process_pdf(pdf_stream)
+        
+        processor.save_to_txt(structured_data, output_path)
+        print("[DONE] Processing completed successfully.")
+    except Exception as e:
+        print(f"[ERROR] Processing failed: {e}")

@@ -17,7 +17,6 @@ class FileValidator:
             raise FileValidationError(f"Unsupported file extension: {extension}. Allowed: PDF/CSV/DOCX/DOC.")
         if not file_bytes:
             raise FileValidationError("Uploaded file is empty.")
-        if len(file_bytes) > self.MAX_FILE_SIZE_BYTES:
-            raise FileValidationError("File too large. Max size is 10 MB.")
+        
         return extension
 

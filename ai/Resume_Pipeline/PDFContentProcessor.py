@@ -1,5 +1,6 @@
 import pdfplumber
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
+from io import BytesIO
 
 
 class PDFProcessor:
@@ -145,13 +146,14 @@ class PDFProcessor:
     # ----------------------------
     # Core Processing
     # ----------------------------
-    def process_pdf(self, file_path: str) -> List[Dict[str, Any]]:
+    def process_pdf(self, pdf_stream: Union[str, BytesIO]) -> List[Dict[str, Any]]:
+        """Process PDF from file path or BytesIO stream."""
         result = []
         current_section = {"title": None, "content": []}
 
         try:
-            with pdfplumber.open(file_path) as pdf:
-                print(f"[INFO] Opened PDF: {file_path}")
+            with pdfplumber.open(pdf_stream) as pdf:
+                print(f"[INFO] Processing PDF")
 
                 for page_num, page in enumerate(pdf.pages, start=1):
                     print(f"[INFO] Processing page {page_num}")
@@ -196,7 +198,7 @@ class PDFProcessor:
                 result.append(current_section)
 
         except FileNotFoundError:
-            print(f"[ERROR] File not found: {file_path}")
+            print(f"[ERROR] PDF stream not accessible")
         except Exception as e:
             print(f"[ERROR] process_pdf failed: {e}")
 
@@ -228,13 +230,21 @@ class PDFProcessor:
 # Usage
 # ----------------------------
 if __name__ == "__main__":
+    from pathlib import Path
+    
     pdf_file = r"C:\Naveen\Jobs\Source\TrotixAI\ai\Resume_Pipeline\sample_resume.pdf"
     output_path = r"C:\Naveen\Jobs\Source\TrotixAI\ai\Resume_Pipeline\output.txt"
 
     processor = PDFProcessor()
 
     try:
-        structured_data = processor.process_pdf(pdf_file)
+        # Example 1: Using file path directly (backward compatible)
+        # structured_data = processor.process_pdf(pdf_file)
+        
+        # Example 2: Using BytesIO stream (from file)
+        pdf_bytes = Path(pdf_file).read_bytes()
+        pdf_stream = BytesIO(pdf_bytes)
+        structured_data = processor.process_pdf(pdf_stream)
 
         if structured_data:
             processor.save_to_txt(structured_data, output_path)

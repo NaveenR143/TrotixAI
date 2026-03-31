@@ -26,9 +26,9 @@ class AzureOpenAIResumeRefiner:
         self._endpoint = endpoint or os.getenv("AZURE_OPENAI_ENDPOINT", "")
         self._api_key = api_key or os.getenv("AZURE_OPENAI_API_KEY", "")
         self._api_version = api_version or os.getenv(
-            "AZURE_OPENAI_API_VERSION", "2024-06-01")
-        self._deployment = deployment or os.getenv(
-            "AZURE_OPENAI_DEPLOYMENT", "")
+            "AZURE_OPENAI_API_VERSION", "2024-06-01"
+        )
+        self._deployment = deployment or os.getenv("AZURE_OPENAI_DEPLOYMENT", "")
         self._formatter = TOONFormatter()
 
         if not self._endpoint or not self._api_key or not self._deployment:
@@ -39,7 +39,8 @@ class AzureOpenAIResumeRefiner:
 
         if AzureOpenAI is None:
             raise AIRefinementError(
-                "`openai` package is required for Azure OpenAI calls.")
+                "`openai` package is required for Azure OpenAI calls."
+            )
 
         self._client = AzureOpenAI(
             azure_endpoint=self._endpoint,
@@ -84,14 +85,16 @@ class AzureOpenAIResumeRefiner:
 
             content = (response.choices[0].message.content or "").strip()
 
+            print("AI Content Generated : ", content)
+
             # 🔴 Strong validation
             if not content.startswith("JobSeekerProfileTOON("):
-                raise AIRefinementError(
-                    "Invalid TOON format (missing root object)")
+                raise AIRefinementError("Invalid TOON format (missing root object)")
 
             if not content.endswith(")"):
                 raise AIRefinementError(
-                    "Malformed TOON response (missing closing bracket)")
+                    "Malformed TOON response (missing closing bracket)"
+                )
 
             return self._formatter.parse_profile(
                 user_id=user_id,
@@ -102,6 +105,4 @@ class AzureOpenAIResumeRefiner:
             raise
 
         except Exception as exc:
-            raise AIRefinementError(
-                f"LLM refinement failed: {exc}"
-            ) from exc
+            raise AIRefinementError(f"LLM refinement failed: {exc}") from exc

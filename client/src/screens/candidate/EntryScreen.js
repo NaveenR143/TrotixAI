@@ -15,7 +15,7 @@ import { fadeSlideUp } from "../../utils/themeUtils";
 import StatPill from "../../components/common/StatPill";
 import ResumeUpload from "../../components/upload/ResumeUpload";
 
-const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry }) => {
+const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => {
   const [searchValues, setSearchValues] = useState({ title: '', skills: '', location: '' });
 
   return (
@@ -31,6 +31,34 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry }) => {
           },
         }}
       >
+        <Box sx={{ display: 'flex', justifyContent: { xs: 'center', sm: 'flex-end' }, mb: { xs: 3, md: 0 } }}>
+          <Button
+            variant="contained"
+            onClick={onPostJob}
+            sx={{
+              position: { xs: 'relative', md: 'absolute' },
+              top: { md: 32 },
+              right: { md: 32 },
+              zIndex: 10,
+              bgcolor: '#6366f1',
+              textTransform: 'none',
+              px: { xs: 2, md: 3 },
+              py: 1,
+              fontSize: { xs: '0.85rem', md: '0.95rem' },
+              fontWeight: 700,
+              borderRadius: 2,
+              boxShadow: '0 4px 14px rgba(99,102,241,0.25)',
+              '&:hover': {
+                bgcolor: '#4f46e5',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 6px 20px rgba(99,102,241,0.3)',
+              },
+              animation: `${fadeSlideUp} 0.4s both`
+            }}
+          >
+            Post a Free Job
+          </Button>
+        </Box>
         <Chip
           icon={<AutoAwesomeIcon sx={{ fontSize: '0.85rem !important', color: '#6366f1 !important' }} />}
           label="AI-Powered Job Matching"

@@ -16,6 +16,8 @@ const JobFeedScreen = Loadable(lazy(() => import("../screens/candidate/JobFeedSc
 const JobDetailScreen = Loadable(lazy(() => import("../screens/candidate/JobDetailScreen")));
 const AddCreditsScreen = Loadable(lazy(() => import("../screens/candidate/AddCreditsScreen")));
 const LoginScreen = Loadable(lazy(() => import("../screens/candidate/LoginScreen")));
+const PostJobScreen = Loadable(lazy(() => import("../screens/recruiter/PostJobScreen")));
+const PostedJobsScreen = Loadable(lazy(() => import("../screens/recruiter/PostedJobsScreen")));
 
 /* ***Layouts**** */
 const BlankLayout = Loadable(lazy(() => import("../layouts/blank-layout/BlankLayout")));
@@ -23,7 +25,7 @@ const BlankLayout = Loadable(lazy(() => import("../layouts/blank-layout/BlankLay
 /* ***Route Wrappers*** */
 const EntryRoute = () => {
   const navigate = useNavigate();
-  return <EntryScreen onUpload={() => navigate('/processing')} onDirectSearch={() => navigate('/feed')} onManualEntry={() => navigate('/manual-profile')} />;
+  return <EntryScreen onUpload={() => navigate('/processing')} onDirectSearch={() => navigate('/feed')} onManualEntry={() => navigate('/manual-profile')} onPostJob={() => navigate('/post-job')} />;
 };
 
 const ManualProfileRoute = () => {
@@ -78,6 +80,8 @@ const Router = [
           { path: "detail/:id", element: <DetailRoute /> },
           { path: "credits", element: <CreditsRoute /> },
           { path: "login", element: <LoginScreen /> },
+          { path: "post-job", element: <PostJobScreen /> },
+          { path: "posted-jobs", element: <PostedJobsScreen /> },
         ]
       },
       { path: "*", element: <Navigate to="/error/404" /> },

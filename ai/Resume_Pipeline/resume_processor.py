@@ -6,20 +6,24 @@ Importing from this file continues to work:
 
   from ai.Resume_Pipeline.resume_processor import ResumeProcessor
 """
+
 from __future__ import annotations
+from io import BytesIO
 
 # When executed directly (python resume_processor.py) Python doesn't set
 # a package context so relative imports (from .errors import ...) fail
 # with "attempted relative import with no known parent package".
 # This small bootstrap makes the package importable when run as a script by
 # adding the project root to sys.path and setting __package__.
-if __name__ == "__main__" and __package__ is None:
+if __name__ == "__main__":
     import sys
     from pathlib import Path as _Path
 
     # project root is two levels up: .../ai/Resume_Pipeline/resume_processor.py
-    _project_root = _Path(__file__).resolve().parents[2]
-    sys.path.insert(0, str(_project_root))
+    _project_root = str(_Path(__file__).resolve().parents[2])
+    if _project_root not in sys.path:
+        sys.path.insert(0, _project_root)
+    # Ensure package is set so relative imports within the package can work if any
     __package__ = "ai.Resume_Pipeline"
 
 import asyncio
@@ -94,14 +98,26 @@ async def _demo() -> None:
         Path.cwd() / "sample_resume.pdf",
         Path(__file__).resolve().parent / "sample_resume.pdf",
     ]
-    demo_file = next(
-        (p for p in demo_candidates if p.exists()), demo_candidates[0])
+
+    print(f"File Path : {demo_candidates[1]}")
+    demo_file = next((p for p in demo_candidates if p.exists()), demo_candidates[0])
     if not demo_file.exists():
         LOGGER.warning(
             "Demo skipped: sample_resume.pdf not found. Looked in: %s",
             ", ".join(str(p) for p in demo_candidates),
         )
         return
+
+    print(f"Using demo file: {Path(demo_file)}")
+
+    pdf_bytes = Path(demo_file).read_bytes()
+
+    MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
+
+    if len(pdf_bytes) > MAX_FILE_SIZE_BYTES:
+        raise FileValidationError("File too large. Max size is 10 MB.")
+
+    pdf_stream = BytesIO(pdf_bytes)
 
     repository = JobSeekerRepository()
     await repository.connect()
@@ -113,13 +129,14 @@ async def _demo() -> None:
         await processor.process_resume(
             user_id=uuid4(),
             file_name=demo_file.name,
-            file_bytes=demo_file.read_bytes(),
-            file_url=f"local://{demo_file.name}",
+            file_bytes=pdf_stream,
+            raw_bytes=demo_file.read_bytes(),
             mime_type="application/pdf",
         )
         LOGGER.info("Resume processing demo completed.")
     finally:
         await repository.close()
+
 
 if __name__ == "__main__":
     asyncio.run(_demo())

@@ -60,8 +60,8 @@ class DeterministicResumeData:
     email: str | None
     phone: str | None
     languages: list[str]
-    education_lines: list[str] = field(default_factory=list)
-    project_lines: list[str] = field(default_factory=list)
+    # education_lines: list[str] = field(default_factory=list)
+    # project_lines: list[str] = field(default_factory=list)
     # skills: list[str]
     # experience_years: Decimal | None
     # job_titles: list[str]

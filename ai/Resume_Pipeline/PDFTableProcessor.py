@@ -1,5 +1,6 @@
 import pdfplumber
-from typing import List, Optional
+from typing import List, Optional, Union
+from io import BytesIO
 from PDFContentProcessor import PDFProcessor
 from PDFPartitionContentProcessor import PDFMultiColumnProcessor
 
@@ -56,17 +57,17 @@ class PDFTableExtractor:
     # ----------------------------
     # Core Extraction (IN-MEMORY)
     # ----------------------------
-    def extract_tables(self, pdf_path: str) -> List[str]:
+    def extract_tables(self, pdf_stream: Union[str, BytesIO]) -> List[str]:
         """
-        Extract tables and store everything in memory as list of strings.
+        Extract tables from PDF stream or file path and store as list of strings.
         """
         output_lines = []
         prev_table = None
         first_table_written = False
 
         try:
-            with pdfplumber.open(pdf_path) as pdf:
-                print(f"[INFO] Opened PDF: {pdf_path}")
+            with pdfplumber.open(pdf_stream) as pdf:
+                print(f"[INFO] Processing PDF")
 
                 for page_num, page in enumerate(pdf.pages, start=1):
                     print(f"[INFO] Processing page {page_num}")
@@ -113,7 +114,7 @@ class PDFTableExtractor:
                                 f"[ERROR] Failed processing table {table_index} on page {page_num}: {e}")
 
         except FileNotFoundError:
-            print(f"[ERROR] File not found: {pdf_path}")
+            print(f"[ERROR] PDF stream not accessible")
         except Exception as e:
             print(f"[FATAL] extract_tables failed: {e}")
 
@@ -161,13 +162,21 @@ class PDFTableExtractor:
 # Usage
 # ----------------------------
 if __name__ == "__main__":
+    from pathlib import Path
+    
     pdf_file = r"C:\Naveen\Jobs\Source\TrotixAI\ai\Resume_Pipeline\sample_resume.pdf"
     output_path = r"C:\Naveen\Jobs\Source\TrotixAI\ai\Resume_Pipeline\output_tables.txt"
 
     extractor = PDFTableExtractor()
 
     try:
-        table_data = extractor.process(pdf_file)
+        # Example 1: Using file path directly (backward compatible)
+        # table_data = extractor.extract_tables(pdf_file)
+        
+        # Example 2: Using BytesIO stream (from file)
+        pdf_bytes = Path(pdf_file).read_bytes()
+        pdf_stream = BytesIO(pdf_bytes)
+        table_data = extractor.extract_tables(pdf_stream)
 
         if table_data:
             extractor.save_to_txt(table_data, output_path)
