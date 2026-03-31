@@ -402,6 +402,15 @@ async def fetch_matching_jobs(resume_data: dict, db: AsyncSession) -> list[dict]
 
 @app.post("/api/resume/parse")
 async def parse_resume_endpoint(resume: UploadFile = File(...)):
+    
+    # ToDo
+    # upload resume to gdrive
+    # fetch mobile number from resume
+    # see if mobile number is present in database
+    # if present then fetch the profile and see if user is already login or not 
+    # ask user to confirm if they want to update the profile if yes ask user to login
+    
+    
     """Accept resume file → process with AI pipeline → return structured extracted data & job matches."""
     allowed = [
         "application/pdf",
