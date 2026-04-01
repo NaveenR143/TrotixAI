@@ -4,6 +4,7 @@ import re
 from decimal import Decimal
 from typing import Sequence
 from uuid import UUID
+import json
 
 from .models import (
     DeterministicResumeData,
@@ -171,6 +172,25 @@ class TOONFormatter:
             "- If only year is available → YYYY-01-01\n"
         )
 
+    def toon_to_json(self, toon_str: str) -> dict:
+        # Replace class-like wrappers (e.g., JobSeekerProfileTOON(...)
+        toon_str = re.sub(r"(\w+)TOON\(", "{", toon_str)
+
+        # Replace closing parentheses with }
+        toon_str = toon_str.replace(")", "}")
+
+        # Replace `key: value` with "key": value
+        toon_str = re.sub(r"(\w+):", r'"\1":', toon_str)
+
+        # Replace empty with null
+        toon_str = toon_str.replace("empty", "null")
+
+        # Fix trailing commas (optional cleanup)
+        toon_str = re.sub(r",\s*}", "}", toon_str)
+        toon_str = re.sub(r",\s*]", "]", toon_str)
+
+        return json.loads(toon_str)
+
     def parse_profile(self, user_id: UUID, toon_text: str) -> JobSeekerProfile:
         with open("toon.txt", "w", encoding="utf-8") as _debug_file:
             _debug_file.write(toon_text)
@@ -182,9 +202,7 @@ class TOONFormatter:
             return None if value.lower() == "empty" or value == "" else value
 
         def extract_scalar(key: str) -> str | None:
-            match = re.search(
-                rf"{re.escape(key)}:\s*(\"([^\"]*)\"|[^,\n]+)", toon_text
-            )
+            match = re.search(rf"{re.escape(key)}:\s*(\"([^\"]*)\"|[^,\n]+)", toon_text)
             if not match:
                 return None
             raw = match.group(1)
@@ -229,11 +247,9 @@ class TOONFormatter:
             current_location=location,
             preferred_locations=extract_list("preferred_locations"),
             years_of_experience=years,
-            notice_period_days=self._to_int(
-                extract_scalar("notice_period_days")),
+            notice_period_days=self._to_int(extract_scalar("notice_period_days")),
             current_salary=self._to_decimal(extract_scalar("current_salary")),
-            expected_salary=self._to_decimal(
-                extract_scalar("expected_salary")),
+            expected_salary=self._to_decimal(extract_scalar("expected_salary")),
             salary_currency=extract_scalar("salary_currency") or "INR",
             linkedin_url=extract_scalar("linkedin_url"),
             github_url=extract_scalar("github_url"),
@@ -251,8 +267,7 @@ class TOONFormatter:
         education_list = []
 
         # Find the education array in the TOON response
-        match = re.search(
-            r"education:\s*\[(.*?)\](?=\s*[\),])", toon_text, re.DOTALL)
+        match = re.search(r"education:\s*\[(.*?)\](?=\s*[\),])", toon_text, re.DOTALL)
         if not match:
             return education_list
 

@@ -132,6 +132,8 @@ class ResumeProcessor:
             # Pass complete clean_text (without PII) to AI refiner
             profile = self._ai_refiner.refine(user_id=user_id, clean_text=raw_text)
 
+            print(f"AI refinement completed for user {user_id}:\n{profile}")
+
             # Debug output
             print(
                 f"Refined profile for user {user_id}:\n{json.dumps(asdict(profile), indent=2, default=str)}"

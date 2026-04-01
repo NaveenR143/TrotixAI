@@ -33,33 +33,33 @@ from uuid import uuid4
 
 # Use absolute package imports so the module works both when imported
 # as a package and when executed directly as a script.
-from ai.Resume_Pipeline.ai_refiner import AzureOpenAIResumeRefiner
-from ai.Resume_Pipeline.errors import (
+from ai.services.resume_pipeline.ai_refiner import AzureOpenAIResumeRefiner
+from ai.services.resume_pipeline.errors import (
     AIRefinementError,
     FileValidationError,
     ParsingError,
     RepositoryError,
     ResumeProcessingError,
 )
-from ai.Resume_Pipeline.extractor import DeterministicExtractor
-from ai.Resume_Pipeline.models import (
+from ai.services.resume_pipeline.extractor import DeterministicExtractor
+from ai.services.resume_pipeline.models import (
     DeterministicResumeData,
     EducationEntry,
     JobSeekerProfile,
     WorkExperience,
 )
-from ai.Resume_Pipeline.parsers import (
+from ai.services.resume_pipeline.parsers import (
     CsvResumeParser,
     DocResumeParser,
     DocxResumeParser,
     PdfResumeParser,
     ResumeParserStrategy,
 )
-from ai.Resume_Pipeline.preprocessing import ResumePreprocessor
-from ai.Resume_Pipeline.repository import JobSeekerRepository
-from ai.Resume_Pipeline.service import ResumeProcessor, configure_logging
-from ai.Resume_Pipeline.toon import TOONFormatter
-from ai.Resume_Pipeline.validation import FileValidator
+from ai.services.resume_pipeline.preprocessing import ResumePreprocessor
+from ai.services.resume_pipeline.repository import JobSeekerRepository
+from ai.services.resume_pipeline.service import ResumeProcessor, configure_logging
+from ai.services.resume_pipeline.toon import TOONFormatter
+from ai.services.resume_pipeline.validation import FileValidator
 
 LOGGER = logging.getLogger("resume_processor")
 
@@ -100,7 +100,8 @@ async def _demo() -> None:
     ]
 
     print(f"File Path : {demo_candidates[1]}")
-    demo_file = next((p for p in demo_candidates if p.exists()), demo_candidates[0])
+    demo_file = next(
+        (p for p in demo_candidates if p.exists()), demo_candidates[0])
     if not demo_file.exists():
         LOGGER.warning(
             "Demo skipped: sample_resume.pdf not found. Looked in: %s",

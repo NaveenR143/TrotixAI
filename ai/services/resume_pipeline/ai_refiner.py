@@ -28,7 +28,8 @@ class AzureOpenAIResumeRefiner:
         self._api_version = api_version or os.getenv(
             "AZURE_OPENAI_API_VERSION", "2024-06-01"
         )
-        self._deployment = deployment or os.getenv("AZURE_OPENAI_DEPLOYMENT", "")
+        self._deployment = deployment or os.getenv(
+            "AZURE_OPENAI_DEPLOYMENT", "")
         self._formatter = TOONFormatter()
 
         if not self._endpoint or not self._api_key or not self._deployment:
@@ -89,17 +90,25 @@ class AzureOpenAIResumeRefiner:
 
             # 🔴 Strong validation
             if not content.startswith("JobSeekerProfileTOON("):
-                raise AIRefinementError("Invalid TOON format (missing root object)")
+                raise AIRefinementError(
+                    "Invalid TOON format (missing root object)")
 
             if not content.endswith(")"):
                 raise AIRefinementError(
                     "Malformed TOON response (missing closing bracket)"
                 )
 
-            return self._formatter.parse_profile(
-                user_id=user_id,
-                toon_text=content,
-            )
+            profile_json = self._formatter.toon_to_json(content)
+
+            return {
+                user_id: user_id,
+                "profile": profile_json,
+            }
+
+            # return self._formatter.parse_profile(
+            #     user_id=user_id,
+            #     profile=content,
+            # )
 
         except AIRefinementError:
             raise
