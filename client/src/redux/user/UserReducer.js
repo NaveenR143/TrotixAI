@@ -11,12 +11,18 @@ const INIT_STATE = {
 	ri:'', // EsriAPI
 	points: 100, // AI Credits
 	mobile: '',
+	userType: 'Candidate', // User Type: 'Candidate' or 'Recruiter'
 	skills: '',
 	preferredLocation: '',
 	latitude: null,
 	longitude: null,
 	experience: '',
-	website: ''
+	website: '',
+	city: '', // City from IP geolocation
+	state: '', // State/Province from IP geolocation
+	country: '', // Country from IP geolocation
+	district: '', // District from IP geolocation
+	zipcode: '', // Zipcode from IP geolocation
 };
 
 function UserReducer(state = INIT_STATE, action) {

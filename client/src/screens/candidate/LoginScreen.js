@@ -48,12 +48,21 @@ const LoginScreen = () => {
     
     // Mock success
     setTimeout(() => {
+      // Save to localStorage and Redux
+      const userData = { 
+        mobile,
+        userType: 'Candidate' // Default to Candidate for now
+      };
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('userType', 'Candidate');
+      localStorage.setItem('mobileNumber', mobile);
+      
       dispatch({
         type: UPDATE_USER_PROFILE,
-        payload: { mobile }
+        payload: userData
       });
       setLoading(false);
-      navigate("/");
+      navigate("/dashboard");
     }, 800);
   };
 

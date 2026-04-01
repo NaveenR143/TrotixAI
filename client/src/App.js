@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter, useRoutes } from "react-router-dom";
+import axios from "axios";
 import {
   CssBaseline, ThemeProvider, Dialog, DialogTitle,
   DialogContent, DialogContentText, DialogActions, Button, Box, Typography
@@ -22,44 +23,66 @@ const AppRoutes = () => {
   return useRoutes(Router);
 };
 
+// IP Geolocation API Configuration
+const API_KEY = "4a791e834ecd4110b3b047da9b5d3ab5"; // Replace with your actual API key
+
 const App = () => {
   const theme = ThemeSettings();
   const customizer = useSelector((state) => state.CustomizerReducer);
   const dispatch = useDispatch();
   const { latitude, longitude } = useSelector((state) => state.UserReducer);
 
-  const [locationError, setLocationError] = useState(null);
-  const [showLocationDialog, setShowLocationDialog] = useState(false);
 
-  const requestLocation = () => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          console.log("Geolocation retrieved:", latitude, longitude);
-          dispatch({
-            type: "UPDATE_USER_PROFILE",
-            payload: { latitude, longitude }
-          });
-          setShowLocationDialog(false);
-          setLocationError(null);
-        },
-        (error) => {
-          console.warn("Geolocation access denied or unavailable:", error.message);
-          setLocationError(error.message);
-          if (error.code === 1) { // PERMISSION_DENIED
-            // setShowLocationDialog(true);
-          }
-        },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-      );
-    } else {
-      console.warn("Geolocation is not supported by this browser.");
-      setLocationError("Geolocation not supported");
-    }
-  };
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
+  const { mobile, city } = useSelector((state) => state.UserReducer);
 
   useEffect(() => {
+    // Call IP Geolocation API only if mobileNumber or city is not available
+    const shouldFetchGeolocation = !mobile || !city;
+
+    const fetchIPGeolocation = async () => {
+      try {
+        const url = `https://api.ipgeolocation.io/v3/ipgeo?apiKey=${API_KEY}`;
+        const response = await axios.get(url);
+
+        const user_details = {
+          IP: response.data.ip,
+          country: response.data.location.country_name,
+          state: response.data.location.state_prov,
+          city: response.data.location.city,
+          district: response.data.location.district,
+          latitude: response.data.location.latitude,
+          longitude: response.data.location.longitude,
+          zipcode: response.data.location.zipcode,
+        };
+
+        // Update Redux with geolocation data
+        dispatch({
+          type: "UPDATE_USER_PROFILE",
+          payload: {
+            city: user_details.city,
+            latitude: user_details.latitude,
+            longitude: user_details.longitude,
+            state: user_details.state,
+            country: user_details.country,
+            district: user_details.district,
+            zipcode: user_details.zipcode,
+          }
+        });
+        console.log("UserReducer updated with geolocation data");
+      } catch (error) {
+        console.error("Error fetching IP geolocation:", error.message);
+        if (error.response) {
+          console.error("Response error:", error.response.data);
+        }
+      }
+    };
+
+    // Only fetch if geolocation data is not available
+    if (shouldFetchGeolocation) {
+      fetchIPGeolocation();
+    }
+
     // Add Google Material Icons link
     const link = document.createElement("link");
     link.href = encodeURI(
@@ -69,11 +92,8 @@ const App = () => {
     link.type = "text/css";
     document.head.appendChild(link);
 
-    // Initial check
-    if (!latitude || !longitude) {
-      requestLocation();
-    }
-  }, [dispatch, latitude, longitude]);
+
+  }, [dispatch, mobile, city, latitude, longitude]);
 
   return (
     <HelmetProvider>
@@ -83,47 +103,6 @@ const App = () => {
             <CssBaseline />
             <LoadingSpinnerComp />
             <AppRoutes />
-
-            {/* Location Permission Re-prompt Dialog */}
-            <Dialog
-              open={showLocationDialog}
-              onClose={() => setShowLocationDialog(false)}
-              PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
-            >
-              <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, fontWeight: 800 }}>
-                <LocationOnIcon sx={{ color: '#6366f1' }} /> Enable Location Access
-              </DialogTitle>
-              <DialogContent>
-                <DialogContentText sx={{ color: 'text.primary', mb: 2 }}>
-                  TrotixAI uses your location to find the best job matches nearby.
-                  It looks like location access was denied.
-                </DialogContentText>
-                <Box sx={{ bgcolor: '#fff7ed', p: 2, borderRadius: 2, border: '1px solid #ffedd5', display: 'flex', gap: 1.5 }}>
-                  <WarningAmberIcon sx={{ color: '#f59e0b', fontSize: 20 }} />
-                  <Typography variant="body2" sx={{ color: '#92400e', fontWeight: 500 }}>
-                    To enable, click the lock icon in your browser's address bar and set Location to "Allow", then click Retry.
-                  </Typography>
-                </Box>
-              </DialogContent>
-              <DialogActions sx={{ p: 2.5, pt: 1 }}>
-                <Button onClick={() => setShowLocationDialog(false)} sx={{ color: '#64748b', fontWeight: 600 }}>
-                  Maybe Later
-                </Button>
-                <Button
-                  onClick={requestLocation}
-                  variant="contained"
-                  sx={{
-                    bgcolor: '#6366f1',
-                    '&:hover': { bgcolor: '#4f46e5' },
-                    px: 3,
-                    borderRadius: 2,
-                    fontWeight: 700
-                  }}
-                >
-                  Retry Access
-                </Button>
-              </DialogActions>
-            </Dialog>
           </RTL>
         </ThemeProvider>
       </BrowserRouter>

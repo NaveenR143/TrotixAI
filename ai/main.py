@@ -16,6 +16,7 @@ from typing import Any, Literal
 import io
 import re
 import logging
+import random
 
 from db.database import engine, get_db, Base
 from db.models import Job
@@ -63,6 +64,7 @@ LOGGER = logging.getLogger("main")
 # In-memory stores for workflow signals (can be moved to DB tables later).
 PROFILE_CACHE: dict[str, dict[str, Any]] = {}
 FEEDBACK_CACHE: dict[str, dict[str, set[str]]] = {}
+OTP_CACHE: dict[str, str] = {}
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -78,16 +80,16 @@ repository: JobSeekerRepository | None = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global resume_processor, repository
-    
+
     # Initialize database tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+
     # Initialize resume processor components
     try:
         repository = JobSeekerRepository()
         await repository.connect()
-        
+
         ai_refiner = AzureOpenAIResumeRefiner()
         resume_processor = ResumeProcessor(
             repository=repository,
@@ -98,9 +100,9 @@ async def lifespan(app: FastAPI):
         LOGGER.warning(f"Resume processor initialization failed (optional): {e}")
         resume_processor = None
         repository = None
-    
+
     yield
-    
+
     # Cleanup
     if repository:
         await repository.close()
@@ -137,6 +139,15 @@ class MatchRequest(BaseModel):
 
 class ProfileUpdateRequest(BaseModel):
     profile: dict[str, Any]
+
+
+class GenerateOTPRequest(BaseModel):
+    mobile_number: str
+
+
+class ValidateOTPRequest(BaseModel):
+    mobile_number: str
+    otp: str
 
 
 class FeedbackRequest(BaseModel):
@@ -289,7 +300,9 @@ def parse_resume(text: str) -> dict:
     }
 
 
-def _resolve_target_skills(target_role: str | None, target_skills: list[str]) -> list[str]:
+def _resolve_target_skills(
+    target_role: str | None, target_skills: list[str]
+) -> list[str]:
     explicit = [s.lower() for s in target_skills if s]
     if explicit:
         return sorted(set(explicit))
@@ -299,7 +312,9 @@ def _resolve_target_skills(target_role: str | None, target_skills: list[str]) ->
     return []
 
 
-def _compute_visibility(profile: dict[str, Any], vector: dict[str, Any]) -> tuple[int, list[str]]:
+def _compute_visibility(
+    profile: dict[str, Any], vector: dict[str, Any]
+) -> tuple[int, list[str]]:
     recommendations: list[str] = []
     score = 0
 
@@ -338,7 +353,9 @@ def _compute_visibility(profile: dict[str, Any], vector: dict[str, Any]) -> tupl
         score += 12
     elif skill_count > 0:
         score += 6
-        recommendations.append("Add more relevant technical skills (target at least 8).")
+        recommendations.append(
+            "Add more relevant technical skills (target at least 8)."
+        )
     else:
         recommendations.append("Add relevant technical skills.")
 
@@ -402,15 +419,14 @@ async def fetch_matching_jobs(resume_data: dict, db: AsyncSession) -> list[dict]
 
 @app.post("/api/resume/parse")
 async def parse_resume_endpoint(resume: UploadFile = File(...)):
-    
+
     # ToDo
     # upload resume to gdrive
     # fetch mobile number from resume
     # see if mobile number is present in database
-    # if present then fetch the profile and see if user is already login or not 
+    # if present then fetch the profile and see if user is already login or not
     # ask user to confirm if they want to update the profile if yes ask user to login
-    
-    
+
     """Accept resume file → process with AI pipeline → return structured extracted data & job matches."""
     allowed = [
         "application/pdf",
@@ -441,10 +457,18 @@ async def parse_resume_endpoint(resume: UploadFile = File(...)):
                 "summary": profile.summary,
                 "current_location": profile.current_location,
                 "preferred_locations": profile.preferred_locations,
-                "years_of_experience": str(profile.years_of_experience) if profile.years_of_experience else None,
+                "years_of_experience": (
+                    str(profile.years_of_experience)
+                    if profile.years_of_experience
+                    else None
+                ),
                 "notice_period_days": profile.notice_period_days,
-                "current_salary": str(profile.current_salary) if profile.current_salary else None,
-                "expected_salary": str(profile.expected_salary) if profile.expected_salary else None,
+                "current_salary": (
+                    str(profile.current_salary) if profile.current_salary else None
+                ),
+                "expected_salary": (
+                    str(profile.expected_salary) if profile.expected_salary else None
+                ),
                 "salary_currency": profile.salary_currency,
                 "linkedin_url": profile.linkedin_url,
                 "github_url": profile.github_url,
@@ -455,7 +479,11 @@ async def parse_resume_endpoint(resume: UploadFile = File(...)):
             profile_vector = {
                 "skills": sorted({s.lower() for s in profile.skills}),
                 "titles": [t.lower() for t in profile.parsed_job_titles],
-                "experience_years": str(profile.years_of_experience) if profile.years_of_experience else None,
+                "experience_years": (
+                    str(profile.years_of_experience)
+                    if profile.years_of_experience
+                    else None
+                ),
                 "location": profile.current_location,
             }
             PROFILE_CACHE[str(user_id)] = {
@@ -477,7 +505,7 @@ async def parse_resume_endpoint(resume: UploadFile = File(...)):
         except Exception as e:
             LOGGER.error(f"Unexpected error processing resume: {e}")
             raise HTTPException(503, f"Unexpected error: {str(e)}")
-    
+
     # Fallback to basic parsing if processor is not available
     LOGGER.warning("Resume processor not available, using basic parsing")
     text = extract_text(contents, resume.content_type)
@@ -592,7 +620,9 @@ async def resume_visibility_score(user_id: str):
 
 
 @app.get("/api/jobs/feed/{user_id}")
-async def personalized_job_feed(user_id: str, db: AsyncSession = Depends(get_db), limit: int = 30):
+async def personalized_job_feed(
+    user_id: str, db: AsyncSession = Depends(get_db), limit: int = 30
+):
     """Daily feed optimization using profile vector and swipe/apply feedback."""
     profile_state = PROFILE_CACHE.get(user_id)
     if not profile_state:
@@ -644,7 +674,9 @@ async def personalized_job_feed(user_id: str, db: AsyncSession = Depends(get_db)
 
 
 @app.post("/api/recruiter/jobs")
-async def create_recruiter_job(req: RecruiterJobCreateRequest, db: AsyncSession = Depends(get_db)):
+async def create_recruiter_job(
+    req: RecruiterJobCreateRequest, db: AsyncSession = Depends(get_db)
+):
     """Recruiter flow: create a job post for candidate discovery and matching."""
     job = Job(
         title=req.title,
@@ -733,6 +765,45 @@ async def health(db: AsyncSession = Depends(get_db)):
         return {"status": "ok", "db": "connected"}
     except Exception as e:
         raise HTTPException(503, f"Database unavailable: {e}")
+
+
+@app.post("/api/auth/generate-otp")
+async def generate_otp(req: GenerateOTPRequest):
+    """Generate a 6-digit OTP for a mobile number."""
+    # In a real app, integrate SMS provider (e.g., Twilio, AWS SNS) here
+    otp = str(random.randint(100000, 999999))
+    OTP_CACHE[req.mobile_number] = otp
+    LOGGER.info(f"Generated OTP {otp} for {req.mobile_number}")
+
+    # Note: We return the OTP here for development/testing purposes.
+    # In production, you would only return a success message and send the OTP via SMS.
+    return {
+        "status": "success",
+        "message": "OTP generated successfully",
+        "mobile_number": req.mobile_number,
+        "otp": otp,
+    }
+
+
+@app.post("/api/auth/validate-otp")
+async def validate_otp(req: ValidateOTPRequest):
+    """Validate the OTP for a mobile number."""
+    cached_otp = OTP_CACHE.get(req.mobile_number)
+
+    if not cached_otp:
+        raise HTTPException(status_code=400, detail="OTP not requested or expired.")
+
+    if cached_otp != req.otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP.")
+
+    # Clean up OTP after successful validation
+    del OTP_CACHE[req.mobile_number]
+
+    return {
+        "status": "success",
+        "message": "OTP validated successfully",
+        "mobile_number": req.mobile_number,
+    }
 
 
 # ── Static file routes (must come after /api routes) ─────────────────────────

@@ -10,6 +10,11 @@ export const updateUserProfile = (payload) => ({
   payload,
 });
 
+export const setUserType = (userType) => ({
+  type: UPDATE_USER_PROFILE,
+  payload: { userType },
+});
+
 export const debitPoints = (points) => ({
   type: DEBIT_POINTS,
   payload: points,

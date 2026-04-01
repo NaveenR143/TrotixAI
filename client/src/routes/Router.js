@@ -16,6 +16,9 @@ const JobFeedScreen = Loadable(lazy(() => import("../screens/candidate/JobFeedSc
 const JobDetailScreen = Loadable(lazy(() => import("../screens/candidate/JobDetailScreen")));
 const AddCreditsScreen = Loadable(lazy(() => import("../screens/candidate/AddCreditsScreen")));
 const LoginScreen = Loadable(lazy(() => import("../screens/candidate/LoginScreen")));
+const DashboardScreen = Loadable(lazy(() => import("../screens/candidate/DashboardScreen")));
+const RecruitersScreen = Loadable(lazy(() => import("../screens/candidate/RecruitersScreen")));
+const ConsultantsScreen = Loadable(lazy(() => import("../screens/consultants/ConsultantsScreen")));
 const PostJobScreen = Loadable(lazy(() => import("../screens/recruiter/PostJobScreen")));
 const PostedJobsScreen = Loadable(lazy(() => import("../screens/recruiter/PostedJobsScreen")));
 
@@ -62,6 +65,11 @@ const CreditsRoute = () => {
   return <AddCreditsScreen />;
 };
 
+const DashboardRoute = () => {
+  const navigate = useNavigate();
+  return <DashboardScreen />;
+};
+
 /* ****Routes***** */
 const Router = [
   {
@@ -73,6 +81,7 @@ const Router = [
         element: <MainLayout />,
         children: [
           { index: true, element: <EntryRoute /> },
+          { path: "dashboard", element: <DashboardRoute /> },
           { path: "manual-profile", element: <ManualProfileRoute /> },
           { path: "processing", element: <ProcessingRoute /> },
           { path: "profile", element: <ProfileRoute /> },
@@ -82,6 +91,10 @@ const Router = [
           { path: "login", element: <LoginScreen /> },
           { path: "post-job", element: <PostJobScreen /> },
           { path: "posted-jobs", element: <PostedJobsScreen /> },
+          { path: "recruiters", element: <RecruitersScreen /> },
+          { path: "consultants", element: <ConsultantsScreen /> },
+          { path: "resume-builder", element: <div>Resume Builder Screen (Coming Soon)</div> },
+          { path: "learning", element: <div>Learning Screen (Coming Soon)</div> },
         ]
       },
       { path: "*", element: <Navigate to="/error/404" /> },

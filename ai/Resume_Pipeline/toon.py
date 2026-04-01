@@ -175,19 +175,42 @@ class TOONFormatter:
         with open("toon.txt", "w", encoding="utf-8") as _debug_file:
             _debug_file.write(toon_text)
 
+        def normalize(value: str | None) -> str | None:
+            if value is None:
+                return None
+            value = value.strip().strip('"').strip("'")
+            return None if value.lower() == "empty" or value == "" else value
+
         def extract_scalar(key: str) -> str | None:
-            match = re.search(rf"{re.escape(key)}:\s*\"([^\"]*)\"", toon_text)
-            return match.group(1).strip() if match else None
+            match = re.search(
+                rf"{re.escape(key)}:\s*(\"([^\"]*)\"|[^,\n]+)", toon_text
+            )
+            if not match:
+                return None
+            raw = match.group(1)
+            return normalize(raw)
 
         def extract_list(key: str) -> list[str]:
             match = re.search(
-                rf"{re.escape(key)}:\s*\[([^\]]*)\]", toon_text, flags=re.DOTALL
+                rf"{re.escape(key)}:\s*\[(.*?)\]",
+                toon_text,
+                flags=re.DOTALL,
             )
             if not match:
                 return []
+
             body = match.group(1)
-            items = [item.strip().strip("\"'") for item in body.split(",")]
-            return sorted({i for i in items if i})
+
+            items = re.findall(r'"([^"]*)"|\'([^\']*)\'|([^,\n]+)', body)
+
+            cleaned = []
+            for g1, g2, g3 in items:
+                val = g1 or g2 or g3
+                val = normalize(val)
+                if val:
+                    cleaned.append(val)
+
+            return sorted(set(cleaned))
 
         years = self._to_decimal(extract_scalar("years_of_experience"))
         headline = extract_scalar("headline")
@@ -197,7 +220,6 @@ class TOONFormatter:
         skills = extract_list("skills")
         parsed_titles = extract_list("parsed_job_titles")
 
-        # Parse education entries
         education = self._parse_education_entries(toon_text)
 
         return JobSeekerProfile(
@@ -207,10 +229,12 @@ class TOONFormatter:
             current_location=location,
             preferred_locations=extract_list("preferred_locations"),
             years_of_experience=years,
-            notice_period_days=self._to_int(extract_scalar("notice_period_days")),
+            notice_period_days=self._to_int(
+                extract_scalar("notice_period_days")),
             current_salary=self._to_decimal(extract_scalar("current_salary")),
-            expected_salary=self._to_decimal(extract_scalar("expected_salary")),
-            salary_currency=(extract_scalar("salary_currency") or "INR"),
+            expected_salary=self._to_decimal(
+                extract_scalar("expected_salary")),
+            salary_currency=extract_scalar("salary_currency") or "INR",
             linkedin_url=extract_scalar("linkedin_url"),
             github_url=extract_scalar("github_url"),
             portfolio_url=extract_scalar("portfolio_url"),
@@ -227,7 +251,8 @@ class TOONFormatter:
         education_list = []
 
         # Find the education array in the TOON response
-        match = re.search(r"education:\s*\[(.*?)\](?=\s*[\),])", toon_text, re.DOTALL)
+        match = re.search(
+            r"education:\s*\[(.*?)\](?=\s*[\),])", toon_text, re.DOTALL)
         if not match:
             return education_list
 

@@ -120,6 +120,15 @@ const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
     onLogout();
   };
 
+  const handleLogoClickNav = () => {
+    // Navigate to dashboard if logged in, otherwise to entry screen
+    if (mobile) {
+      onLogoClick('/dashboard');
+    } else {
+      onLogoClick('/');
+    }
+  };
+
   return (
     <Box
       component="nav"
@@ -140,7 +149,7 @@ const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
     >
       {/* Logo */}
       <Box
-        onClick={() => onLogoClick('/')}
+        onClick={handleLogoClickNav}
         sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, cursor: 'pointer', userSelect: 'none', minWidth: 0 }}
       >
         <Box
@@ -304,6 +313,11 @@ const MainLayout = () => {
 
   const handleLogoClick = (path = '/') => navigate(path);
   const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem('user');
+    localStorage.removeItem('userType');
+    localStorage.removeItem('mobileNumber');
+    
     dispatch({ type: RESET_INITIAL_STATE });
     navigate('/login');
   };
