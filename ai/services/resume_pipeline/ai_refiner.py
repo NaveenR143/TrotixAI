@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import os
+from pathlib import Path
 from uuid import UUID
 
 from .errors import AIRefinementError
@@ -28,8 +30,7 @@ class AzureOpenAIResumeRefiner:
         self._api_version = api_version or os.getenv(
             "AZURE_OPENAI_API_VERSION", "2024-06-01"
         )
-        self._deployment = deployment or os.getenv(
-            "AZURE_OPENAI_DEPLOYMENT", "")
+        self._deployment = deployment or os.getenv("AZURE_OPENAI_DEPLOYMENT", "")
         self._formatter = TOONFormatter()
 
         if not self._endpoint or not self._api_key or not self._deployment:
@@ -90,15 +91,24 @@ class AzureOpenAIResumeRefiner:
 
             # 🔴 Strong validation
             if not content.startswith("JobSeekerProfileTOON("):
-                raise AIRefinementError(
-                    "Invalid TOON format (missing root object)")
+                raise AIRefinementError("Invalid TOON format (missing root object)")
 
             if not content.endswith(")"):
                 raise AIRefinementError(
                     "Malformed TOON response (missing closing bracket)"
                 )
 
+            with open("toon.txt", "w", encoding="utf-8") as _debug_file:
+                _debug_file.write(content)
+
             profile_json = self._formatter.toon_to_json(content)
+
+            with open(
+                Path.cwd() / f"profile_{user_id}.json", "w", encoding="utf-8"
+            ) as debug_file:
+                json.dump(profile_json, debug_file, ensure_ascii=False, indent=2)
+
+            print(f"Profile saved for user {user_id}")
 
             return {
                 user_id: user_id,

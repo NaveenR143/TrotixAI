@@ -1,10 +1,10 @@
 """
 Backward-compatible entrypoint for the resume processing pipeline.
 
-The implementation has been split into multiple modules under `ai/Resume_Pipeline/`.
+The implementation has been split into multiple modules under `ai/services/resume_pipeline/`.
 Importing from this file continues to work:
 
-  from ai.Resume_Pipeline.resume_processor import ResumeProcessor
+  from ai.services.resume_pipeline.resume_processor import ResumeProcessor
 """
 
 from __future__ import annotations
@@ -19,12 +19,12 @@ if __name__ == "__main__":
     import sys
     from pathlib import Path as _Path
 
-    # project root is two levels up: .../ai/Resume_Pipeline/resume_processor.py
-    _project_root = str(_Path(__file__).resolve().parents[2])
+    # project root is three levels up: .../ai/services/resume_pipeline/resume_processor.py
+    _project_root = str(_Path(__file__).resolve().parents[3])
     if _project_root not in sys.path:
         sys.path.insert(0, _project_root)
     # Ensure package is set so relative imports within the package can work if any
-    __package__ = "ai.Resume_Pipeline"
+    __package__ = "ai.services.resume_pipeline"
 
 import asyncio
 import logging
@@ -100,8 +100,7 @@ async def _demo() -> None:
     ]
 
     print(f"File Path : {demo_candidates[1]}")
-    demo_file = next(
-        (p for p in demo_candidates if p.exists()), demo_candidates[0])
+    demo_file = next((p for p in demo_candidates if p.exists()), demo_candidates[0])
     if not demo_file.exists():
         LOGGER.warning(
             "Demo skipped: sample_resume.pdf not found. Looked in: %s",

@@ -119,7 +119,8 @@ class ResumeProcessor:
             # Extract deterministic data first (name, email, phone, skills, etc.)
             deterministic = self._extractor.extract(raw_text)
             # Debug output
-            print(f"Deterministic data for user {user_id}:\n{asdict(deterministic)}")
+            print(
+                f"Deterministic data for user {user_id}:\n{asdict(deterministic)}")
 
             # # Remove PII from clean text to reduce tokens sent to model
             # clean_text_without_pii = self._preprocessor.remove_pii(
@@ -130,14 +131,41 @@ class ResumeProcessor:
             profile = ""
 
             # Pass complete clean_text (without PII) to AI refiner
-            profile = self._ai_refiner.refine(user_id=user_id, clean_text=raw_text)
+            profile = self._ai_refiner.refine(
+                user_id=user_id, clean_text=raw_text)
 
             print(f"AI refinement completed for user {user_id}:\n{profile}")
 
-            # Debug output
-            print(
-                f"Refined profile for user {user_id}:\n{json.dumps(asdict(profile), indent=2, default=str)}"
-            )
+            # Convert deterministic (dataclass) to dict
+            deterministic_dict = asdict(
+                deterministic
+            )  # Converts DeterministicResumeData → dict
+
+            # Remove 'languages' key from deterministic
+            # safe removal if key exists
+            deterministic_dict.pop("languages", None)
+
+            # Extract the inner 'profile' from the profile dictionary
+            profile_dict = profile.get("profile", {})
+
+            # Merge the two dicts
+            merged_data = {**profile_dict, **deterministic_dict}
+
+            # Optional: if you want to keep the UUID mapping as well
+            # merged_data = {"profile": merged_data, "uuids": {k.hex: v.hex for k, v in profile.items() if isinstance(k, UUID)}}
+
+            # Save to JSON
+            file_path = Path.cwd() / f"profile_{user_id}.json"
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(merged_data, f, ensure_ascii=False, indent=2)
+
+            print(f"Profile saved for user {user_id}")
+
+            # # Debug output
+            # print(
+            #     f"Refined profile for user {user_id}:\n{json.dumps(asdict(profile), indent=2, default=str)}"
+            # )
+
             # await self._repository.save_profile_and_resume(
             #     profile=profile,
             #     file_name=file_name,
@@ -145,16 +173,19 @@ class ResumeProcessor:
             #     file_size_bytes=len(file_bytes),
             #     mime_type=mime_type,
             # )
-            LOGGER.info("Resume processing completed", extra={"user_id": str(user_id)})
+            LOGGER.info("Resume processing completed",
+                        extra={"user_id": str(user_id)})
             return profile
         except ResumeProcessingError:
-            LOGGER.exception("Resume processing error", extra={"user_id": str(user_id)})
+            LOGGER.exception("Resume processing error",
+                             extra={"user_id": str(user_id)})
             raise
         except Exception as exc:
             LOGGER.exception(
                 "Unhandled resume processing error", extra={"user_id": str(user_id)}
             )
-            raise ResumeProcessingError(f"Unhandled processing error: {exc}") from exc
+            raise ResumeProcessingError(
+                f"Unhandled processing error: {exc}") from exc
 
 
 def configure_logging(level: int = logging.INFO) -> None:

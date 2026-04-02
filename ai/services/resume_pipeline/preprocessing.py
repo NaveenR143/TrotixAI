@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import tiktoken
 
-from ai.Resume_Pipeline.models import DeterministicResumeData
+from ai.services.resume_pipeline.models import DeterministicResumeData
 
 
 class ResumePreprocessor:

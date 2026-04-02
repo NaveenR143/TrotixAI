@@ -172,24 +172,42 @@ class TOONFormatter:
             "- If only year is available → YYYY-01-01\n"
         )
 
+    # Remove trailing commas recursively inside objects and arrays
+    def remove_trailing_commas(self, json_str):
+        # Remove trailing commas in objects and arrays
+        json_str = re.sub(r",\s*([\]}])", r"\1", json_str)
+        return json_str
+
     def toon_to_json(self, toon_str: str) -> dict:
-        # Replace class-like wrappers (e.g., JobSeekerProfileTOON(...)
-        toon_str = re.sub(r"(\w+)TOON\(", "{", toon_str)
+        try:
+            # 1️⃣ Replace class-like wrappers
+            toon_str = re.sub(r"\b\w+TOON\(", "{", toon_str)
 
-        # Replace closing parentheses with }
-        toon_str = toon_str.replace(")", "}")
+            # 2️⃣ Replace closing parentheses with }
+            toon_str = toon_str.replace(")", "}")
 
-        # Replace `key: value` with "key": value
-        toon_str = re.sub(r"(\w+):", r'"\1":', toon_str)
+            # 3️⃣ Convert keys to JSON strings
+            toon_str = re.sub(r"(\b\w+\b)\s*:", r'"\1":', toon_str)
 
-        # Replace empty with null
-        toon_str = toon_str.replace("empty", "null")
+            # 4️⃣ Replace standalone empty with null
+            toon_str = re.sub(r"\bempty\b", "null", toon_str)
 
-        # Fix trailing commas (optional cleanup)
-        toon_str = re.sub(r",\s*}", "}", toon_str)
-        toon_str = re.sub(r",\s*]", "]", toon_str)
+            # 5️⃣ Convert Python booleans to JSON booleans
+            toon_str = toon_str.replace("True", "true").replace("False", "false")
 
-        return json.loads(toon_str)
+            toon_str = self.remove_trailing_commas(toon_str)
+
+            # 6️⃣ Remove trailing commas before } or ]
+            toon_str = re.sub(r",\s*(\}|])", r"\1", toon_str)
+
+            # ✅ Convert to dict
+            return json.loads(toon_str)
+
+        except json.JSONDecodeError as e:
+            print(f"JSON Parse Error: {e}")
+            print(f"Invalid JSON at line {e.lineno}, col {e.colno}: {e.msg}")
+            print(f"Attempted JSON (first 500 chars):\n{toon_str[:500]}...")
+            raise
 
     def parse_profile(self, user_id: UUID, toon_text: str) -> JobSeekerProfile:
         with open("toon.txt", "w", encoding="utf-8") as _debug_file:
