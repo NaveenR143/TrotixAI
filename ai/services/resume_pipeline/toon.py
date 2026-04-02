@@ -142,7 +142,8 @@ class TOONFormatter:
             '      keywords: ["str", ...],\n'
             '      project_type: "professional|academic|personal|unknown"\n'
             "    )\n"
-            "  ]\n"
+            "  ],\n"
+            '   resume_summary: "str|empty"\n'
             ")\n\n"
             "STRICT RULES:\n"
             "- Return ONLY the object. No explanation.\n"
@@ -170,44 +171,121 @@ class TOONFormatter:
             "DATE RULES:\n"
             "- Use YYYY-MM-DD format\n"
             "- If only year is available → YYYY-01-01\n"
+            "RESUME SUMMARY RULES (FOR EMBEDDING):\n"
+            "- Generate a single-paragraph resume_summary optimized for semantic search.\n"
+            "- Length: 60–120 words.\n"
+            "- Use natural, professional English.\n"
+            "- Do NOT use bullet points or labels.\n"
+            "- Combine and prioritize meaning over structure.\n"
+            "- Avoid repeating similar skills or terms.\n"
+            "- Expand abbreviations where useful (e.g., sql → structured query language, etl → extract transform load).\n"
+            "- Mention experience level:\n"
+            "  * If years_of_experience = 0 → explicitly say 'fresher' or 'entry-level'.\n"
+            "  * Otherwise include total years of experience.\n"
+            "- Include the following if available:\n"
+            "  * summary\n"
+            "  * years_of_experience\n"
+            "  * key skills (group logically)\n"
+            "  * languages\n"
+            "  * education (degree + field_of_study)\n"
+            "  * preferred_locations\n"
+            "- Ensure the summary is embedding-friendly (clear, descriptive, semantically rich).\n\n"
         )
 
-    # Remove trailing commas recursively inside objects and arrays
-    def remove_trailing_commas(self, json_str):
-        # Remove trailing commas in objects and arrays
-        json_str = re.sub(r",\s*([\]}])", r"\1", json_str)
-        return json_str
-
     def toon_to_json(self, toon_str: str) -> dict:
+        """
+        Convert a TOON-formatted string to a Python dict.
+
+        The TOON format looks like Python dataclass constructors:
+            JobSeekerProfileTOON(
+                key: "value",
+                nested: SomeOtherTOON(x: 1),
+            )
+
+        Key fixes vs. the original:
+        1. String values are extracted into placeholders BEFORE any structural
+        transformation — this prevents parens, colons, or keywords inside
+        string values (e.g. "BBA LLB (Hons.)", "https://...") from being
+        mangled by the regex steps that follow.
+        2. Step 2 (`)` → `}`) now also matches the root-object closing `)` at
+        end-of-string, not just `)` followed by `,`/`}`/`]`.
+        3. Steps 2.1 and 3.1/3.2 from the original are removed — they are
+        unnecessary (and harmful) once strings are protected by placeholders.
+        """
+        original = toon_str
         try:
-            # 1️⃣ Replace class-like wrappers
+            toon_str = toon_str.strip()
+
+            # ── Step 1 ──────────────────────────────────────────────────────────
+            # Replace *TOON( wrappers with {
+            # e.g. JobSeekerProfileTOON( → {   ExperienceTOON( → {
             toon_str = re.sub(r"\b\w+TOON\(", "{", toon_str)
 
-            # 2️⃣ Replace closing parentheses with }
-            toon_str = toon_str.replace(")", "}")
+            # ── Step 2 ──────────────────────────────────────────────────────────
+            # Protect ALL quoted string values with opaque placeholder tokens
+            # BEFORE touching any parentheses or keys.
+            # This is the critical fix: parens/colons inside strings (e.g.
+            # "BBA LLB (Hons.)", "https://...", "Sections 230–232") are hidden
+            # from every subsequent regex step.
+            placeholders: dict[str, str] = {}
+            counter = [0]
 
-            # 3️⃣ Convert keys to JSON strings
+            def _extract_string(m: re.Match) -> str:
+                token = f'"__STR{counter[0]}__"'
+                placeholders[token] = m.group(0)
+                counter[0] += 1
+                return token
+
+            toon_str = re.sub(r'"(?:[^"\\]|\\.)*"', _extract_string, toon_str)
+
+            # ── Step 3 ──────────────────────────────────────────────────────────
+            # Replace structural closing ) with }
+            # Matches ) followed by: ,  }  ]  or end-of-string (handles the root
+            # object's closing paren which has nothing after it).
+            toon_str = re.sub(r"\)(?=\s*[,\}\]]|\s*$)", "}", toon_str)
+
+            # ── Step 4 ──────────────────────────────────────────────────────────
+            # Quote bare identifier keys.
+            # Safe to run now — all string content is replaced by __STRn__ tokens
+            # so there's no risk of mangling URLs, empty strings, or colons inside
+            # values.
             toon_str = re.sub(r"(\b\w+\b)\s*:", r'"\1":', toon_str)
 
-            # 4️⃣ Replace standalone empty with null
-            toon_str = re.sub(r"\bempty\b", "null", toon_str)
+            # ── Step 5 ──────────────────────────────────────────────────────────
+            # Restore original string values from placeholders
+            for token, original_val in placeholders.items():
+                toon_str = toon_str.replace(token, original_val)
 
-            # 5️⃣ Convert Python booleans to JSON booleans
-            toon_str = toon_str.replace("True", "true").replace("False", "false")
+            # ── Step 6 ──────────────────────────────────────────────────────────
+            # Normalize TOON / Python literals → valid JSON
+            toon_str = re.sub(r"\bempty\b", "null", toon_str)  # TOON empty
+            toon_str = re.sub(r"\bNone\b", "null", toon_str)  # Python None
+            toon_str = toon_str.replace("True", "true")  # Python True
+            toon_str = toon_str.replace("False", "false")  # Python False
 
-            toon_str = self.remove_trailing_commas(toon_str)
+            # ── Step 7 ──────────────────────────────────────────────────────────
+            # Remove trailing commas before } or ] (common LLM output artifact)
+            toon_str = re.sub(r",\s*(\}|\])", r"\1", toon_str)
 
-            # 6️⃣ Remove trailing commas before } or ]
-            toon_str = re.sub(r",\s*(\}|])", r"\1", toon_str)
+            # Step 8 — replace both \r\n and lone \r
+            toon_str = (
+                toon_str.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+            )
 
-            # ✅ Convert to dict
             return json.loads(toon_str)
 
         except json.JSONDecodeError as e:
-            print(f"JSON Parse Error: {e}")
-            print(f"Invalid JSON at line {e.lineno}, col {e.colno}: {e.msg}")
-            print(f"Attempted JSON (first 500 chars):\n{toon_str[:500]}...")
-            raise
+            print(
+                "TOON→JSON parse failed | %s | line %d col %d | context: %r",
+                e.msg,
+                e.lineno,
+                e.colno,
+                toon_str[max(0, e.pos - 120) : e.pos + 120],
+            )
+            raise ValueError(
+                f"Failed to parse TOON string: {e.msg} "
+                f"at line {e.lineno}, col {e.colno}"
+            ) from e
 
     def parse_profile(self, user_id: UUID, toon_text: str) -> JobSeekerProfile:
         with open("toon.txt", "w", encoding="utf-8") as _debug_file:

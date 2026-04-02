@@ -58,7 +58,7 @@ class JobSeekerProfile:
 class DeterministicResumeData:
     name: str | None
     email: str | None
-    phone: str | None
+    phone: list[str] | None
     languages: list[str]
     # education_lines: list[str] = field(default_factory=list)
     # project_lines: list[str] = field(default_factory=list)
@@ -71,4 +71,3 @@ class DeterministicResumeData:
     # github_url: str | None
     # portfolio_url: str | None
     # clean_text: str
-

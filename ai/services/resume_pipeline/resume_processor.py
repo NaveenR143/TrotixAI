@@ -95,8 +95,8 @@ async def _demo() -> None:
     configure_logging()
 
     demo_candidates = [
-        Path.cwd() / "sample_resume.pdf",
-        Path(__file__).resolve().parent / "sample_resume.pdf",
+        Path.cwd() / "SampleResumes/SaranKumarNM.pdf",
+        Path(__file__).resolve().parent / "SampleResumes/SaranKumarNM.pdf",
     ]
 
     print(f"File Path : {demo_candidates[1]}")

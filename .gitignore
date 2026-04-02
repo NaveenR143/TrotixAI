@@ -3,7 +3,9 @@
 *.pdf
 *.docx
 test*
+profile*
 *.pyc
 **/__pycache__/
 *.txt
 *.log
+keys

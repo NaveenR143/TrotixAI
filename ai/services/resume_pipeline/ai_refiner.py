@@ -62,10 +62,18 @@ class AzureOpenAIResumeRefiner:
                 "role": "system",
                 "content": (
                     "You are a strict resume normalization engine.\n"
-                    "Output ONLY valid TOON format.\n"
-                    "Do NOT explain, do NOT add extra text.\n"
-                    "Do NOT hallucinate missing data.\n"
-                    "Prefer provided deterministic data when available.\n"
+                    "Output MUST follow EXACT TOON syntax.\n"
+                    "STRICT RULES:\n"
+                    '1. Use only double quotes (") for all strings.\n'
+                    '2. Escape all internal quotes using \\".\n'
+                    "3. Do NOT use } inside string values.\n"
+                    "4. Use parentheses () ONLY for objects.\n"
+                    "5. Every key MUST be followed by a colon.\n"
+                    "6. Separate all fields with commas.\n"
+                    "7. Do NOT produce trailing commas.\n"
+                    "8. URLs must be valid and start with https://\n"
+                    "9. Do NOT break strings across lines.\n"
+                    "10. If unsure, return null instead of invalid syntax.\n"
                 ),
             },
             {
@@ -103,12 +111,12 @@ class AzureOpenAIResumeRefiner:
 
             profile_json = self._formatter.toon_to_json(content)
 
-            with open(
-                Path.cwd() / f"profile_{user_id}.json", "w", encoding="utf-8"
-            ) as debug_file:
-                json.dump(profile_json, debug_file, ensure_ascii=False, indent=2)
+            # with open(
+            #     Path.cwd() / f"profile_{user_id}.json", "w", encoding="utf-8"
+            # ) as debug_file:
+            #     json.dump(profile_json, debug_file, ensure_ascii=False, indent=2)
 
-            print(f"Profile saved for user {user_id}")
+            # print(f"Profile saved for user {user_id}")
 
             return {
                 user_id: user_id,

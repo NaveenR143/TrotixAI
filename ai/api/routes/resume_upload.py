@@ -4,6 +4,7 @@ from ai.services.phonenumber_parser import extract_phone_numbers_from_file
 from ai.db.phone_service import save_phone_to_db
 from ai.db.database import AsyncSessionLocal
 from azure.storage.queue import QueueClient
+from ai.services.storage_service import GoogleDriveService
 import base64
 import json
 import os
@@ -14,7 +15,8 @@ router = APIRouter()
 AZURE_QUEUE_CONNECTION_STRING = os.getenv("AZURE_QUEUE_CONNECTION_STRING")
 QUEUE_NAME = os.getenv("RESUME_QUEUE_NAME", "resume-queue")
 queue_client = QueueClient.from_connection_string(
-    AZURE_QUEUE_CONNECTION_STRING, QUEUE_NAME)
+    AZURE_QUEUE_CONNECTION_STRING, QUEUE_NAME
+)
 
 # File upload constraints
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
@@ -34,13 +36,13 @@ async def upload_resume(file: UploadFile = File(...)):
 
     if len(content) > MAX_FILE_SIZE_BYTES:
         raise HTTPException(
-            status_code=400, detail="File too large. Max size is 10 MB.")
+            status_code=400, detail="File too large. Max size is 10 MB."
+        )
 
     phone_numbers = extract_phone_numbers_from_file(content, file.filename)
 
     if not phone_numbers:
-        raise HTTPException(
-            status_code=400, detail="No phone number found in resume")
+        raise HTTPException(status_code=400, detail="No phone number found in resume")
 
     temp_primary = phone_numbers[0]  # Default to first number for DB save
 
@@ -55,17 +57,19 @@ async def upload_resume(file: UploadFile = File(...)):
             return {
                 "message": "Profile already exists. OTP sent",
                 "user_id": user_id,
-                "phone": temp_primary
+                "phone": temp_primary,
             }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
+    # uploaded_file_details = await GoogleDriveService().upload_file(file)
+
     # Encode file content in base64 to safely send in JSON
     payload = {
         "filename": file.filename,
         "content": base64.b64encode(content).decode("utf-8"),
-        "phone_numbers": phone_numbers
+        "phone_numbers": phone_numbers,
     }
 
     # Push message to Azure Queue
@@ -77,14 +81,10 @@ async def upload_resume(file: UploadFile = File(...)):
 
         send_otp(primary_phone)
 
-        return {
-            "message": "OTP sent",
-            "user_id": user_id,
-            "phone": primary_phone
-        }
+        return {"message": "OTP sent", "user_id": user_id, "phone": primary_phone}
 
     # Multiple phones → ask user to choose primary
     return {
         "message": "Multiple phone numbers found. Please select your primary number.",
-        "phone_numbers": phone_numbers
+        "phone_numbers": phone_numbers,
     }

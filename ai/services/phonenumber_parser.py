@@ -3,6 +3,7 @@ import io
 from pdfminer.high_level import extract_text as extract_pdf_text
 import docx
 import mammoth
+from ai.services.resume_pipeline.extractor import DeterministicExtractor
 
 
 def extract_phone_numbers_from_file(file_bytes: bytes, filename: str):
@@ -23,5 +24,6 @@ def extract_phone_numbers_from_file(file_bytes: bytes, filename: str):
     else:
         return []
 
-    numbers = re.findall(r"\b\d{10}\b", text)
-    return list(set(numbers))  # remove duplicates
+    phone_numbers = DeterministicExtractor()._extract_phone_numbers(text)
+
+    return phone_numbers

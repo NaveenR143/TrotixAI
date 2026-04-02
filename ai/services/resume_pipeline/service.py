@@ -150,6 +150,8 @@ class ResumeProcessor:
 
             # Merge the two dicts
             merged_data = {**profile_dict, **deterministic_dict}
+            
+            
 
             # Optional: if you want to keep the UUID mapping as well
             # merged_data = {"profile": merged_data, "uuids": {k.hex: v.hex for k, v in profile.items() if isinstance(k, UUID)}}

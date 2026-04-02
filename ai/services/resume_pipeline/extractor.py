@@ -195,15 +195,44 @@ class DeterministicExtractor:
     )
 
     EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
-    PHONE_RE = re.compile(r"\+?\d[\d\-\s()]{7,}\d")
+    PHONE_RE = re.compile(
+        r"""
+        (?<!\d)           # not preceded by a digit
+        (?<!\/)           # not preceded by / (inside a URL)
+        \+?
+        (?:91[-\s]?)?     # optional India country code
+        [6-9]\d{9}        # Indian mobile: starts 6-9, exactly 10 digits
+        (?!\d)            # not followed by a digit
+        """,
+        re.VERBOSE,
+    )
     EXPERIENCE_RE = re.compile(r"(\d+(?:\.\d+)?)\+?\s*(years?|yrs?)", re.IGNORECASE)
+
+    def _extract_phone_numbers(self, text: str) -> list[str]:
+        if not text:
+            return []
+
+        matches = self.PHONE_RE.findall(text)
+
+        cleaned_numbers = []
+        seen = set()
+
+        for num in matches:
+            # Remove +91, 91-, 91 , etc.
+            num = re.sub(r"^\+?91[-\s]?", "", num)
+
+            if num not in seen:
+                seen.add(num)
+                cleaned_numbers.append(num)
+
+        return cleaned_numbers
 
     def extract(self, clean_text: str) -> DeterministicResumeData:
         lowered = clean_text.lower()
         lines = clean_text.splitlines()
 
         email = self._first_match(self.EMAIL_RE, clean_text)
-        phone = self._first_match(self.PHONE_RE, clean_text)
+        phone = self._extract_phone_numbers(clean_text)
         name = self._extract_name(lines, email)
         languages = self._extract_languages(lowered)
         # years = self._extract_experience_years(clean_text)
@@ -237,16 +266,44 @@ class DeterministicExtractor:
         match = pattern.search(text)
         return match.group(0).strip() if match else None
 
+    NAME_RE = re.compile(r"^[A-Za-z]+(?: [A-Za-z]+){1,2}$")
+
     def _extract_name(self, lines: Sequence[str], email: str | None) -> str | None:
         for line in lines[:8]:
+            line = line.strip()
+
+            if not line:
+                continue
+
+            # Skip if contains email
             if email and email in line:
                 continue
-            if (
-                len(line.split()) in (2, 3)
-                and len(line) < 50
-                and not any(ch.isdigit() for ch in line)
-            ):
-                return line.strip()
+
+            # Skip structured lines (tables, key-value, tech stacks)
+            if "\t" in line or ":" in line:
+                continue
+
+            # Skip lines with digits or special chars (except space)
+            if not self.NAME_RE.match(line):
+                continue
+
+            words = line.split()
+
+            # Ensure reasonable length
+            if len(words) not in (2, 3):
+                continue
+
+            if len(line) >= 50:
+                continue
+
+            # Heuristic: names are usually capitalized or uppercase
+            if not all(word[0].isupper() for word in words):
+                # Allow FULL UPPERCASE names like "RAHUL SHARMA"
+                if not all(word.isupper() for word in words):
+                    continue
+
+            return line
+
         return None
 
     def _extract_education_lines(self, lines: Sequence[str]) -> list[str]:
