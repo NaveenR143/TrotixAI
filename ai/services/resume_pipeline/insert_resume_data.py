@@ -45,7 +45,6 @@ class ResumeDataInserter:
         if self.session:
             await self.session.close()
 
-
     async def process_resume_json(
         self,
         merged_data: dict,
@@ -57,7 +56,7 @@ class ResumeDataInserter:
     ) -> bool:
         """
         Main method to process and insert resume data.
-        
+
         Args:
             merged_data: Merged dictionary with profile data ({**profile_dict, **deterministic_dict})
             phone_number: Phone number to identify the user
@@ -65,7 +64,7 @@ class ResumeDataInserter:
             file_url: S3 or cloud storage URL
             file_size_bytes: File size in bytes
             mime_type: MIME type of the file
-            
+
         Returns:
             bool: True if successful, False otherwise
         """
@@ -84,14 +83,15 @@ class ResumeDataInserter:
             # Insert jobseeker profile and bulk add skills in parallel
             skills = profile_data.get("skills", [])
             await asyncio.gather(
-                self.repository.upsert_jobseeker_profile(user_id, profile_data),
+                self.repository.upsert_jobseeker_profile(
+                    user_id, profile_data),
                 self.repository.bulk_add_user_skills(user_id, skills)
             )
 
             # Insert education in parallel
             education = profile_data.get("education", [])
             projects_from_education = []
-            
+
             education_tasks = []
             for idx, edu in enumerate(education):
                 field_of_study = ", ".join(edu.get("field_of_study", []))
@@ -112,16 +112,16 @@ class ResumeDataInserter:
                 # Collect projects from education
                 projects = edu.get("projects", [])
                 projects_from_education.extend(projects)
-            
+
             # Run all education insertions in parallel
             if education_tasks:
                 await asyncio.gather(*education_tasks)
-            
+
             # Prepare all projects (from education + standalone)
             all_projects = projects_from_education.copy()
             standalone_projects = profile_data.get("projects", [])
             all_projects.extend(standalone_projects)
-            
+
             # Define helper functions for parallel processing
             async def insert_project_with_skills(idx: int, project: dict) -> None:
                 """Insert project and its associated skills."""
@@ -139,7 +139,7 @@ class ResumeDataInserter:
                 )
                 if technologies:
                     await self.repository.add_project_skills(project_id, technologies)
-            
+
             async def insert_work_experience_with_skills(idx: int, exp: dict) -> None:
                 """Insert work experience and its associated skills."""
                 exp_id = await self.repository.add_work_experience(
@@ -158,23 +158,24 @@ class ResumeDataInserter:
                 skills_used = exp.get("skills", [])
                 if skills_used:
                     await self.repository.add_work_experience_skills(exp_id, skills_used)
-            
+
             # Prepare parallel tasks for projects and work experiences
             project_tasks = [
                 insert_project_with_skills(idx, project)
                 for idx, project in enumerate(all_projects)
             ]
-            
+
             work_experiences = profile_data.get("work_experiences", [])
             work_tasks = [
                 insert_work_experience_with_skills(idx, exp)
                 for idx, exp in enumerate(work_experiences)
             ]
-            
+
             # Prepare resume insertion task
-            parsed_experience_years = profile_data.get("years_of_experience", 0)
+            parsed_experience_years = profile_data.get(
+                "years_of_experience", 0)
             parsed_summary = profile_data.get("summary", "")
-            
+
             resume_task = None
             if file_url:
                 resume_task = self.repository.add_resume(
@@ -187,12 +188,12 @@ class ResumeDataInserter:
                     parsed_experience_years=parsed_experience_years,
                     parsed_summary=parsed_summary,
                 )
-            
+
             # Run projects, work experiences, and resume in parallel
             all_tasks = project_tasks + work_tasks
             if resume_task:
                 all_tasks.append(resume_task)
-            
+
             if all_tasks:
                 await asyncio.gather(*all_tasks)
 
@@ -206,18 +207,18 @@ class ResumeDataInserter:
 
 async def main():
     """Example usage of the ResumeDataInserter."""
-    
+
     # Example: load and merge data
     json_file = r"C:\Naveen\Jobs\Source\TrotixAI\profile_b60aef5c-dc67-458c-8fc3-ce3f442cb248.json"
     phone_number = "+91-9876543210"  # Replace with actual phone number
-    
+
     # Load JSON file and create merged_data
     with open(json_file, "r", encoding="utf-8") as f:
         profile_dict = json.load(f)
-    
+
     deterministic_dict = {}  # Add your deterministic data here
     merged_data = {**profile_dict, **deterministic_dict}
-    
+
     async with ResumeDataInserter() as inserter:
         success = await inserter.process_resume_json(
             merged_data=merged_data,
@@ -227,7 +228,7 @@ async def main():
             file_size_bytes=102400,  # Optional
             mime_type="application/pdf",
         )
-        
+
         if success:
             print("✓ Resume data inserted successfully!")
         else:

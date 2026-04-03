@@ -12,11 +12,11 @@ import os
 router = APIRouter()
 
 # Azure Queue setup
-AZURE_QUEUE_CONNECTION_STRING = os.getenv("AZURE_QUEUE_CONNECTION_STRING")
-QUEUE_NAME = os.getenv("RESUME_QUEUE_NAME", "resume-queue")
-queue_client = QueueClient.from_connection_string(
-    AZURE_QUEUE_CONNECTION_STRING, QUEUE_NAME
-)
+# AZURE_QUEUE_CONNECTION_STRING = os.getenv("AZURE_QUEUE_CONNECTION_STRING")
+# QUEUE_NAME = os.getenv("RESUME_QUEUE_NAME", "resume-queue")
+# queue_client = QueueClient.from_connection_string(
+#     AZURE_QUEUE_CONNECTION_STRING, QUEUE_NAME
+# )
 
 # File upload constraints
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
@@ -66,14 +66,14 @@ async def upload_resume(file: UploadFile = File(...)):
     # uploaded_file_details = await GoogleDriveService().upload_file(file)
 
     # Encode file content in base64 to safely send in JSON
-    payload = {
-        "filename": file.filename,
-        "content": base64.b64encode(content).decode("utf-8"),
-        "phone_numbers": phone_numbers,
-    }
+    # payload = {
+    #     "filename": file.filename,
+    #     "content": base64.b64encode(content).decode("utf-8"),
+    #     "phone_numbers": phone_numbers,
+    # }
 
-    # Push message to Azure Queue
-    queue_client.send_message(json.dumps(payload))
+    # # Push message to Azure Queue
+    # queue_client.send_message(json.dumps(payload))
 
     if len(phone_numbers) == 1:
         # Only 1 phone → save to DB and send OTP

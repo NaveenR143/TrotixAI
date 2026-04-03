@@ -22,9 +22,9 @@ from io import BytesIO
 import sys
 import time
 
-from PDFTableProcessor import PDFTableExtractor
-from PDFContentProcessor import PDFProcessor
-from PDFPartitionContentProcessor import PDFMultiColumnProcessor
+from ai.services.resume_pipeline.PDFTableProcessor import PDFTableExtractor
+from ai.services.resume_pipeline.PDFContentProcessor import PDFProcessor
+from ai.services.resume_pipeline.PDFPartitionContentProcessor import PDFMultiColumnProcessor
 
 
 # =============================================================================

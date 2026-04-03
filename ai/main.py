@@ -66,92 +66,34 @@ icons_dir = PUBLIC_DIR / "icons"
 if icons_dir.exists():
     app.mount("/icons", StaticFiles(directory=icons_dir), name="icons")
 else:
-    LOGGER.warning(
-        "Skipping /icons static mount; directory missing: %s", icons_dir)
+    LOGGER.warning("Skipping /icons static mount; directory missing: %s", icons_dir)
 
 if SRC_DIR.exists():
     app.mount("/src", StaticFiles(directory=SRC_DIR), name="src")
 else:
-    LOGGER.warning(
-        "Skipping /src static mount; directory missing: %s", SRC_DIR)
+    LOGGER.warning("Skipping /src static mount; directory missing: %s", SRC_DIR)
 
 
 # ── API Routes ────────────────────────────────────────────────────────────────
 
 
-@app.post("/api/resume/parse")
-async def parse_resume_endpoint(resume: UploadFile = File(...)):
-
-    # ToDo
-    # upload resume to gdrive
-    # fetch mobile number from resume
-    # see if mobile number is present in database
-    # if present then fetch the profile and see if user is already login or not
-    # ask user to confirm if they want to update the profile if yes ask user to login
-    """Accept resume file → process with AI pipeline → return structured extracted data & job matches."""
-    allowed = [
-        "application/pdf",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "text/plain",
-    ]
-    if resume.content_type not in allowed:
-        raise HTTPException(
-            400, "Unsupported file type. Use PDF, DOCX, or TXT.")
-
-    contents = await resume.read()
-    if len(contents) > 5 * 1024 * 1024:
-        raise HTTPException(400, "File too large. Max 5 MB.")
-
-    # Use resume processor if available
-    if resume_processor:
-        try:
-            user_id = uuid4()
-            profile = await resume_processor.process_resume(
-                user_id=user_id,
-                file_name=resume.filename or "resume",
-                file_bytes=contents,
-                file_url=f"upload://{resume.filename}",
-                mime_type=resume.content_type,
-            )
-            LOGGER.info(f"Resume processed successfully for user {user_id}")
-
-            return {
-                "user_id": str(user_id),
-                "status": "processed",
-            }
-        except (FileValidationError, ParsingError) as e:
-            LOGGER.warning(f"Resume processing validation error: {e}")
-            raise HTTPException(422, f"Resume processing error: {str(e)}")
-        except ResumeProcessingError as e:
-            LOGGER.error(f"Resume processing error: {e}")
-            raise HTTPException(503, f"Resume processing failed: {str(e)}")
-        except Exception as e:
-            LOGGER.error(f"Unexpected error processing resume: {e}")
-            raise HTTPException(503, f"Unexpected error: {str(e)}")
-
-    # Fallback to basic parsing if processor is not available
-    LOGGER.warning("Resume processor not available, using basic parsing")
-    text = extract_text(contents, resume.content_type)
-    if not text.strip():
-        raise HTTPException(422, "Could not extract text from resume.")
-
-    resume_data = parse_resume(text)
-    user_id = str(uuid4())
-    profile_vector = {
-        "skills": sorted({s.lower() for s in resume_data.get("skills", [])}),
-        "titles": [t.lower() for t in resume_data.get("job_titles", [])],
-        "experience_years": resume_data.get("experience_years"),
-        "location": None,
-    }
-    PROFILE_CACHE[user_id] = {
-        "profile": resume_data,
-        "vector": profile_vector,
-    }
+@app.get("/test")
+async def test_get():
+    """Test GET endpoint."""
     return {
-        "user_id": user_id,
-        "resume_data": resume_data,
-        "profile_vector": profile_vector,
-        "status": "basic_parse",
+        "status": "success",
+        "message": "GET /test working",
+        "timestamp": str(PROFILE_CACHE.get("_test", {}))
+    }
+
+
+@app.post("/test")
+async def test_post(data: dict = None):
+    """Test POST endpoint."""
+    return {
+        "status": "success",
+        "message": "POST /test working",
+        "received_data": data or {}
     }
 
 

@@ -1,8 +1,8 @@
 import pdfplumber
 from typing import List, Optional, Union
 from io import BytesIO
-from PDFContentProcessor import PDFProcessor
-from PDFPartitionContentProcessor import PDFMultiColumnProcessor
+from ai.services.resume_pipeline.PDFContentProcessor import PDFProcessor
+from ai.services.resume_pipeline.PDFPartitionContentProcessor import PDFMultiColumnProcessor
 
 
 class PDFTableExtractor:

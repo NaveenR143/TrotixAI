@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import logging
 import asyncio
 import json
@@ -31,8 +32,38 @@ from .validation import FileValidator
 from .PDFDocumentAnalyzer import DocumentAnalyzer
 
 from pathlib import Path
+from pdfminer.high_level import extract_text as extract_pdf_text
+
+import os
+
+from sentence_transformers import SentenceTransformer
+
+MODEL_NAME = "all-MiniLM-L6-v2"
+LOCAL_MODEL_PATH = "./model"
 
 LOGGER = logging.getLogger("resume_processor")
+
+
+def load_model():
+    # Check if model exists locally
+    if os.path.exists(LOCAL_MODEL_PATH):
+        print("✅ Loading model from local path...")
+        return SentenceTransformer(LOCAL_MODEL_PATH)
+
+    # Otherwise download and save
+    print("⬇️ Downloading model from Hugging Face...")
+    model = SentenceTransformer(MODEL_NAME)
+
+    # Save locally for future use
+    os.makedirs(LOCAL_MODEL_PATH, exist_ok=True)
+    model.save(LOCAL_MODEL_PATH)
+
+    print("💾 Model saved locally")
+    return model
+
+
+# Load once (global)
+_model = load_model()
 
 
 class ResumeProcessor:
@@ -59,6 +90,29 @@ class ResumeProcessor:
             ".doc": DocResumeParser(),
         }
 
+    def _generate_embedding(self, text: str) -> list[float] | None:
+        """Generate embedding using SentenceTransformers (open-source)."""
+        try:
+            if not text or not text.strip():
+                LOGGER.warning("Empty text provided for embedding generation")
+                return None
+
+            # Generate embedding
+            embedding = _model.encode(
+                text,
+                convert_to_numpy=True,
+                normalize_embeddings=True,  # good for cosine similarity
+            )
+
+            embedding_list = embedding.tolist()
+
+            print(f"Generated embedding with {len(embedding_list)} dimensions")
+            return embedding_list
+
+        except Exception as e:
+            print(f"Error generating embedding: {e}")
+            return None
+
     async def process_resume(
         self,
         user_id: UUID,
@@ -80,7 +134,24 @@ class ResumeProcessor:
             )
 
         try:
-            main_text = parser.parse_text(raw_bytes)
+
+            main_text = ""
+
+            # if extension.endswith(".pdf"):
+            #     with io.BytesIO(file_bytes) as f:
+            #         main_text = extract_pdf_text(f)
+
+            main_text = parser.parse_plain_text(raw_bytes)
+
+            # Store first 5 lines from extracted PDF in a variable
+            lines = main_text.split("\n")
+            first_five_lines = "\n".join(lines[:5])
+
+            # print("=== First 5 lines from extracted PDF ===")
+            # for i, line in enumerate(lines[:5], 1):
+            #     print(f"{i}. {line}")
+            # print("=" * 50)
+
             analyzer = DocumentAnalyzer(file_bytes)
             analysis_result = analyzer.analyze()
 
@@ -117,10 +188,9 @@ class ResumeProcessor:
             # print(f"Cleaned text for user {user_id}:\n{clean_text[:500]}...")
 
             # Extract deterministic data first (name, email, phone, skills, etc.)
-            deterministic = self._extractor.extract(raw_text)
+            deterministic = self._extractor.extract(raw_text, first_five_lines)
             # Debug output
-            print(
-                f"Deterministic data for user {user_id}:\n{asdict(deterministic)}")
+            print(f"Deterministic data for user {user_id}:\n{asdict(deterministic)}")
 
             # # Remove PII from clean text to reduce tokens sent to model
             # clean_text_without_pii = self._preprocessor.remove_pii(
@@ -131,8 +201,7 @@ class ResumeProcessor:
             profile = ""
 
             # Pass complete clean_text (without PII) to AI refiner
-            profile = self._ai_refiner.refine(
-                user_id=user_id, clean_text=raw_text)
+            profile = self._ai_refiner.refine(user_id=user_id, clean_text=raw_text)
 
             print(f"AI refinement completed for user {user_id}:\n{profile}")
 
@@ -150,8 +219,6 @@ class ResumeProcessor:
 
             # Merge the two dicts
             merged_data = {**profile_dict, **deterministic_dict}
-            
-            
 
             # Optional: if you want to keep the UUID mapping as well
             # merged_data = {"profile": merged_data, "uuids": {k.hex: v.hex for k, v in profile.items() if isinstance(k, UUID)}}
@@ -163,31 +230,29 @@ class ResumeProcessor:
 
             print(f"Profile saved for user {user_id}")
 
-            # # Debug output
-            # print(
-            #     f"Refined profile for user {user_id}:\n{json.dumps(asdict(profile), indent=2, default=str)}"
-            # )
+            # Generate embedding from resume summary
+            resume_summary = merged_data.get("summary", "")
+            resume_embedding = self._generate_embedding(resume_summary)
 
-            # await self._repository.save_profile_and_resume(
-            #     profile=profile,
-            #     file_name=file_name,
-            #     file_url=file_url,
-            #     file_size_bytes=len(file_bytes),
-            #     mime_type=mime_type,
-            # )
-            LOGGER.info("Resume processing completed",
-                        extra={"user_id": str(user_id)})
+            # Save profile and resume with embedding
+            await self._repository.save_profile_and_resume(
+                profile=merged_data,
+                file_name=file_name,
+                file_url="https://example.com/resume.pdf",  # Placeholder URL
+                file_size_bytes=len(raw_bytes),
+                mime_type=mime_type,
+                resume_embedding=resume_embedding,
+            )
+            LOGGER.info("Resume processing completed", extra={"user_id": str(user_id)})
             return profile
         except ResumeProcessingError:
-            LOGGER.exception("Resume processing error",
-                             extra={"user_id": str(user_id)})
+            LOGGER.exception("Resume processing error", extra={"user_id": str(user_id)})
             raise
         except Exception as exc:
             LOGGER.exception(
                 "Unhandled resume processing error", extra={"user_id": str(user_id)}
             )
-            raise ResumeProcessingError(
-                f"Unhandled processing error: {exc}") from exc
+            raise ResumeProcessingError(f"Unhandled processing error: {exc}") from exc
 
 
 def configure_logging(level: int = logging.INFO) -> None:

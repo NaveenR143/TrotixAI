@@ -95,11 +95,12 @@ class JobSeekerRepository:
 
     async def save_profile_and_resume(
         self,
-        profile: JobSeekerProfile,
+        profile: JobSeekerProfile | dict,
         file_name: str,
         file_url: str,
         file_size_bytes: int,
         mime_type: str,
+        resume_embedding: list[float] | None = None,
     ) -> None:
         if self._pool is None:
             raise RepositoryError("Repository not connected.")
@@ -112,26 +113,30 @@ class JobSeekerRepository:
                 file_url,
                 file_size_bytes,
                 mime_type,
+                resume_embedding,
             )
 
-            LOGGER.info("Saved profile and resume for user %s",
-                        profile.user_id)
+            user_id = profile.get("user_id") if isinstance(
+                profile, dict) else profile.user_id
+            LOGGER.info("Saved profile and resume for user %s", user_id)
         except RepositoryError:
             raise
         except Exception as exc:
+            user_id = profile.get("user_id") if isinstance(
+                profile, dict) else getattr(profile, "user_id", None)
             LOGGER.exception(
-                "Failed to save profile and resume for user %s",
-                getattr(profile, "user_id", None),
+                "Failed to save profile and resume for user %s", user_id
             )
             raise RepositoryError("Failed to save profile and resume") from exc
 
     def _save_profile_and_resume_sync(
         self,
-        profile: JobSeekerProfile,
+        profile: JobSeekerProfile | dict,
         file_name: str,
         file_url: str,
         file_size_bytes: int,
         mime_type: str,
+        resume_embedding: list[float] | None = None,
     ) -> None:
         if self._pool is None:
             raise RepositoryError("Repository not connected.")
@@ -139,6 +144,46 @@ class JobSeekerRepository:
         conn = None
         try:
             conn = self._pool.getconn()
+            
+            # Handle dict profile
+            if isinstance(profile, dict):
+                user_id = profile.get("user_id")
+                headline = profile.get("headline", "")
+                summary = profile.get("summary", "")
+                current_location = profile.get("current_location", "")
+                preferred_locations = profile.get("preferred_locations", [])
+                years_of_experience = profile.get("years_of_experience")
+                notice_period_days = profile.get("notice_period_days")
+                current_salary = profile.get("current_salary")
+                expected_salary = profile.get("expected_salary")
+                salary_currency = profile.get("salary_currency", "")
+                linkedin_url = profile.get("linkedin_url", "")
+                github_url = profile.get("github_url", "")
+                portfolio_url = profile.get("portfolio_url", "")
+                raw_text = profile.get("raw_text", "")
+                skills = profile.get("skills", [])
+                parsed_job_titles = profile.get("parsed_job_titles", [])
+                parsed_summary = profile.get("parsed_summary", "")
+            else:
+                # Handle JobSeekerProfile object
+                user_id = profile.user_id
+                headline = profile.headline
+                summary = profile.summary
+                current_location = profile.current_location
+                preferred_locations = profile.preferred_locations
+                years_of_experience = profile.years_of_experience
+                notice_period_days = profile.notice_period_days
+                current_salary = profile.current_salary
+                expected_salary = profile.expected_salary
+                salary_currency = profile.salary_currency
+                linkedin_url = profile.linkedin_url
+                github_url = profile.github_url
+                portfolio_url = profile.portfolio_url
+                raw_text = profile.raw_text
+                skills = profile.skills
+                parsed_job_titles = profile.parsed_job_titles
+                parsed_summary = profile.parsed_summary
+            
             with conn:
                 with conn.cursor() as cur:
                     cur.execute(
@@ -170,54 +215,62 @@ class JobSeekerRepository:
                             updated_at = NOW()
                         """,
                         (
-                            profile.user_id,
-                            profile.headline,
-                            profile.summary,
-                            profile.current_location,
-                            profile.preferred_locations,
-                            profile.years_of_experience,
-                            profile.notice_period_days,
-                            profile.current_salary,
-                            profile.expected_salary,
-                            profile.salary_currency,
-                            profile.linkedin_url,
-                            profile.github_url,
-                            profile.portfolio_url,
+                            user_id,
+                            headline,
+                            summary,
+                            current_location,
+                            preferred_locations,
+                            years_of_experience,
+                            notice_period_days,
+                            current_salary,
+                            expected_salary,
+                            salary_currency,
+                            linkedin_url,
+                            github_url,
+                            portfolio_url,
                         ),
                     )
 
+                    # Prepare resume_embedding for PostgreSQL vector column
+                    embedding_value = None
+                    if resume_embedding:
+                        # Convert list to string format suitable for pgvector
+                        embedding_value = resume_embedding
+
+                    # Insert resume with embedding
                     cur.execute(
                         """
                         INSERT INTO resumes (
                             user_id, file_name, file_url, file_size_bytes, mime_type,
                             parsed_at, raw_text, parsed_skills, parsed_experience_years,
-                            parsed_job_titles, parsed_summary, updated_at
+                            parsed_job_titles, parsed_summary, resume_embedding, updated_at
                         )
                         VALUES (
-                            %s, %s, %s, %s, %s, NOW(), %s, %s, %s, %s, %s, NOW()
+                            %s, %s, %s, %s, %s, NOW(), %s, %s, %s, %s, %s, %s, NOW()
                         )
                         """,
                         (
-                            profile.user_id,
+                            user_id,
                             file_name,
                             file_url,
                             file_size_bytes,
                             mime_type,
-                            profile.raw_text,
-                            profile.skills,
-                            profile.years_of_experience,
-                            profile.parsed_job_titles,
-                            profile.parsed_summary,
+                            raw_text,
+                            skills,
+                            years_of_experience,
+                            parsed_job_titles,
+                            parsed_summary,
+                            embedding_value,
                         ),
                     )
 
                     cur.execute(
                         "DELETE FROM jobseeker_skills WHERE user_id = %s",
-                        (profile.user_id,),
+                        (user_id,),
                     )
 
-                    if profile.skills:
-                        for skill in profile.skills:
+                    if skills:
+                        for skill in skills:
                             cur.execute(
                                 """
                                 INSERT INTO skills (name)
@@ -238,12 +291,14 @@ class JobSeekerRepository:
                                 VALUES (%s, %s, 'intermediate', FALSE)
                                 ON CONFLICT (user_id, skill_id) DO NOTHING
                                 """,
-                                (profile.user_id, skill_id),
+                                (user_id, skill_id),
                             )
         except (Exception, psycopg2.DatabaseError) as exc:
+            user_id = profile.get("user_id") if isinstance(
+                profile, dict) else getattr(profile, "user_id", None)
             LOGGER.exception(
                 "Failed to save profile and resume for user %s",
-                getattr(profile, "user_id", None),
+                user_id,
             )
             raise RepositoryError("Failed to save profile and resume") from exc
         finally:

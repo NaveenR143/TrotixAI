@@ -401,24 +401,28 @@ class PdfResumeParser(ResumeParserStrategy):
                     if not table or len(table) < 2:
                         LOGGER.debug(f"Skipping invalid table {table_idx}")
                         continue
-                    
+
                     table_type = self._classify_table(table)
-                    
+
                     # Format table as TSV
-                    formatted_rows = self._format_table_as_tsv(table, table_type)
-                    
+                    formatted_rows = self._format_table_as_tsv(
+                        table, table_type)
+
                     if formatted_rows:
                         # Add formatted table to appropriate section
                         if table_type != "unknown":
                             section_map[table_type].extend(formatted_rows)
-                            LOGGER.info(f"Added {len(formatted_rows)} rows to {table_type} table")
+                            LOGGER.info(
+                                f"Added {len(formatted_rows)} rows to {table_type} table")
                         else:
                             # Add unknown tables to education or general
                             section_map["education"].extend(formatted_rows)
-                            LOGGER.debug(f"Added unknown table ({len(formatted_rows)} rows) to education")
+                            LOGGER.debug(
+                                f"Added unknown table ({len(formatted_rows)} rows) to education")
                 except Exception as table_exc:
                     print(f"Error processing table {table_idx}: {table_exc}")
-                    LOGGER.warning(f"Error processing table {table_idx}: {table_exc}")
+                    LOGGER.warning(
+                        f"Error processing table {table_idx}: {table_exc}")
                     continue
         except Exception as exc:
             print(f"Error in _process_tables: {exc}")
@@ -452,13 +456,13 @@ class PdfResumeParser(ResumeParserStrategy):
         try:
             if not char or not hasattr(char, 'x0') or not hasattr(char, 'x1'):
                 return False
-            
+
             char_bbox = (char.x0, char.top, char.x1, char.bottom)
-            
+
             for table_bbox in table_bboxes:
                 # Check if character overlaps with table
                 if (char_bbox[0] < table_bbox[2] and char_bbox[2] > table_bbox[0] and
-                    char_bbox[1] < table_bbox[3] and char_bbox[3] > table_bbox[1]):
+                        char_bbox[1] < table_bbox[3] and char_bbox[3] > table_bbox[1]):
                     return True
             return False
         except Exception:
@@ -469,12 +473,12 @@ class PdfResumeParser(ResumeParserStrategy):
         try:
             # Try to extract text excluding tables using layout mode
             text = page.extract_text(layout=False) or ""
-            
+
             # Alternative: use table detection settings to exclude table regions
             # For now, we'll use a simple heuristic approach
             if not text:
                 text = page.extract_text() or ""
-            
+
             return text
         except Exception as e:
             LOGGER.debug(f"Error extracting text excluding tables: {e}")
@@ -513,7 +517,8 @@ class PdfResumeParser(ResumeParserStrategy):
                                         LOGGER.debug(
                                             f"Page {page_idx + 1}: Extracted table {table_idx} with {len(table)} rows")
                         except Exception as table_exc:
-                            LOGGER.debug(f"Table extraction error on page {page_idx + 1}: {table_exc}")
+                            LOGGER.debug(
+                                f"Table extraction error on page {page_idx + 1}: {table_exc}")
 
                         # Extract text now (which may include table text)
                         text = page.extract_text() or ""
@@ -541,14 +546,19 @@ class PdfResumeParser(ResumeParserStrategy):
                                         "length": len(alt_text),
                                         "method": "layout"
                                     })
-                                    LOGGER.debug(f"Page {page_idx + 1}: Layout extraction retrieved {len(alt_text)} chars")
+                                    LOGGER.debug(
+                                        f"Page {page_idx + 1}: Layout extraction retrieved {len(alt_text)} chars")
                             except Exception as alt_exc:
-                                LOGGER.debug(f"Layout fallback failed: {alt_exc}")
+                                LOGGER.debug(
+                                    f"Layout fallback failed: {alt_exc}")
 
                     except Exception as page_exc:
-                        print(f"Error extracting from page {page_idx + 1}: {page_exc}")
-                        LOGGER.error(f"Error extracting from page {page_idx + 1}: {page_exc}")
-                        unclassified_text.append({"page": page_idx + 1, "error": str(page_exc)})
+                        print(
+                            f"Error extracting from page {page_idx + 1}: {page_exc}")
+                        LOGGER.error(
+                            f"Error extracting from page {page_idx + 1}: {page_exc}")
+                        unclassified_text.append(
+                            {"page": page_idx + 1, "error": str(page_exc)})
 
             # Join all text
             full_text = "\n".join(text_content)
@@ -556,7 +566,8 @@ class PdfResumeParser(ResumeParserStrategy):
                 f"Total extracted text: {len(full_text)} chars from {len(extracted_text_blocks)} blocks, {len(tables_content)} tables")
 
             if len(full_text.strip()) == 0:
-                print("WARNING: No text content extracted from PDF. File may be image-based.")
+                print(
+                    "WARNING: No text content extracted from PDF. File may be image-based.")
                 LOGGER.warning("No text content extracted from PDF")
 
             # Return text and tables separately
@@ -571,52 +582,57 @@ class PdfResumeParser(ResumeParserStrategy):
         try:
             if not line or not isinstance(line, str):
                 return False
-            
+
             stripped = line.strip()
             if not stripped or len(stripped) < 3:
                 return False
-            
+
             # Look for table header patterns (all caps keywords with few words)
             table_headers = [
                 "QUALIFICATION", "UNIVERSITY", "BOARD", "INSTITUTION", "YEAR",
                 "COMPLETION", "PERCENTAGE", "COMPANY", "DESIGNATION", "DURATION",
                 "SKILL", "TECHNOLOGY", "PROFICIENCY", "PROJECT", "DESCRIPTION"
             ]
-            
+
             # If line has multiple table keywords, it's likely a table header
-            header_keywords = sum(1 for keyword in table_headers if keyword in stripped.upper())
+            header_keywords = sum(
+                1 for keyword in table_headers if keyword in stripped.upper())
             if header_keywords >= 2:
                 return True
-            
+
             words = stripped.split()
-            
+
             if len(words) < 3:
                 return False
-            
+
             # Count different types of tokens
-            year_like = sum(1 for w in words if w.isdigit() and 1900 <= int(w) <= 2050)
-            percent_like = sum(1 for w in words if w.replace('.', '', 1).isdigit() and '.' in w)
-            
+            year_like = sum(1 for w in words if w.isdigit()
+                            and 1900 <= int(w) <= 2050)
+            percent_like = sum(1 for w in words if w.replace(
+                '.', '', 1).isdigit() and '.' in w)
+
             # SPECIFIC: Degree keywords pattern with years AND percentages (education table)
-            degree_keywords = ["bachelor", "intermediate", "10th", "masters", "diploma", "bca", "btech", "mca", "mtech", "phd"]
+            degree_keywords = ["bachelor", "intermediate", "10th",
+                               "masters", "diploma", "bca", "btech", "mca", "mtech", "phd"]
             has_degree = any(kw in stripped.lower() for kw in degree_keywords)
-            
+
             # Education table pattern: degree + org names + year + percentage
             if has_degree and year_like > 0 and percent_like > 0:
                 return True
-            
+
             # Company/experience table pattern: company name + role + year
             company_keywords = ["company", "pvt", "ltd", "inc", "llc", ".com"]
-            has_company = any(kw.lower() in stripped.lower() for kw in company_keywords)
+            has_company = any(kw.lower() in stripped.lower()
+                              for kw in company_keywords)
             if has_company and year_like > 0:
                 return True
-            
+
             # Avoid false positives for normal sentences with years
             # e.g., "2015 Certification in Oracle..."
             if any(ending in stripped for ending in ['.', '!', '?']):
                 # Has sentence ending, likely normal text despite year
                 return False
-            
+
             return False
         except Exception as exc:
             LOGGER.debug(f"Error detecting table line: {exc}")
@@ -655,7 +671,8 @@ class PdfResumeParser(ResumeParserStrategy):
 
                     # ---- Skip lines that are likely from table extraction ----
                     if self._is_likely_table_line(cleaned_line):
-                        LOGGER.debug(f"Skipping table line: {cleaned_line[:50]}")
+                        LOGGER.debug(
+                            f"Skipping table line: {cleaned_line[:50]}")
                         continue
 
                     # ---- detect heading with multiple cues ----
@@ -778,6 +795,30 @@ class PdfResumeParser(ResumeParserStrategy):
                 raise ParsingError("No content extracted after parsing.")
 
             return result
+        except Exception as exc:
+            print(f"Error in PDF parse_text: {exc}")
+            LOGGER.error(f"Error in PDF parse_text: {exc}")
+            raise
+
+    def parse_plain_text(self, file_bytes: bytes) -> str:
+        """Parse PDF - extract text from first page only."""
+        try:
+
+            # text, tables = self._extract_with_pdfplumber(file_bytes)
+
+            text = ""
+
+            with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+                page_count = len(pdf.pages)
+                LOGGER.info(
+                    f"Processing PDF with {page_count} pages - extracting first page only")
+
+                if page_count > 0:
+                    page = pdf.pages[0]
+                    text = page.extract_text() or ""
+                    # LOGGER.info(f"Extracted {len(text)} characters from first page")
+
+            return text
         except Exception as exc:
             print(f"Error in PDF parse_text: {exc}")
             LOGGER.error(f"Error in PDF parse_text: {exc}")
