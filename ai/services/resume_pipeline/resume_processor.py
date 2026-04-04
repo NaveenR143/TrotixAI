@@ -127,7 +127,7 @@ async def _demo() -> None:
             ai_refiner=AzureOpenAIResumeRefiner(),
         )
         await processor.process_resume(
-            user_id=uuid4(),
+            user_id="41e9a27d-4768-4520-a1b2-425faca3c823",  # uuid4(),
             file_name=demo_file.name,
             file_bytes=pdf_stream,
             raw_bytes=demo_file.read_bytes(),

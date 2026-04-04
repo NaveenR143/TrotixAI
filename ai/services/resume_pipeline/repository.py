@@ -28,19 +28,19 @@ class JobSeekerRepository:
                 or "trotixai"
             )
             self._user = os.getenv("PGUSER") or os.getenv("DB_USER") or "postgres"
-            self._password = os.getenv("PGPASSWORD") or os.getenv("DB_PASSWORD") or "sa123"
+            self._password = (
+                os.getenv("PGPASSWORD") or os.getenv("DB_PASSWORD") or "sa123"
+            )
             self._port = int(os.getenv("PGPORT") or os.getenv("DB_PORT") or 5432)
 
             # Allow DATABASE_URL override when explicitly supplied.
-            self._database_url = (database_url or os.getenv("DATABASE_URL", "")).replace(
-                "postgresql+asyncpg://", "postgresql://"
-            )
+            self._database_url = (
+                database_url or os.getenv("DATABASE_URL", "")
+            ).replace("postgresql+asyncpg://", "postgresql://")
             self._pool: pool.AbstractConnectionPool | None = None
 
             if self._database_url:
-                LOGGER.info(
-                    "Configured database connection using DATABASE_URL"
-                )
+                LOGGER.info("Configured database connection using DATABASE_URL")
             else:
                 LOGGER.info(
                     "Configured database connection to %s@%s:%s/%s",
@@ -90,8 +90,7 @@ class JobSeekerRepository:
             LOGGER.info("Database connection pool closed")
         except Exception as exc:
             LOGGER.exception("Error closing psycopg2 pool")
-            raise RepositoryError(
-                "Failed to close database connection") from exc
+            raise RepositoryError("Failed to close database connection") from exc
 
     async def save_profile_and_resume(
         self,
@@ -116,17 +115,20 @@ class JobSeekerRepository:
                 resume_embedding,
             )
 
-            user_id = profile.get("user_id") if isinstance(
-                profile, dict) else profile.user_id
+            user_id = "41e9a27d-4768-4520-a1b2-425faca3c823"
+
+            # user_id = profile.get("user_id") if isinstance(
+            #     profile, dict) else profile.user_id
             LOGGER.info("Saved profile and resume for user %s", user_id)
         except RepositoryError:
             raise
         except Exception as exc:
-            user_id = profile.get("user_id") if isinstance(
-                profile, dict) else getattr(profile, "user_id", None)
-            LOGGER.exception(
-                "Failed to save profile and resume for user %s", user_id
+            user_id = (
+                profile.get("user_id")
+                if isinstance(profile, dict)
+                else getattr(profile, "user_id", None)
             )
+            LOGGER.exception("Failed to save profile and resume for user %s", user_id)
             raise RepositoryError("Failed to save profile and resume") from exc
 
     def _save_profile_and_resume_sync(
@@ -144,10 +146,12 @@ class JobSeekerRepository:
         conn = None
         try:
             conn = self._pool.getconn()
-            
+
             # Handle dict profile
             if isinstance(profile, dict):
-                user_id = profile.get("user_id")
+                user_id = (
+                    "41e9a27d-4768-4520-a1b2-425faca3c823"  # profile.get("user_id")
+                )
                 headline = profile.get("headline", "")
                 summary = profile.get("summary", "")
                 current_location = profile.get("current_location", "")
@@ -156,17 +160,17 @@ class JobSeekerRepository:
                 notice_period_days = profile.get("notice_period_days")
                 current_salary = profile.get("current_salary")
                 expected_salary = profile.get("expected_salary")
-                salary_currency = profile.get("salary_currency", "")
+                salary_currency = "INR"  #  profile.get("salary_currency", "")
                 linkedin_url = profile.get("linkedin_url", "")
                 github_url = profile.get("github_url", "")
                 portfolio_url = profile.get("portfolio_url", "")
-                raw_text = profile.get("raw_text", "")
+
                 skills = profile.get("skills", [])
                 parsed_job_titles = profile.get("parsed_job_titles", [])
                 parsed_summary = profile.get("parsed_summary", "")
             else:
                 # Handle JobSeekerProfile object
-                user_id = profile.user_id
+                user_id = "41e9a27d-4768-4520-a1b2-425faca3c823"  # profile.user_id
                 headline = profile.headline
                 summary = profile.summary
                 current_location = profile.current_location
@@ -175,15 +179,15 @@ class JobSeekerRepository:
                 notice_period_days = profile.notice_period_days
                 current_salary = profile.current_salary
                 expected_salary = profile.expected_salary
-                salary_currency = profile.salary_currency
+                salary_currency = "INR"  # profile.salary_currency
                 linkedin_url = profile.linkedin_url
                 github_url = profile.github_url
                 portfolio_url = profile.portfolio_url
-                raw_text = profile.raw_text
+
                 skills = profile.skills
                 parsed_job_titles = profile.parsed_job_titles
                 parsed_summary = profile.parsed_summary
-            
+
             with conn:
                 with conn.cursor() as cur:
                     cur.execute(
@@ -241,24 +245,18 @@ class JobSeekerRepository:
                     cur.execute(
                         """
                         INSERT INTO resumes (
-                            user_id, file_name, file_url, file_size_bytes, mime_type,
-                            parsed_at, raw_text, parsed_skills, parsed_experience_years,
-                            parsed_job_titles, parsed_summary, resume_embedding, updated_at
+                            user_id, file_name, file_url, mime_type,
+                            parsed_at, parsed_summary, resume_embedding, updated_at
                         )
                         VALUES (
-                            %s, %s, %s, %s, %s, NOW(), %s, %s, %s, %s, %s, %s, NOW()
+                            %s, %s, %s, %s, NOW(), %s, %s, NOW()
                         )
                         """,
                         (
                             user_id,
                             file_name,
                             file_url,
-                            file_size_bytes,
                             mime_type,
-                            raw_text,
-                            skills,
-                            years_of_experience,
-                            parsed_job_titles,
                             parsed_summary,
                             embedding_value,
                         ),
@@ -294,8 +292,11 @@ class JobSeekerRepository:
                                 (user_id, skill_id),
                             )
         except (Exception, psycopg2.DatabaseError) as exc:
-            user_id = profile.get("user_id") if isinstance(
-                profile, dict) else getattr(profile, "user_id", None)
+            user_id = (
+                profile.get("user_id")
+                if isinstance(profile, dict)
+                else getattr(profile, "user_id", None)
+            )
             LOGGER.exception(
                 "Failed to save profile and resume for user %s",
                 user_id,

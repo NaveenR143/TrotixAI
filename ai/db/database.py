@@ -10,7 +10,7 @@ import os
 # Set this in your .env or environment:
 #   DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/trotixai
 DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/trotixai"
+    "DATABASE_URL", "postgresql+asyncpg://postgres:sa123@localhost:5432/trotixai"
 )
 
 # ── Engine ─────────────────────────────────────────────────────────────────────

@@ -50,3 +50,39 @@ async def save_phone_to_db(phone: str, session: AsyncSession) -> tuple:
     except Exception as e:
         await session.rollback()
         raise Exception(f"Failed to save phone number: {str(e)}")
+
+
+async def mark_phone_verified(phone: str, session: AsyncSession) -> bool:
+    """
+    Mark a phone number as verified in the database.
+    Updates is_phone_verified to True and status to 'active'.
+
+    Args:
+        phone: Phone number to mark as verified
+        session: AsyncSession for database operations
+
+    Returns:
+        bool: True if update successful, False if phone not found
+
+    Raises:
+        Exception: If database operation fails
+    """
+    try:
+        # Update user with matching phone number
+        result = await session.execute(
+            text("""
+                UPDATE users 
+                SET is_phone_verified = TRUE, status = 'active'
+                WHERE phone = :phone
+                RETURNING id
+            """),
+            {"phone": phone}
+        )
+
+        updated_id = result.scalar()
+        await session.commit()
+        return updated_id is not None
+
+    except Exception as e:
+        await session.rollback()
+        raise Exception(f"Failed to mark phone as verified: {str(e)}")
