@@ -4,6 +4,7 @@ import io
 import logging
 import asyncio
 import json
+import time
 from dataclasses import asdict
 from typing import Sequence
 from uuid import UUID
@@ -123,6 +124,7 @@ class ResumeProcessor:
         raw_bytes: bytes,
         mime_type: str,
     ) -> JobSeekerProfile:
+        start_time = time.perf_counter()
         LOGGER.info(
             "Starting resume processing",
             extra={"user_id": str(user_id), "file_name": file_name},
@@ -255,6 +257,11 @@ class ResumeProcessor:
                 education_details=education_details,
                 resume_embedding=resume_embedding,
             )
+
+            end_time = time.perf_counter()
+            duration = end_time - start_time
+            print(f"✅ Resume processing completed in {duration:.2f} seconds")
+
             LOGGER.info("Resume processing completed",
                         extra={"user_id": str(user_id)})
             return profile

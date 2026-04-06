@@ -130,20 +130,22 @@ CREATE INDEX idx_cert_user ON certifications (user_id);
 
 -- ── Projects ──────────────────────────────────────────────────────────────────
 CREATE TABLE projects (
-    id              UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    title           TEXT    NOT NULL,
-    description     TEXT,
-    url             TEXT,
-    repo_url        TEXT,
-    skills_used     TEXT[],
-    start_date      DATE,
-    end_date        DATE,
-    sort_order      INTEGER DEFAULT 0,
-    created_at      TIMESTAMPTZ DEFAULT NOW()
+    id                  UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id             UUID    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    work_experience_id  UUID    REFERENCES work_experiences(id) ON DELETE CASCADE,
+    title               TEXT    NOT NULL,
+    description         TEXT,
+    url                 TEXT,
+    repo_url            TEXT,
+    skills_used         TEXT[],
+    start_date          DATE,
+    end_date            DATE,
+    sort_order          INTEGER DEFAULT 0,
+    created_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX idx_projects_user ON projects (user_id);
+CREATE INDEX idx_projects_exp  ON projects (work_experience_id);
 
 
 -- ── Resumes (uploaded files + AI-parsed content) ──────────────────────────────

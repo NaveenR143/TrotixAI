@@ -3,7 +3,9 @@ Resume Repository Module
 Handles all database operations for resume data insertion.
 """
 
+import asyncio
 import logging
+from datetime import date
 from typing import Optional
 from uuid import UUID
 
@@ -19,6 +21,31 @@ class ResumeRepository:
     def __init__(self, session: AsyncSession):
         """Initialize repository with database session."""
         self.session = session
+
+    def _parse_date(self, date_val: Optional[str | date]) -> Optional[date]:
+        """
+        Safely parse date string or return date object.
+
+        Args:
+            date_val: Date string (YYYY-MM-DD) or date object
+
+        Returns:
+            date object if valid, None otherwise
+        """
+        if not date_val:
+            return None
+
+        if isinstance(date_val, date):
+            return date_val
+
+        try:
+            if isinstance(date_val, str):
+                # Handle cases like "2012-10-01T00:00:00" or just "2012-10-01"
+                return date.fromisoformat(date_val.split("T")[0])
+        except (ValueError, TypeError) as e:
+            LOGGER.warning(f"Failed to parse date '{date_val}': {str(e)}")
+
+        return None
 
     # ══════════════════════════════════════════════════════════════════════════════
     # USER OPERATIONS
@@ -139,13 +166,16 @@ class ResumeRepository:
     # JOBSEEKER PROFILE OPERATIONS
     # ══════════════════════════════════════════════════════════════════════════════
 
-    async def upsert_jobseeker_profile(self, user_id: UUID, profile_data: dict) -> None:
+    async def upsert_jobseeker_profile(
+        self, user_id: UUID, profile_data: dict, commit: bool = True
+    ) -> None:
         """
         Insert or update jobseeker profile.
 
         Args:
             user_id: User UUID
             profile_data: Dictionary containing profile information
+            commit: Whether to commit the transaction
         """
         try:
             query = text(
@@ -196,7 +226,8 @@ class ResumeRepository:
                     "portfolio_url": profile_data.get("portfolio_url"),
                 },
             )
-            await self.session.commit()
+            if commit:
+                await self.session.commit()
             LOGGER.info(f"Upserted jobseeker profile for user {user_id}")
 
         except Exception as e:
@@ -214,6 +245,7 @@ class ResumeRepository:
         skill_id: UUID,
         level: str = "intermediate",
         years: Optional[float] = None,
+        commit: bool = True,
     ) -> None:
         """
         Add skill to user (with upsert).
@@ -223,6 +255,7 @@ class ResumeRepository:
             skill_id: Skill UUID
             level: Proficiency level (beginner, intermediate, advanced)
             years: Years of experience with this skill
+            commit: Whether to commit the transaction
         """
         try:
             query = text(
@@ -244,7 +277,8 @@ class ResumeRepository:
                     "years": years,
                 },
             )
-            await self.session.commit()
+            if commit:
+                await self.session.commit()
             LOGGER.debug(f"Added skill {skill_id} to user {user_id}")
 
         except Exception as e:
@@ -268,6 +302,7 @@ class ResumeRepository:
         is_current: bool = False,
         description: Optional[str] = None,
         sort_order: int = 0,
+        commit: bool = True,
     ) -> UUID:
         """
         Add education record for user.
@@ -283,6 +318,7 @@ class ResumeRepository:
             is_current: Whether currently studying
             description: Additional description
             sort_order: Display order
+            commit: Whether to commit the transaction
 
         Returns:
             UUID of the created education record
@@ -293,9 +329,7 @@ class ResumeRepository:
                 degree = ", ".join(degree) if degree else None
 
             if isinstance(field_of_study, list):
-                field_of_study = (
-                    ", ".join(field_of_study) if field_of_study else None
-                )
+                field_of_study = ", ".join(field_of_study) if field_of_study else None
 
             query = text(
                 """
@@ -326,7 +360,8 @@ class ResumeRepository:
                 },
             )
             row = result.fetchone()
-            await self.session.commit()
+            if commit:
+                await self.session.commit()
 
             education_id = UUID(str(row[0]))
             LOGGER.debug(f"Added education for user {user_id}")
@@ -354,6 +389,7 @@ class ResumeRepository:
         skills_used: Optional[list] = None,
         achievements: Optional[list] = None,
         sort_order: int = 0,
+        commit: bool = True,
     ) -> UUID:
         """
         Add work experience record for user.
@@ -370,6 +406,7 @@ class ResumeRepository:
             skills_used: List of skills used
             achievements: List of achievements
             sort_order: Display order
+            commit: Whether to commit the transaction
 
         Returns:
             UUID of the created work experience record
@@ -395,8 +432,8 @@ class ResumeRepository:
                     "company_name": company_name,
                     "title": title,
                     "location": location,
-                    "start_date": start_date,
-                    "end_date": end_date,
+                    "start_date": self._parse_date(start_date),
+                    "end_date": self._parse_date(end_date),
                     "is_current": is_current,
                     "description": description,
                     "skills_used": skills_used or [],
@@ -405,7 +442,8 @@ class ResumeRepository:
                 },
             )
             row = result.fetchone()
-            await self.session.commit()
+            if commit:
+                await self.session.commit()
 
             exp_id = UUID(str(row[0]))
             LOGGER.debug(f"Added work experience for user {user_id}")
@@ -424,6 +462,7 @@ class ResumeRepository:
         self,
         user_id: UUID,
         title: str,
+        work_experience_id: Optional[UUID] = None,
         description: Optional[str] = None,
         url: Optional[str] = None,
         repo_url: Optional[str] = None,
@@ -431,6 +470,7 @@ class ResumeRepository:
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         sort_order: int = 0,
+        commit: bool = True,
     ) -> UUID:
         """
         Add project record for user.
@@ -438,6 +478,7 @@ class ResumeRepository:
         Args:
             user_id: User UUID
             title: Project title
+            work_experience_id: Optional work experience UUID
             description: Project description
             url: Project URL
             repo_url: Repository URL
@@ -445,6 +486,7 @@ class ResumeRepository:
             start_date: Start date (YYYY-MM-DD)
             end_date: End date (YYYY-MM-DD)
             sort_order: Display order
+            commit: Whether to commit the transaction
 
         Returns:
             UUID of the created project record
@@ -453,10 +495,10 @@ class ResumeRepository:
             query = text(
                 """
                 INSERT INTO projects (
-                    user_id, title, description, url, repo_url, skills_used,
+                    user_id, work_experience_id, title, description, url, repo_url, skills_used,
                     start_date, end_date, sort_order, created_at
                 ) VALUES (
-                    :user_id, :title, :description, :url, :repo_url, :skills_used,
+                    :user_id, :work_experience_id, :title, :description, :url, :repo_url, :skills_used,
                     :start_date, :end_date, :sort_order, NOW()
                 )
                 RETURNING id
@@ -467,18 +509,22 @@ class ResumeRepository:
                 query,
                 {
                     "user_id": str(user_id),
+                    "work_experience_id": (
+                        str(work_experience_id) if work_experience_id else None
+                    ),
                     "title": title,
                     "description": description,
                     "url": url,
                     "repo_url": repo_url,
                     "skills_used": skills_used or [],
-                    "start_date": start_date,
-                    "end_date": end_date,
+                    "start_date": self._parse_date(start_date),
+                    "end_date": self._parse_date(end_date),
                     "sort_order": sort_order,
                 },
             )
             row = result.fetchone()
-            await self.session.commit()
+            if commit:
+                await self.session.commit()
 
             project_id = UUID(str(row[0]))
             LOGGER.debug(f"Added project for user {user_id}")
@@ -501,6 +547,7 @@ class ResumeRepository:
         mime_type: str,
         parsed_summary: Optional[str] = None,
         resume_embedding: list[float] | None = None,
+        commit: bool = True,
     ) -> UUID:
         """
         Add resume file record.
@@ -509,12 +556,10 @@ class ResumeRepository:
             user_id: User UUID
             file_name: Original file name
             file_url: S3 or cloud storage URL
-            file_size_bytes: File size in bytes
             mime_type: MIME type of file
-            parsed_skills: Extracted skills from resume
-            parsed_experience_years: Extracted years of experience
             parsed_summary: Extracted summary
-            is_primary: Whether this is the primary resume
+            resume_embedding: Vector embedding of the resume (list of floats)
+            commit: Whether to commit the transaction
 
         Returns:
             UUID of the created resume record
@@ -543,11 +588,14 @@ class ResumeRepository:
                     "file_url": file_url,
                     "mime_type": mime_type,
                     "parsed_summary": parsed_summary,
-                    "resume_embedding": str(resume_embedding) if resume_embedding else None,
+                    "resume_embedding": (
+                        str(resume_embedding) if resume_embedding else None
+                    ),
                 },
             )
             row = result.fetchone()
-            await self.session.commit()
+            if commit:
+                await self.session.commit()
 
             resume_id = UUID(str(row[0]))
             LOGGER.info(f"Added/Updated resume for user {user_id}")
@@ -567,6 +615,7 @@ class ResumeRepository:
         user_id: UUID,
         skill_names: list,
         level: str = "intermediate",
+        commit: bool = True,
     ) -> None:
         """
         Bulk add multiple skills to user with deduplication and normalization.
@@ -644,8 +693,14 @@ class ResumeRepository:
             # Combine existing and newly created skills
             all_skill_ids = {**existing_skills, **created_skill_ids}
 
-            # Bulk insert user skills (upsert)
-            for skill_name, skill_id in all_skill_ids.items():
+            # Bulk insert user skills (upsert) using single multi-row query
+            if all_skill_ids:
+                skill_id_list = list(all_skill_ids.values())
+                # SQLAlchemy doesn't support easy multi-row text() values mapping
+                # for varied params easily, so we use a list of dicts with execute(many=True equivalent)
+                # or manually construct the values string if it's many.
+                # Actually, await self.session.execute(upsert_query, list_of_params) is well supported.
+
                 upsert_query = text(
                     """
                     INSERT INTO jobseeker_skills (user_id, skill_id, level, created_at)
@@ -654,16 +709,20 @@ class ResumeRepository:
                         level = EXCLUDED.level
                 """
                 )
-                await self.session.execute(
-                    upsert_query,
+
+                params = [
                     {
                         "user_id": str(user_id),
                         "skill_id": str(skill_id),
                         "level": level,
-                    },
-                )
+                    }
+                    for skill_id in skill_id_list
+                ]
 
-            await self.session.commit()
+                await self.session.execute(upsert_query, params)
+
+            if commit:
+                await self.session.commit()
             LOGGER.info(
                 f"Successfully added {len(all_skill_ids)} skills to user {user_id}"
             )
@@ -677,6 +736,7 @@ class ResumeRepository:
         self,
         project_id: UUID,
         skill_names: list,
+        commit: bool = True,
     ) -> None:
         """
         Add skills to a project with deduplication and normalization.
@@ -754,7 +814,8 @@ class ResumeRepository:
                     },
                 )
 
-            await self.session.commit()
+            if commit:
+                await self.session.commit()
             LOGGER.debug(f"Added {len(all_skill_ids)} skills to project {project_id}")
 
         except Exception as e:
@@ -766,6 +827,7 @@ class ResumeRepository:
         self,
         work_experience_id: UUID,
         skill_names: list,
+        commit: bool = True,
     ) -> None:
         """
         Add skills to a work experience with deduplication and normalization.
@@ -843,7 +905,8 @@ class ResumeRepository:
                     },
                 )
 
-            await self.session.commit()
+            if commit:
+                await self.session.commit()
             LOGGER.debug(
                 f"Added {len(all_skill_ids)} skills to work experience {work_experience_id}"
             )
@@ -859,7 +922,7 @@ class ResumeRepository:
 
     async def save_profile_and_resume(
         self,
-        user_id: UUID,
+        user_id,
         profile_data: dict,
         file_name: str,
         file_url: str,
@@ -868,81 +931,96 @@ class ResumeRepository:
         education_details: list | None = None,
         resume_embedding: list[float] | None = None,
     ) -> None:
-        """
-        Comprehensive method to save profile, resume, education, and skills in one transaction.
-
-        Args:
-            user_id: User UUID
-            profile_data: Dictionary containing profile information
-            file_name: Resume file name
-            file_url: Resume file URL/path
-            file_size_bytes: Resume file size
-            mime_type: Resume MIME type
-            education_details: List of education dictionaries with keys:
-                - institution (required)
-                - degree (optional)
-                - field_of_study (optional)
-                - grade (optional)
-                - start_year (optional)
-                - end_year (optional)
-                - is_current (optional, default False)
-                - description (optional)
-            resume_embedding: Vector embedding of the resume (list of floats)
-        """
         try:
-            # 1. Upsert jobseeker profile
-            await self.upsert_jobseeker_profile(user_id, profile_data)
+            # -------------------------
+            # 1. Core operations (SEQUENTIAL - safer for DB session)
+            # -------------------------
+            await self.upsert_jobseeker_profile(user_id, profile_data, commit=False)
 
-            # 2. Insert/Update resume with embedding
-            resume_id = await self.add_resume(
+            await self.add_resume(
                 user_id=user_id,
                 file_name=file_name,
                 file_url=file_url,
                 mime_type=mime_type,
-                parsed_summary=profile_data.get("parsed_summary"),
+                parsed_summary=profile_data.get("summary"),
                 resume_embedding=resume_embedding,
+                commit=False,
             )
-            LOGGER.info(f"Saved resume {resume_id} for user {user_id}")
 
-            # 3. Insert education details if provided
-            if education_details:
-                for edu in education_details:
-                    try:
-                        education_id = await self.add_education(
-                            user_id=user_id,
-                            institution=edu.get("institution", ""),
-                            degree=edu.get("degree"),
-                            field_of_study=edu.get("field_of_study"),
-                            grade=edu.get("grade"),
-                            start_year=edu.get("start_year"),
-                            end_year=edu.get("end_year"),
-                            is_current=edu.get("is_current", False),
-                            description=edu.get("description"),
-                            sort_order=education_details.index(edu),
-                        )
-                        LOGGER.info(
-                            f"Added education {education_id} for user {user_id}"
-                        )
-                    except Exception as e:
-                        LOGGER.warning(f"Failed to add education record: {str(e)}")
-                        # Continue processing other records
-
-            # 4. Process and insert skills
             skills = profile_data.get("skills", [])
             if skills:
                 await self.bulk_add_user_skills(
                     user_id=user_id,
                     skill_names=skills,
                     level="intermediate",
+                    commit=False,
                 )
-                LOGGER.info(f"Added {len(skills)} skills for user {user_id}")
 
+            LOGGER.info(f"Basic profile, resume, and skills saved for user {user_id}")
+
+            # -------------------------
+            # 2. Education (can parallelize if using separate sessions)
+            # -------------------------
+            if education_details:
+                for idx, edu in enumerate(education_details):
+                    await self.add_education(
+                        user_id=user_id,
+                        institution=edu.get("institution", ""),
+                        degree=edu.get("degree"),
+                        field_of_study=edu.get("field_of_study"),
+                        grade=edu.get("grade"),
+                        start_year=edu.get("start_year"),
+                        end_year=edu.get("end_year"),
+                        is_current=edu.get("is_current", False),
+                        description=edu.get("description"),
+                        sort_order=idx,
+                        commit=False,
+                    )
+
+            # -------------------------
+            # 3. Work Experience + Projects
+            # -------------------------
+            work_experiences = profile_data.get("work_experiences", [])
+
+            for idx, work_exp in enumerate(work_experiences):
+                exp_id = await self.add_work_experience(
+                    user_id=user_id,
+                    company_name=work_exp.get("company_name", ""),
+                    title=work_exp.get("title", ""),
+                    location=work_exp.get("location"),
+                    start_date=work_exp.get("start_date"),
+                    end_date=work_exp.get("end_date") or None,
+                    is_current=work_exp.get("is_current", False),
+                    description=work_exp.get("description"),
+                    skills_used=work_exp.get("skills_used", []),
+                    achievements=work_exp.get("achievements", []),
+                    sort_order=idx,
+                    commit=False,
+                )
+
+                projects = work_exp.get("projects", [])
+                for p_idx, project in enumerate(projects):
+                    await self.add_project(
+                        user_id=user_id,
+                        work_experience_id=exp_id,
+                        title=project.get("name", project.get("title", "")),
+                        description=project.get("description"),
+                        url=project.get("url"),
+                        skills_used=project.get("technologies", []),
+                        start_date=project.get("start_date"),
+                        end_date=project.get("end_date") or None,
+                        sort_order=p_idx,
+                        commit=False,
+                    )
+
+            # -------------------------
+            # 4. Commit once
+            # -------------------------
+            await self.session.commit()
             LOGGER.info(f"Successfully saved complete profile for user {user_id}")
 
-        except Exception as e:
-            LOGGER.error(
-                f"Error saving profile and resume for user {user_id}: {str(e)}"
-            )
+        except Exception:
+            LOGGER.exception(f"Error saving profile and resume for user {user_id}")
             await self.session.rollback()
             raise
 
@@ -1022,7 +1100,7 @@ class ResumeRepository:
                             repo_url=project.get("repo_url"),
                             skills_used=project.get("technologies", []),
                             start_date=project.get("start_date"),
-                            end_date=project.get("end_date"),
+                            end_date=project.get("end_date") or None,
                             sort_order=idx,
                         )
                         projects_count += 1
@@ -1110,6 +1188,7 @@ class ResumeRepository:
                         try:
                             proj_id = await self.add_project(
                                 user_id=user_id,
+                                work_experience_id=exp_id,
                                 title=project.get("name", project.get("title", "")),
                                 description=project.get("description"),
                                 url=project.get("url"),

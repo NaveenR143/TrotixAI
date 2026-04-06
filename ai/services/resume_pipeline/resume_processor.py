@@ -28,6 +28,7 @@ if __name__ == "__main__":
 
 import asyncio
 import logging
+import time
 from pathlib import Path
 from uuid import uuid4
 
@@ -122,6 +123,7 @@ async def _demo() -> None:
 
     async with db_session_manager.session() as session:
         try:
+            start_time = time.perf_counter()
             processor = ResumeProcessor(
                 session=session,
                 ai_refiner=AzureOpenAIResumeRefiner(),
@@ -133,7 +135,10 @@ async def _demo() -> None:
                 raw_bytes=demo_file.read_bytes(),
                 mime_type="application/pdf",
             )
-            LOGGER.info("Resume processing demo completed.")
+            end_time = time.perf_counter()
+            duration = end_time - start_time
+            print(f"\n⏱️ Total processing time: {duration:.2f} seconds")
+            LOGGER.info("Resume processing demo completed in %.2f seconds.", duration)
         except Exception as e:
             LOGGER.exception("Demo failed with error: %s", str(e))
             raise
