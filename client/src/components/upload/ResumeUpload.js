@@ -16,6 +16,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const ACCEPTED_TYPES = {
@@ -25,7 +26,7 @@ const ACCEPTED_TYPES = {
 };
 const ACCEPTED_EXTENSIONS = [".pdf", ".csv"];
 const MAX_SIZE_BYTES = 5 * 1024 * 1024;
-const API_ENDPOINT = "/api/resume/parse";
+const API_ENDPOINT = `${API_BASE_URL}${API_ENDPOINTS.UPLOAD_RESUME}`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function validateFile(file) {
@@ -123,17 +124,50 @@ const ResumeUpload = ({ onSuccess, onError }) => {
     cancelSourceRef.current = axios.CancelToken.source();
     setStatus(STATUS.UPLOADING); setProgress(0); setErrorMsg("");
     try {
+      log.info("Uploading resume", { fileName: file.name, fileSize: file.size, endpoint: API_ENDPOINT });
+      
       const response = await axios.post(API_ENDPOINT, formData, {
         headers: { "Accept": "application/json" },
         cancelToken: cancelSourceRef.current.token,
         onUploadProgress: (p) => setProgress(p.total ? Math.round((p.loaded / p.total) * 100) : 0),
       });
-      setStatus(STATUS.SUCCESS); setProgress(100);
+      
+      // Log successful response
+      log.info("Resume upload successful", { 
+        status: response.status, 
+        data: response.data 
+      });
+      
+      // Display success message
+      console.log("✅ Upload Response:", JSON.stringify(response.data, null, 2));
+      
+      setStatus(STATUS.SUCCESS); 
+      setProgress(100);
       if (onSuccess) onSuccess(response.data);
     } catch (err) {
-      if (axios.isCancel(err)) return;
+      if (axios.isCancel(err)) {
+        log.warn("Upload cancelled");
+        return;
+      }
+      
       const msg = err.response?.data?.message || err.message || "Upload failed";
-      setErrorMsg(msg); setStatus(STATUS.ERROR);
+      
+      // Log error details
+      log.error("Resume upload failed", { 
+        status: err.response?.status,
+        message: msg,
+        error: err
+      });
+      
+      // Display error details
+      console.error("❌ Upload Error:", {
+        status: err.response?.status,
+        message: msg,
+        data: err.response?.data
+      });
+      
+      setErrorMsg(msg); 
+      setStatus(STATUS.ERROR);
       if (onError) onError(new Error(msg));
     }
   };

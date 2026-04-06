@@ -239,7 +239,7 @@ class JobSeekerRepository:
                     embedding_value = None
                     if resume_embedding:
                         # Convert list to string format suitable for pgvector
-                        embedding_value = resume_embedding
+                        embedding_value = str(resume_embedding)
 
                     # Insert resume with embedding
                     cur.execute(

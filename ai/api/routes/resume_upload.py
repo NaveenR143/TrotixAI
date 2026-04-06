@@ -68,8 +68,7 @@ async def upload_resume(file: UploadFile = File(...)):
     phone_numbers = extract_phone_numbers_from_file(content, file.filename)
 
     if not phone_numbers:
-        raise HTTPException(
-            status_code=400, detail="No phone number found in resume")
+        raise HTTPException(status_code=400, detail="No phone number found in resume")
 
     # 👉 Case 1: Multiple numbers → ask user to choose
     if len(phone_numbers) > 1:
@@ -81,12 +80,12 @@ async def upload_resume(file: UploadFile = File(...)):
     # 👉 Case 2: Single number → proceed
     primary_phone = phone_numbers[0]
 
-    try:
-        async with AsyncSessionLocal() as session:
-            user_id, is_existing = await save_phone_to_db(primary_phone, session)
+    # try:
+    #     async with AsyncSessionLocal() as session:
+    #         user_id, is_existing = await save_phone_to_db(primary_phone, session)
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
     # Send OTP
     send_otp(primary_phone)

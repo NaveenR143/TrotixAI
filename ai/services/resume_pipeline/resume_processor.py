@@ -56,7 +56,8 @@ from ai.services.resume_pipeline.parsers import (
     ResumeParserStrategy,
 )
 from ai.services.resume_pipeline.preprocessing import ResumePreprocessor
-from ai.services.resume_pipeline.repository import JobSeekerRepository
+
+from ai.db.session_manager import db_session_manager
 from ai.services.resume_pipeline.service import ResumeProcessor, configure_logging
 from ai.services.resume_pipeline.toon import TOONFormatter
 from ai.services.resume_pipeline.validation import FileValidator
@@ -66,7 +67,7 @@ LOGGER = logging.getLogger("resume_processor")
 __all__ = [
     "ResumeProcessor",
     "configure_logging",
-    "JobSeekerRepository",
+    # "JobSeekerRepository",
     "AzureOpenAIResumeRefiner",
     "ResumeProcessingError",
     "FileValidationError",
@@ -119,23 +120,23 @@ async def _demo() -> None:
 
     pdf_stream = BytesIO(pdf_bytes)
 
-    repository = JobSeekerRepository()
-    await repository.connect()
-    try:
-        processor = ResumeProcessor(
-            repository=repository,
-            ai_refiner=AzureOpenAIResumeRefiner(),
-        )
-        await processor.process_resume(
-            user_id="41e9a27d-4768-4520-a1b2-425faca3c823",  # uuid4(),
-            file_name=demo_file.name,
-            file_bytes=pdf_stream,
-            raw_bytes=demo_file.read_bytes(),
-            mime_type="application/pdf",
-        )
-        LOGGER.info("Resume processing demo completed.")
-    finally:
-        await repository.close()
+    async with db_session_manager.session() as session:
+        try:
+            processor = ResumeProcessor(
+                session=session,
+                ai_refiner=AzureOpenAIResumeRefiner(),
+            )
+            await processor.process_resume(
+                user_id="41e9a27d-4768-4520-a1b2-425faca3c823",  # uuid4(),
+                file_name=demo_file.name,
+                file_bytes=pdf_stream,
+                raw_bytes=demo_file.read_bytes(),
+                mime_type="application/pdf",
+            )
+            LOGGER.info("Resume processing demo completed.")
+        except Exception as e:
+            LOGGER.exception("Demo failed with error: %s", str(e))
+            raise
 
 
 if __name__ == "__main__":

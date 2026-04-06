@@ -5,7 +5,7 @@ import json
 import asyncio
 from io import BytesIO
 from uuid import uuid4
-from ai.services.resume_pipeline.repository import JobSeekerRepository
+from ai.db.session_manager import db_session_manager
 from ai.services.resume_pipeline.service import ResumeProcessor
 from ai.services.resume_pipeline.ai_refiner import AzureOpenAIResumeRefiner
 
@@ -13,23 +13,23 @@ from ai.services.resume_pipeline.ai_refiner import AzureOpenAIResumeRefiner
 async def process_resume_async(filename: str, file_bytes: bytes, phone_numbers: list):
     pdf_stream = BytesIO(file_bytes)
 
-    repository = JobSeekerRepository()
-    await repository.connect()
-    try:
-        processor = ResumeProcessor(
-            repository=repository,
-            ai_refiner=AzureOpenAIResumeRefiner()
-        )
-        await processor.process_resume(
-            user_id=uuid4(),
-            file_name=filename,
-            file_bytes=pdf_stream,
-            raw_bytes=file_bytes,
-            mime_type="application/pdf"
-        )
-        logging.info(f"Resume processing completed for {filename}")
-    finally:
-        await repository.close()
+    async with db_session_manager.session() as session:
+        try:
+            processor = ResumeProcessor(
+                session=session,
+                ai_refiner=AzureOpenAIResumeRefiner()
+            )
+            await processor.process_resume(
+                user_id=uuid4(),
+                file_name=filename,
+                file_bytes=pdf_stream,
+                raw_bytes=file_bytes,
+                mime_type="application/pdf"
+            )
+            logging.info(f"Resume processing completed for {filename}")
+        except Exception as e:
+            logging.error(f"Error in process_resume_async for {filename}: {str(e)}")
+            raise
 
 
 def main(msg: func.QueueMessage):

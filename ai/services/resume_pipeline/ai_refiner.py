@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 from uuid import UUID
+from dotenv import load_dotenv
 
 from .errors import AIRefinementError
 from .models import DeterministicResumeData, JobSeekerProfile
@@ -13,6 +14,8 @@ try:
     from openai import AzureOpenAI  # type: ignore
 except Exception:  # pragma: no cover
     AzureOpenAI = None  # type: ignore
+
+load_dotenv()
 
 
 class AzureOpenAIResumeRefiner:

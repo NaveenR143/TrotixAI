@@ -8,6 +8,8 @@ from dataclasses import asdict
 from typing import Sequence
 from uuid import UUID
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from .ai_refiner import AzureOpenAIResumeRefiner
 from .errors import (
     AIRefinementError,
@@ -25,7 +27,7 @@ from .parsers import (
     ResumeParserStrategy,
 )
 from .preprocessing import ResumePreprocessor
-from .repository import JobSeekerRepository
+from ai.db.resume_repository import ResumeRepository
 from .models import JobSeekerProfile
 from .validation import FileValidator
 
@@ -71,13 +73,13 @@ class ResumeProcessor:
 
     def __init__(
         self,
-        repository: JobSeekerRepository,
+        session: AsyncSession,
         ai_refiner: AzureOpenAIResumeRefiner,
         preprocessor: ResumePreprocessor | None = None,
         extractor: DeterministicExtractor | None = None,
         validator: FileValidator | None = None,
     ) -> None:
-        self._repository = repository
+        self._repository = ResumeRepository(session=session)
         self._ai_refiner = ai_refiner
         self._preprocessor = preprocessor or ResumePreprocessor()
         self._extractor = extractor or DeterministicExtractor()
@@ -190,7 +192,8 @@ class ResumeProcessor:
             # Extract deterministic data first (name, email, phone, skills, etc.)
             deterministic = self._extractor.extract(raw_text, first_five_lines)
             # Debug output
-            print(f"Deterministic data for user {user_id}:\n{asdict(deterministic)}")
+            print(
+                f"Deterministic data for user {user_id}:\n{asdict(deterministic)}")
 
             # # Remove PII from clean text to reduce tokens sent to model
             # clean_text_without_pii = self._preprocessor.remove_pii(
@@ -201,7 +204,8 @@ class ResumeProcessor:
             profile = ""
 
             # Pass complete clean_text (without PII) to AI refiner
-            profile = self._ai_refiner.refine(user_id=user_id, clean_text=raw_text)
+            profile = self._ai_refiner.refine(
+                user_id=user_id, clean_text=raw_text)
 
             print(f"AI refinement completed for user {user_id}:\n{profile}")
 
@@ -234,25 +238,36 @@ class ResumeProcessor:
             resume_summary = merged_data.get("summary", "")
             resume_embedding = self._generate_embedding(resume_summary)
 
+            # Extract education details if present
+            education_details = merged_data.get("education", [])
+            if not isinstance(education_details, list):
+                education_details = [
+                    education_details] if education_details else []
+
             # Save profile and resume with embedding
             await self._repository.save_profile_and_resume(
-                profile=merged_data,
+                user_id="41e9a27d-4768-4520-a1b2-425faca3c823",
+                profile_data=merged_data,
                 file_name=file_name,
                 file_url="https://example.com/resume.pdf",  # Placeholder URL
                 file_size_bytes=len(raw_bytes),
                 mime_type=mime_type,
+                education_details=education_details,
                 resume_embedding=resume_embedding,
             )
-            LOGGER.info("Resume processing completed", extra={"user_id": str(user_id)})
+            LOGGER.info("Resume processing completed",
+                        extra={"user_id": str(user_id)})
             return profile
         except ResumeProcessingError:
-            LOGGER.exception("Resume processing error", extra={"user_id": str(user_id)})
+            LOGGER.exception("Resume processing error",
+                             extra={"user_id": str(user_id)})
             raise
         except Exception as exc:
             LOGGER.exception(
                 "Unhandled resume processing error", extra={"user_id": str(user_id)}
             )
-            raise ResumeProcessingError(f"Unhandled processing error: {exc}") from exc
+            raise ResumeProcessingError(
+                f"Unhandled processing error: {exc}") from exc
 
 
 def configure_logging(level: int = logging.INFO) -> None:

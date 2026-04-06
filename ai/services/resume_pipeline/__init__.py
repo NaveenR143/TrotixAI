@@ -16,24 +16,24 @@ Split into multiple modules:
 
 from .ai_refiner import AzureOpenAIResumeRefiner
 from .errors import (
-  AIRefinementError,
-  FileValidationError,
-  ParsingError,
-  RepositoryError,
-  ResumeProcessingError,
+    AIRefinementError,
+    FileValidationError,
+    ParsingError,
+    RepositoryError,
+    ResumeProcessingError,
 )
-from .repository import JobSeekerRepository
+
+# from .repository import JobSeekerRepository
 from .service import ResumeProcessor, configure_logging
 
 __all__ = [
-  "ResumeProcessor",
-  "configure_logging",
-  "JobSeekerRepository",
-  "AzureOpenAIResumeRefiner",
-  "ResumeProcessingError",
-  "FileValidationError",
-  "ParsingError",
-  "AIRefinementError",
-  "RepositoryError",
+    "ResumeProcessor",
+    "configure_logging",
+    # "JobSeekerRepository",
+    "AzureOpenAIResumeRefiner",
+    "ResumeProcessingError",
+    "FileValidationError",
+    "ParsingError",
+    "AIRefinementError",
+    "RepositoryError",
 ]
-
