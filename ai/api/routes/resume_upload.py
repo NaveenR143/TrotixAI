@@ -5,12 +5,13 @@ from ai.services.otp_service import send_otp
 from ai.services.phonenumber_parser import extract_phone_numbers_from_file
 from ai.db.phone_service import save_phone_to_db
 from ai.db.database import AsyncSessionLocal
-from azure.storage.queue import QueueClient
-from ai.services.resume_pipeline.ai_refiner import AzureOpenAIResumeRefiner
-from ai.services.resume_pipeline.errors import FileValidationError
-from ai.services.resume_pipeline.repository import JobSeekerRepository
-from ai.services.resume_pipeline.service import ResumeProcessor
-from ai.services.storage_service import GoogleDriveService
+# from azure.storage.queue import QueueClient
+# from ai.services.resume_pipeline.ai_refiner import AzureOpenAIResumeRefiner
+# from ai.services.resume_pipeline.errors import FileValidationError
+# from ai.services.resume_pipeline.repository import JobSeekerRepository
+# from ai.services.resume_pipeline.service import ResumeProcessor
+# from ai.services.storage_service import GoogleDriveService
+from ai.services.azure_storage_service import AzureStorageService
 import base64
 import json
 import os
@@ -98,8 +99,8 @@ async def upload_resume(file: UploadFile = File(...)):
         # Given it's a critical step, let's fail it.
         raise HTTPException(status_code=500, detail=f"Failed to send OTP: {str(e)}")
 
-    # Initiate Google Drive Upload in background
-    uploaded_file_details = await GoogleDriveService().upload_file(file)
+    # Initiate Upload in background
+    uploaded_file_details = await AzureStorageService().upload_file(file)
 
     if "upload_Failed" in uploaded_file_details:
         print(f"Background upload initiation failed: {uploaded_file_details}")

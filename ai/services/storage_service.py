@@ -10,6 +10,12 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
+from google_auth_oauthlib.flow import InstalledAppFlow
+
+
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+
 # Setup logging
 LOGGER = logging.getLogger(__name__)
 
@@ -32,7 +38,10 @@ class GoogleDriveService:
 
         # Load service account credentials from a JSON file downloaded from Google Cloud Console
 
-        self.scopes = ["https://www.googleapis.com/auth/drive"]
+        # self.scopes = ["https://www.googleapis.com/auth/drive"] # service account
+
+        # personal account
+        self.scopes = ["https://www.googleapis.com/auth/drive.file"]
 
         # You will need the exact ID of the 'trotixai_resumes' folder from its URL
         # Example URL: https://drive.google.com/drive/folders/1aBcD2eFgH3iJkL4mNoP5qRsTuVwXyZ
@@ -40,6 +49,14 @@ class GoogleDriveService:
 
     def _get_service(self):
         try:
+
+            creds = None
+
+            #  token.json stores user access/refresh tokens
+            if os.path.exists("token.json"):
+                creds = Credentials.from_authorized_user_file(
+                    "token.json", self.scopes)
+
             if not self.credentials_path:
                 raise ValueError(
                     "GOOGLE_APPLICATION_CREDENTIALS environment variable is not set"
@@ -49,9 +66,22 @@ class GoogleDriveService:
                     f"Credentials file not found at: {self.credentials_path}"
                 )
 
-            creds = service_account.Credentials.from_service_account_file(
-                self.credentials_path, scopes=self.scopes
+            flow = InstalledAppFlow.from_client_secrets_file(
+                self.credentials_path, self.scopes
             )
+
+            creds = flow.run_local_server(port=0)
+
+            # Save for next run
+            with open("token.json", "w") as token:
+                token.write(creds.to_json())
+
+            # Service account
+            # creds = service_account.Credentials.from_service_account_file(
+            #     self.credentials_path, scopes=self.scopes
+            # )
+            # return build("drive", "v3", credentials=creds)
+
             return build("drive", "v3", credentials=creds)
         except Exception as e:
             LOGGER.error(f"Failed to create Google Drive service: {str(e)}")
@@ -73,11 +103,13 @@ class GoogleDriveService:
                 )
 
             # Start background task to perform actual upload
-            asyncio.create_task(self._execute_upload(contents, filename, content_type))
+            asyncio.create_task(self._execute_upload(
+                contents, filename, content_type))
 
             return "upload_Started"
         except Exception as e:
-            LOGGER.error(f"Error initiating file upload for {file.filename}: {str(e)}")
+            LOGGER.error(
+                f"Error initiating file upload for {file.filename}: {str(e)}")
             return f"upload_Failed: {str(e)}"
 
     async def _execute_upload(self, contents: bytes, filename: str, content_type: str):
@@ -90,6 +122,8 @@ class GoogleDriveService:
                 io.BytesIO(contents), mimetype=content_type, resumable=True
             )
 
+            print(f"Uploading to folder: {self.folder_id}")
+
             # Upload execution
             uploaded_file = (
                 service.files()
@@ -97,6 +131,7 @@ class GoogleDriveService:
                     body=file_metadata,
                     media_body=media,
                     fields="id, webViewLink, webContentLink",
+                    # supportsAllDrives=True,  # 🔥 REQUIRED for Shared Drives
                 )
                 .execute()
             )
@@ -107,6 +142,7 @@ class GoogleDriveService:
             return uploaded_file
 
         except Exception as e:
-            LOGGER.error(f"Failed to upload {filename} to Google Drive: {str(e)}")
+            LOGGER.error(
+                f"Failed to upload {filename} to Google Drive: {str(e)}")
             # Since this is a background task, we don't raise it back to the client
             # but we should definitely log it.
