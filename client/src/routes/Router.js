@@ -28,7 +28,10 @@ const BlankLayout = Loadable(lazy(() => import("../layouts/blank-layout/BlankLay
 /* ***Route Wrappers*** */
 const EntryRoute = () => {
   const navigate = useNavigate();
-  return <EntryScreen onUpload={() => navigate('/processing')} onDirectSearch={() => navigate('/feed')} onManualEntry={() => navigate('/manual-profile')} onPostJob={() => navigate('/post-job')} />;
+  return <EntryScreen onUpload={(data) => {
+    // Navigate to processing and pass resume data
+    navigate('/processing', { state: data });
+  }} onDirectSearch={() => navigate('/feed')} onManualEntry={() => navigate('/manual-profile')} onPostJob={() => navigate('/post-job')} />;
 };
 
 const ManualProfileRoute = () => {
@@ -38,7 +41,10 @@ const ManualProfileRoute = () => {
 
 const ProcessingRoute = () => {
   const navigate = useNavigate();
-  return <ProcessingScreen onComplete={() => navigate('/profile')} />;
+  return <ProcessingScreen onComplete={(verificationData) => {
+    // Pass verification data to profile screen if available
+    navigate('/profile', { state: { verificationData } });
+  }} />;
 };
 
 const ProfileRoute = () => {

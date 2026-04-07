@@ -104,7 +104,10 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                   </Box>
                 ))}
               </Box>
-              <ResumeUpload onSuccess={onUpload} />
+              <ResumeUpload onSuccess={(resumeData) => {
+                // Navigate to processing screen and pass resume data via location state
+                onUpload({ resumeData });
+              }} />
               <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
                 <Button variant="text" size="small" onClick={onManualEntry} sx={{ color: '#6366f1', fontWeight: 600, fontSize: '0.78rem', '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' } }}>
                   Don't have a resume? Fill details manually

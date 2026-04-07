@@ -109,6 +109,7 @@ const ResumeUpload = ({ onSuccess, onError }) => {
   const [progress, setProgress] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const cancelSourceRef = useRef(null);
+
   const handleFileChange = useCallback((selectedFile) => {
     setStatus(STATUS.IDLE); setErrorMsg(""); setProgress(0);
     const validationError = validateFile(selectedFile);
@@ -117,10 +118,11 @@ const ResumeUpload = ({ onSuccess, onError }) => {
     }
     setFile(selectedFile);
   }, []);
+
   const handleUpload = async () => {
     if (!file) return;
     const formData = new FormData();
-    formData.append("resume", file);
+    formData.append("file", file);
     cancelSourceRef.current = axios.CancelToken.source();
     setStatus(STATUS.UPLOADING); setProgress(0); setErrorMsg("");
     try {

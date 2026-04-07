@@ -13,17 +13,22 @@ def extract_phone_numbers_from_file(file_bytes: bytes, filename: str):
     text = ""
     fname = filename.lower()
 
-    if fname.endswith(".pdf"):
-        with io.BytesIO(file_bytes) as f:
-            text = extract_pdf_text(f)
-    elif fname.endswith(".docx"):
-        doc = docx.Document(io.BytesIO(file_bytes))
-        text = "\n".join([p.text for p in doc.paragraphs])
-    elif fname.endswith(".doc"):
-        text = mammoth.extract_raw_text(io.BytesIO(file_bytes)).value
-    else:
+    try:
+        if fname.endswith(".pdf"):
+            with io.BytesIO(file_bytes) as f:
+                text = extract_pdf_text(f)
+        elif fname.endswith(".docx"):
+            doc = docx.Document(io.BytesIO(file_bytes))
+            text = "\n".join([p.text for p in doc.paragraphs])
+        elif fname.endswith(".doc"):
+            text = mammoth.extract_raw_text(io.BytesIO(file_bytes)).value
+        else:
+            return []
+
+        phone_numbers = DeterministicExtractor()._extract_phone_numbers(text)
+        return phone_numbers
+
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Error extracting phone numbers from {filename}: {str(e)}")
         return []
-
-    phone_numbers = DeterministicExtractor()._extract_phone_numbers(text)
-
-    return phone_numbers

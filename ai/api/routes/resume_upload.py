@@ -64,11 +64,14 @@ async def upload_resume(file: UploadFile = File(...)):
             status_code=400, detail="File too large. Max size is 10 MB."
         )
 
-    # Extract phone numbers
-    phone_numbers = extract_phone_numbers_from_file(content, file.filename)
+    try:
+        # Extract phone numbers
+        phone_numbers = extract_phone_numbers_from_file(content, file.filename)
 
-    if not phone_numbers:
-        raise HTTPException(status_code=400, detail="No phone number found in resume")
+        if not phone_numbers:
+            raise ValueError("No phone number found in resume")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     # 👉 Case 1: Multiple numbers → ask user to choose
     if len(phone_numbers) > 1:
@@ -80,24 +83,30 @@ async def upload_resume(file: UploadFile = File(...)):
     # 👉 Case 2: Single number → proceed
     primary_phone = phone_numbers[0]
 
-    # try:
-    #     async with AsyncSessionLocal() as session:
-    #         user_id, is_existing = await save_phone_to_db(primary_phone, session)
+    try:
+        async with AsyncSessionLocal() as session:
+            user_id, is_existing = await save_phone_to_db(primary_phone, session)
 
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
     # Send OTP
-    send_otp(primary_phone)
+    try:
+        send_otp(primary_phone)
+    except Exception as e:
+        # We might still want to proceed if OTP fails, or fail the request.
+        # Given it's a critical step, let's fail it.
+        raise HTTPException(status_code=500, detail=f"Failed to send OTP: {str(e)}")
 
-    if is_existing:
-        return {
-            "message": "Profile already exists. OTP sent",
-            "user_id": user_id,
-            "phone": primary_phone,
-        }
+    # Initiate Google Drive Upload in background
+    uploaded_file_details = await GoogleDriveService().upload_file(file)
 
-    # uploaded_file_details = await GoogleDriveService().upload_file(file)
+    if "upload_Failed" in uploaded_file_details:
+        print(f"Background upload initiation failed: {uploaded_file_details}")
+        # We don't necessarily want to fail the whole request if the background task initiation failed,
+        # but it's good to log it.
+
+    print(f"Upload details: {uploaded_file_details}")
 
     # Encode file content in base64 to safely send in JSON
     # payload = {
@@ -140,4 +149,5 @@ async def upload_resume(file: UploadFile = File(...)):
         "message": "OTP sent",
         "user_id": user_id,
         "phone": primary_phone,
+        "new_user": not is_existing,
     }
