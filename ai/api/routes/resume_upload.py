@@ -102,7 +102,7 @@ async def upload_resume(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Failed to send OTP: {str(e)}")
 
     # Initiate Upload in background
-    uploaded_file_details = await AzureStorageService().upload_file(file)
+    uploaded_file_details = await AzureStorageService().upload_file(file, user_id)
 
     if "upload_Failed" in uploaded_file_details:
         print(f"Background upload initiation failed: {uploaded_file_details}")

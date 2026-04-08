@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi import UploadFile
 from azure.storage.blob import BlobServiceClient
 from azure.storage.blob import StandardBlobTier
+from .message_service import MessageService 
 
 # Setup logging
 LOGGER = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ class AzureStorageService:
             LOGGER.error(f"Failed to create blob service client: {str(e)}")
             raise
 
-    async def _execute_upload(self, contents: bytes | str, filename: str) -> None:
+    async def _execute_upload(self, contents: bytes | str, filename: str, user_id: str) -> None:
         """Upload PDF file to Azure Blob Storage."""
         try:
             # Validate PDF file
@@ -84,16 +85,24 @@ class AzureStorageService:
 
             blob_client.upload_blob(contents, **upload_kwargs)
 
-            LOGGER.info(
+            # Get the blob URL
+            blob_url = blob_client.url
+
+            print(
                 f"Successfully uploaded '{filename}' to container "
                 f"'{self.container_name}' with tier '{blob_tier}'"
             )
+            print(f"Uploaded file path: {blob_url}")
+            
+            # Send message to queue
+            message_service = MessageService()
+            message_service.send_to_queue(user_id, blob_url)
 
         except Exception as e:
             LOGGER.error(f"Error uploading {filename} to Azure Blob Storage: {str(e)}")
             raise
 
-    async def upload_file(self, file: UploadFile) -> str:
+    async def upload_file(self, file: UploadFile, user_id: str) -> str:
         """
         Start PDF upload to Azure Blob Storage in the background.
         Returns immediately without waiting for the upload to complete.
@@ -110,10 +119,10 @@ class AzureStorageService:
             if not contents:
                 return "upload_Failed: File is empty"
 
-            filename = file.filename
+            filename = f"{file.filename}"
 
             # Start background upload task
-            asyncio.create_task(self._execute_upload(contents, filename))
+            asyncio.create_task(self._execute_upload(contents, filename, user_id))
 
             return "upload_Started"
         except Exception as e:
