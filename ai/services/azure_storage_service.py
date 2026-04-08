@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 from fastapi import UploadFile
 from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import StandardBlobTier
 
 # Setup logging
 LOGGER = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ class AzureStorageService:
     def __init__(self):
         self.connection_string = os.getenv("AZURE_BLOB_KEY")
         self.container_name = os.getenv("AZURE_CONTAINER_NAME", "trotixai")
-        self.blob_tier = os.getenv("AZURE_BLOB_TIER", "Archive")
+        self.blob_tier = "cool"
 
         if not self.connection_string:
             raise ValueError("AZURE_BLOB_KEY environment variable not set")
@@ -56,18 +57,36 @@ class AzureStorageService:
             if isinstance(contents, str):
                 contents = contents.encode("utf-8")
 
+            # Resolve blob tier safely
+            tier_map = {
+                "hot": StandardBlobTier.Hot,
+                "cool": StandardBlobTier.Cool,
+                "archive": StandardBlobTier.Archive,
+            }
+
+            blob_tier = None
+            if self.blob_tier:
+                blob_tier = tier_map.get(str(self.blob_tier).lower())
+                if not blob_tier:
+                    raise ValueError(f"Invalid blob tier: {self.blob_tier}")
+
             blob_service_client = self._get_blob_client()
             blob_client = blob_service_client.get_blob_client(
                 container=self.container_name, blob=filename
             )
 
             # Upload blob
-            blob_client.upload_blob(
-                contents, overwrite=True, standard_blob_tier=self.blob_tier
-            )
+            upload_kwargs = {
+                "overwrite": True,
+            }
+            if blob_tier:
+                upload_kwargs["standard_blob_tier"] = blob_tier
+
+            blob_client.upload_blob(contents, **upload_kwargs)
 
             LOGGER.info(
-                f"Successfully uploaded '{filename}' to container '{self.container_name}' with tier '{self.blob_tier}'"
+                f"Successfully uploaded '{filename}' to container "
+                f"'{self.container_name}' with tier '{blob_tier}'"
             )
 
         except Exception as e:

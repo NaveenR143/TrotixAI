@@ -9,3 +9,4 @@ profile*
 *.txt
 *.log
 keys
+token.json
