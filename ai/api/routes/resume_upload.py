@@ -6,7 +6,7 @@ from ai.services.phonenumber_parser import extract_phone_numbers_from_file
 from ai.db.phone_service import save_phone_to_db
 from ai.db.database import AsyncSessionLocal
 
-from azure.storage.queue import QueueClient
+# from azure.storage.queue import QueueClient
 
 # from ai.services.resume_pipeline.ai_refiner import AzureOpenAIResumeRefiner
 # from ai.services.resume_pipeline.errors import FileValidationError
@@ -21,11 +21,11 @@ import os
 router = APIRouter()
 
 # Azure Queue setup
-AZURE_QUEUE_CONNECTION_STRING = os.getenv("AZURE_QUEUE_CONNECTION_STRING")
-QUEUE_NAME = os.getenv("RESUME_QUEUE_NAME", "resume-queue")
-queue_client = QueueClient.from_connection_string(
-    AZURE_QUEUE_CONNECTION_STRING, QUEUE_NAME
-)
+# AZURE_QUEUE_CONNECTION_STRING = os.getenv("AZURE_QUEUE_CONNECTION_STRING")
+# QUEUE_NAME = os.getenv("RESUME_QUEUE_NAME", "resume-queue")
+# queue_client = QueueClient.from_connection_string(
+#     AZURE_QUEUE_CONNECTION_STRING, QUEUE_NAME
+# )
 
 # File upload constraints
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
@@ -111,15 +111,15 @@ async def upload_resume(file: UploadFile = File(...)):
 
     print(f"Upload details: {uploaded_file_details}")
 
-    # Encode file content in base64 to safely send in JSON
-    payload = {
-        "filename": file.filename,
-        "content": base64.b64encode(content).decode("utf-8"),
-        "phone_numbers": phone_numbers,
-    }
+    # # Encode file content in base64 to safely send in JSON
+    # payload = {
+    #     "filename": file.filename,
+    #     "content": base64.b64encode(content).decode("utf-8"),
+    #     "phone_numbers": phone_numbers,
+    # }
 
-    # Push message to Azure Queue
-    queue_client.send_message(json.dumps(payload))
+    # # Push message to Azure Queue
+    # queue_client.send_message(json.dumps(payload))
 
     # pdf_bytes = await file.read()
 

@@ -10,3 +10,4 @@ profile*
 *.log
 keys
 token.json
+.venv_old
