@@ -21,12 +21,12 @@ class AzureStorageService:
     """Service for uploading PDF files to Azure Blob Storage."""
 
     def __init__(self):
-        self.connection_string = os.getenv("AZURE_BLOB_KEY")
+        self.connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
         self.container_name = os.getenv("AZURE_CONTAINER_NAME", "trotixai")
         self.blob_tier = "cool"
 
         if not self.connection_string:
-            raise ValueError("AZURE_BLOB_KEY environment variable not set")
+            raise ValueError("AZURE_STORAGE_CONNECTION_STRING environment variable not set")
 
     def _get_blob_client(self):
         """Get or create blob service client and ensure container exists."""
