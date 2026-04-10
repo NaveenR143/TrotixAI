@@ -5,6 +5,7 @@ Handles all database operations for resume data insertion.
 
 import asyncio
 import logging
+import re
 from datetime import date
 from typing import Optional
 from uuid import UUID
@@ -97,10 +98,125 @@ class ResumeRepository:
             raise
 
     # ══════════════════════════════════════════════════════════════════════════════
+    # COMPANY OPERATIONS
+    # ══════════════════════════════════════════════════════════════════════════════
+
+    @staticmethod
+    def _normalize_company_name(company_name: str) -> str:
+        """
+        Normalize company name by removing common suffixes and converting to lowercase.
+        
+        Removes common suffixes: pvt, ltd, co, company, inc, llc, corp, corporation, etc.
+        Converts to lowercase and strips whitespace.
+        
+        Args:
+            company_name: Original company name
+            
+        Returns:
+            Normalized company name
+        """
+        if not company_name or not isinstance(company_name, str):
+            return ""
+        
+        # Convert to lowercase and strip whitespace
+        normalized = company_name.lower().strip()
+        
+        # List of common suffixes to remove
+        suffixes = [
+            r'\bpvt\.?\s*(ltd\.)?\b',
+            r'\bltd\.?\b',
+            r'\bco\.?\b',
+            r'\bcompany\b',
+            r'\binc\.?\b',
+            r'\bincorporated\b',
+            r'\bllc\b',
+            r'\bllp\b',
+            r'\bcorp\.?\b',
+            r'\bcorporation\b',
+            r'\bpch?\b',
+            r'\bpvt\.?\bltd\.?\b',
+            r',\s*inc\.?\b',
+            r',\s*ltd\.?\b',
+            r',\s*limited\.?\b',
+            r',\s*private\.?\b',
+        ]
+        
+        for suffix in suffixes:
+            normalized = re.sub(suffix, '', normalized, flags=re.IGNORECASE)
+        
+        # Remove extra spaces and commas at the end
+        normalized = re.sub(r'[,\s]+$', '', normalized)
+        normalized = ' '.join(normalized.split())  # Normalize internal spaces
+        
+        return normalized
+
+    async def get_or_create_company(self, company_name: str, commit: bool = True) -> int:
+        """
+        Fetch company ID from the companies table. If no matching record exists,
+        insert the normalized company name and retrieve the newly created ID.
+        
+        Args:
+            company_name: Original company name
+            commit: Whether to commit the transaction
+            
+        Returns:
+            Integer ID of the company (existing or newly created)
+        """
+        try:
+            if not company_name:
+                raise ValueError("Company name cannot be empty")
+            
+            # Normalize the company name
+            normalized_name = self._normalize_company_name(company_name)
+            
+            if not normalized_name:
+                raise ValueError(f"Company name '{company_name}' cannot be normalized to empty string")
+            
+            # Check if company already exists
+            query = text(
+                """
+                SELECT id FROM companies WHERE LOWER(name) = LOWER(:name) LIMIT 1
+            """
+            )
+            result = await self.session.execute(query, {"name": normalized_name})
+            row = result.fetchone()
+            
+            if row:
+                company_id = int(row[0])
+                LOGGER.debug(f"Found existing company: {normalized_name} (ID: {company_id})")
+                return company_id
+            
+            # Company doesn't exist, create it
+            insert_query = text(
+                """
+                INSERT INTO companies (name, created_at)
+                VALUES (:name, NOW())
+                RETURNING id
+            """
+            )
+            insert_result = await self.session.execute(
+                insert_query, {"name": normalized_name}
+            )
+            row = insert_result.fetchone()
+            
+            if commit:
+                await self.session.commit()
+            
+            company_id = int(row[0])
+            LOGGER.info(f"Created new company: {normalized_name} (ID: {company_id})")
+            return company_id
+            
+        except Exception as e:
+            LOGGER.error(f"Error in get_or_create_company for '{company_name}': {str(e)}")
+            if commit:
+                await self.session.rollback()
+            raise
+
+    # ══════════════════════════════════════════════════════════════════════════════
     # SKILL OPERATIONS
     # ══════════════════════════════════════════════════════════════════════════════
 
-    async def get_skill_by_name(self, skill_name: str) -> Optional[UUID]:
+    async def get_skill_by_name(self, skill_name: str) -> Optional[int]:
         """
         Get skill ID by normalized name.
 
@@ -108,7 +224,7 @@ class ResumeRepository:
             skill_name: Skill name to search for
 
         Returns:
-            UUID of the skill if found, None otherwise
+            Integer ID of the skill if found, None otherwise
         """
         try:
             skill_name_normalized = skill_name.lower().strip()
@@ -117,7 +233,7 @@ class ResumeRepository:
             result = await self.session.execute(query, {"name": skill_name_normalized})
             row = result.fetchone()
 
-            return UUID(str(row[0])) if row else None
+            return int(row[0]) if row else None
 
         except Exception as e:
             LOGGER.error(f"Error fetching skill: {str(e)}")
@@ -125,7 +241,7 @@ class ResumeRepository:
 
     async def create_skill(
         self, skill_name: str, category: Optional[str] = None
-    ) -> UUID:
+    ) -> int:
         """
         Create a new skill.
 
@@ -134,7 +250,7 @@ class ResumeRepository:
             category: Optional category (e.g., "backend", "frontend")
 
         Returns:
-            UUID of the created skill
+            Integer ID of the created skill
         """
         try:
             skill_name_normalized = skill_name.lower().strip()
@@ -153,8 +269,8 @@ class ResumeRepository:
             row = result.fetchone()
             await self.session.commit()
 
-            skill_id = UUID(str(row[0]))
-            LOGGER.info(f"Created skill: {skill_name} ({skill_id})")
+            skill_id = int(row[0])
+            LOGGER.info(f"Created skill: {skill_name} (ID: {skill_id})")
             return skill_id
 
         except Exception as e:
@@ -164,7 +280,7 @@ class ResumeRepository:
 
     async def get_or_create_skill(
         self, skill_name: str, category: Optional[str] = None
-    ) -> UUID:
+    ) -> int:
         """
         Get existing skill or create new one.
 
@@ -173,7 +289,7 @@ class ResumeRepository:
             category: Optional category
 
         Returns:
-            UUID of the skill
+            Integer ID of the skill
         """
         skill_id = await self.get_skill_by_name(skill_name)
 
@@ -292,7 +408,7 @@ class ResumeRepository:
     async def add_user_skill(
         self,
         user_id: UUID,
-        skill_id: UUID,
+        skill_id: int,
         level: str = "intermediate",
         years: Optional[float] = None,
         commit: bool = True,
@@ -302,7 +418,7 @@ class ResumeRepository:
 
         Args:
             user_id: User UUID
-            skill_id: Skill UUID
+            skill_id: Skill
             level: Proficiency level (beginner, intermediate, advanced)
             years: Years of experience with this skill
             commit: Whether to commit the transaction
@@ -322,7 +438,7 @@ class ResumeRepository:
                 query,
                 {
                     "user_id": str(user_id),
-                    "skill_id": str(skill_id),
+                    "skill_id": skill_id,
                     "level": level,
                     "years": years,
                 },
@@ -414,7 +530,7 @@ class ResumeRepository:
             if commit:
                 await self.session.commit()
 
-            education_id = UUID(str(row[0]))
+            education_id = int(row[0])
             LOGGER.debug(f"Added education for user {user_id}")
             return education_id
 
@@ -444,10 +560,13 @@ class ResumeRepository:
     ) -> UUID:
         """
         Add work experience record for user.
+        
+        Fetches or creates the company from the companies table (with normalization),
+        then uses the company_id to populate the work_experiences record.
 
         Args:
             user_id: User UUID
-            company_name: Company name
+            company_name: Company name (will be normalized)
             title: Job title
             location: Job location
             start_date: Start date (YYYY-MM-DD)
@@ -463,13 +582,16 @@ class ResumeRepository:
             UUID of the created work experience record
         """
         try:
+            # Get or create company and retrieve company_id (integer)
+            company_id = await self.get_or_create_company(company_name, commit=False)
+            
             query = text(
                 """
                 INSERT INTO work_experiences (
-                    user_id, company_name, title, location, start_date, end_date,
+                    user_id, company_id, title, location, start_date, end_date,
                     is_current, description, skills_used, achievements, sort_order, created_at
                 ) VALUES (
-                    :user_id, :company_name, :title, :location, :start_date, :end_date,
+                    :user_id, :company_id, :title, :location, :start_date, :end_date,
                     :is_current, :description, :skills_used, :achievements, :sort_order, NOW()
                 )
                 RETURNING id
@@ -480,7 +602,7 @@ class ResumeRepository:
                 query,
                 {
                     "user_id": str(user_id),
-                    "company_name": company_name,
+                    "company_id": company_id,
                     "title": title,
                     "location": location,
                     "start_date": self._parse_date(start_date),
@@ -496,8 +618,8 @@ class ResumeRepository:
             if commit:
                 await self.session.commit()
 
-            exp_id = UUID(str(row[0]))
-            LOGGER.debug(f"Added work experience for user {user_id}")
+            exp_id = int(row[0])
+            LOGGER.debug(f"Added work experience for user {user_id} with company ID {company_id}")
             return exp_id
 
         except Exception as e:
@@ -513,7 +635,7 @@ class ResumeRepository:
         self,
         user_id: UUID,
         title: str,
-        work_experience_id: Optional[UUID] = None,
+        work_experience_id: Optional[int] = None,
         description: Optional[str] = None,
         url: Optional[str] = None,
         repo_url: Optional[str] = None,
@@ -561,7 +683,7 @@ class ResumeRepository:
                 {
                     "user_id": str(user_id),
                     "work_experience_id": (
-                        str(work_experience_id) if work_experience_id else None
+                        int(work_experience_id) if work_experience_id else None
                     ),
                     "title": title,
                     "description": description,
@@ -577,7 +699,7 @@ class ResumeRepository:
             if commit:
                 await self.session.commit()
 
-            project_id = UUID(str(row[0]))
+            project_id = int(row[0])
             LOGGER.debug(f"Added project for user {user_id}")
             return project_id
 
@@ -650,7 +772,7 @@ class ResumeRepository:
             if commit:
                 await self.session.commit()
 
-            resume_id = UUID(str(row[0]))
+            resume_id = int(row[0])
             print(f"Added/Updated resume for user {user_id}")
             return resume_id
 
@@ -740,7 +862,7 @@ class ResumeRepository:
                     )
                     row = insert_result.fetchone()
                     if row:
-                        created_skill_ids[skill_name] = UUID(str(row[0]))
+                        created_skill_ids[skill_name] = int(row[0])
 
                 LOGGER.info(f"Created {len(created_skill_ids)} new skills")
 
@@ -767,7 +889,7 @@ class ResumeRepository:
                 params = [
                     {
                         "user_id": str(user_id),
-                        "skill_id": str(skill_id),
+                        "skill_id": skill_id,
                         "level": level,
                     }
                     for skill_id in skill_id_list
@@ -846,7 +968,7 @@ class ResumeRepository:
                     )
                     row = insert_result.fetchone()
                     if row:
-                        created_skill_ids[skill_name] = UUID(str(row[0]))
+                        created_skill_ids[skill_name] = int(row[0])
 
             # Combine existing and newly created skills
             all_skill_ids = {**existing_skills, **created_skill_ids}
@@ -864,7 +986,7 @@ class ResumeRepository:
                     upsert_query,
                     {
                         "project_id": str(project_id),
-                        "skill_id": str(skill_id),
+                        "skill_id": skill_id,
                     },
                 )
 
@@ -938,7 +1060,7 @@ class ResumeRepository:
                     )
                     row = insert_result.fetchone()
                     if row:
-                        created_skill_ids[skill_name] = UUID(str(row[0]))
+                        created_skill_ids[skill_name] = int(row[0])
 
             # Combine existing and newly created skills
             all_skill_ids = {**existing_skills, **created_skill_ids}
@@ -956,7 +1078,7 @@ class ResumeRepository:
                     upsert_query,
                     {
                         "work_experience_id": str(work_experience_id),
-                        "skill_id": str(skill_id),
+                        "skill_id": skill_id,
                     },
                 )
 
