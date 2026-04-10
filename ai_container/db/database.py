@@ -4,6 +4,7 @@
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 import os
 
 # ── Connection URL ─────────────────────────────────────────────────────────────
@@ -14,13 +15,15 @@ DATABASE_URL = os.getenv(
 )
 
 # ── Engine ─────────────────────────────────────────────────────────────────────
+# Configuration optimized for concurrent multithreaded async operations
+# Use NullPool to avoid "attached to a different loop" errors in multi-threaded asyncio usage
 engine = create_async_engine(
     DATABASE_URL,
     echo=False,  # set True to log all SQL
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,  # reconnect on stale connections
-    pool_recycle=3600,  # recycle connections after 1 hour
+    poolclass=NullPool,  # Critical for multi-threaded asyncio.run() usage
+    pool_pre_ping=True,  # Test connections before using (reconnect if stale)
+    pool_recycle=3600,  # Recycle connections after 1 hour
+    pool_reset_on_return="rollback",  # Reset connection state on return
     connect_args={
         "timeout": 30,
         "command_timeout": 30,

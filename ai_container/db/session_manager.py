@@ -1,8 +1,11 @@
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
+import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from .database import AsyncSessionLocal, engine
+
+LOGGER = logging.getLogger(__name__)
 
 class DatabaseSessionManager:
     """
@@ -25,8 +28,7 @@ class DatabaseSessionManager:
                 await self._engine.dispose()
             except Exception as e:
                 # Log but don't fail if disposal has issues
-                import logging
-                logging.warning(f"Warning during engine disposal: {e}")
+                LOGGER.warning(f"Warning during engine disposal: {e}")
             finally:
                 self._engine = None
                 self._session_factory = None
@@ -45,7 +47,10 @@ class DatabaseSessionManager:
                 await session.rollback()
                 raise
             finally:
-                await session.close()
+                try:
+                    await session.close()
+                except Exception as e:
+                    LOGGER.warning(f"Warning during session close: {e}")
 
 # Global shared instance
 db_session_manager = DatabaseSessionManager()

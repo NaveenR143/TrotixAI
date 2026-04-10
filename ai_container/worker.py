@@ -5,7 +5,6 @@ import time
 import json
 import logging
 import base64
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from azure.storage.queue import QueueClient
 from dotenv import load_dotenv
 
@@ -28,12 +27,11 @@ QUEUE_NAME = "resumes-queue"
 
 class QueueWorker:
 
-    def __init__(self, max_workers=5):
+    def __init__(self):
         self.queue_client = QueueClient.from_connection_string(
             conn_str=QUEUE_CONNECTION_STRING,
             queue_name=QUEUE_NAME
         )
-        self.executor = ThreadPoolExecutor(max_workers=max_workers)
 
     def process_message(self, message_text):
         """
@@ -84,23 +82,23 @@ class QueueWorker:
         print("Worker started. Listening to queue...")
 
         while True:
-            messages = self.queue_client.receive_messages(messages_per_page=5, visibility_timeout=30)
-            futures=[]
+            try:
+                # Receive up to 32 messages (max per page) but we'll process them one by one
+                messages = self.queue_client.receive_messages(messages_per_page=1, visibility_timeout=60)
+                
+                for msg in messages:
+                    try:
+                        # Process each message sequentially (wait and proceed)
+                        self._handle_message(msg)
+                    except Exception as e:
+                        logger.exception(f"❌ Error in message processing: {e}")
 
-            for msg_batch in messages.by_page():
-                for msg in msg_batch:
-                    # Submit message processing to thread pool
-                    future=self.executor.submit(self._handle_message, msg)
-                    futures.append(future)
+                # Small sleep between batches if no messages found
+                time.sleep(1)
 
-            # Wait for all submitted tasks to finish
-            for future in as_completed(futures):
-                try:
-                    future.result()  # Raises exception if processing failed
-                except Exception as e:
-                    logger.exception(f"❌ Error in threaded message: {e}")
-
-            time.sleep(1000000)  # polling interval
+            except Exception as e:
+                logger.error(f"❌ Queue error: {e}")
+                time.sleep(5)  # Back off on error
 
     def _handle_message(self, msg):
         """
@@ -140,5 +138,5 @@ class QueueWorker:
 
 
 if __name__ == "__main__":
-    worker=QueueWorker(max_workers=5)  # Adjust parallelism here
+    worker=QueueWorker()
     worker.start()

@@ -97,15 +97,16 @@ class ResumeProcessor:
             ".doc": DocResumeParser(),
         }
 
-    def _generate_embedding(self, text: str) -> list[float] | None:
+    async def _generate_embedding(self, text: str) -> list[float] | None:
         """Generate embedding using SentenceTransformers (open-source)."""
         try:
             if not text or not text.strip():
                 LOGGER.warning("Empty text provided for embedding generation")
                 return None
 
-            # Generate embedding
-            embedding = _model.encode(
+            # Generate embedding in a thread to avoid blocking the event loop
+            embedding = await asyncio.to_thread(
+                _model.encode,
                 text,
                 convert_to_numpy=True,
                 normalize_embeddings=True,  # good for cosine similarity
@@ -142,26 +143,18 @@ class ResumeProcessor:
             )
 
         try:
-
-            main_text = ""
-
-            # if extension.endswith(".pdf"):
-            #     with io.BytesIO(file_bytes) as f:
-            #         main_text = extract_pdf_text(f)
-
-            main_text = parser.parse_plain_text(raw_bytes)
-
-            # Store first 5 lines from extracted PDF in a variable
-            lines = main_text.split("\n")
-            first_five_lines = "\n".join(lines[:5])
-
-            # print("=== First 5 lines from extracted PDF ===")
-            # for i, line in enumerate(lines[:5], 1):
-            #     print(f"{i}. {line}")
-            # print("=" * 50)
-
+            # 1. Extract plain text
+            print("🔍 Extracting plain text...")
+            main_text = await asyncio.to_thread(parser.parse_plain_text, raw_bytes)
+            
+            # 2. Analyze document structure
+            print("🔍 Analyzing document structure...")
             analyzer = DocumentAnalyzer(file_bytes)
             analysis_result = analyzer.analyze()
+
+            # Store first 5 lines from extracted PDF (depends on main_text)
+            lines = main_text.split("\n")
+            first_five_lines = "\n".join(lines[:5])
 
             # print(f"Analysis Result: {analysis_result}")
 
@@ -207,11 +200,13 @@ class ResumeProcessor:
             # print(
             #     f"Clean text after PII removal for user {user_id}:\n{clean_text_without_pii[:500]}...")
 
-            profile = ""
-
-            # Pass complete clean_text (without PII) to AI refiner
-            profile = self._ai_refiner.refine(
-                user_id=user_id, clean_text=raw_text)
+            # Pass complete raw_text to AI refiner in a background thread
+            print(f"🤖 Calling AI refiner for user {user_id}...")
+            profile = await asyncio.to_thread(
+                self._ai_refiner.refine,
+                user_id=user_id,
+                clean_text=raw_text
+            )
 
             # print(f"AI refinement completed for user {user_id}:\n{profile}")
 
@@ -242,9 +237,9 @@ class ResumeProcessor:
 
             # print(f"Profile saved for user {user_id}")
 
-            # Generate embedding from resume summary
+            # Generate embedding from resume summary (async)
             resume_summary = merged_data.get("summary", "")
-            resume_embedding = self._generate_embedding(resume_summary)
+            resume_embedding = await self._generate_embedding(resume_summary)
 
             # Extract education details if present
             education_details = merged_data.get("education", [])
