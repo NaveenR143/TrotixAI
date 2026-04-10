@@ -16,32 +16,45 @@ DATABASE_URL = os.getenv(
 # ── Engine ─────────────────────────────────────────────────────────────────────
 engine = create_async_engine(
     DATABASE_URL,
-    echo=False,  # set True to log all SQL
+    echo=False,
+
+    # ✅ Connection Pool
     pool_size=10,
     max_overflow=20,
-    pool_pre_ping=True,  # reconnect on stale connections
-    pool_recycle=3600,  # recycle connections after 1 hour
+    pool_pre_ping=True,
+    pool_recycle=3600,
+
+    # ✅ Stability + Performance
+    future=True,
+
     connect_args={
         "timeout": 30,
         "command_timeout": 30,
-        "server_settings": {"application_name": "trotixai_app"},
-    }
+        "server_settings": {
+            "application_name": "trotixai_app"
+        },
+    },
 )
 
 # ── Session factory ────────────────────────────────────────────────────────────
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
+
+    # ✅ IMPORTANT SETTINGS
     expire_on_commit=False,
+    autoflush=False,   # ✅ prevents unexpected flush
 )
 
+# ── Base class ────────────────────────────────────────────────────────────────
 
-# ── Base class for all ORM models ─────────────────────────────────────────────
+
 class Base(DeclarativeBase):
     pass
 
+# ── FastAPI Dependency ────────────────────────────────────────────────────────
 
-# ── Dependency — use in FastAPI route with Depends(get_db) ───────────────────
+
 async def get_db():
     async with AsyncSessionLocal() as session:
         try:
@@ -49,5 +62,3 @@ async def get_db():
         except Exception:
             await session.rollback()
             raise
-        finally:
-            await session.close()

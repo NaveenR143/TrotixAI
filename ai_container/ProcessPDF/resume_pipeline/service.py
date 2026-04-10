@@ -78,13 +78,13 @@ class ResumeProcessor:
 
     def __init__(
         self,
-        session: AsyncSession,
+        # session: AsyncSession,
         ai_refiner: AzureOpenAIResumeRefiner,
         preprocessor: ResumePreprocessor | None = None,
         extractor: DeterministicExtractor | None = None,
         validator: FileValidator | None = None,
     ) -> None:
-        self._repository = ResumeRepository(session=session)
+        # self._repository = ResumeRepository(session=session)
         self._ai_refiner = ai_refiner
         self._preprocessor = preprocessor or ResumePreprocessor()
         self._extractor = extractor or DeterministicExtractor()
@@ -149,7 +149,12 @@ class ResumeProcessor:
             #     with io.BytesIO(file_bytes) as f:
             #         main_text = extract_pdf_text(f)
 
+            # 1. Extract text from resume
+            print("📄 Extracting text from resume...")
+            text_extract_start = time.perf_counter()
             main_text = parser.parse_plain_text(raw_bytes)
+            text_extract_time = time.perf_counter() - text_extract_start
+            print(f"   ⏱️  Text extraction took {text_extract_time:.2f}s")
 
             # Store first 5 lines from extracted PDF in a variable
             lines = main_text.split("\n")
@@ -160,8 +165,13 @@ class ResumeProcessor:
             #     print(f"{i}. {line}")
             # print("=" * 50)
 
+            # 2. Analyze document structure
+            print("🔍 Analyzing document structure...")
+            analysis_start = time.perf_counter()
             analyzer = DocumentAnalyzer(file_bytes)
             analysis_result = analyzer.analyze()
+            analysis_time = time.perf_counter() - analysis_start
+            print(f"   ⏱️  Document analysis took {analysis_time:.2f}s")
 
             # print(f"Analysis Result: {analysis_result}")
 
@@ -189,14 +199,19 @@ class ResumeProcessor:
             #     raise ParsingError("No text extracted from resume.")
             # clean_text = self._preprocessor.preprocess(raw_text)
 
-            token_count = self._preprocessor.count_tokens(raw_text)
-            print(f"Token count for user {user_id}: {token_count}")
+            # Token count for raw text (before preprocessing)
+            # token_count = self._preprocessor.count_tokens(raw_text)
+            # print(f"Token count for user {user_id}: {token_count}")
 
             # # Debug output
             # print(f"Cleaned text for user {user_id}:\n{clean_text[:500]}...")
 
-            # Extract deterministic data first (name, email, phone, skills, etc.)
+            # 3. Extract deterministic data first (name, email, phone, skills, etc.)
+            print("📋 Extracting deterministic data...")
+            extract_start = time.perf_counter()
             deterministic = self._extractor.extract(raw_text, first_five_lines)
+            extract_time = time.perf_counter() - extract_start
+            print(f"   ⏱️  Deterministic extraction took {extract_time:.2f}s")
             # Debug output
             print(
                 f"Deterministic data for user {user_id}:\n{asdict(deterministic)}")
@@ -209,13 +224,15 @@ class ResumeProcessor:
 
             profile = ""
 
-            # Pass complete clean_text (without PII) to AI refiner
+            # 4. Pass complete clean_text (without PII) to AI refiner
+            print("🤖 Calling AI refiner...")
+            ai_start = time.perf_counter()
             profile = self._ai_refiner.refine(
                 user_id=user_id, clean_text=raw_text)
-
+            ai_time = time.perf_counter() - ai_start
             # print(f"AI refinement completed for user {user_id}:\n{profile}")
-
-            print(f"AI refinement completed for user {user_id}")
+            print(f"   ⏱️  AI refinement took {ai_time:.2f}s")
+            print(f"✅ AI refinement completed for user {user_id}")
 
             # Convert deterministic (dataclass) to dict
             deterministic_dict = asdict(
@@ -236,15 +253,19 @@ class ResumeProcessor:
             # merged_data = {"profile": merged_data, "uuids": {k.hex: v.hex for k, v in profile.items() if isinstance(k, UUID)}}
 
             # Save to JSON File
-            # file_path = Path.cwd() / f"profile_{user_id}.json"
-            # with open(file_path, "w", encoding="utf-8") as f:
-            #     json.dump(merged_data, f, ensure_ascii=False, indent=2)
+            file_path = Path.cwd() / f"profile_{user_id}.json"
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(merged_data, f, ensure_ascii=False, indent=2)
 
             # print(f"Profile saved for user {user_id}")
 
-            # Generate embedding from resume summary
+            # 5. Generate embedding from resume summary
+            print("🧠 Generating embedding...")
+            embed_start = time.perf_counter()
             resume_summary = merged_data.get("summary", "")
             resume_embedding = self._generate_embedding(resume_summary)
+            embed_time = time.perf_counter() - embed_start
+            print(f"   ⏱️  Embedding generation took {embed_time:.2f}s")
 
             # Extract education details if present
             education_details = merged_data.get("education", [])
@@ -252,25 +273,47 @@ class ResumeProcessor:
                 education_details = [
                     education_details] if education_details else []
 
+            final_profile = {
+                "user_id": user_id,
+                "profile_data": merged_data,
+                "file_name": file_name,
+                "file_url": "https://example.com/resume.pdf",  # Placeholder URL
+                "file_size_bytes": len(raw_bytes),
+                "mime_type": mime_type,
+                "education_details": education_details,
+                "resume_embedding": resume_embedding,
+            }
+
             # Save profile and resume with embedding
-            await self._repository.save_profile_and_resume(
-                user_id=user_id,
-                profile_data=merged_data,
-                file_name=file_name,
-                file_url="https://example.com/resume.pdf",  # Placeholder URL
-                file_size_bytes=len(raw_bytes),
-                mime_type=mime_type,
-                education_details=education_details,
-                resume_embedding=resume_embedding,
-            )
+            # await self._repository.save_profile_and_resume(
+            #     user_id=user_id,
+            #     profile_data=merged_data,
+            #     file_name=file_name,
+            #     file_url="https://example.com/resume.pdf",  # Placeholder URL
+            #     file_size_bytes=len(raw_bytes),
+            #     mime_type=mime_type,
+            #     education_details=education_details,
+            #     resume_embedding=resume_embedding,
+            # )
 
             end_time = time.perf_counter()
             duration = end_time - start_time
+            print("\n" + "="*60)
+            print("📊 TIMING SUMMARY")
+            print("="*60)
+            print(f"  Text extraction:      {text_extract_time:.2f}s")
+            print(f"  Document analysis:    {analysis_time:.2f}s")
+            print(f"  Data extraction:      {extract_time:.2f}s")
+            print(f"  AI refinement:        {ai_time:.2f}s")
+            print(f"  Embedding generation: {embed_time:.2f}s")
+            print("-"*60)
+            print(f"  TOTAL TIME:           {duration:.2f}s")
+            print("="*60 + "\n")
             print(f"✅ Resume processing completed in {duration:.2f} seconds")
 
             LOGGER.info("Resume processing completed",
-                        extra={"user_id": str(user_id)})
-            return profile
+                        extra={"user_id": str(user_id), "duration_seconds": duration})
+            return final_profile
         except UserNotFoundError as e:
             error_msg = f"User validation failed for {user_id}: {str(e)}"
             LOGGER.error(error_msg)
