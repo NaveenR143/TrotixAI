@@ -13,12 +13,14 @@ import {
     Alert,
     AlertTitle,
     Fade,
-    CircularProgress
+    CircularProgress,
+    LinearProgress
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
 import { fadeSlideUp } from "../../utils/themeUtils";
+import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
 
 /**
  * MobileOTPValidation Component
@@ -48,6 +50,7 @@ const MobileOTPValidation = ({
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [verificationSuccess, setVerificationSuccess] = useState(false);
+    const [resumeStatus, setResumeStatus] = useState("unknown");
 
     const handleOtpChange = (e) => {
         const val = e.target.value.replace(/\D/g, '').slice(0, otpLength);
@@ -72,8 +75,8 @@ const MobileOTPValidation = ({
 
             // Determine which endpoint to call based on newUser flag
             const endpoint = newUser
-                ? "http://127.0.0.1:8000/otp/verify-otp-update"
-                : "http://127.0.0.1:8000/otp/verify-otp";
+                ? `${API_BASE_URL}${API_ENDPOINTS.VERIFY_OTP_UPDATE}`
+                : `${API_BASE_URL}${API_ENDPOINTS.VERIFY_OTP}`;
 
             const payload = {
                 phone: cleanPhone,
@@ -97,6 +100,29 @@ const MobileOTPValidation = ({
             setVerificationSuccess(true);
             setLoading(false);
 
+            // Fetch resume status in the background
+
+            try {
+                console.log("📋 Fetching resume status for user:", verifyResult.user_id);
+
+                const statusResponse = await axios.get(
+                    `${API_BASE_URL}${API_ENDPOINTS.RESUME_STATUS}`,
+                    { params: { phone: cleanPhone } }
+                );
+
+                const resumeStatusData = statusResponse.data?.resume_status || "unknown";
+                setResumeStatus(resumeStatusData);
+
+                console.log("✓ Resume Status Fetched:", {
+                    status: resumeStatusData,
+                    phone: cleanPhone
+                });
+            } catch (statusErr) {
+                console.error("✗ Error fetching resume status:", statusErr);
+                // Don't fail the verification if status fetch fails
+            }
+
+
             // Call success callback after brief delay for UX
             setTimeout(() => {
                 if (onSuccess) {
@@ -105,14 +131,15 @@ const MobileOTPValidation = ({
                         mobileNumber,
                         verificationData: verifyResult,
                         newUser,
-                        resumeData
+                        resumeData,
+                        resumeStatus
                     });
                 }
 
                 // Navigate based on user type
-                const route = newUser ? "/feed" : "/dashboard";
-                console.log(`🚀 Navigating to ${route} for ${newUser ? "new" : "existing"} user`);
-                navigate(route);
+                // const route = newUser ? "/feed" : "/dashboard";
+                // console.log(`🚀 Navigating to ${route} for ${newUser ? "new" : "existing"} user`);
+                // navigate(route);
             }, 800);
         } catch (err) {
             setLoading(false);
@@ -340,6 +367,40 @@ const MobileOTPValidation = ({
                                     Resend OTP
                                 </Button>
                             )}
+
+                            <Typography sx={{
+                                fontSize: "0.78rem",
+                                color: "#94a3b8",
+                                mt: 2.5,
+                                lineHeight: 1.4
+                            }}>
+                                While you verify your mobile, our AI is analyzing your profile and matching it with the best opportunities.
+                            </Typography>
+
+                            {/* Progress Bar on Top */}
+                            <Box sx={{ width: "100%", mb: 2 }}>
+                                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                                    <Typography sx={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>
+                                        Upload Resume Progress
+                                    </Typography>
+                                    <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#6366f1" }}>
+                                        30%
+                                    </Typography>
+                                </Box>
+                                <LinearProgress
+                                    variant="determinate"
+                                    value={30}
+                                    sx={{
+                                        borderRadius: 100,
+                                        height: 6,
+                                        bgcolor: "#e2e8f0",
+                                        "& .MuiLinearProgress-bar": {
+                                            background: "linear-gradient(90deg, #6366f1, #8b5cf6)",
+                                            borderRadius: 100
+                                        }
+                                    }}
+                                />
+                            </Box>
                         </Stack>
                     </form>
                 ) : (
@@ -364,8 +425,33 @@ const MobileOTPValidation = ({
                                     lineHeight: 1.5
                                 }}
                             >
-                                You can now access all features. Redirecting shortly...
+                                Please wait while our AI processes your resume and matches you with the best opportunities.
                             </Typography>
+
+                            {/* Progress Bar on Top */}
+                            <Box sx={{ width: "100%", mb: 2 }}>
+                                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                                    <Typography sx={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>
+                                        Upload Resume Progress
+                                    </Typography>
+                                    <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#6366f1" }}>
+                                        70%
+                                    </Typography>
+                                </Box>
+                                <LinearProgress
+                                    variant="determinate"
+                                    value={70}
+                                    sx={{
+                                        borderRadius: 100,
+                                        height: 6,
+                                        bgcolor: "#e2e8f0",
+                                        "& .MuiLinearProgress-bar": {
+                                            background: "linear-gradient(90deg, #6366f1, #8b5cf6)",
+                                            borderRadius: 100
+                                        }
+                                    }}
+                                />
+                            </Box>
                         </Box>
                     </Stack>
                 )}

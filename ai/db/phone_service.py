@@ -31,15 +31,14 @@ async def save_phone_to_db(phone: str, session: AsyncSession) -> tuple:
         # Insert without specifying id - let PostgreSQL generate it with gen_random_uuid()
         result = await session.execute(
             text("""
-                INSERT INTO users (phone, role, status, full_name,resume_status)
-                VALUES (:phone, :role, :status, :full_name,:resume_status)
+                INSERT INTO users (phone, role, status, resume_status)
+                VALUES (:phone, :role, :status, :resume_status)
                 RETURNING id
             """),
             {
                 "phone": phone,
                 "role": "jobseeker",
                 "status": "pending_verification",
-                "full_name": "",
                 "resume_status": "queued"
             }
         )
@@ -50,6 +49,7 @@ async def save_phone_to_db(phone: str, session: AsyncSession) -> tuple:
 
     except Exception as e:
         await session.rollback()
+        print(f"Failed to save phone number: {str(e)}")
         raise Exception(f"Failed to save phone number: {str(e)}")
 
 

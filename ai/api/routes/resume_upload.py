@@ -1,9 +1,10 @@
 from io import BytesIO
-from uuid import uuid4
+from uuid import UUID
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from ai.services.otp_service import send_otp
 from ai.services.phonenumber_parser import extract_phone_numbers_from_file
 from ai.db.phone_service import save_phone_to_db
+from ai.db.resume_repository import ResumeRepository
 from ai.db.database import AsyncSessionLocal
 
 # from azure.storage.queue import QueueClient
@@ -17,6 +18,7 @@ from ai.services.azure_storage_service import AzureStorageService
 import base64
 import json
 import os
+import asyncio
 
 router = APIRouter()
 
@@ -83,6 +85,8 @@ async def upload_resume(file: UploadFile = File(...)):
             "phone_numbers": phone_numbers,
         }
 
+    print(f"Extracted phone numbers: {phone_numbers}")
+
     # 👉 Case 2: Single number → proceed
     primary_phone = phone_numbers[0]
 
@@ -99,58 +103,80 @@ async def upload_resume(file: UploadFile = File(...)):
     except Exception as e:
         # We might still want to proceed if OTP fails, or fail the request.
         # Given it's a critical step, let's fail it.
-        raise HTTPException(status_code=500, detail=f"Failed to send OTP: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to send OTP: {str(e)}")
 
-    # Initiate Upload in background
-    uploaded_file_details = await AzureStorageService().upload_file(file, user_id)
+    # # Initiate Upload in background
+    # uploaded_file_details = await AzureStorageService().upload_file(file, user_id)
 
-    if "upload_Failed" in uploaded_file_details:
-        print(f"Background upload initiation failed: {uploaded_file_details}")
-        # We don't necessarily want to fail the whole request if the background task initiation failed,
-        # but it's good to log it.
+    # if "upload_Failed" in uploaded_file_details:
+    #     print(f"Background upload initiation failed: {uploaded_file_details}")
+    #     # We don't necessarily want to fail the whole request if the background task initiation failed,
+    #     # but it's good to log it.
 
-    print(f"Upload details: {uploaded_file_details}")
-
-    # # Encode file content in base64 to safely send in JSON
-    # payload = {
-    #     "filename": file.filename,
-    #     "content": base64.b64encode(content).decode("utf-8"),
-    #     "phone_numbers": phone_numbers,
-    # }
-
-    # # Push message to Azure Queue
-    # queue_client.send_message(json.dumps(payload))
-
-    # pdf_bytes = await file.read()
-
-    # MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
-
-    # if len(pdf_bytes) > MAX_FILE_SIZE_BYTES:
-    #     raise FileValidationError("File too large. Max size is 10 MB.")
-
-    # pdf_stream = BytesIO(pdf_bytes)
-
-    # repository = JobSeekerRepository()
-    # await repository.connect()
-    # try:
-    #     processor = ResumeProcessor(
-    #         repository=repository,
-    #         ai_refiner=AzureOpenAIResumeRefiner(),
-    #     )
-    #     await processor.process_resume(
-    #         user_id=uuid4(),
-    #         file_name=file.filename,
-    #         file_bytes=pdf_stream,
-    #         raw_bytes=pdf_bytes,
-    #         mime_type="application/pdf",
-    #     )
-    #     print("Resume processing demo completed.")
-    # finally:
-    #     await repository.close()
+    # print(f"Upload details: {uploaded_file_details}")
 
     return {
         "message": "OTP sent",
         "user_id": user_id,
         "phone": primary_phone,
         "new_user": not is_existing,
+    }
+
+
+@router.get("/resume-status-wait")
+async def wait_for_resume_completion(phone: str):
+    """
+    Endpoint to poll resume status with exponential backoff for up to 50 seconds.
+
+    Backoff schedule: 2s → 4s → 6s → 10s (capped at 10s for subsequent retries)
+
+    Returns:
+    - The status object if status becomes "completed" before timeout
+    - {"status": "failed", "phone": phone} if timeout is reached
+    """
+
+    # Exponential backoff schedule: 2, 4, 6, 10, 10, 10, ...
+    # Total 5 attempts with increasing delays
+    backoff_delays = [5, 7, 10, 14, 20]
+    max_total_time = 50  # seconds
+    elapsed_time = 0
+    attempt = 0
+
+    while elapsed_time < max_total_time:
+        try:
+            async with AsyncSessionLocal() as session:
+                resume_repository = ResumeRepository(session)
+                resume_status = await resume_repository.get_resume_status(phone)
+
+                # Check if completed
+                if resume_status and resume_status.lower() == "completed":
+                    return {
+                        "phone": phone,
+                        "resume_status": resume_status
+                    }
+        except Exception as e:
+            print(f"Error checking resume status: {str(e)}")
+            # Continue retrying on error
+
+        # Calculate delay for next retry
+        if attempt < len(backoff_delays):
+            delay = backoff_delays[attempt]
+        else:
+            delay = backoff_delays[-1]  # Cap at 10 seconds
+
+        # Check if adding delay would exceed total time
+        if elapsed_time + delay >= max_total_time:
+            break
+
+        # Wait before next retry
+        await asyncio.sleep(delay)
+        elapsed_time += delay
+        attempt += 1
+
+    # Timeout reached - return failed status
+    return {
+        "status": "failed",
+        "user_id": user_id,
+        "message": "Resume processing did not complete within 50 seconds"
     }

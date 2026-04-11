@@ -178,30 +178,7 @@ const ProcessingScreen = ({ onComplete }) => {
             {newUser && (
               <>
 
-                {/* Progress Bar on Top */}
-                <Box sx={{ width: "100%", mb: 2 }}>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                    <Typography sx={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>
-                      Verification Progress
-                    </Typography>
-                    <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#6366f1" }}>
-                      50%
-                    </Typography>
-                  </Box>
-                  <LinearProgress
-                    variant="determinate"
-                    value={50}
-                    sx={{
-                      borderRadius: 100,
-                      height: 6,
-                      bgcolor: "#e2e8f0",
-                      "& .MuiLinearProgress-bar": {
-                        background: "linear-gradient(90deg, #6366f1, #8b5cf6)",
-                        borderRadius: 100
-                      }
-                    }}
-                  />
-                </Box>
+                
 
                 {/* Background Processing Animation */}
                 <Fade in timeout={800}>
@@ -299,14 +276,14 @@ const ProcessingScreen = ({ onComplete }) => {
                     </Stack>
 
                     {/* Processing Status Text */}
-                    <Typography sx={{
+                    {/* <Typography sx={{
                       fontSize: "0.78rem",
                       color: "#94a3b8",
                       mt: 2.5,
                       lineHeight: 1.4
                     }}>
                       While you verify your mobile, our AI is analyzing your profile and matching it with the best opportunities.
-                    </Typography>
+                    </Typography> */}
                   </Box>
                 </Fade>
               </>

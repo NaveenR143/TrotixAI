@@ -13,7 +13,11 @@ const API_BASE_URL = 'http://127.0.0.1:8000';
 // ─── API Endpoints ────────────────────────────────────────────────────────────
 const API_ENDPOINTS = {
   // Resume Upload & Parsing
-  UPLOAD_RESUME: '/resume-upload/upload-resume',
+  UPLOAD_RESUME: '/resume-process/upload-resume',
+  RESUME_STATUS: '/resume-process/resume-status-wait',
+  VERIFY_OTP_UPDATE:'/otp/verify-otp-update',
+  VERIFY_OTP:'/otp/verify-otp',
+  
   
   // Add other endpoints as needed
   // USER_PROFILE: '/user/profile',
