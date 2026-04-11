@@ -87,6 +87,10 @@ class QueueWorker:
             # ✅ SAFE async execution
             # self._run_async(handler.process_file())
 
+            db_queue.put({
+                "user_id": user_id, "update_status": "processing"
+            })
+
             # Run async processing
             result = self._run_async(handler.process_file())
 

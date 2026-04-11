@@ -31,15 +31,16 @@ async def save_phone_to_db(phone: str, session: AsyncSession) -> tuple:
         # Insert without specifying id - let PostgreSQL generate it with gen_random_uuid()
         result = await session.execute(
             text("""
-                INSERT INTO users (phone, role, status, full_name)
-                VALUES (:phone, :role, :status, :full_name)
+                INSERT INTO users (phone, role, status, full_name,resume_status)
+                VALUES (:phone, :role, :status, :full_name,:resume_status)
                 RETURNING id
             """),
             {
                 "phone": phone,
                 "role": "jobseeker",
                 "status": "pending_verification",
-                "full_name": ""
+                "full_name": "",
+                "resume_status": "queued"
             }
         )
 

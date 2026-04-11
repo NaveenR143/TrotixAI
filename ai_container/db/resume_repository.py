@@ -105,22 +105,22 @@ class ResumeRepository:
     def _normalize_company_name(company_name: str) -> str:
         """
         Normalize company name by removing common suffixes and converting to lowercase.
-        
+
         Removes common suffixes: pvt, ltd, co, company, inc, llc, corp, corporation, etc.
         Converts to lowercase and strips whitespace.
-        
+
         Args:
             company_name: Original company name
-            
+
         Returns:
             Normalized company name
         """
         if not company_name or not isinstance(company_name, str):
             return ""
-        
+
         # Convert to lowercase and strip whitespace
         normalized = company_name.lower().strip()
-        
+
         # List of common suffixes to remove
         suffixes = [
             r'\bpvt\.?\s*(ltd\.)?\b',
@@ -140,38 +140,39 @@ class ResumeRepository:
             r',\s*limited\.?\b',
             r',\s*private\.?\b',
         ]
-        
+
         for suffix in suffixes:
             normalized = re.sub(suffix, '', normalized, flags=re.IGNORECASE)
-        
+
         # Remove extra spaces and commas at the end
         normalized = re.sub(r'[,\s]+$', '', normalized)
         normalized = ' '.join(normalized.split())  # Normalize internal spaces
-        
+
         return normalized
 
     async def get_or_create_company(self, company_name: str, commit: bool = True) -> int:
         """
         Fetch company ID from the companies table. If no matching record exists,
         insert the normalized company name and retrieve the newly created ID.
-        
+
         Args:
             company_name: Original company name
             commit: Whether to commit the transaction
-            
+
         Returns:
             Integer ID of the company (existing or newly created)
         """
         try:
             if not company_name:
                 raise ValueError("Company name cannot be empty")
-            
+
             # Normalize the company name
             normalized_name = self._normalize_company_name(company_name)
-            
+
             if not normalized_name:
-                raise ValueError(f"Company name '{company_name}' cannot be normalized to empty string")
-            
+                raise ValueError(
+                    f"Company name '{company_name}' cannot be normalized to empty string")
+
             # Check if company already exists
             query = text(
                 """
@@ -180,12 +181,13 @@ class ResumeRepository:
             )
             result = await self.session.execute(query, {"name": normalized_name})
             row = result.fetchone()
-            
+
             if row:
                 company_id = int(row[0])
-                LOGGER.debug(f"Found existing company: {normalized_name} (ID: {company_id})")
+                LOGGER.debug(
+                    f"Found existing company: {normalized_name} (ID: {company_id})")
                 return company_id
-            
+
             # Company doesn't exist, create it
             insert_query = text(
                 """
@@ -198,16 +200,18 @@ class ResumeRepository:
                 insert_query, {"name": normalized_name}
             )
             row = insert_result.fetchone()
-            
+
             if commit:
                 await self.session.commit()
-            
+
             company_id = int(row[0])
-            LOGGER.info(f"Created new company: {normalized_name} (ID: {company_id})")
+            LOGGER.info(
+                f"Created new company: {normalized_name} (ID: {company_id})")
             return company_id
-            
+
         except Exception as e:
-            LOGGER.error(f"Error in get_or_create_company for '{company_name}': {str(e)}")
+            LOGGER.error(
+                f"Error in get_or_create_company for '{company_name}': {str(e)}")
             if commit:
                 await self.session.rollback()
             raise
@@ -320,14 +324,14 @@ class ResumeRepository:
         try:
             if not self.session:
                 raise RuntimeError("Database session is not initialized")
-            
+
             # Validate user exists before attempting profile upsert
             user_exists = await self.user_exists(user_id)
             if not user_exists:
                 error_msg = f"Cannot save profile: User {user_id} does not exist in database"
                 LOGGER.error(error_msg)
                 raise UserNotFoundError(error_msg)
-            
+
             query = text(
                 """
                 INSERT INTO jobseeker_profiles (
@@ -378,7 +382,8 @@ class ResumeRepository:
             )
             if commit:
                 await self.session.commit()
-            LOGGER.info(f"Successfully upserted jobseeker profile for user {user_id}")
+            LOGGER.info(
+                f"Successfully upserted jobseeker profile for user {user_id}")
 
         except UserNotFoundError:
             # Re-raise UserNotFoundError without rollback (no transaction started)
@@ -393,9 +398,11 @@ class ResumeRepository:
                     await self.session.rollback()
                     raise DatabaseIntegrityError(user_error) from e
                 else:
-                    LOGGER.error(f"Database integrity constraint violation: {error_msg}")
+                    LOGGER.error(
+                        f"Database integrity constraint violation: {error_msg}")
                     await self.session.rollback()
-                    raise DatabaseIntegrityError(f"Database integrity error: {error_msg}") from e
+                    raise DatabaseIntegrityError(
+                        f"Database integrity error: {error_msg}") from e
             else:
                 LOGGER.error(f"Error upserting jobseeker profile: {error_msg}")
                 await self.session.rollback()
@@ -560,7 +567,7 @@ class ResumeRepository:
     ) -> UUID:
         """
         Add work experience record for user.
-        
+
         Fetches or creates the company from the companies table (with normalization),
         then uses the company_id to populate the work_experiences record.
 
@@ -584,7 +591,7 @@ class ResumeRepository:
         try:
             # Get or create company and retrieve company_id (integer)
             company_id = await self.get_or_create_company(company_name, commit=False)
-            
+
             query = text(
                 """
                 INSERT INTO work_experiences (
@@ -619,7 +626,8 @@ class ResumeRepository:
                 await self.session.commit()
 
             exp_id = int(row[0])
-            LOGGER.debug(f"Added work experience for user {user_id} with company ID {company_id}")
+            LOGGER.debug(
+                f"Added work experience for user {user_id} with company ID {company_id}")
             return exp_id
 
         except Exception as e:
@@ -752,8 +760,9 @@ class ResumeRepository:
                 RETURNING id
             """
             )
-            
-            print(f"Resume embedding length: {len(resume_embedding) if resume_embedding else 'None'}")
+
+            print(
+                f"Resume embedding length: {len(resume_embedding) if resume_embedding else 'None'}")
 
             result = await self.session.execute(
                 query,
@@ -1093,6 +1102,40 @@ class ResumeRepository:
             await self.session.rollback()
             raise
 
+    async def update_user_resume_status(
+        self,
+        user_id: UUID,
+        resume_status: str,
+        commit: bool = True,
+    ) -> None:
+        """
+        Update the status of a user.
+
+        Args:
+            user_id: User UUID
+            resume_status: New status for the user 
+        """
+        try:
+
+            query = text(
+                f"""
+                UPDATE users SET resume_status = :resume_status WHERE id = :user_id
+            """
+            )
+            result = await self.session.execute(query, {"resume_status": resume_status, "user_id": str(user_id)})
+            
+            await self.session.commit()
+
+            LOGGER.debug(
+                f"Updated resume_status for user {user_id} to {resume_status}"
+            )
+
+        except Exception as e:
+            LOGGER.error(
+                f"Error updating resume_status for user {user_id}: {str(e)}")
+            await self.session.rollback()
+            raise
+
     # ══════════════════════════════════════════════════════════════════════════════
     # COMPREHENSIVE PROFILE & RESUME OPERATIONS
     # ══════════════════════════════════════════════════════════════════════════════
@@ -1197,6 +1240,8 @@ class ResumeRepository:
             await self.session.commit()
             LOGGER.info(
                 f"Successfully saved complete profile for user {user_id}")
+
+            await self.update_user_resume_status(user_id, "completed")
 
         except Exception as e:
             LOGGER.error(

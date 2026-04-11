@@ -44,7 +44,7 @@ class DBWorker:
                 break
 
             task_start = time.perf_counter()
-            
+
             try:
                 user_id = task.get("user_id", "unknown")
                 print(f"\n🔄 Processing DB task for user {user_id}...")
@@ -53,7 +53,8 @@ class DBWorker:
                 print(f"✅ DB task completed in {task_time:.2f}s\n")
             except Exception as e:
                 task_time = time.perf_counter() - task_start
-                logger.exception(f"❌ DB Worker error (after {task_time:.2f}s): {e}")
+                logger.exception(
+                    f"❌ DB Worker error (after {task_time:.2f}s): {e}")
             finally:
                 db_queue.task_done()
 
@@ -63,22 +64,31 @@ class DBWorker:
 
         # Extract user_id for logging and timing
         user_id = task.get("user_id", "unknown")
-        
+        update_status = task.get("update_status", "N/A")
+
         print(f"\n💾 Saving profile to database for user {user_id}...")
         save_start = time.perf_counter()
-        
+
         try:
             async with db_session_manager.session() as session:
                 repo = ResumeRepository(session)
 
-                await repo.save_profile_and_resume(**task)
+                if update_status != "N/A":
+                    print(
+                        f"   🔄 Updating resume_status to '{update_status}' for user {user_id}...")
+                    await repo.update_user_resume_status(user_id, "processing")
+
+                else:
+                    await repo.save_profile_and_resume(**task)
 
             save_time = time.perf_counter() - save_start
             print(f"   ⏱️  Database save took {save_time:.2f}s")
-            logger.info(f"✅ DB save completed for user {user_id} in {save_time:.2f}s")
-            
+            logger.info(
+                f"✅ DB save completed for user {user_id} in {save_time:.2f}s")
+
         except Exception as e:
             save_time = time.perf_counter() - save_start
             print(f"   ❌ Database save failed after {save_time:.2f}s")
-            logger.error(f"❌ DB save failed for user {user_id} after {save_time:.2f}s: {e}")
+            logger.error(
+                f"❌ DB save failed for user {user_id} after {save_time:.2f}s: {e}")
             raise
