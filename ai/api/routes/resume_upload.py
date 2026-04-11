@@ -177,6 +177,5 @@ async def wait_for_resume_completion(phone: str):
     # Timeout reached - return failed status
     return {
         "status": "failed",
-        "user_id": user_id,
         "message": "Resume processing did not complete within 50 seconds"
     }
