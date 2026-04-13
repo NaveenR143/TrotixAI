@@ -5,7 +5,7 @@ Synchronized with database schema from db_schemas/*.sql
 
 from sqlalchemy import (
     Column, String, Text, UUID, DateTime, Boolean, Integer, Float,
-    Date, ARRAY, ForeignKey, Numeric, Enum, ForeignKeyConstraint, JSON
+    Date, ARRAY, ForeignKey, Numeric, Enum, ForeignKeyConstraint, JSON, UniqueConstraint, PrimaryKeyConstraint
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -83,6 +83,7 @@ class User(Base):
     certifications = relationship("Certification", back_populates="user", cascade="all, delete-orphan")
     projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
     jobseeker_skills = relationship("JobseekerSkill", back_populates="user", cascade="all, delete-orphan")
+    user_languages = relationship("UserLanguage", back_populates="user", cascade="all, delete-orphan")
     resumes = relationship("Resume", back_populates="user", cascade="all, delete-orphan")
     resume_builder_docs = relationship("ResumeBuilderDoc", back_populates="user", cascade="all, delete-orphan")
 
@@ -155,6 +156,40 @@ class JobseekerSkill(Base):
     # Relationships
     user = relationship("User", back_populates="jobseeker_skills")
     skill = relationship("Skill", back_populates="jobseeker_skills")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Languages Table
+# ─────────────────────────────────────────────────────────────────────────────
+
+class Language(Base):
+    __tablename__ = "languages"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    language = Column(Text, nullable=False, unique=True, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    user_languages = relationship("UserLanguage", back_populates="language", cascade="all, delete-orphan")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# User Languages Table
+# ─────────────────────────────────────────────────────────────────────────────
+
+class UserLanguage(Base):
+    __tablename__ = "user_languages"
+    __table_args__ = (
+        PrimaryKeyConstraint('user_id', 'language_id'),
+    )
+
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    language_id = Column(UUID(as_uuid=True), ForeignKey("languages.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    user = relationship("User", back_populates="user_languages")
+    language = relationship("Language", back_populates="user_languages")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

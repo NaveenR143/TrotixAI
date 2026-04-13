@@ -15,7 +15,7 @@ const useStyles = makeStyles((theme) => ({
     color: "#575656",
     marginTop: "10px",
     lineHeight: "40px",
-    fontFamily: "system-ui",
+    fontFamily: "'Open Sans', Verdana, sans-serif",
   },
 }));
 

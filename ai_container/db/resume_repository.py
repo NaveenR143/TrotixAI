@@ -1102,6 +1102,122 @@ class ResumeRepository:
             await self.session.rollback()
             raise
 
+    async def bulk_add_user_languages(
+        self,
+        user_id: UUID,
+        language_names: list,
+        commit: bool = True,
+    ) -> None:
+        """
+        Bulk add multiple languages to user with deduplication and normalization.
+
+        Features:
+        - Normalizes language names (lowercase, strip spaces, remove extra spaces)
+        - Deduplicates languages automatically
+        - Checks for existing languages
+        - Creates new languages if needed
+        - Bulk assigns all languages to user
+
+        Args:
+            user_id: User UUID
+            language_names: List of language names to add
+            commit: Whether to commit the transaction
+        """
+        try:
+            if not language_names:
+                LOGGER.info(f"No languages provided for user {user_id}")
+                return
+
+            # Normalize and deduplicate languages
+            normalized_languages = set()
+            for language in language_names:
+                if isinstance(language, str) and language.strip():
+                    # Normalize: lowercase, strip, and replace multiple spaces with single space
+                    normalized = " ".join(language.lower().split())
+                    normalized_languages.add(normalized)
+
+            if not normalized_languages:
+                LOGGER.info(
+                    f"No valid languages after normalization for user {user_id}")
+                return
+
+            LOGGER.info(
+                f"Processing {len(normalized_languages)} unique languages for user {user_id}"
+            )
+
+            # Get existing languages in one query
+            language_list = list(normalized_languages)
+            placeholders = ", ".join([f"'{lang}'" for lang in language_list])
+
+            query = text(
+                f"""
+                SELECT id, language FROM languages WHERE language IN ({placeholders})
+            """
+            )
+            result = await self.session.execute(query)
+            existing_languages = {row[1]: row[0] for row in result.fetchall()}
+
+            # Find languages to create
+            languages_to_create = [
+                lang for lang in normalized_languages if lang not in existing_languages
+            ]
+
+            # Create new languages in bulk
+            created_language_ids = {}
+            if languages_to_create:
+                for language_name in languages_to_create:
+                    insert_query = text(
+                        """
+                        INSERT INTO languages (language, created_at)
+                        VALUES (:language, NOW())
+                        RETURNING id
+                    """
+                    )
+                    insert_result = await self.session.execute(
+                        insert_query, {"language": language_name}
+                    )
+                    row = insert_result.fetchone()
+                    if row:
+                        created_language_ids[language_name] = int(row[0])
+
+                LOGGER.info(f"Created {len(created_language_ids)} new languages")
+
+            # Combine existing and newly created languages
+            all_language_ids = {**existing_languages, **created_language_ids}
+
+            # Bulk insert user languages (upsert) using multi-row query
+            if all_language_ids:
+                language_id_list = list(all_language_ids.values())
+
+                upsert_query = text(
+                    """
+                    INSERT INTO user_languages (user_id, language_id, created_at)
+                    VALUES (:user_id, :language_id, NOW())
+                    ON CONFLICT (user_id, language_id) DO NOTHING
+                """
+                )
+
+                params = [
+                    {
+                        "user_id": str(user_id),
+                        "language_id": language_id,
+                    }
+                    for language_id in language_id_list
+                ]
+
+                await self.session.execute(upsert_query, params)
+
+            if commit:
+                await self.session.commit()
+            LOGGER.info(
+                f"Successfully added {len(all_language_ids)} languages to user {user_id}"
+            )
+
+        except Exception as e:
+            LOGGER.error(f"Error bulk adding user languages: {str(e)}")
+            await self.session.rollback()
+            raise
+
     async def update_user_resume_status(
         self,
         user_id: UUID,
@@ -1238,6 +1354,14 @@ class ResumeRepository:
                     commit=False,
                 )
 
+            languages = profile_data.get("languages", [])
+            if languages:
+                await self.bulk_add_user_languages(
+                    user_id=user_id,
+                    language_names=languages,
+                    commit=False,
+                )
+
             LOGGER.info(
                 f"Basic profile, resume, and skills saved for user {user_id}")
 
@@ -1370,15 +1494,25 @@ class ResumeRepository:
             # 3. Insert skills
             skills_count = await self._insert_skills(user_id, profile_data)
 
-            # 4. Insert work experiences with nested projects
+            # 4. Insert languages
+            languages = profile_data.get("languages", [])
+            languages_count = len(set(lang.lower().strip() for lang in languages if isinstance(lang, str) and lang.strip())) if languages else 0
+            if languages:
+                await self.bulk_add_user_languages(
+                    user_id=user_id,
+                    language_names=languages,
+                    commit=False,
+                )
+
+            # 5. Insert work experiences with nested projects
             work_exp_count, projects_count = await self._insert_work_experiences(
                 user_id, profile_data
             )
 
-            # 5. Insert education
+            # 6. Insert education
             education_count = await self._insert_education(user_id, profile_data)
 
-            # 6. Insert standalone projects (if any)
+            # 7. Insert standalone projects (if any)
             standalone_projects = profile_data.get("projects", [])
             if standalone_projects:
                 for idx, project in enumerate(standalone_projects):
@@ -1402,13 +1536,14 @@ class ResumeRepository:
             status = "success"
             LOGGER.info(
                 f"Successfully imported profile for user {user_id}. "
-                f"Skills: {skills_count}, Work Experience: {work_exp_count}, "
+                f"Skills: {skills_count}, Languages: {languages_count}, Work Experience: {work_exp_count}, "
                 f"Projects: {projects_count}, Education: {education_count}"
             )
 
             return {
                 "user_id": str(user_id),
                 "skills_count": skills_count,
+                "languages_count": languages_count,
                 "work_experiences_count": work_exp_count,
                 "projects_count": projects_count,
                 "education_count": education_count,

@@ -1,0 +1,332 @@
+/**
+ * Global Typography Override CSS
+ * Ensures all components use Open Sans font with Verdana fallback
+ * 
+ * This file overrides any legacy fonts and ensures consistent typography
+ * across all component libraries (Material-UI, Ant Design, custom components)
+ */
+
+/* ============================================================================
+   Global Font Declarations
+   ============================================================================ */
+
+* {
+  font-family: 'Open Sans', Verdana, sans-serif !important;
+}
+
+/* Body and root elements */
+html,
+body,
+#root {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* ============================================================================
+   Ant Design Component Overrides
+   ============================================================================ */
+
+/* Ant Design base typography */
+.ant-typography,
+.ant-typography p,
+.ant-typography h1,
+.ant-typography h2,
+.ant-typography h3,
+.ant-typography h4,
+.ant-typography h5,
+.ant-typography h6 {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* Ant Design buttons */
+.ant-btn {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 600;
+}
+
+/* Ant Design form inputs */
+.ant-input,
+.ant-input-number,
+.ant-select-selector,
+.ant-picker,
+.ant-cascader-input,
+.ant-input-textarea {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* Ant Design dropdown and menu */
+.ant-dropdown-menu,
+.ant-menu,
+.ant-menu-item,
+.ant-menu-submenu-title {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* Ant Design table */
+.ant-table,
+.ant-table-cell {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* Ant Design modal */
+.ant-modal-header,
+.ant-modal-body,
+.ant-modal-footer {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* Ant Design notification and message */
+.ant-notification-notice,
+.ant-message-notice-content,
+.ant-alert {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* Ant Design tags and badges */
+.ant-tag,
+.ant-badge,
+.ant-badge-count {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* Ant Design tooltip */
+.ant-tooltip-inner {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* ============================================================================
+   Material-UI Component Overrides
+   ============================================================================ */
+
+/* MUI Typography */
+.MuiTypography-root {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* MUI Buttons */
+.MuiButton-root,
+.MuiButton-contained,
+.MuiButton-outlined,
+.MuiButton-text {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 600;
+}
+
+/* MUI Form inputs */
+.MuiInputBase-input,
+.MuiOutlinedInput-input,
+.MuiFilledInput-input,
+.MuiInput-input {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* MUI Labels */
+.MuiFormLabel-root,
+.MuiInputLabel-root {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* MUI Select dropdown */
+.MuiSelect-select {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* MUI Chips */
+.MuiChip-root {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* MUI Cards */
+.MuiCard-root,
+.MuiCardHeader-title,
+.MuiCardContent-root {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* MUI Dialogs and Modals */
+.MuiDialog-paper,
+.MuiModal-root {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* MUI Tooltips */
+.MuiTooltip-tooltip {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* MUI Menu */
+.MuiMenu-paper,
+.MuiMenuItem-root {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* ============================================================================
+   Standard HTML Elements
+   ============================================================================ */
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* Paragraphs and text */
+p, span, div, a {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* Form elements */
+input,
+textarea,
+select,
+button,
+optgroup,
+option {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* Lists */
+ul, ol, li {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* Tables */
+table,
+thead,
+tbody,
+tr,
+td,
+th {
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+/* ============================================================================
+   Code Elements (exception - use monospace)
+   ============================================================================ */
+
+pre,
+code,
+kbd,
+samp {
+  font-family: 'Courier New', monospace;
+}
+
+/* ============================================================================
+   Font Weight Utilities
+   ============================================================================ */
+
+.font-light {
+  font-weight: 300;
+}
+
+.font-regular {
+  font-weight: 400;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.font-extrabold {
+  font-weight: 800;
+}
+
+/* ============================================================================
+   Heading Utilities
+   ============================================================================ */
+
+.heading-h1 {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 800;
+  font-size: 1.875rem;
+  line-height: 1.5;
+  letter-spacing: -0.5px;
+}
+
+.heading-h2 {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  line-height: 1.5;
+  letter-spacing: -0.3px;
+}
+
+.heading-h3 {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  letter-spacing: -0.2px;
+}
+
+.heading-h4 {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.heading-h5 {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.heading-h6 {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 300;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   Body Text Utilities
+   ============================================================================ */
+
+.body-large {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.body-regular {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 400;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.body-small {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 400;
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+/* ============================================================================
+   Component Typography Utilities
+   ============================================================================ */
+
+.label-text {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 400;
+  font-size: 0.8125rem;
+}
+
+.caption-text {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 400;
+  font-size: 0.6875rem;
+}
+
+.overline-text {
+  font-family: 'Open Sans', Verdana, sans-serif;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

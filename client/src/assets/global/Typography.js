@@ -1,54 +1,109 @@
+// ============================================================================
+// Typography Configuration with Open Sans
+// Primary Font: Open Sans
+// Fallback Font: Verdana
+// ============================================================================
+
+const fontFamily = "'Open Sans', Verdana, sans-serif";
+
 const typography = {
-  fontFamily: 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", "DM Sans", sans-serif',
-  body1: {
-    fontWeight: 400,
-    fontSize: '0.8rem'
-  },
+  fontFamily: fontFamily,
+  
+  // Headlines - Open Sans Bold (700) or ExtraBold (800)
   h1: {
-    fontWeight: 500,
-    fontSize: '1.675rem',
-    lineHeight: '1.5',
+    fontFamily: fontFamily,
+    fontWeight: 800,
+    fontSize: '1.875rem',
+    lineHeight: 1.5,
+    letterSpacing: '-0.5px',
   },
   h2: {
-    fontWeight: 500,
-    fontSize: '1.3rem',
-    lineHeight: '1.5',
+    fontFamily: fontFamily,
+    fontWeight: 800,
+    fontSize: '1.5rem',
+    lineHeight: 1.5,
+    letterSpacing: '-0.3px',
   },
   h3: {
-    fontWeight: 500,
-    fontSize: '1.1125rem',
-    lineHeight: '1.5',
+    fontFamily: fontFamily,
+    fontWeight: 700,
+    fontSize: '1.25rem',
+    lineHeight: 1.5,
+    letterSpacing: '-0.2px',
   },
+  
+  // Subheadings - Open Sans SemiBold (600) or Light (300)
   h4: {
-    fontWeight: 500,
-    fontSize: '0.925rem',
-    lineHeight: '1.5',
+    fontFamily: fontFamily,
+    fontWeight: 600,
+    fontSize: '1rem',
+    lineHeight: 1.5,
   },
   h5: {
-    fontWeight: 500,
-    fontSize: '0.8rem',
-    lineHeight: '1.5',
+    fontFamily: fontFamily,
+    fontWeight: 600,
+    fontSize: '0.875rem',
+    lineHeight: 1.5,
   },
   h6: {
-    fontWeight: 500,
-    fontSize: '0.675rem',
-    lineHeight: '1.5',
+    fontFamily: fontFamily,
+    fontWeight: 300,
+    fontSize: '0.75rem',
+    lineHeight: 1.5,
   },
-  button: {
-    textTransform: 'none',
-    fontWeight: '400',
+  
+  // Body Text - Open Sans Regular (400)
+  body1: {
+    fontFamily: fontFamily,
+    fontWeight: 400,
+    fontSize: '0.875rem',
+    lineHeight: 1.6,
   },
+  body2: {
+    fontFamily: fontFamily,
+    fontWeight: 400,
+    fontSize: '0.8125rem',
+    lineHeight: 1.6,
+  },
+  
+  // Subtitles
   subtitle1: {
-    fontSize: '0.8rem',
-    fontWeight: '400',
+    fontFamily: fontFamily,
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    lineHeight: 1.5,
   },
   subtitle2: {
-    fontSize: '0.675rem',
-    fontWeight: '400',
+    fontFamily: fontFamily,
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    lineHeight: 1.5,
   },
+  
+  // Caption
   caption: {
-    fontSize: '0.6rem',
-    fontWeight: '400',
+    fontFamily: fontFamily,
+    fontSize: '0.6875rem',
+    fontWeight: 400,
+    lineHeight: 1.5,
+  },
+  
+  // Button
+  button: {
+    fontFamily: fontFamily,
+    textTransform: 'none',
+    fontWeight: 600,
+    fontSize: '0.875rem',
+  },
+  
+  // Overline
+  overline: {
+    fontFamily: fontFamily,
+    fontWeight: 700,
+    fontSize: '0.6875rem',
+    lineHeight: 1.5,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
   },
 };
 

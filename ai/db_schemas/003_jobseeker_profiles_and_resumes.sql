@@ -1,214 +1,470 @@
--- ============================================================
--- migrations/003_jobseeker_profiles_and_resumes.sql
--- ============================================================
+-- Name: certifications; Type: TABLE; Schema: public; Owner: -
+--
 
--- ── Jobseeker profiles ────────────────────────────────────────────────────────
-CREATE TABLE jobseeker_profiles (
-    id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id             UUID        NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    headline            TEXT,                              -- "Full-Stack Engineer at Acme"
-    summary             TEXT,
-    gender              gender_type,
-    date_of_birth       DATE,
-    current_location    TEXT,
-    preferred_locations TEXT[],                            -- willing to relocate to
-    years_of_experience NUMERIC(4,1),
-    notice_period_days  INTEGER,
-    current_salary      NUMERIC(12,2),
-    expected_salary     NUMERIC(12,2),
-    salary_currency     salary_currency DEFAULT 'INR',
-    is_actively_looking BOOLEAN     DEFAULT TRUE,
-    linkedin_url        TEXT,
-    github_url          TEXT,
-    portfolio_url       TEXT,
-    profile_completion  INTEGER     DEFAULT 0 CHECK (profile_completion BETWEEN 0 AND 100),
-
-    -- AI-generated embedding of the full profile (pgvector)
-    -- Used for semantic similarity matching with jobs
-    profile_embedding   vector(1536),
-
-    created_at          TIMESTAMPTZ DEFAULT NOW(),
-    updated_at          TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE public.certifications (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    name text NOT NULL,
+    issuer text,
+    issue_date date,
+    expiry_date date,
+    credential_id text,
+    credential_url text,
+    created_at timestamp with time zone DEFAULT now()
 );
 
-CREATE INDEX idx_js_user       ON jobseeker_profiles (user_id);
-CREATE INDEX idx_js_location   ON jobseeker_profiles (current_location);
-CREATE INDEX idx_js_looking    ON jobseeker_profiles (is_actively_looking);
-CREATE INDEX idx_js_experience ON jobseeker_profiles (years_of_experience);
 
--- pgvector HNSW index for fast approximate nearest-neighbour search
-CREATE INDEX idx_js_embedding  ON jobseeker_profiles
-    USING hnsw (profile_embedding vector_cosine_ops);
+--
+-- Name: certifications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
 
-
--- ── Skills master list ────────────────────────────────────────────────────────
-CREATE TABLE skills (
-    id          UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
-    name        TEXT    NOT NULL UNIQUE,                   -- normalised lowercase
-    category    TEXT,                                      -- "frontend", "backend", "cloud", etc.
-    aliases     TEXT[],                                    -- ["js", "es6"] for "javascript"
-    is_trending BOOLEAN DEFAULT FALSE,
-    created_at  TIMESTAMPTZ DEFAULT NOW()
+ALTER TABLE public.certifications ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.certifications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
-CREATE INDEX idx_skills_name     ON skills (name);
-CREATE INDEX idx_skills_category ON skills (category);
-CREATE INDEX idx_skills_trending ON skills (is_trending);
-CREATE INDEX idx_skills_trgm     ON skills USING GIN (name gin_trgm_ops);  -- fuzzy match
 
+--
+-- Name: companies; Type: TABLE; Schema: public; Owner: -
+--
 
--- ── Jobseeker skills ─────────────────────────────────────────────────────────
-CREATE TABLE jobseeker_skills (
-    id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id     UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    skill_id    UUID        NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
-    level       skill_level DEFAULT 'intermediate',
-    years       NUMERIC(4,1),
-    is_primary  BOOLEAN     DEFAULT FALSE,                 -- highlighted skills
-    created_at  TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE (user_id, skill_id)
+CREATE TABLE public.companies (
+    id integer NOT NULL,
+    name text NOT NULL,
+    slug text,
+    logo_url text,
+    website text,
+    industry text,
+    size_range text,
+    founded_year integer,
+    description text,
+    headquarters text,
+    linkedin_url text,
+    is_verified boolean DEFAULT false,
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
 );
 
-CREATE INDEX idx_js_skills_user  ON jobseeker_skills (user_id);
-CREATE INDEX idx_js_skills_skill ON jobseeker_skills (skill_id);
 
+--
+-- Name: companies_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
 
--- ── Work experience ───────────────────────────────────────────────────────────
-CREATE TABLE work_experiences (
-    id              UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    company_name    TEXT    NOT NULL,
-    title           TEXT    NOT NULL,
-    location        TEXT,
-    start_date      DATE    NOT NULL,
-    end_date        DATE,                                  -- NULL = current
-    is_current      BOOLEAN DEFAULT FALSE,
-    description     TEXT,
-    skills_used     TEXT[],
-    achievements    TEXT[],
-    sort_order      INTEGER DEFAULT 0,
-    created_at      TIMESTAMPTZ DEFAULT NOW()
+ALTER TABLE public.companies ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.companies_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
-CREATE INDEX idx_exp_user ON work_experiences (user_id);
 
+--
+-- Name: credit_packs; Type: TABLE; Schema: public; Owner: -
+--
 
--- ── Education ─────────────────────────────────────────────────────────────────
-CREATE TABLE education (
-    id              UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    institution     TEXT    NOT NULL,
-    degree          TEXT,
-    field_of_study  TEXT,
-    grade           TEXT,
-    start_year      INTEGER,
-    end_year        INTEGER,
-    is_current      BOOLEAN DEFAULT FALSE,
-    description     TEXT,
-    sort_order      INTEGER DEFAULT 0,
-    created_at      TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE public.credit_packs (
+    id integer NOT NULL,
+    name text NOT NULL,
+    credits integer NOT NULL,
+    bonus_credits integer DEFAULT 0 NOT NULL,
+    price numeric(10,2) NOT NULL,
+    currency text DEFAULT 'INR'::text NOT NULL,
+    is_popular boolean DEFAULT false,
+    is_active boolean DEFAULT true,
+    sort_order integer DEFAULT 0,
+    created_at timestamp with time zone DEFAULT now()
 );
 
-CREATE INDEX idx_edu_user ON education (user_id);
 
+--
+-- Name: credit_packs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
 
--- ── Certifications ────────────────────────────────────────────────────────────
-CREATE TABLE certifications (
-    id              UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name            TEXT    NOT NULL,
-    issuer          TEXT,
-    issue_date      DATE,
-    expiry_date     DATE,
-    credential_id   TEXT,
-    credential_url  TEXT,
-    created_at      TIMESTAMPTZ DEFAULT NOW()
+ALTER TABLE public.credit_packs ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.credit_packs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
-CREATE INDEX idx_cert_user ON certifications (user_id);
 
+--
+-- Name: credit_transactions; Type: TABLE; Schema: public; Owner: -
+--
 
--- ── Projects ──────────────────────────────────────────────────────────────────
-CREATE TABLE projects (
-    id                  UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id             UUID    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    work_experience_id  UUID    REFERENCES work_experiences(id) ON DELETE CASCADE,
-    title               TEXT    NOT NULL,
-    description         TEXT,
-    url                 TEXT,
-    repo_url            TEXT,
-    skills_used         TEXT[],
-    start_date          DATE,
-    end_date            DATE,
-    sort_order          INTEGER DEFAULT 0,
-    created_at          TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE public.credit_transactions (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    wallet_id integer,
+    type public.credit_tx_type NOT NULL,
+    amount integer NOT NULL,
+    balance_after integer NOT NULL,
+    description text,
+    ref_id uuid,
+    ref_type text,
+    created_at timestamp with time zone DEFAULT now()
 );
 
-CREATE INDEX idx_projects_user ON projects (user_id);
-CREATE INDEX idx_projects_exp  ON projects (work_experience_id);
 
+--
+-- Name: credit_transactions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
 
--- ── Resumes (uploaded files + AI-parsed content) ──────────────────────────────
-CREATE TABLE resumes (
-    id                  UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id             UUID    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    file_name           TEXT    NOT NULL,
-    file_url            TEXT    NOT NULL,                  -- S3 / cloud storage URL
-    file_size_bytes     INTEGER,
-    mime_type           TEXT,
-    is_primary          BOOLEAN DEFAULT FALSE,             -- active resume for applications
-
-    -- AI-extracted data (populated after parse)
-    parsed_at           TIMESTAMPTZ,
-    raw_text            TEXT,                              -- full extracted text
-    parsed_skills       TEXT[],
-    parsed_experience_years NUMERIC(4,1),
-    parsed_job_titles   TEXT[],
-    parsed_education    JSONB,
-    parsed_summary      TEXT,
-    parse_credits_used  INTEGER DEFAULT 0,
-
-    -- AI embedding for semantic job matching
-    resume_embedding    vector(1536),
-
-    -- AI improvement suggestions
-    improvement_score   INTEGER CHECK (improvement_score BETWEEN 0 AND 100),
-    improvement_notes   JSONB,                            -- [{section, issue, suggestion}]
-    improvement_credits_used INTEGER DEFAULT 0,
-
-    created_at          TIMESTAMPTZ DEFAULT NOW(),
-    updated_at          TIMESTAMPTZ DEFAULT NOW()
+ALTER TABLE public.credit_transactions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.credit_transactions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
-CREATE INDEX idx_resumes_user    ON resumes (user_id);
-CREATE INDEX idx_resumes_primary ON resumes (user_id, is_primary);
-CREATE INDEX idx_resumes_emb     ON resumes
-    USING hnsw (resume_embedding vector_cosine_ops);
 
+--
+-- Name: credit_wallets; Type: TABLE; Schema: public; Owner: -
+--
 
--- ── AI-built resume sections (resume builder) ─────────────────────────────────
-CREATE TABLE resume_builder_docs (
-    id              UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID            NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    title           TEXT            NOT NULL DEFAULT 'My Resume',
-    template        TEXT            DEFAULT 'modern',
-    is_active       BOOLEAN         DEFAULT TRUE,
-    credits_used    INTEGER         DEFAULT 0,
-    created_at      TIMESTAMPTZ     DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ     DEFAULT NOW()
+CREATE TABLE public.credit_wallets (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    balance integer DEFAULT 0 NOT NULL,
+    lifetime_earned integer DEFAULT 0 NOT NULL,
+    lifetime_spent integer DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT credit_wallets_balance_check CHECK ((balance >= 0))
 );
 
-CREATE TABLE resume_builder_sections (
-    id              UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
-    doc_id          UUID            NOT NULL REFERENCES resume_builder_docs(id) ON DELETE CASCADE,
-    section_type    resume_section  NOT NULL,
-    title           TEXT,                                  -- custom section title override
-    content         JSONB           NOT NULL DEFAULT '{}', -- structured section content
-    ai_generated    BOOLEAN         DEFAULT FALSE,
-    sort_order      INTEGER         DEFAULT 0,
-    created_at      TIMESTAMPTZ     DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ     DEFAULT NOW()
+
+--
+-- Name: credit_wallets_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.credit_wallets ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.credit_wallets_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
-CREATE INDEX idx_rb_docs_user     ON resume_builder_docs (user_id);
-CREATE INDEX idx_rb_sections_doc  ON resume_builder_sections (doc_id);
+
+--
+-- Name: education; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.education (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    institution text NOT NULL,
+    degree text,
+    field_of_study text,
+    grade text,
+    start_year integer,
+    end_year integer,
+    is_current boolean DEFAULT false,
+    description text,
+    sort_order integer DEFAULT 0,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: education_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.education ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.education_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: jobseeker_profiles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.jobseeker_profiles (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    headline text,
+    summary text,
+    gender public.gender_type,
+    date_of_birth date,
+    current_location text,
+    preferred_locations text[],
+    years_of_experience numeric(4,1),
+    notice_period_days integer,
+    current_salary numeric(12,2),
+    expected_salary numeric(12,2),
+    salary_currency public.salary_currency DEFAULT 'INR'::public.salary_currency,
+    is_actively_looking boolean DEFAULT true,
+    linkedin_url text,
+    github_url text,
+    portfolio_url text,
+    profile_completion integer DEFAULT 0,
+    profile_embedding public.vector(1536),
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT jobseeker_profiles_profile_completion_check CHECK (((profile_completion >= 0) AND (profile_completion <= 100)))
+);
+
+
+--
+-- Name: jobseeker_profiles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.jobseeker_profiles ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.jobseeker_profiles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: jobseeker_skills; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.jobseeker_skills (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    level public.skill_level DEFAULT 'intermediate'::public.skill_level,
+    years numeric(4,1),
+    is_primary boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT now(),
+    skill_id integer
+);
+
+
+--
+-- Name: jobseeker_skills_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.jobseeker_skills ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.jobseeker_skills_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: languages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.languages (
+    id integer NOT NULL,
+    language text NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: languages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.languages ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.languages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: oauth_accounts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_accounts (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    provider text NOT NULL,
+    provider_uid text NOT NULL,
+    access_token text,
+    refresh_token text,
+    token_expires timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT oauth_accounts_provider_check CHECK ((provider = ANY (ARRAY['google'::text, 'linkedin'::text, 'github'::text])))
+);
+
+
+--
+-- Name: project_skills; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_skills (
+    project_id integer NOT NULL,
+    skill_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: projects; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.projects (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    title text NOT NULL,
+    description text,
+    url text,
+    repo_url text,
+    start_date date,
+    end_date date,
+    sort_order integer DEFAULT 0,
+    created_at timestamp with time zone DEFAULT now(),
+    project_type public.project_type,
+    skills_used text[],
+    work_experience_id integer
+);
+
+
+--
+-- Name: projects_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.projects ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.projects_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: resumes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.resumes (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    file_name text NOT NULL,
+    file_url text NOT NULL,
+    parsed_at timestamp with time zone,
+    parsed_summary text,
+    resume_embedding public.vector(384),
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    mime_type text
+);
+
+
+--
+-- Name: resumes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.resumes ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.resumes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: skills; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.skills (
+    id integer NOT NULL,
+    name text NOT NULL,
+    category text,
+    aliases text[],
+    is_trending boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: skills_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.skills ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.skills_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: user_languages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_languages (
+    user_id uuid NOT NULL,
+    language_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.users (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    email text,
+    phone text CONSTRAINT users_mobile_not_null NOT NULL,
+    role public.user_role DEFAULT 'jobseeker'::public.user_role NOT NULL,
+    status public.user_status DEFAULT 'pending_verification'::public.user_status NOT NULL,
+    full_name text,
+    avatar_url text,
+    is_email_verified boolean DEFAULT false,
+    is_phone_verified boolean DEFAULT false,
+    last_login_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    resume_status public.resume_status DEFAULT 'queued'::public.resume_status NOT NULL
+);
+
+
+--
+-- Name: work_experiences; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.work_experiences (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    title text NOT NULL,
+    location text,
+    start_date date NOT NULL,
+    end_date date,
+    is_current boolean DEFAULT false,
+    description text,
+    skills_used text[],
+    achievements text[],
+    sort_order integer DEFAULT 0,
+    created_at timestamp with time zone DEFAULT now(),
+    company_id integer
+);
+
+
+--

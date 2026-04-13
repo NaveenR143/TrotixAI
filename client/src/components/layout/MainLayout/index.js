@@ -29,7 +29,7 @@ const theme = createTheme({
     divider: '#e2e8f0',
   },
   typography: {
-    fontFamily: '"Plus Jakarta Sans", "DM Sans", system-ui, sans-serif',
+    fontFamily: "'Open Sans', Verdana, sans-serif",
     h1: { fontWeight: 800, letterSpacing: '-0.03em' },
     h2: { fontWeight: 800, letterSpacing: '-0.02em' },
     h3: { fontWeight: 800, letterSpacing: '-0.02em' },

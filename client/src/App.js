@@ -19,6 +19,9 @@ import ThemeSettings from "./layouts/full-layout/customizer/ThemeSettings";
 import Router from "./routes/Router";
 import LoadingSpinnerComp from "./components/common/LoadingSpinnerComp";
 
+// Global Typography Styles - Open Sans font standardization
+import "./assets/css/typography-global.css";
+
 const AppRoutes = () => {
   return useRoutes(Router);
 };

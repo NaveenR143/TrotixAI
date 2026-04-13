@@ -1,102 +1,418 @@
--- ============================================================
--- migrations/002_users_and_companies.sql
--- ============================================================
+-- Name: companies; Type: TABLE; Schema: public; Owner: -
+--
 
--- ── Users (shared table for jobseekers + recruiters) ─────────────────────────
-CREATE TABLE users (
-    id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    email               TEXT        NOT NULL UNIQUE,
-    phone               TEXT        UNIQUE,
-    password_hash       TEXT        NOT NULL,
-    role                user_role   NOT NULL DEFAULT 'jobseeker',
-    status              user_status NOT NULL DEFAULT 'pending_verification',
-    full_name           TEXT        NOT NULL,
-    avatar_url          TEXT,
-    is_email_verified   BOOLEAN     DEFAULT FALSE,
-    is_phone_verified   BOOLEAN     DEFAULT FALSE,
-    last_login_at       TIMESTAMPTZ,
-    created_at          TIMESTAMPTZ DEFAULT NOW(),
-    updated_at          TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE public.companies (
+    id integer NOT NULL,
+    name text NOT NULL,
+    slug text,
+    logo_url text,
+    website text,
+    industry text,
+    size_range text,
+    founded_year integer,
+    description text,
+    headquarters text,
+    linkedin_url text,
+    is_verified boolean DEFAULT false,
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
 );
 
-CREATE INDEX idx_users_email  ON users (email);
-CREATE INDEX idx_users_role   ON users (role);
-CREATE INDEX idx_users_status ON users (status);
 
+--
+-- Name: companies_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
 
--- ── Auth tokens (email verify, password reset, refresh tokens) ────────────────
-CREATE TABLE auth_tokens (
-    id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id     UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    token_hash  TEXT        NOT NULL UNIQUE,
-    type        TEXT        NOT NULL CHECK (type IN ('email_verify', 'password_reset', 'refresh')),
-    expires_at  TIMESTAMPTZ NOT NULL,
-    used_at     TIMESTAMPTZ,
-    created_at  TIMESTAMPTZ DEFAULT NOW()
+ALTER TABLE public.companies ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.companies_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
-CREATE INDEX idx_auth_tokens_user   ON auth_tokens (user_id);
-CREATE INDEX idx_auth_tokens_hash   ON auth_tokens (token_hash);
-CREATE INDEX idx_auth_tokens_expiry ON auth_tokens (expires_at);
 
+--
+-- Name: credit_packs; Type: TABLE; Schema: public; Owner: -
+--
 
--- ── OAuth providers (Google, LinkedIn, GitHub) ────────────────────────────────
-CREATE TABLE oauth_accounts (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    provider        TEXT NOT NULL CHECK (provider IN ('google', 'linkedin', 'github')),
-    provider_uid    TEXT NOT NULL,
-    access_token    TEXT,
-    refresh_token   TEXT,
-    token_expires   TIMESTAMPTZ,
-    created_at      TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE (provider, provider_uid)
+CREATE TABLE public.credit_packs (
+    id integer NOT NULL,
+    name text NOT NULL,
+    credits integer NOT NULL,
+    bonus_credits integer DEFAULT 0 NOT NULL,
+    price numeric(10,2) NOT NULL,
+    currency text DEFAULT 'INR'::text NOT NULL,
+    is_popular boolean DEFAULT false,
+    is_active boolean DEFAULT true,
+    sort_order integer DEFAULT 0,
+    created_at timestamp with time zone DEFAULT now()
 );
 
-CREATE INDEX idx_oauth_user ON oauth_accounts (user_id);
 
+--
+-- Name: credit_packs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
 
--- ── Companies (owned by recruiters) ───────────────────────────────────────────
-CREATE TABLE companies (
-    id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    name            TEXT        NOT NULL,
-    slug            TEXT        NOT NULL UNIQUE,           -- url-safe company identifier
-    logo_url        TEXT,
-    website         TEXT,
-    industry        TEXT,
-    size_range      TEXT,                                  -- e.g. "50–200"
-    founded_year    INTEGER,
-    description     TEXT,
-    headquarters    TEXT,
-    linkedin_url    TEXT,
-    is_verified     BOOLEAN     DEFAULT FALSE,
-    created_by      UUID        REFERENCES users(id) ON DELETE SET NULL,
-    created_at      TIMESTAMPTZ DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ DEFAULT NOW()
+ALTER TABLE public.credit_packs ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.credit_packs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
-CREATE INDEX idx_companies_slug     ON companies (slug);
-CREATE INDEX idx_companies_industry ON companies (industry);
-CREATE INDEX idx_companies_verified ON companies (is_verified);
 
--- Full-text search on company name + description
-CREATE INDEX idx_companies_fts ON companies
-    USING GIN (to_tsvector('english', coalesce(name,'') || ' ' || coalesce(description,'')));
+--
+-- Name: credit_transactions; Type: TABLE; Schema: public; Owner: -
+--
 
-
--- ── Recruiter profiles ────────────────────────────────────────────────────────
-CREATE TABLE recruiter_profiles (
-    id              UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID    NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    company_id      UUID    REFERENCES companies(id) ON DELETE SET NULL,
-    designation     TEXT,                                  -- e.g. "Senior HR Manager"
-    department      TEXT,
-    linkedin_url    TEXT,
-    bio             TEXT,
-    is_verified     BOOLEAN DEFAULT FALSE,                 -- admin-verified recruiter
-    created_at      TIMESTAMPTZ DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE public.credit_transactions (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    wallet_id integer,
+    type public.credit_tx_type NOT NULL,
+    amount integer NOT NULL,
+    balance_after integer NOT NULL,
+    description text,
+    ref_id uuid,
+    ref_type text,
+    created_at timestamp with time zone DEFAULT now()
 );
 
-CREATE INDEX idx_recruiter_user    ON recruiter_profiles (user_id);
-CREATE INDEX idx_recruiter_company ON recruiter_profiles (company_id);
+
+--
+-- Name: credit_transactions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.credit_transactions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.credit_transactions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: credit_wallets; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.credit_wallets (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    balance integer DEFAULT 0 NOT NULL,
+    lifetime_earned integer DEFAULT 0 NOT NULL,
+    lifetime_spent integer DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT credit_wallets_balance_check CHECK ((balance >= 0))
+);
+
+
+--
+-- Name: credit_wallets_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.credit_wallets ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.credit_wallets_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: education; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.education (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    institution text NOT NULL,
+    degree text,
+    field_of_study text,
+    grade text,
+    start_year integer,
+    end_year integer,
+    is_current boolean DEFAULT false,
+    description text,
+    sort_order integer DEFAULT 0,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: education_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.education ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.education_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: jobseeker_profiles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.jobseeker_profiles (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    headline text,
+    summary text,
+    gender public.gender_type,
+    date_of_birth date,
+    current_location text,
+    preferred_locations text[],
+    years_of_experience numeric(4,1),
+    notice_period_days integer,
+    current_salary numeric(12,2),
+    expected_salary numeric(12,2),
+    salary_currency public.salary_currency DEFAULT 'INR'::public.salary_currency,
+    is_actively_looking boolean DEFAULT true,
+    linkedin_url text,
+    github_url text,
+    portfolio_url text,
+    profile_completion integer DEFAULT 0,
+    profile_embedding public.vector(1536),
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT jobseeker_profiles_profile_completion_check CHECK (((profile_completion >= 0) AND (profile_completion <= 100)))
+);
+
+
+--
+-- Name: jobseeker_profiles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.jobseeker_profiles ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.jobseeker_profiles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: jobseeker_skills; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.jobseeker_skills (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    level public.skill_level DEFAULT 'intermediate'::public.skill_level,
+    years numeric(4,1),
+    is_primary boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT now(),
+    skill_id integer
+);
+
+
+--
+-- Name: jobseeker_skills_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.jobseeker_skills ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.jobseeker_skills_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: languages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.languages (
+    id integer NOT NULL,
+    language text NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: languages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.languages ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.languages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: oauth_accounts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_accounts (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    provider text NOT NULL,
+    provider_uid text NOT NULL,
+    access_token text,
+    refresh_token text,
+    token_expires timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT oauth_accounts_provider_check CHECK ((provider = ANY (ARRAY['google'::text, 'linkedin'::text, 'github'::text])))
+);
+
+
+--
+-- Name: project_skills; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_skills (
+    project_id integer NOT NULL,
+    skill_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: projects; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.projects (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    title text NOT NULL,
+    description text,
+    url text,
+    repo_url text,
+    start_date date,
+    end_date date,
+    sort_order integer DEFAULT 0,
+    created_at timestamp with time zone DEFAULT now(),
+    project_type public.project_type,
+    skills_used text[],
+    work_experience_id integer
+);
+
+
+--
+-- Name: projects_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.projects ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.projects_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: resumes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.resumes (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    file_name text NOT NULL,
+    file_url text NOT NULL,
+    parsed_at timestamp with time zone,
+    parsed_summary text,
+    resume_embedding public.vector(384),
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    mime_type text
+);
+
+
+--
+-- Name: resumes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.resumes ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.resumes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: skills; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.skills (
+    id integer NOT NULL,
+    name text NOT NULL,
+    category text,
+    aliases text[],
+    is_trending boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: skills_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.skills ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.skills_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: user_languages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_languages (
+    user_id uuid NOT NULL,
+    language_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.users (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    email text,
+    phone text CONSTRAINT users_mobile_not_null NOT NULL,
+    role public.user_role DEFAULT 'jobseeker'::public.user_role NOT NULL,
+    status public.user_status DEFAULT 'pending_verification'::public.user_status NOT NULL,
+    full_name text,
+    avatar_url text,
+    is_email_verified boolean DEFAULT false,
+    is_phone_verified boolean DEFAULT false,
+    last_login_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    resume_status public.resume_status DEFAULT 'queued'::public.resume_status NOT NULL
+);
+
+
+--

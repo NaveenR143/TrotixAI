@@ -48,8 +48,16 @@ import { updateUserProfile, debitPoints } from "../../redux/user/Action";
 
 // Utility function to convert text to title case
 const toTitleCase = (str) => {
+  // Handle null, undefined, empty strings, and non-string types
   if (!str) return "";
-  return str
+  
+  // Convert to string if it's not already (handles numbers, objects, etc.)
+  const stringValue = typeof str === "string" ? str : String(str);
+  
+  // Handle empty strings after conversion
+  if (!stringValue.trim()) return "";
+  
+  return stringValue
     .toLowerCase()
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -58,24 +66,37 @@ const toTitleCase = (str) => {
 
 // Utility function to calculate experience duration in years-months format
 const calculateExperienceDuration = (startDate, endDate, isCurrent) => {
+  // Handle null, undefined, or invalid start date
   if (!startDate) return "";
   
-  const start = new Date(startDate);
-  const end = isCurrent ? new Date() : new Date(endDate);
-  
-  let years = end.getFullYear() - start.getFullYear();
-  let months = end.getMonth() - start.getMonth();
-  
-  if (months < 0) {
-    years--;
-    months += 12;
+  try {
+    const start = new Date(startDate);
+    
+    // Validate the start date
+    if (isNaN(start.getTime())) return "";
+    
+    const end = isCurrent ? new Date() : (endDate ? new Date(endDate) : new Date());
+    
+    // Validate the end date
+    if (isNaN(end.getTime())) return "";
+    
+    let years = end.getFullYear() - start.getFullYear();
+    let months = end.getMonth() - start.getMonth();
+    
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    
+    const parts = [];
+    if (years > 0) parts.push(`${years} year${years > 1 ? "s" : ""}`);
+    if (months > 0) parts.push(`${months} month${months > 1 ? "s" : ""}`);
+    
+    return parts.length > 0 ? parts.join(", ") : "Less than a month";
+  } catch (error) {
+    console.warn("Error calculating experience duration:", error);
+    return "";
   }
-  
-  const parts = [];
-  if (years > 0) parts.push(`${years} year${years > 1 ? "s" : ""}`);
-  if (months > 0) parts.push(`${months} month${months > 1 ? "s" : ""}`);
-  
-  return parts.length > 0 ? parts.join(", ") : "Less than a month";
 };
 
 
@@ -214,7 +235,7 @@ const UserProfile = ({ onNavigate }) => {
                   : []
                 : [],
             languages: profileData?.languages && Array.isArray(profileData.languages)
-              ? profileData.languages.map((l) => toTitleCase(l))
+              ? profileData.languages.map((l) => toTitleCase(typeof l === "string" ? l : l?.language))
               : profileData?.languages
                 ? typeof profileData.languages === "string"
                   ? profileData.languages.split(",").map((l) => toTitleCase(l.trim()))
@@ -264,11 +285,11 @@ const UserProfile = ({ onNavigate }) => {
     };
 
     // Only fetch if profile is not already loaded
-    if (!profile?.fullname || retryCount > 0) {
+    // if (!profile?.fullname || retryCount > 0) {
       fetchUserProfile();
-    } else {
-      setLoading(false);
-    }
+    // } else {
+      // setLoading(false);
+    // }
   }, [retryCount]);
 
   // Handle retry when fetching fails
