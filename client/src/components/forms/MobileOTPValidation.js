@@ -143,7 +143,6 @@ const MobileOTPValidation = ({
                         verificationData: verifyResult,
                         newUser,
                         resumeData,
-
                     });
                 }
             }, 200);

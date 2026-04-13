@@ -1123,7 +1123,7 @@ class ResumeRepository:
             """
             )
             result = await self.session.execute(query, {"resume_status": resume_status, "user_id": str(user_id)})
-            
+
             await self.session.commit()
 
             LOGGER.debug(
@@ -1134,6 +1134,65 @@ class ResumeRepository:
             LOGGER.error(
                 f"Error updating resume_status for user {user_id}: {str(e)}")
             await self.session.rollback()
+            raise
+
+    async def update_user_name_and_email(
+        self,
+        user_id: UUID,
+        profile_data: dict,
+        commit: bool = True,
+    ) -> None:
+        """
+        Update user name and email from profile data.
+
+        Args:
+            user_id: User UUID
+            profile_data: Dictionary containing user profile information
+            commit: Whether to commit the transaction
+        """
+        try:
+            # Extract and normalize email
+            email = profile_data.get("email")
+            if email and isinstance(email, str):
+                email = email.strip() or None
+            else:
+                email = None
+
+            # Extract and normalize name (try 'name' first, then 'full_name')
+            name = profile_data.get("name") or profile_data.get("full_name")
+            if name and isinstance(name, str):
+                name = name.strip() or None
+            else:
+                name = None
+
+            # Only update if at least one field has a value
+            if email or name:
+                update_query = text("""
+                    UPDATE users SET 
+                        email = COALESCE(:email, email),
+                        full_name = COALESCE(:full_name, full_name)
+                    WHERE id = :user_id
+                """)
+                await self.session.execute(
+                    update_query,
+                    {
+                        "email": email,
+                        "full_name": name,
+                        "user_id": str(user_id),
+                    },
+                )
+
+                if commit:
+                    await self.session.commit()
+
+                LOGGER.debug(
+                    f"Updated name and/or email for user {user_id}"
+                )
+        except Exception as e:
+            LOGGER.error(
+                f"Error updating user name and email for {user_id}: {str(e)}")
+            if commit:
+                await self.session.rollback()
             raise
 
     # ══════════════════════════════════════════════════════════════════════════════
@@ -1156,6 +1215,9 @@ class ResumeRepository:
             # 1. Core operations (SEQUENTIAL - safer for DB session)
             # -------------------------
             await self.upsert_jobseeker_profile(user_id, profile_data, commit=False)
+
+            # Update users table with email and name from profile_data
+            await self.update_user_name_and_email(user_id, profile_data, commit=False)
 
             await self.add_resume(
                 user_id=user_id,

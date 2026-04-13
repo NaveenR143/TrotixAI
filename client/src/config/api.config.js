@@ -17,6 +17,7 @@ const API_ENDPOINTS = {
   RESUME_STATUS: '/resume-process/resume-status-wait',
   VERIFY_OTP_UPDATE:'/otp/verify-otp-update',
   VERIFY_OTP:'/otp/verify-otp',
+  USER_PROFILE:'/profile/fetch',
   
   
   // Add other endpoints as needed

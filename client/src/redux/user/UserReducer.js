@@ -1,14 +1,13 @@
 import { ADD_USERDETAILS, RESET_INITIAL_STATE, UPDATE_USER_PROFILE, DEBIT_POINTS } from '../constants';
 
 const INIT_STATE = {
-	username: '', // User Name
+	fullname: '', // User Name
 	token: '', // User Api Token
-	useremail: '', // User Email
-	usercode: '', // User Code
-	userrole: '', // User Role
+	email: '', // User Email
+	role: '', // User Role
 	displayname: '', // User Display Name
 	ip: '', // User Ip
-	ri:'', // EsriAPI
+	ri: '', // EsriAPI
 	points: 100, // AI Credits
 	mobile: '',
 	userType: 'Candidate', // User Type: 'Candidate' or 'Recruiter'
@@ -35,11 +34,10 @@ function UserReducer(state = INIT_STATE, action) {
 		case ADD_USERDETAILS:
 			return {
 				...state,
-				username: action.payload.username,
+				fullname: action.payload.fullname,
 				token: action.payload.token,
-				usercode: action.payload.usercode,
-				userrole: action.payload.userrole,
-				useremail: action.payload.useremail,
+				email: action.payload.email,
+				role: action.payload.role,
 				displayname: action.payload.displayname,
 				ip: action.payload.ip,
 				ri: action.payload.ri,

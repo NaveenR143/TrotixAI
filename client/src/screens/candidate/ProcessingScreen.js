@@ -1,6 +1,6 @@
 // screens/candidate/ProcessingScreen.js
 import React, { useEffect, useState, useCallback } from "react";
-import { Box, Typography, Container, LinearProgress, Stack, Fade, Button, Alert, AlertTitle } from "@mui/material";
+import { Box, Typography, Container, LinearProgress, Stack, Fade, Button, Alert, AlertTitle, Snackbar } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -40,6 +40,8 @@ const ProcessingScreen = ({ onComplete }) => {
   const [processingError, setProcessingError] = useState(null);
   const [otpVerified, setOtpVerified] = useState(false);
   const [processingStartTime, setProcessingStartTime] = useState(null);
+  const [showStatusAlert, setShowStatusAlert] = useState(false);
+  const [statusAlertMessage, setStatusAlertMessage] = useState("");
 
 
 
@@ -121,6 +123,8 @@ const ProcessingScreen = ({ onComplete }) => {
 
       const resumeStatusData = statusResponse.data?.resume_status || "unknown";
       setResumeProcessingStatus(resumeStatusData);
+      setStatusAlertMessage(`Resume status: ${resumeStatusData}`);
+      setShowStatusAlert(true);
 
       console.log("✓ Resume Status Fetched:", {
         status: resumeStatusData,
@@ -544,6 +548,15 @@ const ProcessingScreen = ({ onComplete }) => {
             />
           </Stack>
         )}
+
+        {/* Status Alert Snackbar */}
+        <Snackbar
+          open={showStatusAlert}
+          autoHideDuration={3000}
+          onClose={() => setShowStatusAlert(false)}
+          message={statusAlertMessage}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        />
       </Container>
     </Box>
   );
