@@ -18,6 +18,7 @@ const API_ENDPOINTS = {
   VERIFY_OTP_UPDATE:'/otp/verify-otp-update',
   VERIFY_OTP:'/otp/verify-otp',
   USER_PROFILE:'/profile/fetch',
+  PROFILE:'/profile',
   
   
   // Add other endpoints as needed

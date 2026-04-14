@@ -4,8 +4,23 @@ Synchronized with database schema from db_schemas/*.sql
 """
 
 from sqlalchemy import (
-    Column, String, Text, UUID, DateTime, Boolean, Integer, Float,
-    Date, ARRAY, ForeignKey, Numeric, Enum, ForeignKeyConstraint, JSON, UniqueConstraint, PrimaryKeyConstraint
+    Column,
+    String,
+    Text,
+    UUID,
+    DateTime,
+    Boolean,
+    Integer,
+    Float,
+    Date,
+    ARRAY,
+    ForeignKey,
+    Numeric,
+    Enum,
+    ForeignKeyConstraint,
+    JSON,
+    UniqueConstraint,
+    PrimaryKeyConstraint,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -18,6 +33,7 @@ from ai.db.database import Base
 # ─────────────────────────────────────────────────────────────────────────────
 # Enums (from 001_extensions_and_enums.sql)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class UserRoleEnum(str, enum.Enum):
     jobseeker = "jobseeker"
@@ -59,44 +75,87 @@ class SalaryCurrencyEnum(str, enum.Enum):
 # Users Table (from 002_users_and_companies.sql)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, unique=True, nullable=False, index=True)
     phone = Column(String, unique=True, nullable=True, index=True)
-    role = Column(Enum(UserRoleEnum), nullable=False, default=UserRoleEnum.jobseeker, index=True)
-    status = Column(Enum(UserStatusEnum), nullable=False, default=UserStatusEnum.pending_verification, index=True)
+    role = Column(
+        Enum(UserRoleEnum), nullable=False, default=UserRoleEnum.jobseeker, index=True
+    )
+    status = Column(
+        Enum(UserStatusEnum),
+        nullable=False,
+        default=UserStatusEnum.pending_verification,
+        index=True,
+    )
     full_name = Column(String, nullable=False)
     avatar_url = Column(String, nullable=True)
     is_email_verified = Column(Boolean, default=False)
     is_phone_verified = Column(Boolean, default=False)
     last_login_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     # Relationships
-    jobseeker_profile = relationship("JobseekerProfile", uselist=False, back_populates="user", cascade="all, delete-orphan")
-    recruiter_profile = relationship("RecruiterProfile", uselist=False, back_populates="user", cascade="all, delete-orphan")
-    work_experiences = relationship("WorkExperience", back_populates="user", cascade="all, delete-orphan")
-    education = relationship("Education", back_populates="user", cascade="all, delete-orphan")
-    certifications = relationship("Certification", back_populates="user", cascade="all, delete-orphan")
-    projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
-    jobseeker_skills = relationship("JobseekerSkill", back_populates="user", cascade="all, delete-orphan")
-    user_languages = relationship("UserLanguage", back_populates="user", cascade="all, delete-orphan")
-    resumes = relationship("Resume", back_populates="user", cascade="all, delete-orphan")
-    resume_builder_docs = relationship("ResumeBuilderDoc", back_populates="user", cascade="all, delete-orphan")
+    jobseeker_profile = relationship(
+        "JobseekerProfile",
+        uselist=False,
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    recruiter_profile = relationship(
+        "RecruiterProfile",
+        uselist=False,
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    work_experiences = relationship(
+        "WorkExperience", back_populates="user", cascade="all, delete-orphan"
+    )
+    education = relationship(
+        "Education", back_populates="user", cascade="all, delete-orphan"
+    )
+    certifications = relationship(
+        "Certification", back_populates="user", cascade="all, delete-orphan"
+    )
+    projects = relationship(
+        "Project", back_populates="user", cascade="all, delete-orphan"
+    )
+    jobseeker_skills = relationship(
+        "JobseekerSkill", back_populates="user", cascade="all, delete-orphan"
+    )
+    user_languages = relationship(
+        "UserLanguage", back_populates="user", cascade="all, delete-orphan"
+    )
+    resumes = relationship(
+        "Resume", back_populates="user", cascade="all, delete-orphan"
+    )
+    resume_builder_docs = relationship(
+        "ResumeBuilderDoc", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Jobseeker Profile Table
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class JobseekerProfile(Base):
     __tablename__ = "jobseeker_profiles"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False, index=True)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
     headline = Column(String, nullable=True)
     summary = Column(Text, nullable=True)
     gender = Column(Enum(GenderEnum), nullable=True)
@@ -113,8 +172,11 @@ class JobseekerProfile(Base):
     github_url = Column(String, nullable=True)
     portfolio_url = Column(String, nullable=True)
     profile_completion = Column(Integer, default=0)
+    marital_status = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     # Relationships
     user = relationship("User", back_populates="jobseeker_profile")
@@ -124,10 +186,11 @@ class JobseekerProfile(Base):
 # Skills Table
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class Skill(Base):
     __tablename__ = "skills"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, nullable=False, index=True)
     category = Column(String, nullable=True, index=True)
     aliases = Column(ARRAY(String), nullable=True)
@@ -135,19 +198,32 @@ class Skill(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
-    jobseeker_skills = relationship("JobseekerSkill", back_populates="skill", cascade="all, delete-orphan")
+    jobseeker_skills = relationship(
+        "JobseekerSkill", back_populates="skill", cascade="all, delete-orphan"
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Jobseeker Skills Table
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class JobseekerSkill(Base):
     __tablename__ = "jobseeker_skills"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    skill_id = Column(UUID(as_uuid=True), ForeignKey("skills.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    skill_id = Column(
+        Integer,
+        ForeignKey("skills.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     level = Column(Enum(SkillLevelEnum), default=SkillLevelEnum.intermediate)
     years = Column(Numeric(4, 1), nullable=True)
     is_primary = Column(Boolean, default=False)
@@ -162,29 +238,41 @@ class JobseekerSkill(Base):
 # Languages Table
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class Language(Base):
     __tablename__ = "languages"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Integer, primary_key=True)
     language = Column(Text, nullable=False, unique=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
-    user_languages = relationship("UserLanguage", back_populates="language", cascade="all, delete-orphan")
+    user_languages = relationship(
+        "UserLanguage", back_populates="language", cascade="all, delete-orphan"
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # User Languages Table
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class UserLanguage(Base):
     __tablename__ = "user_languages"
-    __table_args__ = (
-        PrimaryKeyConstraint('user_id', 'language_id'),
-    )
+    __table_args__ = (PrimaryKeyConstraint("user_id", "language_id"),)
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    language_id = Column(UUID(as_uuid=True), ForeignKey("languages.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    language_id = Column(
+        Integer,
+        ForeignKey("languages.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
@@ -196,11 +284,17 @@ class UserLanguage(Base):
 # Work Experience Table
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class WorkExperience(Base):
     __tablename__ = "work_experiences"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     company_id = Column(Integer, nullable=True)  # Maps to companies table
     title = Column(String, nullable=False)
     location = Column(String, nullable=True)
@@ -215,18 +309,26 @@ class WorkExperience(Base):
 
     # Relationships
     user = relationship("User", back_populates="work_experiences")
-    projects = relationship("Project", back_populates="work_experience", cascade="all, delete-orphan")
+    projects = relationship(
+        "Project", back_populates="work_experience", cascade="all, delete-orphan"
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Education Table
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class Education(Base):
     __tablename__ = "education"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     institution = Column(String, nullable=False)
     degree = Column(String, nullable=True)
     field_of_study = Column(String, nullable=True)
@@ -246,11 +348,17 @@ class Education(Base):
 # Certification Table
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class Certification(Base):
     __tablename__ = "certifications"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     name = Column(String, nullable=False)
     issuer = Column(String, nullable=True)
     issue_date = Column(Date, nullable=True)
@@ -267,10 +375,11 @@ class Certification(Base):
 # Companies Table (from 002_users_and_companies.sql)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class Company(Base):
     __tablename__ = "companies"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     slug = Column(String, unique=True, nullable=False, index=True)
     logo_url = Column(String, nullable=True)
@@ -282,28 +391,46 @@ class Company(Base):
     headquarters = Column(String, nullable=True)
     linkedin_url = Column(String, nullable=True)
     is_verified = Column(Boolean, default=False, index=True)
-    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_by = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Recruiter Profile Table (from 002_users_and_companies.sql)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class RecruiterProfile(Base):
     __tablename__ = "recruiter_profiles"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False, index=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True, index=True)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+    company_id = Column(
+        Integer,
+        ForeignKey("companies.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     designation = Column(String, nullable=True)
     department = Column(String, nullable=True)
     linkedin_url = Column(String, nullable=True)
     bio = Column(Text, nullable=True)
     is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     # Relationships
     user = relationship("User", back_populates="recruiter_profile")
@@ -313,12 +440,23 @@ class RecruiterProfile(Base):
 # Projects Table (from 003_jobseeker_profiles_and_resumes.sql)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class Project(Base):
     __tablename__ = "projects"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    work_experience_id = Column(Integer, ForeignKey("work_experiences.id", ondelete="CASCADE"), nullable=True, index=True)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    work_experience_id = Column(
+        Integer,
+        ForeignKey("work_experiences.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     url = Column(String, nullable=True)
@@ -338,11 +476,17 @@ class Project(Base):
 # Resumes Table (from 003_jobseeker_profiles_and_resumes.sql)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class Resume(Base):
     __tablename__ = "resumes"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     file_name = Column(String, nullable=False)
     file_url = Column(String, nullable=False)
     file_size_bytes = Column(Integer, nullable=True)
@@ -360,7 +504,9 @@ class Resume(Base):
     improvement_notes = Column(JSON, nullable=True)
     improvement_credits_used = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     # Relationships
     user = relationship("User", back_populates="resumes")
@@ -370,17 +516,25 @@ class Resume(Base):
 # Resume Builder Docs Table (from 003_jobseeker_profiles_and_resumes.sql)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class ResumeBuilderDoc(Base):
     __tablename__ = "resume_builder_docs"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    title = Column(String, nullable=False, default='My Resume')
-    template = Column(String, default='modern')
+    id = Column(Integer, primary_key=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    title = Column(String, nullable=False, default="My Resume")
+    template = Column(String, default="modern")
     is_active = Column(Boolean, default=True)
     credits_used = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     # Relationships
     user = relationship("User", back_populates="resume_builder_docs")

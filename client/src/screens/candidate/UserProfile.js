@@ -24,9 +24,13 @@ import {
   MenuItem,
   Autocomplete,
   Skeleton,
+  Snackbar,
 } from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
 import axios from "axios";
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
+import * as profileAPI from "../../api/profileAPI";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -50,13 +54,13 @@ import { updateUserProfile, debitPoints } from "../../redux/user/Action";
 const toTitleCase = (str) => {
   // Handle null, undefined, empty strings, and non-string types
   if (!str) return "";
-  
+
   // Convert to string if it's not already (handles numbers, objects, etc.)
   const stringValue = typeof str === "string" ? str : String(str);
-  
+
   // Handle empty strings after conversion
   if (!stringValue.trim()) return "";
-  
+
   return stringValue
     .toLowerCase()
     .split(" ")
@@ -68,30 +72,30 @@ const toTitleCase = (str) => {
 const calculateExperienceDuration = (startDate, endDate, isCurrent) => {
   // Handle null, undefined, or invalid start date
   if (!startDate) return "";
-  
+
   try {
     const start = new Date(startDate);
-    
+
     // Validate the start date
     if (isNaN(start.getTime())) return "";
-    
+
     const end = isCurrent ? new Date() : (endDate ? new Date(endDate) : new Date());
-    
+
     // Validate the end date
     if (isNaN(end.getTime())) return "";
-    
+
     let years = end.getFullYear() - start.getFullYear();
     let months = end.getMonth() - start.getMonth();
-    
+
     if (months < 0) {
       years--;
       months += 12;
     }
-    
+
     const parts = [];
     if (years > 0) parts.push(`${years} year${years > 1 ? "s" : ""}`);
     if (months > 0) parts.push(`${months} month${months > 1 ? "s" : ""}`);
-    
+
     return parts.length > 0 ? parts.join(", ") : "Less than a month";
   } catch (error) {
     console.warn("Error calculating experience duration:", error);
@@ -124,6 +128,41 @@ const UserProfile = ({ onNavigate }) => {
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
 
+  // Per-section loading and error states
+  const [sectionLoading, setSectionLoading] = useState({
+    personal: false,
+    experience: false,
+    education: false,
+    skills: false,
+    languages: false,
+    summary: false,
+    personalinfo: false,
+  });
+
+  const [sectionErrors, setSectionErrors] = useState({
+    personal: null,
+    experience: null,
+    education: null,
+    skills: null,
+    languages: null,
+    summary: null,
+    personalDetails: null,
+    personalinfo: null,
+  });
+
+  // Dropdown options
+  const [skillsDropdown, setSkillsDropdown] = useState([]);
+  const [languagesDropdown, setLanguagesDropdown] = useState([]);
+  const [dropdownsLoading, setDropdownsLoading] = useState({
+    skills: false,
+    languages: false,
+  });
+
+  // Success/feedback states
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [successType, setSuccessType] = useState(""); // personal, experience, etc.
+  const [userId, setUserId] = useState(profile?.id || null);
+
   // Editing states for each section
   const [editingSections, setEditingSections] = useState({
     personal: false,
@@ -146,7 +185,7 @@ const UserProfile = ({ onNavigate }) => {
     skills: profile?.skills ? (typeof profile.skills === "string" ? profile.skills.split(",").map((s) => s.trim()) : profile.skills) : [],
     languages: profile?.languages ? (typeof profile.languages === "string" ? profile.languages.split(",").map((l) => l.trim()) : profile.languages) : [],
     about: profile?.about || "",
-    dob: profile?.dob || "",
+    date_of_birth: profile?.date_of_birth || "",
     maritalStatus: profile?.maritalStatus || "",
     currentLocation: profile?.currentLocation || "",
   });
@@ -163,6 +202,38 @@ const UserProfile = ({ onNavigate }) => {
     skills: null,
     learning: null,
   });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Per-Record Change Tracking (Experience & Education)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // Track which experience records have been modified
+  const [changedExperience, setChangedExperience] = useState(new Set());
+
+  // Track which education records have been modified
+  const [changedEducation, setChangedEducation] = useState(new Set());
+
+  // Track which experience records are newly created (not from API)
+  const [newExperienceIndices, setNewExperienceIndices] = useState(new Set());
+
+  // Track which education records are newly created (not from API)
+  const [newEducationIndices, setNewEducationIndices] = useState(new Set());
+
+  // Track loading state per record (e.g., {experience: {0: false}, education: {1: true}})
+  const [recordLoading, setRecordLoading] = useState({
+    experience: {},
+    education: {},
+  });
+
+  // Track errors per record (e.g., {experience: {0: "Error message"}, education: {1: null}})
+  const [recordErrors, setRecordErrors] = useState({
+    experience: {},
+    education: {},
+  });
+
+  // Keep original copies for comparison
+  const [originalExperience, setOriginalExperience] = useState([]);
+  const [originalEducation, setOriginalEducation] = useState([]);
 
   // Fetch user profile data from API
   useEffect(() => {
@@ -182,10 +253,13 @@ const UserProfile = ({ onNavigate }) => {
           }
         );
 
-        debugger;
+
 
         if (response.data) {
           const profileData = response.data?.data || response.data;
+
+          // Set userId for API calls
+          setUserId(profileData.id);
 
           // Map API response to component state
           const mappedData = {
@@ -197,10 +271,11 @@ const UserProfile = ({ onNavigate }) => {
             currentLocation: toTitleCase(profileData?.current_location) || "",
             headline: toTitleCase(profileData?.headline) || "",
             about: toTitleCase(profileData?.summary) || "",
-            dob: profileData?.date_of_birth || "",
-            maritalStatus: profileData?.maritalStatus || "",
+            date_of_birth: profileData?.date_of_birth || "",
+            maritalStatus: profileData?.marital_status || "",
             experience: profileData?.experience && Array.isArray(profileData.experience)
               ? profileData.experience.map((exp) => ({
+                id: exp?.id || null,
                 company: toTitleCase(exp?.company_name || "") || "",
                 role: toTitleCase(exp?.title) || "",
                 location: toTitleCase(exp?.location) || "",
@@ -218,6 +293,7 @@ const UserProfile = ({ onNavigate }) => {
               : [],
             education: profileData?.education && Array.isArray(profileData.education)
               ? profileData.education.map((edu) => ({
+                id: edu?.id || null,
                 school: toTitleCase(edu?.institution) || "",
                 degree: toTitleCase(edu?.degree) || "",
                 field: edu?.field_of_study && Array.isArray(edu.field_of_study)
@@ -247,13 +323,17 @@ const UserProfile = ({ onNavigate }) => {
             portfolio: profileData?.portfolio_url || "",
           };
 
-          debugger;
+
 
           // Update local edit data
           setEditData((prev) => ({
             ...prev,
             ...mappedData,
           }));
+
+          // Initialize original experience and education for change tracking
+          setOriginalExperience(JSON.parse(JSON.stringify(mappedData.experience)));
+          setOriginalEducation(JSON.parse(JSON.stringify(mappedData.education)));
 
           // Update Redux store with fetched profile data
           dispatch(updateUserProfile(mappedData));
@@ -275,20 +355,32 @@ const UserProfile = ({ onNavigate }) => {
         setLoading(false);
       } catch (err) {
         console.error("❌ Error fetching profile:", err);
-        setError(
-          err.response?.data?.message ||
-          err.message ||
-          "Failed to load profile. Please check your connection and try again."
-        );
+
+        let errorMessage = "Failed to load profile. Please check your connection and try again.";
+
+        if (err.response?.data?.detail) {
+          const detail = err.response.data.detail;
+          errorMessage = typeof detail === "string"
+            ? detail
+            : (Array.isArray(detail)
+              ? detail.map(d => d.msg || JSON.stringify(d)).join(", ")
+              : JSON.stringify(detail));
+        } else if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+
+        setError(errorMessage);
         setLoading(false);
       }
     };
 
     // Only fetch if profile is not already loaded
     // if (!profile?.fullname || retryCount > 0) {
-      fetchUserProfile();
+    fetchUserProfile();
     // } else {
-      // setLoading(false);
+    // setLoading(false);
     // }
   }, [retryCount]);
 
@@ -319,7 +411,7 @@ const UserProfile = ({ onNavigate }) => {
     } else if (section === "summary") {
       if (!editData.about.trim()) newErrors.about = "Professional summary is required";
     } else if (section === "personalDetails") {
-      if (!editData.dob) newErrors.dob = "Date of birth is required";
+      if (!editData.date_of_birth) newErrors.date_of_birth = "Date of birth is required";
     }
 
     setErrors(newErrors);
@@ -353,10 +445,15 @@ const UserProfile = ({ onNavigate }) => {
 
   // Add experience entry
   const addExperience = () => {
+    const newIndex = editData.experience.length;
     setEditData((prev) => ({
       ...prev,
-      experience: [...prev.experience, { company: "", role: "", duration: "", description: "" }],
+      experience: [...prev.experience, { id: null, company: "", role: "", location: "", startDate: "", endDate: "", isCurrent: false, description: "", skills: [], achievements: [] }],
     }));
+    // Mark as new record
+    setNewExperienceIndices((prev) => new Set([...prev, newIndex]));
+    // Mark as changed
+    setChangedExperience((prev) => new Set([...prev, newIndex]));
   };
 
   // Remove experience entry
@@ -365,21 +462,46 @@ const UserProfile = ({ onNavigate }) => {
       ...prev,
       experience: prev.experience.filter((_, i) => i !== index),
     }));
+    // Clean up tracking when removing a record
+    setNewExperienceIndices((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(index);
+      return newSet;
+    });
+    setChangedExperience((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(index);
+      return newSet;
+    });
+    setRecordErrors((prev) => ({
+      ...prev,
+      experience: Object.fromEntries(
+        Object.entries(prev.experience).filter(([key]) => parseInt(key) !== index)
+      ),
+    }));
   };
 
-  // Update experience entry
+  // Update experience entry and mark as changed
   const updateExperience = (index, field, value) => {
     const newExp = [...editData.experience];
     newExp[index][field] = value;
     setEditData((prev) => ({ ...prev, experience: newExp }));
+
+    // Mark this record as changed
+    setChangedExperience((prev) => new Set([...prev, index]));
   };
 
   // Add education entry
   const addEducation = () => {
+    const newIndex = editData.education.length;
     setEditData((prev) => ({
       ...prev,
-      education: [...prev.education, { school: "", degree: "", year: "" }],
+      education: [...prev.education, { id: null, school: "", degree: "", field: "", grade: "", year: "", isCurrent: false, description: "" }],
     }));
+    // Mark as new record
+    setNewEducationIndices((prev) => new Set([...prev, newIndex]));
+    // Mark as changed
+    setChangedEducation((prev) => new Set([...prev, newIndex]));
   };
 
   // Remove education entry
@@ -388,13 +510,33 @@ const UserProfile = ({ onNavigate }) => {
       ...prev,
       education: prev.education.filter((_, i) => i !== index),
     }));
+    // Clean up tracking when removing a record
+    setNewEducationIndices((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(index);
+      return newSet;
+    });
+    setChangedEducation((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(index);
+      return newSet;
+    });
+    setRecordErrors((prev) => ({
+      ...prev,
+      education: Object.fromEntries(
+        Object.entries(prev.education).filter(([key]) => parseInt(key) !== index)
+      ),
+    }));
   };
 
-  // Update education entry
+  // Update education entry and mark as changed
   const updateEducation = (index, field, value) => {
     const newEdu = [...editData.education];
     newEdu[index][field] = value;
     setEditData((prev) => ({ ...prev, education: newEdu }));
+
+    // Mark this record as changed
+    setChangedEducation((prev) => new Set([...prev, index]));
   };
 
   // Toggle section editing
@@ -411,7 +553,7 @@ const UserProfile = ({ onNavigate }) => {
   // Cancel section edit
   const cancelSectionEdit = (section) => {
     setEditData({
-      
+
       fullname: profile?.fullname || "",
       email: profile?.email || "",
       mobile: profile?.mobile || "",
@@ -422,7 +564,7 @@ const UserProfile = ({ onNavigate }) => {
       skills: profile?.skills ? (typeof profile.skills === "string" ? profile.skills.split(",").map((s) => s.trim()) : profile.skills) : [],
       languages: profile?.languages ? (typeof profile.languages === "string" ? profile.languages.split(",").map((l) => l.trim()) : profile.languages) : [],
       about: profile?.about || "",
-      dob: profile?.dob || "",
+      date_of_birth: profile?.date_of_birth || "",
       maritalStatus: profile?.maritalStatus || "",
       currentLocation: profile?.currentLocation || "",
     });
@@ -431,34 +573,520 @@ const UserProfile = ({ onNavigate }) => {
       ...prev,
       [section]: false,
     }));
+
+    // Reset change tracking and errors for experience and education
+    if (section === "experience") {
+      setChangedExperience(new Set());
+      setNewExperienceIndices(new Set());
+      setRecordErrors((prev) => ({ ...prev, experience: {} }));
+    } else if (section === "education") {
+      setChangedEducation(new Set());
+      setNewEducationIndices(new Set());
+      setRecordErrors((prev) => ({ ...prev, education: {} }));
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // API-Driven Save Functions (Block-by-Block)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Save Personal Information with API call
+   */
+  const savePersonalInformationAPI = async () => {
+    if (!validateSection("personal")) return;
+
+    setSectionLoading((prev) => ({ ...prev, personal: true }));
+    setSectionErrors((prev) => ({ ...prev, personal: null }));
+
+    try {
+      const dataToUpdate = {
+        full_name: editData.fullname,
+        email: editData.email,
+        phone: editData.mobile,
+        headline: editData.headline,
+        current_location: editData.currentLocation,
+        preferred_locations: editData.preferredLocation ? [editData.preferredLocation] : [],
+        portfolio_url: editData.website,
+      };
+
+      const result = await profileAPI.updatePersonalInformation(userId, dataToUpdate);
+
+      if (result.error) {
+        setSectionErrors((prev) => ({ ...prev, personal: result.message }));
+        console.error("Error saving personal information:", result.message);
+      } else {
+        setSuccessMessage("Personal information updated successfully!");
+        setSuccessType("personal");
+
+        // Update profile in Redux
+        dispatch(updateUserProfile({
+          ...profile,
+          fullname: editData.fullname,
+          email: editData.email,
+          mobile: editData.mobile,
+          preferredLocation: editData.preferredLocation,
+          website: editData.website,
+          currentLocation: editData.currentLocation,
+        }));
+
+        setEditingSections((prev) => ({ ...prev, personal: false }));
+      }
+    } catch (error) {
+      setSectionErrors((prev) => ({
+        ...prev,
+        personal: "Failed to update personal information",
+      }));
+      console.error("Error:", error);
+    } finally {
+      setSectionLoading((prev) => ({ ...prev, personal: false }));
+    }
+  };
+
+  const savePersonalInfoAPI = async () => {
+    if (!validateSection("personal")) return;
+
+    setSectionLoading((prev) => ({ ...prev, personalinfo: true }));
+    setSectionErrors((prev) => ({ ...prev, personalinfo: null }));
+
+    try {
+      const dataToUpdate = {
+        date_of_birth: editData.date_of_birth,
+        marital_status: editData.maritalStatus,
+        current_location: editData.currentLocation,
+      };
+
+      const result = await profileAPI.updatePersonalInfo(userId, dataToUpdate);
+
+      if (result.error) {
+        setSectionErrors((prev) => ({ ...prev, personalinfo: result.message }));
+        console.error("Error saving personal information:", result.message);
+      } else {
+        setSuccessMessage("Personal information updated successfully!");
+        setSuccessType("personal");
+
+        // Update profile in Redux
+        dispatch(updateUserProfile({
+          ...profile,
+          fullname: editData.fullname,
+          email: editData.email,
+          mobile: editData.mobile,
+          preferredLocation: editData.preferredLocation,
+          website: editData.website,
+          currentLocation: editData.currentLocation,
+        }));
+
+        setEditingSections((prev) => ({ ...prev, personal: false }));
+      }
+    } catch (error) {
+      setSectionErrors((prev) => ({
+        ...prev,
+        personal: "Failed to update personal information",
+      }));
+      console.error("Error:", error);
+    } finally {
+      setSectionLoading((prev) => ({ ...prev, personalinfo: false }));
+    }
+  };
+
+  /**
+   * Save Individual Work Experience Record
+   */
+  const saveIndividualExperience = async (index) => {
+    const exp = editData.experience[index];
+    const isNewRecord = newExperienceIndices.has(index);
+
+    // Set loading state for this record
+    setRecordLoading((prev) => ({
+      ...prev,
+      experience: { ...prev.experience, [index]: true },
+    }));
+    setRecordErrors((prev) => ({
+      ...prev,
+      experience: { ...prev.experience, [index]: null },
+    }));
+
+    try {
+      const experienceData = {
+        title: exp.role,
+        location: exp.location,
+        start_date: exp.startDate,
+        end_date: exp.endDate,
+        is_current: exp.isCurrent,
+        description: exp.description,
+        skills_used: exp.skills || [],
+        achievements: exp.achievements || [],
+      };
+
+      // Include experience_id only if updating an existing record
+      if (exp.id) {
+        experienceData.experience_id = exp.id;
+      }
+
+      const result = await profileAPI.updateWorkExperience(userId, experienceData);
+
+      if (result.error) {
+        setRecordErrors((prev) => ({
+          ...prev,
+          experience: { ...prev.experience, [index]: result.message },
+        }));
+      } else {
+        const message = isNewRecord
+          ? `✓ New experience record created successfully!`
+          : `✓ Experience record updated successfully!`;
+        setSuccessMessage(message);
+
+        // Update original data to mark as synced
+        setOriginalExperience((prev) => {
+          const newOriginal = [...prev];
+          newOriginal[index] = JSON.parse(JSON.stringify(exp));
+          return newOriginal;
+        });
+
+        // Remove from changed set
+        setChangedExperience((prev) => {
+          const newChanged = new Set(prev);
+          newChanged.delete(index);
+          return newChanged;
+        });
+
+        // Remove from new records set if it was new
+        if (isNewRecord) {
+          setNewExperienceIndices((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(index);
+            return newSet;
+          });
+        }
+
+        // Update Redux
+        dispatch(updateUserProfile({
+          ...profile,
+          experience: editData.experience,
+        }));
+      }
+    } catch (error) {
+      setRecordErrors((prev) => ({
+        ...prev,
+        experience: {
+          ...prev.experience,
+          [index]: error.message || "Failed to save experience record"
+        },
+      }));
+      console.error("Error saving experience:", error);
+    } finally {
+      setRecordLoading((prev) => ({
+        ...prev,
+        experience: { ...prev.experience, [index]: false },
+      }));
+    }
+  };
+
+  /**
+   * Save Individual Education Record
+   */
+  const saveIndividualEducation = async (index) => {
+    const edu = editData.education[index];
+    const isNewRecord = newEducationIndices.has(index);
+
+    // Set loading state for this record
+    setRecordLoading((prev) => ({
+      ...prev,
+      education: { ...prev.education, [index]: true },
+    }));
+    setRecordErrors((prev) => ({
+      ...prev,
+      education: { ...prev.education, [index]: null },
+    }));
+
+    try {
+      const educationData = {
+        institution: edu.school,
+        degree: edu.degree,
+        field_of_study: edu.field,
+        grade: edu.grade,
+        end_year: edu.year,
+      };
+
+      // Include education_id only if updating an existing record
+      if (edu.id) {
+        educationData.education_id = edu.id;
+      }
+
+      const result = await profileAPI.updateEducation(userId, educationData);
+
+      if (result.error) {
+        setRecordErrors((prev) => ({
+          ...prev,
+          education: { ...prev.education, [index]: result.message },
+        }));
+      } else {
+        const message = isNewRecord
+          ? `✓ New education record created successfully!`
+          : `✓ Education record updated successfully!`;
+        setSuccessMessage(message);
+
+        // Update original data to mark as synced
+        setOriginalEducation((prev) => {
+          const newOriginal = [...prev];
+          newOriginal[index] = JSON.parse(JSON.stringify(edu));
+          return newOriginal;
+        });
+
+        // Remove from changed set
+        setChangedEducation((prev) => {
+          const newChanged = new Set(prev);
+          newChanged.delete(index);
+          return newChanged;
+        });
+
+        // Remove from new records set if it was new
+        if (isNewRecord) {
+          setNewEducationIndices((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(index);
+            return newSet;
+          });
+        }
+
+        // Update Redux
+        dispatch(updateUserProfile({
+          ...profile,
+          education: editData.education,
+        }));
+      }
+    } catch (error) {
+      setRecordErrors((prev) => ({
+        ...prev,
+        education: {
+          ...prev.education,
+          [index]: error.message || "Failed to save education record"
+        },
+      }));
+      console.error("Error saving education:", error);
+    } finally {
+      setRecordLoading((prev) => ({
+        ...prev,
+        education: { ...prev.education, [index]: false },
+      }));
+    }
+  };
+
+  /**
+   * Save all modified Work Experience records
+   */
+  const saveWorkExperienceAPI = async () => {
+    if (changedExperience.size === 0) {
+      setSuccessMessage("No changes to save in work experience");
+      return;
+    }
+
+    // Save all changed records
+    for (const index of changedExperience) {
+      await saveIndividualExperience(index);
+    }
+  };
+
+  /**
+   * Save all modified Education records
+   */
+  const saveEducationAPI = async () => {
+    if (changedEducation.size === 0) {
+      setSuccessMessage("No changes to save in education");
+      return;
+    }
+
+    // Save all changed records
+    for (const index of changedEducation) {
+      await saveIndividualEducation(index);
+    }
+  };
+
+  /**
+   * Save Skills with API call
+   */
+  const saveSkillsAPI = async () => {
+    if (!validateSection("skills")) return;
+
+    setSectionLoading((prev) => ({ ...prev, skills: true }));
+    setSectionErrors((prev) => ({ ...prev, skills: null }));
+
+    try {
+      const result = await profileAPI.updateSkills(userId, editData.skills);
+
+      if (result.error) {
+        setSectionErrors((prev) => ({ ...prev, skills: result.message }));
+        console.error("Error saving skills:", result.message);
+      } else {
+        setSuccessMessage("Skills updated successfully!");
+        setSuccessType("skills");
+
+        dispatch(updateUserProfile({
+          ...profile,
+          skills: editData.skills,
+        }));
+
+        setEditingSections((prev) => ({ ...prev, skills: false }));
+      }
+    } catch (error) {
+      setSectionErrors((prev) => ({
+        ...prev,
+        skills: "Failed to update skills",
+      }));
+      console.error("Error:", error);
+    } finally {
+      setSectionLoading((prev) => ({ ...prev, skills: false }));
+    }
+  };
+
+  /**
+   * Save Languages with API call
+   */
+  const saveLanguagesAPI = async () => {
+    if (!validateSection("languages")) return;
+
+    setSectionLoading((prev) => ({ ...prev, languages: true }));
+    setSectionErrors((prev) => ({ ...prev, languages: null }));
+
+    try {
+      const result = await profileAPI.updateLanguages(userId, editData.languages);
+
+      if (result.error) {
+        setSectionErrors((prev) => ({ ...prev, languages: result.message }));
+        console.error("Error saving languages:", result.message);
+      } else {
+        setSuccessMessage("Languages updated successfully!");
+        setSuccessType("languages");
+
+        dispatch(updateUserProfile({
+          ...profile,
+          languages: editData.languages,
+        }));
+
+        setEditingSections((prev) => ({ ...prev, languages: false }));
+      }
+    } catch (error) {
+      setSectionErrors((prev) => ({
+        ...prev,
+        languages: "Failed to update languages",
+      }));
+      console.error("Error:", error);
+    } finally {
+      setSectionLoading((prev) => ({ ...prev, languages: false }));
+    }
+  };
+
+  /**
+   * Fetch Skills Dropdown
+   */
+  const fetchSkillsDropdownData = async () => {
+    setDropdownsLoading((prev) => ({ ...prev, skills: true }));
+
+    try {
+      const result = await profileAPI.fetchSkillsDropdown();
+      if (!result.error) {
+        setSkillsDropdown(result.data);
+      }
+    } catch (error) {
+      console.error("Error fetching skills dropdown:", error);
+    } finally {
+      setDropdownsLoading((prev) => ({ ...prev, skills: false }));
+    }
+  };
+
+  /**
+   * Fetch Languages Dropdown
+   */
+  const fetchLanguagesDropdownData = async () => {
+    setDropdownsLoading((prev) => ({ ...prev, languages: true }));
+
+    try {
+      const result = await profileAPI.fetchLanguagesDropdown();
+      if (!result.error) {
+        setLanguagesDropdown(result.data);
+      }
+    } catch (error) {
+      console.error("Error fetching languages dropdown:", error);
+    } finally {
+      setDropdownsLoading((prev) => ({ ...prev, languages: false }));
+    }
+  };
+
+  /**
+   * Handle Skills Edit - Fetch dropdown on click
+   */
+  const handleSkillsEditClick = () => {
+    toggleSectionEdit("skills");
+    if (!editingSections.skills) {
+      // Fetching dropdown when entering edit mode
+      fetchSkillsDropdownData();
+    }
+  };
+
+  /**
+   * Handle Languages Edit - Fetch dropdown on click
+   */
+  const handleLanguagesEditClick = () => {
+    toggleSectionEdit("languages");
+    if (!editingSections.languages) {
+      // Fetching dropdown when entering edit mode
+      fetchLanguagesDropdownData();
+    }
   };
 
   // Save section
   const saveSection = (section) => {
-    if (!validateSection(section)) return;
+    // Delegate to API-driven save functions
+    switch (section) {
+      case "personal":
+        savePersonalInformationAPI();
+        break;
+      case "experience":
+        saveWorkExperienceAPI();
+        break;
+      case "education":
+        saveEducationAPI();
+        break;
+      case "skills":
+        saveSkillsAPI();
+        break;
+      case "languages":
+        saveLanguagesAPI();
+        break;
+      case "summary":
+      case "personalDetails":
 
-    const profileToSave = {
-      ...profile,
-      fullname: editData.fullname,
-      email: editData.email,
-      mobile: editData.mobile,
-      website: editData.website,
-      preferredLocation: editData.preferredLocation,
-      experience: editData.experience,
-      education: editData.education,
-      skills: Array.isArray(editData.skills) ? editData.skills.join(", ") : editData.skills,
-      languages: Array.isArray(editData.languages) ? editData.languages.join(", ") : editData.languages,
-      about: editData.about,
-      dob: editData.dob,
-      maritalStatus: editData.maritalStatus,
-      currentLocation: editData.currentLocation,
-    };
 
-    dispatch(updateUserProfile(profileToSave));
-    setEditingSections((prev) => ({
-      ...prev,
-      [section]: false,
-    }));
+        // For summary and personalDetails, you can add similar handlers
+        // For now, keeping simple Redux update
+        const profileToSave = {
+          ...profile,
+          fullname: editData.fullname,
+          email: editData.email,
+          mobile: editData.mobile,
+          website: editData.website,
+          preferredLocation: editData.preferredLocation,
+          experience: editData.experience,
+          education: editData.education,
+          skills: Array.isArray(editData.skills) ? editData.skills.join(", ") : editData.skills,
+          languages: Array.isArray(editData.languages) ? editData.languages.join(", ") : editData.languages,
+          about: editData.about,
+          date_of_birth: editData.date_of_birth,
+          maritalStatus: editData.maritalStatus,
+          currentLocation: editData.currentLocation,
+        };
+
+        dispatch(updateUserProfile(profileToSave));
+        setEditingSections((prev) => ({
+          ...prev,
+          [section]: false,
+        }));
+
+        savePersonalInfoAPI();
+        break;
+      default:
+        break;
+    }
   };
 
   // AI Functions
@@ -516,6 +1144,27 @@ const UserProfile = ({ onNavigate }) => {
   return (
     <Box sx={{ minHeight: "calc(100vh - 64px)", bgcolor: "#f8fafc", py: { xs: 3, md: 6 } }}>
       <Container maxWidth="md">
+        {/* Success Snackbar */}
+        <Snackbar
+          open={!!successMessage}
+          autoHideDuration={4000}
+          onClose={() => setSuccessMessage(null)}
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        >
+          <Alert
+            onClose={() => setSuccessMessage(null)}
+            severity="success"
+            sx={{
+              bgcolor: "#d1fae5",
+              color: "#065f46",
+              border: "1px solid #6ee7b7",
+              "& .MuiAlert-icon": { color: "#10b981" },
+            }}
+          >
+            {successMessage}
+          </Alert>
+        </Snackbar>
+
         {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Typography sx={{ fontWeight: 800, fontSize: "1.8rem", color: "#0f172a" }}>
@@ -652,16 +1301,26 @@ const UserProfile = ({ onNavigate }) => {
                 <Typography sx={{ fontWeight: 700, fontSize: "1.1rem", color: "#0f172a" }}>
                   Personal Information
                 </Typography>
-                <Button
-                  size="small"
-                  variant={editingSections.personal ? "outlined" : "text"}
-                  startIcon={editingSections.personal ? <CancelIcon /> : <EditIcon />}
-                  onClick={() => toggleSectionEdit("personal")}
-                  sx={{ color: editingSections.personal ? "#ef4444" : "#6366f1" }}
-                >
-                  {editingSections.personal ? "Cancel" : "Edit"}
-                </Button>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {sectionLoading.personal && <CircularProgress size={20} />}
+                  <Button
+                    size="small"
+                    variant={editingSections.personal ? "outlined" : "text"}
+                    startIcon={editingSections.personal ? <CancelIcon /> : <EditIcon />}
+                    onClick={() => toggleSectionEdit("personal")}
+                    disabled={sectionLoading.personal}
+                    sx={{ color: editingSections.personal ? "#ef4444" : "#6366f1" }}
+                  >
+                    {editingSections.personal ? "Cancel" : "Edit"}
+                  </Button>
+                </Box>
               </Box>
+
+              {sectionErrors.personal && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {sectionErrors.personal}
+                </Alert>
+              )}
 
               {!editingSections.personal ? (
                 <Grid container spacing={2}>
@@ -720,10 +1379,23 @@ const UserProfile = ({ onNavigate }) => {
                     <TextField fullWidth label="Website / Portfolio" name="website" value={editData.website} onChange={handleInputChange} size="small" placeholder="https://..." InputProps={{ startAdornment: <PublicIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} /> }} />
                   </Grid>
                   <Grid item xs={12} sx={{ display: "flex", gap: 1 }}>
-                    <Button variant="contained" size="small" onClick={() => saveSection("personal")} startIcon={<SaveIcon />} sx={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={savePersonalInformationAPI}
+                      startIcon={sectionLoading.personal ? <CircularProgress size={16} /> : <SaveIcon />}
+                      disabled={sectionLoading.personal}
+                      sx={{ background: sectionLoading.personal ? "#cbd5e1" : "linear-gradient(135deg, #6366f1, #4f46e5)" }}
+                    >
                       Save
                     </Button>
-                    <Button variant="outlined" size="small" onClick={() => cancelSectionEdit("personal")} startIcon={<CancelIcon />}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => cancelSectionEdit("personal")}
+                      startIcon={<CancelIcon />}
+                      disabled={sectionLoading.personal}
+                    >
                       Cancel
                     </Button>
                   </Grid>
@@ -738,16 +1410,26 @@ const UserProfile = ({ onNavigate }) => {
                   <BusinessIcon sx={{ fontSize: 20, color: "#6366f1" }} />
                   <Typography sx={{ fontWeight: 700, fontSize: "1.1rem", color: "#0f172a" }}>Work Experience</Typography>
                 </Box>
-                <Button
-                  size="small"
-                  variant={editingSections.experience ? "outlined" : "text"}
-                  startIcon={editingSections.experience ? <CancelIcon /> : <EditIcon />}
-                  onClick={() => toggleSectionEdit("experience")}
-                  sx={{ color: editingSections.experience ? "#ef4444" : "#6366f1" }}
-                >
-                  {editingSections.experience ? "Cancel" : "Edit"}
-                </Button>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {sectionLoading.experience && <CircularProgress size={20} />}
+                  <Button
+                    size="small"
+                    variant={editingSections.experience ? "outlined" : "text"}
+                    startIcon={editingSections.experience ? <CancelIcon /> : <EditIcon />}
+                    onClick={() => toggleSectionEdit("experience")}
+                    disabled={sectionLoading.experience}
+                    sx={{ color: editingSections.experience ? "#ef4444" : "#6366f1" }}
+                  >
+                    {editingSections.experience ? "Cancel" : "Edit"}
+                  </Button>
+                </Box>
               </Box>
+
+              {sectionErrors.experience && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {sectionErrors.experience}
+                </Alert>
+              )}
 
               {!editingSections.experience ? (
                 <Box>
@@ -763,10 +1445,10 @@ const UserProfile = ({ onNavigate }) => {
                             <Chip label="Currently Working" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 600, height: 24 }} />
                           )}
                         </Box>
-                        
+
                         {/* Company */}
                         <Typography sx={{ fontSize: "0.9rem", color: "#6366f1", fontWeight: 600, mb: 0.5 }}>{exp.company}</Typography>
-                        
+
                         {/* Location */}
                         {exp.location && (
                           <Typography sx={{ fontSize: "0.85rem", color: "#64748b", mb: 0.5, display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -774,13 +1456,13 @@ const UserProfile = ({ onNavigate }) => {
                             {exp.location}
                           </Typography>
                         )}
-                        
+
                         {/* Duration */}
                         <Typography sx={{ fontSize: "0.85rem", color: "#94a3b8", mb: 1 }}>
                           {calculateExperienceDuration(exp.startDate, exp.endDate, exp.isCurrent)}
                           {exp.startDate && ` • ${new Date(exp.startDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })} to ${exp.isCurrent ? "Present" : new Date(exp.endDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })}`}
                         </Typography>
-                        
+
                         {/* Description */}
                         {exp.description && (
                           <Typography sx={{ fontSize: "0.9rem", color: "#475569", lineHeight: 1.5 }}>{exp.description}</Typography>
@@ -792,10 +1474,17 @@ const UserProfile = ({ onNavigate }) => {
               ) : (
                 <Stack spacing={2}>
                   {editData.experience.map((exp, idx) => (
-                    <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed", position: "relative" }}>
-                      <IconButton size="small" onClick={() => removeExperience(idx)} sx={{ position: "absolute", top: 8, right: 8, color: "#f43f5e" }}>
-                        <DeleteIcon fontSize="inherit" />
-                      </IconButton>
+                    <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed", position: "relative", border: newExperienceIndices.has(idx) ? "2px dashed #10b981" : "1px dashed #e2e8f0" }}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                        {newExperienceIndices.has(idx) && (
+                          <Chip label="🆕 NEW RECORD" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 700 }} />
+                        )}
+                        <Box sx={{ ml: "auto" }}>
+                          <IconButton size="small" onClick={() => removeExperience(idx)} sx={{ color: "#f43f5e" }}>
+                            <DeleteIcon fontSize="inherit" />
+                          </IconButton>
+                        </Box>
+                      </Box>
                       <Grid container spacing={2}>
                         <Grid item xs={12} sm={6}>
                           <TextField fullWidth label="Company" value={exp.company} onChange={(e) => updateExperience(idx, "company", e.target.value)} size="small" />
@@ -807,17 +1496,53 @@ const UserProfile = ({ onNavigate }) => {
                           <TextField fullWidth label="Location" value={exp.location} onChange={(e) => updateExperience(idx, "location", e.target.value)} size="small" placeholder="e.g. Mumbai, India" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} /> }} />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label="Start Date" type="date" value={exp.startDate} onChange={(e) => updateExperience(idx, "startDate", e.target.value)} size="small" InputLabelProps={{ shrink: true }} />
+                          {/* <TextField fullWidth label="Start Date" type="date" value={exp.startDate} onChange={(e) => updateExperience(idx, "startDate", e.target.value)} size="small" InputLabelProps={{ shrink: true }} /> */}
+
+                          <DatePicker
+                            label="Start Date"
+                            value={exp.startDate ? dayjs(exp.startDate) : null}
+                            onChange={(newValue) => {
+                              const formattedDate = newValue ? newValue.format("YYYY-MM-DD") : "";
+                              updateExperience(idx, "startDate", formattedDate);
+                            }}
+                            format="DD/MM/YYYY"
+                            slotProps={{
+                              textField: {
+                                fullWidth: true,
+                                size: "small",
+                                InputLabelProps: { shrink: true },
+                              },
+                            }}
+                          />
+
+
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label="End Date" type="date" value={exp.endDate} onChange={(e) => updateExperience(idx, "endDate", e.target.value)} size="small" disabled={exp.isCurrent} InputLabelProps={{ shrink: true }} />
+                          {/* <TextField fullWidth label="End Date" type="date" value={exp.endDate} onChange={(e) => updateExperience(idx, "endDate", e.target.value)} size="small" disabled={exp.isCurrent} InputLabelProps={{ shrink: true }} /> */}
+
+                          <DatePicker
+                            label="End Date"
+                            value={exp.endDate ? dayjs(exp.endDate) : null}
+                            onChange={(newValue) => {
+                              const formattedDate = newValue ? newValue.format("YYYY-MM-DD") : "";
+                              updateExperience(idx, "endDate", formattedDate);
+                            }}
+                            format="DD/MM/YYYY"
+                            slotProps={{
+                              textField: {
+                                fullWidth: true,
+                                size: "small",
+                                InputLabelProps: { shrink: true },
+                              },
+                            }}
+                          />
                         </Grid>
                         <Grid item xs={12}>
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <input 
-                              type="checkbox" 
-                              checked={exp.isCurrent || false} 
-                              onChange={(e) => updateExperience(idx, "isCurrent", e.target.checked)} 
+                            <input
+                              type="checkbox"
+                              checked={exp.isCurrent || false}
+                              onChange={(e) => updateExperience(idx, "isCurrent", e.target.checked)}
                               style={{ cursor: "pointer" }}
                             />
                             <Typography sx={{ fontSize: "0.9rem", color: "#475569" }}>Currently Working Here</Typography>
@@ -825,6 +1550,47 @@ const UserProfile = ({ onNavigate }) => {
                         </Grid>
                         <Grid item xs={12}>
                           <TextField fullWidth multiline rows={2} label="Description" value={exp.description} onChange={(e) => updateExperience(idx, "description", e.target.value)} size="small" />
+                        </Grid>
+
+                        {/* Error message for this record */}
+                        {recordErrors.experience?.[idx] && (
+                          <Grid item xs={12}>
+                            <Alert severity="error" sx={{ fontSize: "0.85rem" }}>
+                              {recordErrors.experience[idx]}
+                            </Alert>
+                          </Grid>
+                        )}
+
+                        {/* Status indicator */}
+                        {changedExperience.has(idx) && !recordErrors.experience?.[idx] && (
+                          <Grid item xs={12}>
+                            <Typography sx={{ fontSize: "0.85rem", color: "#f59e0b" }}>
+                              ⚠️ Unsaved changes
+                            </Typography>
+                          </Grid>
+                        )}
+
+                        {/* Save button for individual record */}
+                        <Grid item xs={12}>
+                          <Box sx={{ display: "flex", gap: 1 }}>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              onClick={() => saveIndividualExperience(idx)}
+                              startIcon={recordLoading.experience?.[idx] ? <CircularProgress size={16} /> : <SaveIcon />}
+                              disabled={recordLoading.experience?.[idx] || !changedExperience.has(idx)}
+                              sx={{
+                                background: recordLoading.experience?.[idx]
+                                  ? "#cbd5e1"
+                                  : changedExperience.has(idx)
+                                    ? "linear-gradient(135deg, #10b981, #059669)"
+                                    : "#cbd5e1",
+                                color: recordLoading.experience?.[idx] || !changedExperience.has(idx) ? "#9ca3af" : "white"
+                              }}
+                            >
+                              {recordLoading.experience?.[idx] ? "Saving..." : "Save Record"}
+                            </Button>
+                          </Box>
                         </Grid>
                       </Grid>
                     </Paper>
@@ -835,10 +1601,23 @@ const UserProfile = ({ onNavigate }) => {
                     </Button>
                   </Box>
                   <Box sx={{ display: "flex", gap: 1 }}>
-                    <Button variant="contained" size="small" onClick={() => saveSection("experience")} startIcon={<SaveIcon />} sx={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={saveWorkExperienceAPI}
+                      startIcon={sectionLoading.experience ? <CircularProgress size={16} /> : <SaveIcon />}
+                      disabled={sectionLoading.experience}
+                      sx={{ background: sectionLoading.experience ? "#cbd5e1" : "linear-gradient(135deg, #6366f1, #4f46e5)" }}
+                    >
                       Save
                     </Button>
-                    <Button variant="outlined" size="small" onClick={() => cancelSectionEdit("experience")} startIcon={<CancelIcon />}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => cancelSectionEdit("experience")}
+                      startIcon={<CancelIcon />}
+                      disabled={sectionLoading.experience}
+                    >
                       Cancel
                     </Button>
                   </Box>
@@ -853,16 +1632,26 @@ const UserProfile = ({ onNavigate }) => {
                   <SchoolIcon sx={{ fontSize: 20, color: "#0ea5e9" }} />
                   <Typography sx={{ fontWeight: 700, fontSize: "1.1rem", color: "#0f172a" }}>Education</Typography>
                 </Box>
-                <Button
-                  size="small"
-                  variant={editingSections.education ? "outlined" : "text"}
-                  startIcon={editingSections.education ? <CancelIcon /> : <EditIcon />}
-                  onClick={() => toggleSectionEdit("education")}
-                  sx={{ color: editingSections.education ? "#ef4444" : "#6366f1" }}
-                >
-                  {editingSections.education ? "Cancel" : "Edit"}
-                </Button>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {sectionLoading.education && <CircularProgress size={20} />}
+                  <Button
+                    size="small"
+                    variant={editingSections.education ? "outlined" : "text"}
+                    startIcon={editingSections.education ? <CancelIcon /> : <EditIcon />}
+                    onClick={() => toggleSectionEdit("education")}
+                    disabled={sectionLoading.education}
+                    sx={{ color: editingSections.education ? "#ef4444" : "#6366f1" }}
+                  >
+                    {editingSections.education ? "Cancel" : "Edit"}
+                  </Button>
+                </Box>
               </Box>
+
+              {sectionErrors.education && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {sectionErrors.education}
+                </Alert>
+              )}
 
               {!editingSections.education ? (
                 <Box>
@@ -881,10 +1670,17 @@ const UserProfile = ({ onNavigate }) => {
               ) : (
                 <Stack spacing={2}>
                   {editData.education.map((edu, idx) => (
-                    <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed", position: "relative" }}>
-                      <IconButton size="small" onClick={() => removeEducation(idx)} sx={{ position: "absolute", top: 8, right: 8, color: "#f43f5e" }}>
-                        <DeleteIcon fontSize="inherit" />
-                      </IconButton>
+                    <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed", position: "relative", border: newEducationIndices.has(idx) ? "2px dashed #0ea5e9" : "1px dashed #e2e8f0" }}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                        {newEducationIndices.has(idx) && (
+                          <Chip label="🆕 NEW RECORD" size="small" sx={{ bgcolor: "#dbeafe", color: "#0369a1", fontWeight: 700 }} />
+                        )}
+                        <Box sx={{ ml: "auto" }}>
+                          <IconButton size="small" onClick={() => removeEducation(idx)} sx={{ color: "#f43f5e" }}>
+                            <DeleteIcon fontSize="inherit" />
+                          </IconButton>
+                        </Box>
+                      </Box>
                       <Grid container spacing={2}>
                         <Grid item xs={12}>
                           <TextField fullWidth label="Institution" value={edu.school} onChange={(e) => updateEducation(idx, "school", e.target.value)} size="small" />
@@ -895,6 +1691,47 @@ const UserProfile = ({ onNavigate }) => {
                         <Grid item xs={12} sm={5}>
                           <TextField fullWidth label="Year" value={edu.year} onChange={(e) => updateEducation(idx, "year", e.target.value)} size="small" />
                         </Grid>
+
+                        {/* Error message for this record */}
+                        {recordErrors.education?.[idx] && (
+                          <Grid item xs={12}>
+                            <Alert severity="error" sx={{ fontSize: "0.85rem" }}>
+                              {recordErrors.education[idx]}
+                            </Alert>
+                          </Grid>
+                        )}
+
+                        {/* Status indicator */}
+                        {changedEducation.has(idx) && !recordErrors.education?.[idx] && (
+                          <Grid item xs={12}>
+                            <Typography sx={{ fontSize: "0.85rem", color: "#f59e0b" }}>
+                              ⚠️ Unsaved changes
+                            </Typography>
+                          </Grid>
+                        )}
+
+                        {/* Save button for individual record */}
+                        <Grid item xs={12}>
+                          <Box sx={{ display: "flex", gap: 1 }}>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              onClick={() => saveIndividualEducation(idx)}
+                              startIcon={recordLoading.education?.[idx] ? <CircularProgress size={16} /> : <SaveIcon />}
+                              disabled={recordLoading.education?.[idx] || !changedEducation.has(idx)}
+                              sx={{
+                                background: recordLoading.education?.[idx]
+                                  ? "#cbd5e1"
+                                  : changedEducation.has(idx)
+                                    ? "linear-gradient(135deg, #0ea5e9, #0284c7)"
+                                    : "#cbd5e1",
+                                color: recordLoading.education?.[idx] || !changedEducation.has(idx) ? "#9ca3af" : "white"
+                              }}
+                            >
+                              {recordLoading.education?.[idx] ? "Saving..." : "Save Record"}
+                            </Button>
+                          </Box>
+                        </Grid>
                       </Grid>
                     </Paper>
                   ))}
@@ -904,10 +1741,23 @@ const UserProfile = ({ onNavigate }) => {
                     </Button>
                   </Box>
                   <Box sx={{ display: "flex", gap: 1 }}>
-                    <Button variant="contained" size="small" onClick={() => saveSection("education")} startIcon={<SaveIcon />} sx={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={saveEducationAPI}
+                      startIcon={sectionLoading.education ? <CircularProgress size={16} /> : <SaveIcon />}
+                      disabled={sectionLoading.education}
+                      sx={{ background: sectionLoading.education ? "#cbd5e1" : "linear-gradient(135deg, #6366f1, #4f46e5)" }}
+                    >
                       Save
                     </Button>
-                    <Button variant="outlined" size="small" onClick={() => cancelSectionEdit("education")} startIcon={<CancelIcon />}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => cancelSectionEdit("education")}
+                      startIcon={<CancelIcon />}
+                      disabled={sectionLoading.education}
+                    >
                       Cancel
                     </Button>
                   </Box>
@@ -922,16 +1772,26 @@ const UserProfile = ({ onNavigate }) => {
                   <AutoAwesomeIcon sx={{ fontSize: 20, color: "#6366f1" }} />
                   <Typography sx={{ fontWeight: 700, fontSize: "1.1rem", color: "#0f172a" }}>Skills</Typography>
                 </Box>
-                <Button
-                  size="small"
-                  variant={editingSections.skills ? "outlined" : "text"}
-                  startIcon={editingSections.skills ? <CancelIcon /> : <EditIcon />}
-                  onClick={() => toggleSectionEdit("skills")}
-                  sx={{ color: editingSections.skills ? "#ef4444" : "#6366f1" }}
-                >
-                  {editingSections.skills ? "Cancel" : "Edit"}
-                </Button>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {sectionLoading.skills && <CircularProgress size={20} />}
+                  <Button
+                    size="small"
+                    variant={editingSections.skills ? "outlined" : "text"}
+                    startIcon={editingSections.skills ? <CancelIcon /> : <EditIcon />}
+                    onClick={handleSkillsEditClick}
+                    disabled={sectionLoading.skills}
+                    sx={{ color: editingSections.skills ? "#ef4444" : "#6366f1" }}
+                  >
+                    {editingSections.skills ? "Cancel" : "Edit"}
+                  </Button>
+                </Box>
               </Box>
+
+              {sectionErrors.skills && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {sectionErrors.skills}
+                </Alert>
+              )}
 
               {!editingSections.skills ? (
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
@@ -953,20 +1813,35 @@ const UserProfile = ({ onNavigate }) => {
                   {errors.skills && <Typography sx={{ fontSize: "0.75rem", color: "#ef4444" }}>{errors.skills}</Typography>}
                   <Autocomplete
                     freeSolo
-                    options={SKILLS_OPTIONS.filter((s) => !editData.skills.includes(s))}
+                    loading={dropdownsLoading.skills}
+                    options={(skillsDropdown || []).map((s) => s.name).filter((s) => !editData.skills.includes(s))}
                     onInputChange={() => { }}
                     onChange={(e, value) => {
                       if (value && !editData.skills.includes(value)) {
                         handleSkillChange([...editData.skills, value]);
                       }
                     }}
-                    renderInput={(params) => <TextField {...params} placeholder="Add skills..." size="small" />}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Add skills..."
+                        size="small"
+                        disabled={dropdownsLoading.skills}
+                      />
+                    )}
                   />
                   <Box sx={{ display: "flex", gap: 1 }}>
-                    <Button variant="contained" size="small" onClick={() => saveSection("skills")} startIcon={<SaveIcon />} sx={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => saveSection("skills")}
+                      startIcon={sectionLoading.skills ? <CircularProgress size={16} /> : <SaveIcon />}
+                      disabled={sectionLoading.skills}
+                      sx={{ background: sectionLoading.skills ? "#cbd5e1" : "linear-gradient(135deg, #6366f1, #4f46e5)" }}
+                    >
                       Save
                     </Button>
-                    <Button variant="outlined" size="small" onClick={() => cancelSectionEdit("skills")} startIcon={<CancelIcon />}>
+                    <Button variant="outlined" size="small" onClick={() => cancelSectionEdit("skills")} startIcon={<CancelIcon />} disabled={sectionLoading.skills}>
                       Cancel
                     </Button>
                   </Box>
@@ -981,16 +1856,26 @@ const UserProfile = ({ onNavigate }) => {
                   <LanguageIcon sx={{ fontSize: 20, color: "#0ea5e9" }} />
                   <Typography sx={{ fontWeight: 700, fontSize: "1.1rem", color: "#0f172a" }}>Languages</Typography>
                 </Box>
-                <Button
-                  size="small"
-                  variant={editingSections.languages ? "outlined" : "text"}
-                  startIcon={editingSections.languages ? <CancelIcon /> : <EditIcon />}
-                  onClick={() => toggleSectionEdit("languages")}
-                  sx={{ color: editingSections.languages ? "#ef4444" : "#6366f1" }}
-                >
-                  {editingSections.languages ? "Cancel" : "Edit"}
-                </Button>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {sectionLoading.languages && <CircularProgress size={20} />}
+                  <Button
+                    size="small"
+                    variant={editingSections.languages ? "outlined" : "text"}
+                    startIcon={editingSections.languages ? <CancelIcon /> : <EditIcon />}
+                    onClick={handleLanguagesEditClick}
+                    disabled={sectionLoading.languages}
+                    sx={{ color: editingSections.languages ? "#ef4444" : "#6366f1" }}
+                  >
+                    {editingSections.languages ? "Cancel" : "Edit"}
+                  </Button>
+                </Box>
               </Box>
+
+              {sectionErrors.languages && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {sectionErrors.languages}
+                </Alert>
+              )}
 
               {!editingSections.languages ? (
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
@@ -1012,19 +1897,34 @@ const UserProfile = ({ onNavigate }) => {
                   {errors.languages && <Typography sx={{ fontSize: "0.75rem", color: "#ef4444" }}>{errors.languages}</Typography>}
                   <Autocomplete
                     freeSolo
-                    options={LANGUAGES_OPTIONS.filter((l) => !editData.languages.includes(l))}
+                    loading={dropdownsLoading.languages}
+                    options={(languagesDropdown || []).map((l) => l.language).filter((l) => !editData.languages.includes(l))}
                     onChange={(e, value) => {
                       if (value && !editData.languages.includes(value)) {
                         handleLanguageChange([...editData.languages, value]);
                       }
                     }}
-                    renderInput={(params) => <TextField {...params} placeholder="Add languages..." size="small" />}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Add languages..."
+                        size="small"
+                        disabled={dropdownsLoading.languages}
+                      />
+                    )}
                   />
                   <Box sx={{ display: "flex", gap: 1 }}>
-                    <Button variant="contained" size="small" onClick={() => saveSection("languages")} startIcon={<SaveIcon />} sx={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => saveSection("languages")}
+                      startIcon={sectionLoading.languages ? <CircularProgress size={16} /> : <SaveIcon />}
+                      disabled={sectionLoading.languages}
+                      sx={{ background: sectionLoading.languages ? "#cbd5e1" : "linear-gradient(135deg, #6366f1, #4f46e5)" }}
+                    >
                       Save
                     </Button>
-                    <Button variant="outlined" size="small" onClick={() => cancelSectionEdit("languages")} startIcon={<CancelIcon />}>
+                    <Button variant="outlined" size="small" onClick={() => cancelSectionEdit("languages")} startIcon={<CancelIcon />} disabled={sectionLoading.languages}>
                       Cancel
                     </Button>
                   </Box>
@@ -1094,12 +1994,18 @@ const UserProfile = ({ onNavigate }) => {
                 </Button>
               </Box>
 
+              {sectionErrors.personalinfo && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {sectionErrors.personalinfo}
+                </Alert>
+              )}
+
               {!editingSections.personalDetails ? (
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Box>
                       <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>Date of Birth</Typography>
-                      <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>{editData.dob || "—"}</Typography>
+                      <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>{editData.date_of_birth || "—"}</Typography>
                     </Box>
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -1117,19 +2023,55 @@ const UserProfile = ({ onNavigate }) => {
                 </Grid>
               ) : (
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
+                  {/* <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Date of Birth"
-                      name="dob"
+                      name="date_of_birth"
                       type="date"
-                      value={editData.dob}
+                      value={editData.date_of_birth}
                       onChange={handleInputChange}
-                      error={!!errors.dob}
-                      helperText={errors.dob}
+                      error={!!errors.date_of_birth}
+                      helperText={errors.date_of_birth}
                       size="small"
                       InputLabelProps={{ shrink: true }}
                       InputProps={{ startAdornment: <CakeIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} /> }}
+                    />
+                  </Grid> */}
+                  <Grid item xs={12} sm={6}>
+                    <DatePicker
+                      label="Date of Birth"
+                      value={editData.date_of_birth ? dayjs(editData.date_of_birth) : null}
+                      onChange={(newValue) => {
+                        const formattedDate = newValue ? newValue.format("YYYY-MM-DD") : "";
+
+                        setEditData((prev) => ({
+                          ...prev,
+                          date_of_birth: formattedDate,
+                        }));
+
+                        if (errors.date_of_birth) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            date_of_birth: "",
+                          }));
+                        }
+                      }}
+                      disableFuture
+                      format="DD/MM/YYYY"
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          size: "small",
+                          error: !!errors.date_of_birth,
+                          helperText: errors.date_of_birth,
+                          InputProps: {
+                            startAdornment: (
+                              <CakeIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} />
+                            ),
+                          },
+                        },
+                      }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>

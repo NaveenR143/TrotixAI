@@ -83,7 +83,7 @@ const MobileOTPValidation = ({
         if (digits.length === otpLength) {
             setTimeout(() => {
 
-                debugger;
+                
                 handleVerify({ preventDefault: () => { } });
             }, 200);
         }
