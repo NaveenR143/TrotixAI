@@ -55,11 +55,11 @@ class SkillLevelEnum(str, enum.Enum):
     expert = "expert"
 
 
-class GenderEnum(str, enum.Enum):
+class GenderTypeEnum(str, enum.Enum):
     male = "male"
     female = "female"
-    non_binary = "non_binary"
-    prefer_not_to_say = "prefer_not_to_say"
+    other = "other"
+    prefer_not_to_say = "prefer not to say"
 
 
 class SalaryCurrencyEnum(str, enum.Enum):
@@ -158,7 +158,9 @@ class JobseekerProfile(Base):
     )
     headline = Column(String, nullable=True)
     summary = Column(Text, nullable=True)
-    gender = Column(Enum(GenderEnum), nullable=True)
+    gender = Column(
+        Enum(GenderTypeEnum, name="gender_type", create_type=False), nullable=True
+    )
     date_of_birth = Column(Date, nullable=True)
     current_location = Column(String, nullable=True, index=True)
     preferred_locations = Column(ARRAY(String), nullable=True)

@@ -18,7 +18,7 @@ from ai.models.orm_models import (
     UserRoleEnum,
     UserStatusEnum,
     SkillLevelEnum,
-    GenderEnum,
+    GenderTypeEnum,
     SalaryCurrencyEnum,
 )
 
@@ -51,7 +51,7 @@ __all__ = [
     "UserRoleEnum",
     "UserStatusEnum",
     "SkillLevelEnum",
-    "GenderEnum",
+    "GenderTypeEnum",
     "SalaryCurrencyEnum",
     # Pydantic Models
     "UserProfileResponse",

@@ -187,6 +187,7 @@ const UserProfile = ({ onNavigate }) => {
     about: profile?.about || "",
     date_of_birth: profile?.date_of_birth || "",
     maritalStatus: profile?.maritalStatus || "",
+    gender: profile?.gender || "",
     currentLocation: profile?.currentLocation || "",
   });
 
@@ -317,7 +318,8 @@ const UserProfile = ({ onNavigate }) => {
                   ? profileData.languages.split(",").map((l) => toTitleCase(l.trim()))
                   : []
                 : [],
-            yearsOfExperience: profileData?.years_of_experience || 0,
+            years_of_experience: profileData?.years_of_experience || 0,
+            gender: toTitleCase(profileData?.gender) || "",
             linkedin: profileData?.linkedin_url || "",
             github: profileData?.github_url || "",
             portfolio: profileData?.portfolio_url || "",
@@ -416,6 +418,39 @@ const UserProfile = ({ onNavigate }) => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSendOtp = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      // Clean phone number - remove all non-digits
+      const cleanPhone = editData.mobile
+
+      // Determine which endpoint to call based on newUser flag
+      const endpoint = `${API_BASE_URL}${API_ENDPOINTS.SEND_OTP}`;
+
+      const payload = {
+        phone: cleanPhone.toString(),
+      };
+
+      const response = await axios.post(endpoint, payload);
+
+      debugger;
+      const verifyResult = response.data;
+
+      setLoading(false);
+
+
+    } catch (err) {
+      setLoading(false);
+      console.log(err);
+      const errorMsg = err?.response?.data?.detail || err?.message || "Sending OTP failed. Please try again.";
+      debugger;
+      setError(errorMsg);
+      // if (onError) onError(errorMsg);
+    }
   };
 
   // Handle input changes
@@ -566,6 +601,7 @@ const UserProfile = ({ onNavigate }) => {
       about: profile?.about || "",
       date_of_birth: profile?.date_of_birth || "",
       maritalStatus: profile?.maritalStatus || "",
+      gender: profile?.gender || "",
       currentLocation: profile?.currentLocation || "",
     });
     setErrors({});
@@ -653,6 +689,7 @@ const UserProfile = ({ onNavigate }) => {
       const dataToUpdate = {
         date_of_birth: editData.date_of_birth,
         marital_status: editData.maritalStatus,
+        gender: editData.gender,
         current_location: editData.currentLocation,
       };
 
@@ -1073,6 +1110,7 @@ const UserProfile = ({ onNavigate }) => {
           about: editData.about,
           date_of_birth: editData.date_of_birth,
           maritalStatus: editData.maritalStatus,
+          gender: editData.gender,
           currentLocation: editData.currentLocation,
         };
 
@@ -1371,6 +1409,14 @@ const UserProfile = ({ onNavigate }) => {
                   </Grid>
                   <Grid item xs={12}>
                     <TextField fullWidth label="Mobile Number *" name="mobile" value={editData.mobile} onChange={handleInputChange} error={!!errors.mobile} helperText={errors.mobile} size="small" placeholder="10-digit number" />
+                    <Button
+                      variant="contained"
+                      size="small"
+                      sx={{ mt: 1 }}
+                      onClick={handleSendOtp}
+                    >
+                      Verify Number
+                    </Button>
                   </Grid>
                   <Grid item xs={12}>
                     <TextField fullWidth label="Preferred Location *" name="preferredLocation" value={editData.preferredLocation} onChange={handleInputChange} error={!!errors.preferredLocation} helperText={errors.preferredLocation} size="small" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} /> }} />
@@ -2004,22 +2050,51 @@ const UserProfile = ({ onNavigate }) => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Box>
-                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>Date of Birth</Typography>
-                      <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>{editData.date_of_birth || "—"}</Typography>
+                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>
+                        Date of Birth
+                      </Typography>
+                      <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>
+                        {editData.date_of_birth || "—"}
+                      </Typography>
                     </Box>
                   </Grid>
+
                   <Grid item xs={12} sm={6}>
                     <Box>
-                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>Marital Status</Typography>
-                      <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>{editData.maritalStatus || "—"}</Typography>
+                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>
+                        Marital Status
+                      </Typography>
+                      <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>
+                        {editData.maritalStatus || "—"}
+                      </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12}>
+
+                  {/* 👇 Gender will now sit beside it */}
+                  <Grid item xs={12} sm={6}>
                     <Box>
-                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>Current Location</Typography>
-                      <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>{editData.currentLocation || "—"}</Typography>
+                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>
+                        Gender
+                      </Typography>
+                      <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>
+                        {editData.gender || "—"}
+                      </Typography>
                     </Box>
                   </Grid>
+
+                  {/* 👇 Move Current Location here */}
+                  <Grid item xs={12} sm={6}>
+                    <Box>
+                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>
+                        Current Location
+                      </Typography>
+                      <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>
+                        {editData.currentLocation || "—"}
+                      </Typography>
+                    </Box>
+                  </Grid>
+
+
                 </Grid>
               ) : (
                 <Grid container spacing={2}>
@@ -2092,7 +2167,25 @@ const UserProfile = ({ onNavigate }) => {
                       <MenuItem value="Widowed">Widowed</MenuItem>
                     </TextField>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      select
+                      label="Gender"
+                      name="gender"
+                      value={editData.gender}
+                      onChange={handleInputChange}
+                      size="small"
+                      InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} /> }}
+                    >
+                      <MenuItem value="">Select</MenuItem>
+                      <MenuItem value="male">Male</MenuItem>
+                      <MenuItem value="female">Female</MenuItem>
+                      <MenuItem value="other">Other</MenuItem>
+                      <MenuItem value="prefer not to say">Prefer not to say</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Current Location"

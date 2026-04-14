@@ -15,12 +15,13 @@ const API_ENDPOINTS = {
   // Resume Upload & Parsing
   UPLOAD_RESUME: '/resume-process/upload-resume',
   RESUME_STATUS: '/resume-process/resume-status-wait',
-  VERIFY_OTP_UPDATE:'/otp/verify-otp-update',
-  VERIFY_OTP:'/otp/verify-otp',
-  USER_PROFILE:'/profile/fetch',
-  PROFILE:'/profile',
-  
-  
+  VERIFY_OTP_UPDATE: '/otp/verify-otp-update',
+  VERIFY_OTP: '/otp/verify-otp',
+  USER_PROFILE: '/profile/fetch',
+  PROFILE: '/profile',
+  SEND_OTP: '/otp/send-otp',
+
+
   // Add other endpoints as needed
   // USER_PROFILE: '/user/profile',
   // JOB_SEARCH: '/jobs/search',
