@@ -24,6 +24,7 @@ import { toTitleCase } from "./utils/profileUtils";
 import PersonalInformationSection from "./sections/PersonalInformationSection";
 import WorkExperienceSection from "./sections/WorkExperienceSection";
 import EducationSection from "./sections/EducationSection";
+import ProjectsSection from "./sections/ProjectsSection";
 import SkillsSection from "./sections/SkillsSection";
 import LanguagesSection from "./sections/LanguagesSection";
 import ProfessionalSummarySection from "./sections/ProfessionalSummarySection";
@@ -72,7 +73,9 @@ const UserProfile = () => {
         setError(null);
 
         // In a real app, phone would come from auth or state
-        const phone = profile?.mobile || "9821071111";
+        // const phone = profile?.mobile || "9821071111";
+
+        const phone = "9789502974";
 
         const response = await axios.get(
           `${API_BASE_URL}${API_ENDPOINTS.USER_PROFILE}`,
@@ -122,6 +125,20 @@ const UserProfile = () => {
                 grade: edu?.grade || "",
                 year: edu?.end_year || "",
               }))
+              : [],
+            projects: profileData?.projects && Array.isArray(profileData.projects)
+              ? profileData.projects.map((project) => ({
+                  id: project?.id || null,
+                  title: toTitleCase(project?.title || "") || "",
+                  description: project?.description || "",
+                  url: project?.url || "",
+                  repoUrl: project?.repo_url || "",
+                  startDate: project?.start_date || "",
+                  endDate: project?.end_date || "",
+                  skills: project?.skills_used && Array.isArray(project.skills_used)
+                    ? project.skills_used.map((s) => toTitleCase(typeof s === "string" ? s : s?.name))
+                    : [],
+                }))
               : [],
             skills: profileData?.skills && Array.isArray(profileData.skills)
               ? profileData.skills.map((s) => toTitleCase(typeof s === "string" ? s : s?.name))
@@ -256,6 +273,11 @@ const UserProfile = () => {
               profile={profile}
               initialEducation={profile?.education}
               onSuccess={handleSuccess}
+            />
+
+            <ProjectsSection
+              profile={profile}
+              initialProjects={profile?.projects}
             />
 
             <SkillsSection

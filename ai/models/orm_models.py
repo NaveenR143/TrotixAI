@@ -516,6 +516,9 @@ class Resume(Base):
     improvement_score = Column(Integer, nullable=True)
     improvement_notes = Column(JSON, nullable=True)
     improvement_credits_used = Column(Integer, default=0)
+    embedding = Column(String, nullable=True)  # pgvector embedding stored as string
+    summary = Column(Text, nullable=True)
+    experience_years = Column(Numeric(4, 1), default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -551,3 +554,49 @@ class ResumeBuilderDoc(Base):
 
     # Relationships
     user = relationship("User", back_populates="resume_builder_docs")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job Postings Table (from 004_jobs_and_applications.sql)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class JobPosting(Base):
+    __tablename__ = "job_postings"
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    min_experience = Column(Integer, default=0)
+    embedding = Column(String, nullable=True)  # pgvector embedding stored as string
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    job_skills = relationship(
+        "JobSkill", back_populates="job_posting", cascade="all, delete-orphan"
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job Skills Table (from 004_jobs_and_applications.sql)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class JobSkill(Base):
+    __tablename__ = "job_skills"
+
+    id = Column(Integer, primary_key=True)
+    job_id = Column(
+        Integer,
+        ForeignKey("job_postings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    skill_name = Column(String, nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    job_posting = relationship("JobPosting", back_populates="job_skills")

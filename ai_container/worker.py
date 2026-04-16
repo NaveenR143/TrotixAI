@@ -35,7 +35,7 @@ QUEUE_NAME = "resumes-queue"
 # ----------------------------
 MAX_WORKERS = 5
 VISIBILITY_TIMEOUT = 120  # seconds
-POLL_INTERVAL = 3000         # seconds
+POLL_INTERVAL = 3         # seconds
 MAX_RETRIES = 5
 
 
