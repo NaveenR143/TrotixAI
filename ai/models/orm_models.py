@@ -297,7 +297,12 @@ class WorkExperience(Base):
         nullable=False,
         index=True,
     )
-    company_id = Column(Integer, nullable=True)  # Maps to companies table
+    company_id = Column(
+        Integer,
+        ForeignKey("companies.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     title = Column(String, nullable=False)
     location = Column(String, nullable=True)
     start_date = Column(Date, nullable=False)
@@ -311,6 +316,7 @@ class WorkExperience(Base):
 
     # Relationships
     user = relationship("User", back_populates="work_experiences")
+    company = relationship("Company", back_populates="work_experiences")
     projects = relationship(
         "Project", back_populates="work_experience", cascade="all, delete-orphan"
     )
@@ -399,6 +405,11 @@ class Company(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    work_experiences = relationship(
+        "WorkExperience", back_populates="company", cascade="all, delete-orphan"
     )
 
 

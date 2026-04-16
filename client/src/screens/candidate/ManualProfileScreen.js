@@ -222,7 +222,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                 <Paper key={idx} variant="outlined" sx={{ p: 2, mb: 2, position: 'relative', bgcolor: '#f8fafc', borderStyle: 'dashed' }}>
                   <IconButton size="small" onClick={() => removeExperience(idx)} sx={{ position: 'absolute', top: 8, right: 8, color: '#f43f5e' }}><DeleteIcon fontSize="inherit" /></IconButton>
                   <Grid container spacing={2}>
-                    <Grid item xs={6}><TextField fullWidth label="Company" value={exp.company} onChange={(e) => updateExperience(idx, 'company', e.target.value)} size="small" /></Grid>
+                    <Grid item xs={6}><TextField fullWidth label="Company" value={exp.company_name} onChange={(e) => updateExperience(idx, 'company_name', e.target.value)} size="small" /></Grid>
                     <Grid item xs={6}><TextField fullWidth label="Role" value={exp.role} onChange={(e) => updateExperience(idx, 'role', e.target.value)} size="small" /></Grid>
                     <Grid item xs={12}><TextField fullWidth multiline rows={2} label="Description" value={exp.description} onChange={(e) => updateExperience(idx, 'description', e.target.value)} size="small" /></Grid>
                   </Grid>

@@ -397,7 +397,7 @@ const CandidateProfileScreen = () => {
                             mb: 1,
                           }}
                         >
-                          {exp.company}
+                          {exp.company_name}
                         </Typography>
                         <Typography
                           sx={{
