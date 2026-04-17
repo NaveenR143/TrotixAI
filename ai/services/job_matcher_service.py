@@ -11,14 +11,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, text
 from sqlalchemy.orm import selectinload
 
-from ai.models.orm_models import Resume, JobPosting, JobSkill, JobseekerSkill
+from ai.models.orm_models import (
+    Resume,
+    JobPosting,
+    JobSkill,
+    JobseekerSkill,
+    JobseekerProfile,
+    Skill,
+    Company,
+)
 
 
 class JobMatcherService:
     """Service for matching job seekers with job postings"""
 
     @staticmethod
-    async def get_matching_jobs(user_id: str, session: AsyncSession, limit: int = 10) -> List[Dict[str, Any]]:
+    async def get_matching_jobs(
+        user_id: str, session: AsyncSession, limit: int = 100
+    ) -> List[Dict[str, Any]]:
         """
         Retrieve and rank jobs for a given user_id using embeddings, skills, and experience.
 
@@ -37,43 +47,69 @@ class JobMatcherService:
             return []
 
         # Step 2: Fetch top 100 jobs by embedding similarity
-        candidate_jobs = await JobMatcherService._fetch_candidate_jobs(user_data, session, limit=100)
+        candidate_jobs = await JobMatcherService._fetch_candidate_jobs(
+            user_data, session, limit=100
+        )
 
         # Step 3: Compute full scores for candidate jobs
-        scored_jobs = await JobMatcherService._compute_job_scores(user_data, candidate_jobs, session)
+        scored_jobs = await JobMatcherService._compute_job_scores(
+            user_data, candidate_jobs, session
+        )
 
         # Step 4: Sort by final score and return top results
         scored_jobs.sort(key=lambda x: x["final_score"], reverse=True)
         return scored_jobs[:limit]
 
     @staticmethod
-    async def _fetch_user_data(user_id: str, session: AsyncSession) -> Optional[Dict[str, Any]]:
-        """Fetch user resume data and skills"""
+    async def _fetch_user_data(
+        user_id: str, session: AsyncSession
+    ) -> Optional[Dict[str, Any]]:
+        """Fetch user resume data, profile, and skills with optimized queries"""
         try:
-            # Get user resume data
-            resume_query = select(Resume).where(
-                Resume.user_id == UUID(user_id),
-                Resume.is_primary == True
-            )
-            resume_result = await session.execute(resume_query)
-            resume = resume_result.scalars().first()
+            user_uuid = UUID(user_id)
 
-            if not resume:
+            # Optimized Query 1: Combine Resume and JobseekerProfile data using join
+            # This reduces 2 separate queries into 1
+            resume_profile_query = (
+                select(Resume, JobseekerProfile)
+                .join(
+                    JobseekerProfile,
+                    Resume.user_id == JobseekerProfile.user_id,
+                    isouter=True,
+                )
+                .where(Resume.user_id == user_uuid)
+            )
+
+            resume_profile_result = await session.execute(resume_profile_query)
+            row = resume_profile_result.first()
+
+            if not row:
                 return None
 
-            # Get user skills
-            skills_query = select(JobseekerSkill.skill_name).where(
-                JobseekerSkill.user_id == UUID(user_id)
+            resume, profile = row
+            experience_years = (
+                float(profile.years_of_experience or 0) if profile else 0.0
+            )
+
+            # Optimized Query 2: Join JobseekerSkill with Skill to get skill names
+            # JobseekerSkill.skill_id -> Skill.id -> Skill.name
+            skills_query = (
+                select(Skill.name)
+                .join(
+                    JobseekerSkill,
+                    Skill.id == JobseekerSkill.skill_id,
+                )
+                .where(JobseekerSkill.user_id == user_uuid)
             )
             skills_result = await session.execute(skills_query)
             user_skills = [row[0] for row in skills_result.all()]
 
             return {
                 "user_id": user_id,
-                "summary": resume.summary or resume.parsed_summary or "",
-                "experience_years": float(resume.experience_years or resume.parsed_experience_years or 0),
-                "embedding": resume.embedding,
-                "skills": user_skills
+                "summary": resume.parsed_summary or "",
+                "experience_years": experience_years,
+                "embedding": resume.resume_embedding,
+                "skills": user_skills,
             }
 
         except Exception as e:
@@ -81,37 +117,66 @@ class JobMatcherService:
             return None
 
     @staticmethod
-    async def _fetch_candidate_jobs(user_data: Dict[str, Any], session: AsyncSession, limit: int = 100) -> List[Dict[str, Any]]:
+    async def _fetch_candidate_jobs(
+        user_data: Dict[str, Any], session: AsyncSession, limit: int = 100
+    ) -> List[Dict[str, Any]]:
         """Fetch candidate jobs with their skills, ranked by embedding similarity"""
         try:
             if not user_data.get("embedding"):
                 # Fallback: get all jobs if no embedding
-                jobs_query = select(JobPosting).limit(limit)
+                jobs_query = select(JobPosting, Company).join(
+                    Company, JobPosting.company_id == Company.id
+                ).limit(limit)
             else:
                 # Use pgvector cosine similarity to get top jobs
-                jobs_query = select(JobPosting).order_by(
-                    text("embedding <=> :user_embedding")
-                ).limit(limit)
-                jobs_query = jobs_query.params(user_embedding=user_data["embedding"])
+                jobs_query = (
+                    select(JobPosting, Company)
+                    .join(Company, JobPosting.company_id == Company.id)
+                    .order_by(text("job_embedding <=> :user_embedding"))
+                    .limit(limit)
+                )
+                jobs_query = jobs_query.params(
+                    user_embedding=user_data["embedding"])
 
             jobs_result = await session.execute(jobs_query)
-            jobs = jobs_result.scalars().all()
+            jobs_rows = jobs_result.all()
 
             candidate_jobs = []
-            for job in jobs:
-                # Get job skills
-                skills_query = select(JobSkill.skill_name).where(JobSkill.job_id == job.id)
+            for job, company in jobs_rows:
+                # Get job skills by joining JobSkill with Skill table
+                skills_query = (
+                    select(Skill.name)
+                    .join(
+                        JobSkill,
+                        Skill.id == JobSkill.skills_id,
+                    )
+                    .where(JobSkill.job_posting_id == job.id)
+                )
                 skills_result = await session.execute(skills_query)
                 job_skills = [row[0] for row in skills_result.all()]
 
-                candidate_jobs.append({
-                    "id": job.id,
-                    "title": job.title,
-                    "description": job.description or "",
-                    "min_experience": job.min_experience or 0,
-                    "embedding": job.embedding,
-                    "skills": job_skills
-                })
+                candidate_jobs.append(
+                    {
+                        "id": job.id,
+                        "title": job.title,
+                        "description": job.description or "",
+                        "experience_min_yrs": job.experience_min_yrs or 0,
+                        "job_embedding": job.job_embedding,
+                        "company_name": company.name,
+                        "skills": job_skills,
+                        "location": job.location,
+                        "state": job.state,
+                        "city": job.city,
+                        "posted_date": job.posted_at.isoformat() if job.posted_at else None,
+                        "department": job.department,
+                        "work_mode": job.work_mode,
+                        "job_type": job.job_type,
+                        "experience_level": job.experience_level,
+                        "summary": job.summary,
+                        "description": job.description,
+
+                    }
+                )
 
             return candidate_jobs
 
@@ -120,7 +185,9 @@ class JobMatcherService:
             return []
 
     @staticmethod
-    async def _compute_job_scores(user_data: Dict[str, Any], jobs: List[Dict[str, Any]], session: AsyncSession) -> List[Dict[str, Any]]:
+    async def _compute_job_scores(
+        user_data: Dict[str, Any], jobs: List[Dict[str, Any]], session: AsyncSession
+    ) -> List[Dict[str, Any]]:
         """Compute detailed scores for each job"""
         scored_jobs = []
 
@@ -128,36 +195,41 @@ class JobMatcherService:
             try:
                 # Embedding Score (cosine similarity)
                 embedding_score = 0.0
-                if user_data.get("embedding") and job.get("embedding"):
+                if user_data.get("embedding") and job.get("job_embedding"):
                     # Using pgvector cosine similarity: 1 - (a <=> b)
-                    similarity_query = select(
-                        func.cast(1.0, type_=func.Float) - func.cast(
-                            func.text(":job_emb <=> :user_emb"), type_=func.Float
-                        )
-                    ).params(
-                        job_emb=job["embedding"],
-                        user_emb=user_data["embedding"]
+                    # Cast string embeddings to vectors for comparison
+                    similarity_query = text(
+                        "SELECT 1.0 - ((:job_emb)::vector <=> (:user_emb)::vector)"
                     )
-                    result = await session.execute(similarity_query)
-                    embedding_score = max(0.0, min(1.0, result.scalar() or 0.0))
+
+                    result = await session.execute(
+                        similarity_query,
+                        {
+                            "job_emb": job["job_embedding"],
+                            "user_emb": user_data["embedding"],
+                        }
+                    )
+
+                    embedding_score = max(
+                        0.0, min(1.0, result.scalar() or 0.0))
                 else:
                     embedding_score = 0.5  # Default neutral score
 
                 # Skills Score
-                skill_score, matched_skills, missing_skills = JobMatcherService._compute_skill_score(
-                    user_data["skills"], job["skills"]
+                skill_score, matched_skills, missing_skills = (
+                    JobMatcherService._compute_skill_score(
+                        user_data["skills"], job["skills"]
+                    )
                 )
 
                 # Experience Score
                 experience_score = JobMatcherService._compute_experience_score(
-                    user_data["experience_years"], job["min_experience"]
+                    user_data["experience_years"], job["experience_min_yrs"]
                 )
 
                 # Final Score
                 final_score = (
-                    0.5 * embedding_score +
-                    0.3 * skill_score +
-                    0.2 * experience_score
+                    0.5 * embedding_score + 0.3 * skill_score + 0.2 * experience_score
                 )
 
                 # Generate reason
@@ -165,19 +237,36 @@ class JobMatcherService:
                     embedding_score, skill_score, experience_score, matched_skills
                 )
 
-                scored_jobs.append({
-                    "job_id": str(job["id"]),
-                    "title": job["title"],
-                    "final_score": round(final_score, 3),
-                    "scores": {
-                        "embedding": round(embedding_score, 3),
-                        "skills": round(skill_score, 3),
-                        "experience": round(experience_score, 3)
-                    },
-                    "matched_skills": matched_skills,
-                    "missing_skills": missing_skills,
-                    "reason": reason
-                })
+                scored_jobs.append(
+                    {
+                        "job_id": str(job["id"]),
+                        "title": job["title"],
+                        "final_score": round(final_score, 3),
+                        "scores": {
+                            "embedding": round(embedding_score, 3),
+                            "skills": round(skill_score, 3),
+                            "experience": round(experience_score, 3),
+                        },
+                        "matched_skills": matched_skills,
+                        "missing_skills": missing_skills,
+                        "reason": reason,
+                        
+                        "description": job["description"],
+                        "experience_min_yrs": job["experience_min_yrs"],
+                        # "job_embedding": job["job_embedding"],
+                        "company_name": job["company_name"],
+                        "skills": job["skills"],
+                        "location": job["location"],
+                        "state": job["state"],
+                        "city": job["city"],
+                        "posted_date": job["posted_date"],
+                        "department": job["department"],
+                        "work_mode": job["work_mode"],
+                        "job_type": job["job_type"],
+                        "experience_level": job["experience_level"],
+                        "summary": job["summary"],
+                    }
+                )
 
             except Exception as e:
                 print(f"Error computing score for job {job['id']}: {str(e)}")
@@ -186,7 +275,9 @@ class JobMatcherService:
         return scored_jobs
 
     @staticmethod
-    def _compute_skill_score(user_skills: List[str], job_skills: List[str]) -> tuple[float, List[str], List[str]]:
+    def _compute_skill_score(
+        user_skills: List[str], job_skills: List[str]
+    ) -> tuple[float, List[str], List[str]]:
         """Compute skill matching score"""
         if not job_skills:
             return 1.0, [], []  # Perfect score if no skills required
@@ -207,16 +298,21 @@ class JobMatcherService:
                 # Check for partial matches (e.g., "python" matches "python programming")
                 found_match = False
                 for user_skill in user_skills_lower:
-                    if (job_skill_lower in user_skill or
-                        user_skill in job_skill_lower or
-                        JobMatcherService._skills_similar(job_skill_lower, user_skill)):
+                    if (
+                        job_skill_lower in user_skill
+                        or user_skill in job_skill_lower
+                        or JobMatcherService._skills_similar(
+                            job_skill_lower, user_skill
+                        )
+                    ):
                         matched_skills.append(job_skill)
                         found_match = True
                         break
                 if not found_match:
                     missing_skills.append(job_skill)
 
-        skill_score = len(matched_skills) / len(job_skills) if job_skills else 1.0
+        skill_score = len(matched_skills) / \
+            len(job_skills) if job_skills else 1.0
         return skill_score, matched_skills, missing_skills
 
     @staticmethod
@@ -245,7 +341,12 @@ class JobMatcherService:
         return min(user_experience / min_experience, 1.0)
 
     @staticmethod
-    def _generate_match_reason(embedding_score: float, skill_score: float, experience_score: float, matched_skills: List[str]) -> str:
+    def _generate_match_reason(
+        embedding_score: float,
+        skill_score: float,
+        experience_score: float,
+        matched_skills: List[str],
+    ) -> str:
         """Generate a short explanation for the match"""
         reasons = []
 
@@ -257,11 +358,13 @@ class JobMatcherService:
             reasons.append("Limited content match")
 
         if skill_score > 0.8:
-            reasons.append(f"Excellent skill match ({len(matched_skills)} skills)")
+            reasons.append(
+                f"Excellent skill match ({len(matched_skills)} skills)")
         elif skill_score > 0.5:
             reasons.append(f"Good skill match ({len(matched_skills)} skills)")
         elif skill_score > 0.2:
-            reasons.append(f"Partial skill match ({len(matched_skills)} skills)")
+            reasons.append(
+                f"Partial skill match ({len(matched_skills)} skills)")
         else:
             reasons.append("Limited skill match")
 
@@ -278,6 +381,8 @@ class JobMatcherService:
 
 
 # Convenience function for external use
-async def get_matching_jobs(user_id: str, session: AsyncSession, limit: int = 10) -> List[Dict[str, Any]]:
+async def get_matching_jobs(
+    user_id: str, session: AsyncSession, limit: int = 10
+) -> List[Dict[str, Any]]:
     """Get matching jobs for a user"""
     return await JobMatcherService.get_matching_jobs(user_id, session, limit)

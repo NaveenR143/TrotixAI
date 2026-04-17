@@ -1,20 +1,32 @@
 // screens/candidate/JobFeedScreen.js
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
-  Box, Typography, Button, Stack, useMediaQuery, useTheme, Tooltip, IconButton, Chip, Drawer, Badge,
+  Box, Typography, Button, Stack, useMediaQuery, useTheme, Tooltip, IconButton, Chip, Drawer, Badge, CircularProgress,
 } from "@mui/material";
 import TuneIcon from "@mui/icons-material/Tune";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import axios from "axios";
 import CareerCoach from "../../components/profile/CareerCoach";
 import JobDetailScreen from "./JobDetailScreen";
 import JobListItem from "../../components/jobs/JobListItem";
 import MobileJobCard from "../../components/jobs/MobileJobCard";
 import JobFilters from "../../components/jobs/JobFilters";
 import { useSelector } from "react-redux";
+import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
 
-const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
+// Utility function to convert strings to title case
+const titleCase = (str) => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, userId }) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
@@ -22,7 +34,11 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
   const [animating, setAnimating] = useState(false);
   const [animDir, setAnimDir] = useState('left');
   const [savedJobs, setSavedJobs] = useState(new Set());
+  const [jobs, setJobs] = useState(initialJobs || []);
+  const [loading, setLoading] = useState(!initialJobs || initialJobs.length === 0);
+  const [error, setError] = useState(null);
   const [selectedDesktopJob, setSelectedDesktopJob] = useState(jobs[0] || null);
+  const [showMobileDetailView, setShowMobileDetailView] = useState(false);
   const [filterMode, setFilterMode] = useState('all');
   const [showCoach, setShowCoach] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -36,6 +52,65 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
     matchScore: 0,
   });
   const profile = useSelector((state) => state.UserReducer);
+
+  // Fetch jobs from API on component mount
+  useEffect(() => {
+    const fetchJobsFromAPI = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Use provided userId or default userId
+        const userIdToUse = userId || '4bfcd973-7f38-4fd9-80f2-b8c133075fcb';
+
+        // Make API request
+        const response = await axios.get(
+          `${API_BASE_URL}${API_ENDPOINTS.JOB_FEEDS}`,
+          { params: { user_id: userIdToUse } }
+        );
+
+        // Process the API response
+        if (response.data && response.data.jobs) {
+          const fetchedJobs = response.data.jobs.map((job) => ({
+            // Use existing fields from API response, with fallback to mock data structure
+            id: job.job_id || job.id,
+            title: titleCase(job.title || 'Untitled Position'),
+            company: titleCase(job.company_name),
+            location: titleCase(job.location),
+            workMode: titleCase(job.work_mode || 'Flexible'),
+            type: titleCase(job.job_type || 'Full-time'),
+            experience_level: titleCase(job.experience_level || '0+ Yrs'),
+            department: titleCase(job.department),
+            posted: job.posted_date ? job.posted_date.split('T')[0] : 'Recently',
+            matchScore: Math.round((job.final_score || 0) * 100),
+            keySkillsMatched: job.matched_skills || [],
+            keySkillsMissing: job.missing_skills || [],
+            description: job.description || '',
+            summary: job.summary || '',
+            logoColor: job.logoColor || '#6366f1',
+            about: job.about || '',
+          }));
+
+          setJobs(fetchedJobs);
+          setSelectedDesktopJob(fetchedJobs[0] || null);
+        } else {
+          setError('No jobs found');
+        }
+      } catch (err) {
+        console.error('Error fetching jobs:', err);
+        setError('Failed to load jobs. Using sample data.');
+        // Fallback to initial jobs if API fails
+        setJobs(initialJobs || []);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Only fetch if no initial jobs provided or if explicitly needed
+    if (!initialJobs || initialJobs.length === 0) {
+      fetchJobsFromAPI();
+    }
+  }, [userId, initialJobs]);
 
   const handleSwipe = (dir) => {
     if (animating || currentIndex >= filteredJobs.length) return;
@@ -120,6 +195,28 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
     (filters.matchScore > 0 ? 1 : 0);
 
   if (jobs.length === 0 || (currentIndex >= filteredJobs.length && !isDesktop)) {
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)', gap: 3 }}>
+          <CircularProgress size={50} sx={{ color: '#6366f1' }} />
+          <Typography sx={{ color: '#64748b', fontWeight: 500 }}>Loading personalized jobs for you...</Typography>
+        </Box>
+      );
+    }
+
+    if (error) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)', gap: 2 }}>
+          <Typography sx={{ fontSize: '2rem' }}>⚠️</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#0f172a' }}>{error}</Typography>
+          <Button variant="outlined" onClick={onGoBack} startIcon={<ArrowBackIcon />}
+            sx={{ mt: 1, borderColor: '#e2e8f0', color: '#0f172a', '&:hover': { borderColor: '#0f172a' } }}>
+            Back to Search
+          </Button>
+        </Box>
+      );
+    }
+
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)', gap: 2 }}>
         <Typography sx={{ fontSize: '2rem' }}>🎉</Typography>
@@ -151,9 +248,49 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
     );
   }
 
+
+
   if (!isDesktop) {
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 3 }}>
+          <CircularProgress size={50} sx={{ color: '#6366f1' }} />
+          <Typography sx={{ color: '#64748b', fontWeight: 500 }}>Loading personalized jobs for you...</Typography>
+        </Box>
+      );
+    }
+
+    if (error) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 2 }}>
+          <Typography sx={{ fontSize: '2rem' }}>⚠️</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#0f172a' }}>{error}</Typography>
+          <Button variant="outlined" onClick={onGoBack} startIcon={<ArrowBackIcon />}
+            sx={{ mt: 1, borderColor: '#e2e8f0', color: '#0f172a', '&:hover': { borderColor: '#0f172a' } }}>
+            Back to Search
+          </Button>
+        </Box>
+      );
+    }
+
     const job = filteredJobs[currentIndex];
     if (!job) return null;
+
+    // Show detail screen if requested
+    if (showMobileDetailView) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)' }}>
+          <JobDetailScreen 
+            job={job} 
+            isEmbedded={false}
+            savedJobs={savedJobs} 
+            onToggleSave={() => toggleSave(job.id)}
+            onBack={() => setShowMobileDetailView(false)}
+          />
+        </Box>
+      );
+    }
+
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)', position: 'relative', overflow: 'hidden' }}>
         {/* Mobile Filter Header */}
@@ -202,7 +339,7 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
         <MobileJobCard
           job={job} jobNumber={currentIndex + 1} totalJobs={filteredJobs.length} animating={animating} animDir={animDir}
           onNext={() => handleSwipe('right')} onPrev={() => handlePrev()} onSkip={() => handleSwipe('right')} onInterested={() => handlePrev()}
-          onToggleSave={() => toggleSave(job.id)} isSaved={savedJobs.has(job.id)} onExit={onGoBack} onDetail={() => onOpenDetail(job)}
+          onToggleSave={() => toggleSave(job.id)} isSaved={savedJobs.has(job.id)} onExit={onGoBack} onDetail={() => setShowMobileDetailView(true)}
         />
 
         {/* Mobile Filters Drawer */}
@@ -255,6 +392,32 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
             </Button>
           </Box>
         </Drawer>
+      </Box>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)', gap: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <CircularProgress size={50} sx={{ color: '#6366f1' }} />
+          <Typography sx={{ color: '#64748b', fontWeight: 500 }}>Loading personalized jobs for you...</Typography>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <Typography sx={{ fontSize: '2rem' }}>⚠️</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#0f172a' }}>{error}</Typography>
+          <Button variant="outlined" onClick={onGoBack} startIcon={<ArrowBackIcon />}
+            sx={{ mt: 1, borderColor: '#e2e8f0', color: '#0f172a', '&:hover': { borderColor: '#0f172a' } }}>
+            Back to Search
+          </Button>
+        </Box>
       </Box>
     );
   }

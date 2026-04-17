@@ -1,6 +1,7 @@
 // routes/Router.js
 import React, { lazy } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import Loadable from "../layouts/full-layout/loadable/Loadable";
 import { jobService } from "../services/jobService";
 import { profileService } from "../services/profileService";
@@ -55,8 +56,10 @@ const ProfileRoute = () => {
 
 const FeedRoute = () => {
   const navigate = useNavigate();
-  // Using mockJobs directly for now, can be fetched in useEffect
-  return <JobFeedScreen jobs={mockJobs} onOpenDetail={(job) => navigate('/detail/' + job.id)} onGoBack={() => navigate('/')} />;
+  const profile = useSelector((state) => state.UserReducer);
+  const userId = profile?.id || '4bfcd973-7f38-4fd9-80f2-b8c133075fcb';
+  
+  return <JobFeedScreen userId={userId} onOpenDetail={(job) => navigate('/detail/' + job.id)} onGoBack={() => navigate('/')} />;
 };
 
 const DetailRoute = () => {

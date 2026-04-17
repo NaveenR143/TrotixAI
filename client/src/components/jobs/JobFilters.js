@@ -237,7 +237,7 @@ const JobFilters = ({
       />
 
       {/* Salary Range */}
-      <Box sx={{ mb: 3 }}>
+      {/* <Box sx={{ mb: 3 }}>
         <Typography
           sx={{
             fontWeight: 700,
@@ -278,7 +278,7 @@ const JobFilters = ({
             </Typography>
           </Box>
         </Box>
-      </Box>
+      </Box> */}
 
       {/* Match Score */}
       <Box sx={{ mb: 3 }}>

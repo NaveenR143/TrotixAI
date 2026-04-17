@@ -71,7 +71,7 @@ const components = {
   MuiListItem: {
     styleOverrides: {
       root: {
-        borderRadius: '9px',
+        borderRadius: '8px',
       },
     },
   },
@@ -79,7 +79,7 @@ const components = {
   MuiCard: {
     styleOverrides: {
       root: {
-        borderRadius: '20px',
+        borderRadius: '12px',
         padding: '14px',
         margin: '15px',
         boxShadow: '0px 7px 30px 0px rgba(90, 114, 123, 0.11)',
@@ -120,7 +120,7 @@ const components = {
     styleOverrides: {
       root: {
         backgroundColor: '#ecf0f2',
-        borderRadius: '6px',
+        borderRadius: '8px',
       },
     },
   },

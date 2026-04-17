@@ -190,7 +190,7 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess 
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <BusinessIcon sx={{ fontSize: 20, color: "#6366f1" }} />
-          <Typography sx={{ fontWeight: 700, fontSize: "1.1rem", color: "#0f172a" }}>
+          <Typography sx={{ fontWeight: 700, fontSize: "1.1rem" }}>
             Work Experience
           </Typography>
         </Box>
@@ -218,7 +218,7 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess 
       {!isEditing ? (
         <Box>
           {(!experiences || experiences.length === 0) ? (
-            <Typography sx={{ fontSize: "0.85rem", color: "#94a3b8", fontStyle: "italic" }}>
+            <Typography sx={{ fontSize: "0.85rem", color: "text.secondary", fontStyle: "italic" }}>
               No work experience added yet.
             </Typography>
           ) : (
@@ -229,7 +229,7 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess 
                 sx={{ p: 2.5, mb: 2, bgcolor: "#f8fafc", borderStyle: "dashed" }}
               >
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
-                  <Typography sx={{ fontWeight: 700, color: "#0f172a", mb: 0.5 }}>
+                  <Typography sx={{ fontWeight: 700, mb: 0.5 }}>
                     {exp.role}
                   </Typography>
                   {exp.isCurrent && (
@@ -240,18 +240,18 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess 
                   {exp.company_name}
                 </Typography>
                 {exp.location && (
-                  <Typography sx={{ fontSize: "0.85rem", color: "#64748b", mb: 0.5, display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <Typography sx={{ fontSize: "0.85rem", color: "text.secondary", mb: 0.5, display: "flex", alignItems: "center", gap: 0.5 }}>
                     <LocationOnIcon sx={{ fontSize: 16, color: "#f59e0b" }} />
                     {exp.location}
                   </Typography>
                 )}
-                <Typography sx={{ fontSize: "0.85rem", color: "#94a3b8", mb: 1 }}>
+                <Typography sx={{ fontSize: "0.85rem", color: "text.secondary", mb: 1 }}>
                   {calculateExperienceDuration(exp.startDate, exp.endDate, exp.isCurrent)}
                   {exp.startDate &&
                     ` • ${new Date(exp.startDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })} to ${exp.isCurrent ? "Present" : new Date(exp.endDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })}`}
                 </Typography>
                 {exp.description && (
-                  <Typography sx={{ fontSize: "0.9rem", color: "#475569", lineHeight: 1.5 }}>
+                  <Typography sx={{ fontSize: "0.9rem", color: "text.primary", lineHeight: 1.5 }}>
                     {exp.description}
                   </Typography>
                 )}

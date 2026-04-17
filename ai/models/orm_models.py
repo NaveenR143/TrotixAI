@@ -502,23 +502,10 @@ class Resume(Base):
     )
     file_name = Column(String, nullable=False)
     file_url = Column(String, nullable=False)
-    file_size_bytes = Column(Integer, nullable=True)
     mime_type = Column(String, nullable=True)
-    is_primary = Column(Boolean, default=False)
     parsed_at = Column(DateTime(timezone=True), nullable=True)
-    raw_text = Column(Text, nullable=True)
-    parsed_skills = Column(ARRAY(String), nullable=True)
-    parsed_experience_years = Column(Numeric(4, 1), nullable=True)
-    parsed_job_titles = Column(ARRAY(String), nullable=True)
-    parsed_education = Column(JSON, nullable=True)
     parsed_summary = Column(Text, nullable=True)
-    parse_credits_used = Column(Integer, default=0)
-    improvement_score = Column(Integer, nullable=True)
-    improvement_notes = Column(JSON, nullable=True)
-    improvement_credits_used = Column(Integer, default=0)
-    embedding = Column(String, nullable=True)  # pgvector embedding stored as string
-    summary = Column(Text, nullable=True)
-    experience_years = Column(Numeric(4, 1), default=0)
+    resume_embedding = Column(String, nullable=True)  # pgvector(384) stored as string
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -557,46 +544,101 @@ class ResumeBuilderDoc(Base):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Job Postings Table (from 004_jobs_and_applications.sql)
+# Departments Table (NEW)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class Department(Base):
+    __tablename__ = "departments"
+
+    id = Column(Integer, primary_key=True)  # bigint in DB
+    name = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Recruiters Table (NEW)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class Recruiter(Base):
+    __tablename__ = "recruiters"
+
+    id = Column(Integer, primary_key=True)  # bigint in DB
+    company_id = Column(Integer, nullable=False, index=True)
+    designation = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job Postings Table (UPDATED - full schema from actual database)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
 class JobPosting(Base):
     __tablename__ = "job_postings"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)  # bigint in DB
+    slug = Column(String, nullable=False, unique=True, index=True)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
-    min_experience = Column(Integer, default=0)
-    embedding = Column(String, nullable=True)  # pgvector embedding stored as string
+    summary = Column(Text, nullable=True)
+    status = Column(String, default="draft", nullable=False, index=True)
+    experience_min_yrs = Column(Integer, nullable=True)
+    experience_max_yrs = Column(Integer, nullable=True)
+    experience_level = Column(String, nullable=True)
+    salary_min = Column(Numeric(12, 2), nullable=True)
+    salary_max = Column(Numeric(12, 2), nullable=True)
+    salary_currency = Column(String, nullable=True)
+    salary_is_hidden = Column(Boolean, default=False)
+    salary_display = Column(String, nullable=True)
+    job_type = Column(String, nullable=True, index=True)
+    work_mode = Column(String, nullable=True, index=True)
+    openings = Column(Integer, default=1)
+    department = Column(String, nullable=True)
+    company_id = Column(Integer, nullable=False, index=True)
+    recruiter_id = Column(Integer, nullable=True, index=True)
+    location = Column(String, nullable=True, index=True)
+    state = Column(String, nullable=True)
+    city = Column(String, nullable=True)
+    country = Column(String, nullable=True)
+    apply_url = Column(String, nullable=True)
+    ai_summary = Column(Text, nullable=True)
+    ai_tags = Column(ARRAY(String), nullable=True)
+    job_embedding = Column(String, nullable=True)  # pgvector(384) stored as string
+    posted_at = Column(DateTime(timezone=True), nullable=True)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    closed_at = Column(DateTime(timezone=True), nullable=True)
+    view_count = Column(Integer, default=0)
+    apply_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    # Relationships
-    job_skills = relationship(
-        "JobSkill", back_populates="job_posting", cascade="all, delete-orphan"
-    )
-
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Job Skills Table (from 004_jobs_and_applications.sql)
+# Job Skills Table (UPDATED - junction table for job_postings and skills)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
 class JobSkill(Base):
     __tablename__ = "job_skills"
+    __table_args__ = (PrimaryKeyConstraint("job_posting_id", "skills_id"),)
 
-    id = Column(Integer, primary_key=True)
-    job_id = Column(
+    job_posting_id = Column(
         Integer,
         ForeignKey("job_postings.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    skill_name = Column(String, nullable=False, index=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    # Relationships
-    job_posting = relationship("JobPosting", back_populates="job_skills")
+    skills_id = Column(
+        Integer,
+        ForeignKey("skills.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    created_date = Column(Date, nullable=False, server_default=func.now())

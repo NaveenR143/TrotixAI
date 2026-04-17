@@ -38,7 +38,7 @@ const ProjectsSection = ({ initialProjects }) => {
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <FolderOpenIcon sx={{ fontSize: 20, color: "#6366f1" }} />
-          <Typography sx={{ fontWeight: 700, fontSize: "1.1rem", color: "#0f172a" }}>
+          <Typography sx={{ fontWeight: 700, fontSize: "1.1rem" }}>
             Projects
           </Typography>
         </Box>
@@ -57,17 +57,17 @@ const ProjectsSection = ({ initialProjects }) => {
               sx={{ p: 2.5, bgcolor: "#f8fafc", borderStyle: "dashed" }}
             >
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
-                <Typography sx={{ fontWeight: 700, color: "#0f172a", mb: 0.5 }}>
+                <Typography sx={{ fontWeight: 700, mb: 0.5 }}>
                   {project.title || "Untitled Project"}
                 </Typography>
-                <Typography sx={{ fontSize: "0.8rem", color: "#64748b" }}>
+                <Typography sx={{ fontSize: "0.8rem", color: "text.secondary" }}>
                   {project.startDate ? new Date(project.startDate).toLocaleDateString("en-US", { year: "numeric", month: "short" }) : ""}
                   {project.endDate ? ` - ${new Date(project.endDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })}` : project.startDate ? " - Present" : ""}
                 </Typography>
               </Box>
 
               {project.description && (
-                <Typography sx={{ fontSize: "0.9rem", color: "#475569", lineHeight: 1.6, mb: 1 }}>
+                <Typography sx={{ fontSize: "0.9rem", color: "text.primary", lineHeight: 1.6, mb: 1 }}>
                   {project.description}
                 </Typography>
               )}

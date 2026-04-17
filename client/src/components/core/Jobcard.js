@@ -19,7 +19,7 @@ const JobCard = ({ job, onNext, onViewDetail, animState }) => {
                 </div>
                 <div className="job-title">{job.title}</div>
                 <div className="job-tags">
-                    {job.location && <span className="job-tag">📍 {job.location}</span>}
+                    {job.location?.trim() && <span className="job-tag">📍 {job.location}</span>}
                     {job.type && <span className="job-tag">{job.type}</span>}
                     {job.experience && <span className="job-tag">{job.experience}</span>}
                     {job.remote && <span className="job-tag highlight">Remote</span>}

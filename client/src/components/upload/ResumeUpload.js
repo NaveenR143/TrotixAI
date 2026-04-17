@@ -203,7 +203,7 @@ const ResumeUpload = ({ onSuccess, onError }) => {
       </Collapse>
       {status !== STATUS.SUCCESS && (
         <Button variant="contained" size="large" fullWidth disabled={!file || status === STATUS.UPLOADING} onClick={handleUpload} endIcon={<AutoAwesomeIcon />}
-          sx={{ py: 1.5, background: "black", color: "white", "&:hover": { background: "#333333", transform: "translateY(-1px)" }, "&.Mui-disabled": { background: "#e0e0e0", color: "#9e9e9e" }, boxShadow: "0 4px 14px rgba(0,0,0,0.15)" }}>
+          sx={{ py: 1.5, background: "#0f172a", color: "white", "&:hover": { background: "#1e293b", transform: "translateY(-1px)" }, "&.Mui-disabled": { background: "#e0e0e0", color: "#9e9e9e" }, boxShadow: "0 4px 14px rgba(0,0,0,0.15)" }}>
           {status === STATUS.UPLOADING ? "Analysing…" : "Analyse with AI"}
         </Button>
       )}

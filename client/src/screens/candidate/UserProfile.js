@@ -219,8 +219,8 @@ const UserProfile = () => {
         </Snackbar>
 
         <Box sx={{ mb: 4 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: "1.8rem", color: "#0f172a" }}>My Profile</Typography>
-          <Typography sx={{ fontSize: "0.9rem", color: "#64748b", mt: 0.5 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: "1.8rem" }}>My Profile</Typography>
+          <Typography sx={{ fontSize: "0.9rem", color: "text.secondary", mt: 0.5 }}>
             {loading ? "Loading..." : "Keep your profile updated for better opportunities"}
           </Typography>
         </Box>
@@ -232,7 +232,7 @@ const UserProfile = () => {
         )}
 
         {loading ? (
-          <Paper sx={{ p: 3, border: "1px solid #e2e8f0", borderRadius: 2 }}>
+          <Paper sx={{ p: 3, border: "1px solid #e2e8f0", borderRadius: 3 }}>
             <Skeleton variant="text" width="40%" height={40} sx={{ mb: 2 }} />
             <Grid container spacing={2}>
               {[1, 2, 3, 4].map((i) => (

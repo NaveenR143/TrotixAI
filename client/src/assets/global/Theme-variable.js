@@ -128,7 +128,7 @@ const baseTheme = {
   },
 
   shape: {
-    borderRadius: 5,
+    borderRadius: 12,
   },
   mixins: {
     toolbar: {
@@ -260,8 +260,8 @@ export const BuildTheme = (config = {}) => {
         paper: customizer.activeMode === 'dark' ? '#282C34' : '#ffffff',
       },
       text: {
-        primary: customizer.activeMode === 'dark' ? '#e6e5e8' : '#374151',
-        secondary: customizer.activeMode === 'dark' ? '#adb0bb' : '#374151',
+        primary: customizer.activeMode === 'dark' ? '#f1f5f9' : '#0f172a',
+        secondary: customizer.activeMode === 'dark' ? '#cbd5e1' : '#64748b',
       },
     },
   };

@@ -1,5 +1,5 @@
 // screens/candidate/JobDetailScreen.js
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -40,6 +40,7 @@ const JobDetailScreen = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const isSaved = savedJobs.has(job.id);
+  const [expandedDescription, setExpandedDescription] = useState(false);
 
   // Helper component for section headers with icons
   const SectionHeader = ({ icon: Icon, title }) => (
@@ -248,10 +249,29 @@ const JobDetailScreen = ({
                   lineHeight: 1.8,
                   whiteSpace: "pre-line",
                   fontSize: "0.95rem",
+                  display: '-webkit-box',
+                  WebkitLineClamp: expandedDescription ? 'unset' : 3,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: expandedDescription ? 'visible' : 'hidden',
+                  maxHeight: expandedDescription ? 'none' : 'calc(1.8em * 3)',
+                  marginBottom: '1rem',
                 }}
               >
                 {job.description}
               </Typography>
+              <Button
+                onClick={() => setExpandedDescription(!expandedDescription)}
+                sx={{
+                  textTransform: 'none',
+                  color: '#6366f1',
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  p: 0,
+                  '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
+                }}
+              >
+                {expandedDescription ? '↑ Show Less' : '↓ Show More'}
+              </Button>
             </Paper>
 
             {/* Responsibilities Section */}
