@@ -79,9 +79,37 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
       </Box>
 
       <Container maxWidth="md" sx={{ pb: 10 }}>
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Paper elevation={0} sx={{ p: 4, height: '100%', border: '1px solid #e2e8f0', boxShadow: '0 4px 24px rgba(15,23,42,0.06)', display: 'flex', flexDirection: 'column', gap: 3, position: 'relative', overflow: 'hidden', animation: `${fadeSlideUp} 0.5s 0.2s both`, '&::before': { content: '""', position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #6366f1, #8b5cf6)', borderRadius: '16px 16px 0 0' } }}>
+        <Grid container spacing={3} justifyContent="center" alignItems="stretch">
+          <Grid size={{ xs: 12, md: 8, lg: 6 }} sx={{ mx: 'auto' }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 3, md: 4 },
+                borderRadius: 3,
+                height: '100%',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 8px 32px rgba(15,23,42,0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 3,
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'all 0.25s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 12px 40px rgba(15,23,42,0.12)',
+                },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 4,
+                  background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
+                }
+              }}
+            >
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
                   <Box sx={{ width: 40, height: 40, borderRadius: '10px', bgcolor: '#ede9fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -119,30 +147,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
             </Paper>
           </Grid>
 
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Paper elevation={0} sx={{ p: 4, height: '100%', border: '1px solid #e2e8f0', boxShadow: '0 4px 24px rgba(15,23,42,0.06)', display: 'flex', flexDirection: 'column', gap: 3, animation: `${fadeSlideUp} 0.5s 0.3s both` }}>
-              <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-                  <Box sx={{ width: 40, height: 40, borderRadius: '10px', bgcolor: '#f0f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <SearchIcon sx={{ color: '#0ea5e9', fontSize: 20 }} />
-                  </Box>
-                  <Typography sx={{ fontWeight: 700, color: '#0f172a' }}>Direct Search</Typography>
-                </Box>
-                <Typography sx={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.65 }}>Prefer manual control? Enter your criteria below and browse the full job feed.</Typography>
-              </Box>
-              <form onSubmit={(e) => { e.preventDefault(); onDirectSearch(); }}>
-                <Stack spacing={2} sx={{ flexGrow: 1 }}>
-                  <TextField fullWidth placeholder="Job title (e.g. Frontend Developer)" size="small" value={searchValues.title} onChange={(e) => setSearchValues({ ...searchValues, title: e.target.value })}
-                    InputProps={{ startAdornment: (<InputAdornment position="start"><WorkIcon sx={{ fontSize: 16, color: '#94a3b8' }} /></InputAdornment>), }} />
-                  <TextField fullWidth placeholder="Skills (e.g. React, Node.js)" size="small" value={searchValues.skills} onChange={(e) => setSearchValues({ ...searchValues, skills: e.target.value })}
-                    InputProps={{ startAdornment: (<InputAdornment position="start"><AutoAwesomeIcon sx={{ fontSize: 16, color: '#94a3b8' }} /></InputAdornment>), }} />
-                  <TextField fullWidth placeholder="Location or 'Remote'" size="small" value={searchValues.location} onChange={(e) => setSearchValues({ ...searchValues, location: e.target.value })}
-                    InputProps={{ startAdornment: (<InputAdornment position="start"><LocationOnIcon sx={{ fontSize: 16, color: '#94a3b8' }} /></InputAdornment>), }} />
-                </Stack>
-                <Button type="submit" variant="outlined" size="large" fullWidth endIcon={<ArrowForwardIcon />} sx={{ mt: 2, py: 1.5, fontSize: '0.95rem', borderColor: '#e2e8f0', color: '#0f172a', '&:hover': { borderColor: '#0f172a', bgcolor: '#f8fafc', transform: 'translateY(-1px)' } }}>Browse Jobs</Button>
-              </form>
-            </Paper>
-          </Grid>
+
         </Grid>
       </Container>
     </Box>

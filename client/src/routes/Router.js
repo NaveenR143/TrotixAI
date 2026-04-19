@@ -16,7 +16,7 @@ const ManualProfileScreen = Loadable(lazy(() => import("../screens/candidate/Man
 const JobFeedScreen = Loadable(lazy(() => import("../screens/candidate/JobFeedScreen")));
 const JobDetailScreen = Loadable(lazy(() => import("../screens/candidate/JobDetailScreen")));
 const AddCreditsScreen = Loadable(lazy(() => import("../screens/candidate/AddCreditsScreen")));
-const LoginScreen = Loadable(lazy(() => import("../screens/candidate/LoginScreen")));
+const LoginScreen = Loadable(lazy(() => import("../screens/candidate/LoginWrapper")));
 const DashboardScreen = Loadable(lazy(() => import("../screens/candidate/DashboardScreen")));
 const RecruitersScreen = Loadable(lazy(() => import("../screens/candidate/RecruitersScreen")));
 const ConsultantsScreen = Loadable(lazy(() => import("../screens/consultants/ConsultantsScreen")));

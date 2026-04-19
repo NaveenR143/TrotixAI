@@ -334,9 +334,9 @@ async def test_post(data: dict = None):
 
 # @app.post("/api/auth/generate-otp")
 # async def generate_otp(req: GenerateOTPRequest):
-#     """Generate a 6-digit OTP for a mobile number."""
+#     """Generate a 4-digit OTP for a mobile number."""
 #     # In a real app, integrate SMS provider (e.g., Twilio, AWS SNS) here
-#     otp = str(random.randint(100000, 999999))
+#     otp = str(random.randint(1000, 9999))
 #     OTP_CACHE[req.mobile_number] = otp
 #     LOGGER.info(f"Generated OTP {otp} for {req.mobile_number}")
 

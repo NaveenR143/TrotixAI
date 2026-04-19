@@ -63,22 +63,9 @@ const Header = ({ sx, customClass, toggleSidebar, toggleMobileSidebar }) => {
 
   const fnClearStorage = () => {
     dispatch(clearAllStoreData());
-    clear();
-
-    window.localStorage.clear();
-    localStorage.clear();
   };
 
   const fnDeleteAllDbs = () => {
-    const currentDatabases =
-      JSON.parse(localStorage.getItem("idb_databases")) || [];
-
-    if (currentDatabases.length > 0) {
-      currentDatabases.forEach((db) => {
-        window.indexedDB.deleteDatabase(db);
-      });
-    }
-
     fnClearStorage();
   };
 

@@ -8,8 +8,8 @@
  */
 
 // ─── Base URL Configuration ────────────────────────────────────────────────────
-// const API_BASE_URL = 'http://127.0.0.1:8000';
-const API_BASE_URL = 'http://192.168.29.147:8000';
+const API_BASE_URL = 'http://127.0.0.1:8000';
+// const API_BASE_URL = 'http://192.168.29.147:8000';
 
 // ─── API Endpoints ────────────────────────────────────────────────────────────
 const API_ENDPOINTS = {
@@ -21,12 +21,10 @@ const API_ENDPOINTS = {
   USER_PROFILE: '/profile/fetch',
   PROFILE: '/profile',
   SEND_OTP: '/otp/send-otp',
-  JOB_FEEDS:'/jobs/fetch-jobs'
-
-
-  // Add other endpoints as needed
-  // USER_PROFILE: '/user/profile',
-  // JOB_SEARCH: '/jobs/search',
+  NEW_RECRUITER_OTP: '/otp/new-recruiter-otp',
+  JOB_FEEDS: '/jobs/fetch-jobs',
+  JOB_METADATA: '/jobs/metadata',
+  CREATE_JOB: '/jobs/create'
 };
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────

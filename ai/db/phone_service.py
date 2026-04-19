@@ -5,14 +5,18 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-async def save_phone_to_db(phone: str, session: AsyncSession) -> tuple:
+async def save_phone_to_db(
+    phone: str, role: str, session: AsyncSession, name: str = None
+) -> tuple:
     """
     Save phone number to users table and return user ID with existence flag.
     If phone already exists, return existing user ID.
 
     Args:
         phone: Phone number to save
+        role: Role of the user
         session: AsyncSession for database operations
+        name: Optional full name of the user
 
     Returns:
         tuple: (user_id, is_existing) where user_id is UUID string and is_existing is bool
@@ -20,8 +24,7 @@ async def save_phone_to_db(phone: str, session: AsyncSession) -> tuple:
     try:
         # Check if phone already exists
         result = await session.execute(
-            text("SELECT id FROM users WHERE phone = :phone"),
-            {"phone": phone}
+            text("SELECT id FROM users WHERE phone = :phone"), {"phone": phone}
         )
         existing_user = result.scalar()
 
@@ -30,17 +33,20 @@ async def save_phone_to_db(phone: str, session: AsyncSession) -> tuple:
 
         # Insert without specifying id - let PostgreSQL generate it with gen_random_uuid()
         result = await session.execute(
-            text("""
-                INSERT INTO users (phone, role, status, resume_status)
-                VALUES (:phone, :role, :status, :resume_status)
+            text(
+                """
+                INSERT INTO users (phone, role, full_name, status, resume_status)
+                VALUES (:phone, :role, :full_name, :status, :resume_status)
                 RETURNING id
-            """),
+            """
+            ),
             {
                 "phone": phone,
-                "role": "jobseeker",
+                "role": role,
+                "full_name": name,
                 "status": "pending_verification",
-                "resume_status": "queued"
-            }
+                "resume_status": "queued",
+            },
         )
 
         generated_id = result.scalar()
@@ -63,7 +69,7 @@ async def mark_phone_verified(phone: str, session: AsyncSession) -> bool:
         session: AsyncSession for database operations
 
     Returns:
-        bool: True if update successful, False if phone not found
+        tuple: (user_id, role) if found, (None, None) otherwise
 
     Raises:
         Exception: If database operation fails
@@ -71,18 +77,22 @@ async def mark_phone_verified(phone: str, session: AsyncSession) -> bool:
     try:
         # Update user with matching phone number
         result = await session.execute(
-            text("""
+            text(
+                """
                 UPDATE users 
                 SET is_phone_verified = TRUE, status = 'active'
                 WHERE phone = :phone
-                RETURNING id
-            """),
-            {"phone": phone}
+                RETURNING id, role
+            """
+            ),
+            {"phone": phone},
         )
 
-        updated_id = result.scalar()
+        row = result.fetchone()
         await session.commit()
-        return updated_id is not None
+        if row:
+            return str(row[0]), str(row[1])
+        return None, None
 
     except Exception as e:
         await session.rollback()

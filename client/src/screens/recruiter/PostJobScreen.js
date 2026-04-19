@@ -20,15 +20,40 @@ import EmailIcon from "@mui/icons-material/Email";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchJobMetadata,
+  createJob
+} from "../../api/jobpostingAPI";
+import AuthComponent from "../../components/common/AuthComponent";
 import { UPDATE_USER_PROFILE } from "../../redux/constants";
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import { fadeSlideUp } from "../../utils/themeUtils";
+
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ['link', 'clean'],
+  ],
+};
+
+const quillFormats = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'list',
+  'link'
+];
 
 const predefinedSkills = ["React", "Node.js", "Python", "Java", "Docker", "AWS", "UI/UX", "JavaScript", "TypeScript", "SQL"];
 
 const PostJobScreen = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { mobile: savedMobile } = useSelector(state => state.UserReducer || {});
+  const {
+    userid, email, mobile
+  } = useSelector((state) => state.UserReducer);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -39,39 +64,42 @@ const PostJobScreen = () => {
     salary: '',
     description: '',
     skills: [],
-    email: '',
-    mobile: ''
+    expMin: '',
+    expMax: '',
+    workMode: '',
+    openings: 1,
+    industry_id: '',
+    department_id: '',
+    education_requirement: ''
+  });
+
+  const [metadata, setMetadata] = useState({
+    industries: [],
+    education_levels: [],
+    departments: [],
+    work_modes: [],
+    job_types: []
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Draft persistence
+
+  // Fetch Metadata
   useEffect(() => {
-    const draft = localStorage.getItem('postJobDraft');
-    if (draft) {
-      try {
-        setFormData(JSON.parse(draft));
-      } catch (e) {
-        console.error("Error loading draft", e);
+    const loadMetadata = async () => {
+      const response = await fetchJobMetadata();
+      if (!response.error) {
+        setMetadata(response.data);
+      } else {
+        console.error("Error loading job metadata:", response.message);
       }
-    }
+    };
+    loadMetadata();
   }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      localStorage.setItem('postJobDraft', JSON.stringify(formData));
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [formData]);
 
-  // Login Modal State
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [loginStep, setLoginStep] = useState(1);
-  const [loginForm, setLoginForm] = useState({ name: '', mobile: '', otp: '' });
-  const [loginLoading, setLoginLoading] = useState(false);
-  const [loginError, setLoginError] = useState('');
 
   // Validation
   const validate = () => {
@@ -81,19 +109,11 @@ const PostJobScreen = () => {
     if (!formData.location.trim()) temp.location = "Location is required";
     if (!formData.type) temp.type = "Job Type is required";
     if (!formData.description.trim()) temp.description = "Job Description is required";
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim()) {
-      temp.email = "Email is required";
-    } else if (!emailRegex.test(formData.email)) {
-      temp.email = "Invalid email format";
-    }
-
-    if (!formData.mobile.trim()) {
-      temp.mobile = "Mobile Number is required";
-    } else if (!/^\d{10}$/.test(formData.mobile)) {
-      temp.mobile = "Must be 10 digits";
-    }
+    if (!formData.expMin) temp.expMin = "Min Experience is required";
+    if (!formData.expMax) temp.expMax = "Max Experience is required";
+    if (!formData.workMode) temp.workMode = "Work Mode is required";
+    if (!formData.industry_id) temp.industry_id = "Industry is required";
+    if (!formData.education_requirement) temp.education_requirement = "Education is required";
 
     setErrors(temp);
     return Object.keys(temp).length === 0;
@@ -108,83 +128,72 @@ const PostJobScreen = () => {
     setFormData(prev => ({ ...prev, skills: newValue }));
   };
 
-  const performJobSubmit = () => {
+  const handleDescriptionChange = (content) => {
+    setFormData(prev => ({ ...prev, description: content }));
+  };
+
+  const performJobSubmit = async () => {
     setIsSubmitting(true);
-    // Mock API Call
-    setTimeout(() => {
+    try {
+      const payload = {
+        userid: userid,
+        title: formData.title,
+        company: formData.company,
+        location: formData.location,
+        work_mode: formData.workMode,
+        openings: parseInt(formData.openings),
+        industry_id: parseInt(formData.industry_id),
+        department_id: formData.department_id ? parseInt(formData.department_id) : null,
+        education_requirement: formData.education_requirement,
+        experience_min: parseInt(formData.expMin),
+        experience_max: parseInt(formData.expMax),
+        description: formData.description,
+        skills: formData.skills,
+        email: userEmail || '',
+        mobile: mobile || '',
+        salary: formData.salary
+      };
+
+      const response = await createJob(payload);
+
+      if (!response.error) {
+        setSuccessMsg("Job posted successfully!");
+        setTimeout(() => navigate('/posted-jobs'), 1500);
+      } else {
+        setErrors({ submit: response.message });
+      }
+    } catch (error) {
+      console.error("Error posting job:", error);
+      setErrors({ submit: "An unexpected error occurred." });
+    } finally {
       setIsSubmitting(false);
-      setSuccessMsg("Job posted successfully!");
-      localStorage.removeItem('postJobDraft');
-      setTimeout(() => navigate('/posted-jobs'), 1500);
-    }, 1200);
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    
-    if (!savedMobile) {
-      setLoginModalOpen(true);
-    } else {
-      performJobSubmit();
-    }
+    performJobSubmit();
   };
 
-  // Login Modal Handlers
-  const handleLoginNext = () => {
-    if (!loginForm.name.trim()) {
-      setLoginError("Name is required");
-      return;
-    }
-    if (!/^\d{10}$/.test(loginForm.mobile)) {
-      setLoginError("Valid 10-digit mobile number is required");
-      return;
-    }
-    setLoginError("");
-    setLoginLoading(true);
-    setTimeout(() => {
-      setLoginLoading(false);
-      setLoginStep(2);
-    }, 800);
-  };
-
-  const handleLoginVerify = () => {
-    if (loginForm.otp !== "123456") {
-      setLoginError("Invalid OTP. Use 123456");
-      return;
-    }
-    setLoginError("");
-    setLoginLoading(true);
-    
-    setTimeout(() => {
-      dispatch({ 
-        type: UPDATE_USER_PROFILE, 
-        payload: { mobile: loginForm.mobile, displayname: loginForm.name } 
-      });
-      setLoginLoading(false);
-      setLoginModalOpen(false);
-      // Automatically post job after authentication
-      performJobSubmit();
-    }, 800);
-  };
 
   return (
     <Box sx={{ bgcolor: '#f8fafc', minHeight: 'calc(100vh - 64px)', py: { xs: 3, md: 5 } }}>
       <Container maxWidth="md">
-        <Button 
-          startIcon={<ArrowBackIcon />} 
-          onClick={() => navigate(-1)} 
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(-1)}
           sx={{ mb: 2, color: '#64748b', fontWeight: 600, textTransform: 'none', '&:hover': { bgcolor: 'transparent', color: '#0f172a' } }}
         >
           Back
         </Button>
 
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            p: { xs: 3, md: 6 }, 
-            borderRadius: 4, 
-            border: '1px solid #e2e8f0', 
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 3, md: 6 },
+            borderRadius: 4,
+            border: '1px solid #e2e8f0',
             boxShadow: '0 10px 40px rgba(15,23,42,0.06)',
             position: 'relative',
             overflow: 'hidden',
@@ -192,7 +201,7 @@ const PostJobScreen = () => {
           }}
         >
           <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }} />
-          
+
           <Box sx={{ mb: 4 }}>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', mb: 1 }}>
               Post a Free Job
@@ -202,160 +211,200 @@ const PostJobScreen = () => {
             </Typography>
           </Box>
 
-          <form onSubmit={handleSubmit}>
-            <Grid container spacing={3}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField 
-                  fullWidth label="Job Title *" name="title" value={formData.title} onChange={handleChange}
-                  error={!!errors.title} helperText={errors.title}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><WorkOutlineIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField 
-                  fullWidth label="Company Name *" name="company" value={formData.company} onChange={handleChange}
-                  error={!!errors.company} helperText={errors.company}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><BusinessIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                />
-              </Grid>
-              
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField 
-                  fullWidth label="Location *" name="location" value={formData.location} onChange={handleChange} placeholder="e.g. San Francisco or Remote"
-                  error={!!errors.location} helperText={errors.location}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><LocationOnIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <FormControl fullWidth error={!!errors.type}>
-                  <InputLabel>Job Type *</InputLabel>
-                  <Select name="type" value={formData.type} onChange={handleChange} label="Job Type *">
-                    <MenuItem value="Full-time">Full-time</MenuItem>
-                    <MenuItem value="Part-time">Part-time</MenuItem>
-                    <MenuItem value="Contract">Contract</MenuItem>
-                    <MenuItem value="Freelance">Freelance</MenuItem>
-                    <MenuItem value="Internship">Internship</MenuItem>
-                  </Select>
-                  {errors.type && <FormHelperText>{errors.type}</FormHelperText>}
-                </FormControl>
-              </Grid>
+          {!(mobile) ? (
+            <Box sx={{ py: 4 }}>
+              <AuthComponent invokedFrom="JobPost" userType="Recruiter" />
+            </Box>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    fullWidth label="Job Title *" name="title" value={formData.title} onChange={handleChange}
+                    error={!!errors.title} helperText={errors.title}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><WorkOutlineIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    fullWidth label="Company Name *" name="company" value={formData.company} onChange={handleChange}
+                    error={!!errors.company} helperText={errors.company}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><BusinessIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
+                  />
+                </Grid>
 
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField 
-                  fullWidth label="Salary Range (Optional)" name="salary" value={formData.salary} onChange={handleChange} placeholder="e.g. $80k - $120k"
-                  InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Autocomplete
-                  multiple freeSolo options={predefinedSkills} value={formData.skills} onChange={handleSkillsChange}
-                  renderTags={(value, getTagProps) => value.map((option, index) => (
-                    <Chip variant="outlined" label={option} size="small" sx={{ borderColor: '#c7d2fe', color: '#4f46e5', bgcolor: '#e0e7ff' }} {...getTagProps({ index })} />
-                  ))}
-                  renderInput={(params) => <TextField {...params} variant="outlined" label="Required Skills (Optional)" placeholder="Add skills" />}
-                />
-              </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    fullWidth label="Location *" name="location" value={formData.location} onChange={handleChange} placeholder="e.g. San Francisco or Remote"
+                    error={!!errors.location} helperText={errors.location}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><LocationOnIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <FormControl fullWidth error={!!errors.type}>
+                    <InputLabel>Job Type *</InputLabel>
+                    <Select name="type" value={formData.type} onChange={handleChange} label="Job Type *">
+                      {metadata.job_types.map(type => (
+                        <MenuItem key={type} value={type}>{type.replace('_', ' ')}</MenuItem>
+                      ))}
+                    </Select>
+                    {errors.type && <FormHelperText>{errors.type}</FormHelperText>}
+                  </FormControl>
+                </Grid>
 
-              <Grid size={{ xs: 12 }}>
-                <TextField 
-                  fullWidth multiline rows={4} label="Job Description *" name="description" value={formData.description} onChange={handleChange}
-                  error={!!errors.description} helperText={errors.description}
-                  InputProps={{ startAdornment: <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1 }}><DescriptionIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                />
-              </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <FormControl fullWidth error={!!errors.workMode}>
+                    <InputLabel>Work Mode *</InputLabel>
+                    <Select name="workMode" value={formData.workMode} onChange={handleChange} label="Work Mode *">
+                      {metadata.work_modes.map(mode => (
+                        <MenuItem key={mode} value={mode}>{mode.replace('_', ' ')}</MenuItem>
+                      ))}
+                    </Select>
+                    {errors.workMode && <FormHelperText>{errors.workMode}</FormHelperText>}
+                  </FormControl>
+                </Grid>
 
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField 
-                  fullWidth label="Contact Email *" name="email" value={formData.email} onChange={handleChange}
-                  error={!!errors.email} helperText={errors.email}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField 
-                  fullWidth label="Contact Mobile *" name="mobile" value={formData.mobile} 
-                  onChange={(e) => setFormData(prev => ({ ...prev, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
-                  error={!!errors.mobile} helperText={errors.mobile}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><Typography sx={{ color: '#94a3b8', fontWeight: 600, fontSize: '0.9rem', mr: 0.5 }}>+91</Typography></InputAdornment> }}
-                />
-              </Grid>
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <TextField
+                    fullWidth label="Experience Min (Yrs) *" name="expMin" type="number"
+                    value={formData.expMin} onChange={handleChange}
+                    error={!!errors.expMin} helperText={errors.expMin}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <TextField
+                    fullWidth label="Experience Max (Yrs) *" name="expMax" type="number"
+                    value={formData.expMax} onChange={handleChange}
+                    error={!!errors.expMax} helperText={errors.expMax}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    fullWidth label="No. of Openings *" name="openings" type="number"
+                    value={formData.openings} onChange={handleChange}
+                  />
+                </Grid>
 
-              <Grid size={{ xs: 12 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                  <Button 
-                    type="submit" variant="contained" size="large"
-                    disabled={isSubmitting}
-                    sx={{
-                      px: 5, py: 1.5, fontSize: '1rem', fontWeight: 700, borderRadius: 2.5, textTransform: 'none',
-                      background: '#0f172a', color: 'white',
-                      boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
-                      '&:hover': { background: '#333333', transform: 'translateY(-1px)' },
-                      '&.Mui-disabled': { background: 'rgba(15, 23, 42, 0.6)', color: 'rgba(255, 255, 255, 0.5)' }
-                    }}
-                  >
-                    {isSubmitting ? "Posting Job..." : "Submit Job"}
-                  </Button>
-                </Box>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <FormControl fullWidth error={!!errors.industry_id}>
+                    <InputLabel>Industry Type *</InputLabel>
+                    <Select name="industry_id" value={formData.industry_id} onChange={handleChange} label="Industry Type *">
+                      {metadata.industries.map(item => (
+                        <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
+                      ))}
+                    </Select>
+                    {errors.industry_id && <FormHelperText>{errors.industry_id}</FormHelperText>}
+                  </FormControl>
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Department</InputLabel>
+                    <Select name="department_id" value={formData.department_id} onChange={handleChange} label="Department">
+                      {metadata.departments.map(item => (
+                        <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <FormControl fullWidth error={!!errors.education_requirement}>
+                    <InputLabel>Education Level *</InputLabel>
+                    <Select name="education_requirement" value={formData.education_requirement} onChange={handleChange} label="Education Level *">
+                      {metadata.education_levels.map(item => (
+                        <MenuItem key={item.name} value={item.name}>{item.name}</MenuItem>
+                      ))}
+                    </Select>
+                    {errors.education_requirement && <FormHelperText>{errors.education_requirement}</FormHelperText>}
+                  </FormControl>
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    fullWidth label="Salary Range (Optional)" name="salary" value={formData.salary} onChange={handleChange} placeholder="e.g. $80k - $120k"
+                    InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                  <Autocomplete
+                    multiple freeSolo options={predefinedSkills} value={formData.skills} onChange={handleSkillsChange}
+                    renderTags={(value, getTagProps) => value.map((option, index) => (
+                      <Chip variant="outlined" label={option} size="small" sx={{ borderColor: '#c7d2fe', color: '#4f46e5', bgcolor: '#e0e7ff' }} {...getTagProps({ index })} />
+                    ))}
+                    renderInput={(params) => <TextField {...params} variant="outlined" label="Required Skills (Optional)" placeholder="Add skills" />}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                  <Box sx={{
+                    '& .ql-container': {
+                      borderRadius: '0 0 12px 12px',
+                      minHeight: '250px',
+                      fontSize: '1rem',
+                      border: errors.description ? '1px solid #ef4444' : '1px solid #e2e8f0',
+                      bgcolor: 'white'
+                    },
+                    '& .ql-toolbar': {
+                      borderRadius: '12px 12px 0 0',
+                      border: errors.description ? '1px solid #ef4444' : '1px solid #e2e8f0',
+                      borderBottom: 'none',
+                      bgcolor: '#f8fafc',
+                      fontFamily: 'inherit'
+                    },
+                    '& .ql-editor': {
+                      minHeight: '250px',
+                      fontFamily: '"Inter", "Roboto", sans-serif',
+                      color: '#1e293b'
+                    },
+                    '& .ql-editor.ql-blank::before': {
+                      color: '#94a3b8',
+                      fontStyle: 'normal'
+                    }
+                  }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, color: errors.description ? '#ef4444' : '#64748b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <DescriptionIcon sx={{ fontSize: 18 }} /> Job Description *
+                    </Typography>
+                    <ReactQuill
+                      theme="snow"
+                      value={formData.description}
+                      onChange={handleDescriptionChange}
+                      modules={quillModules}
+                      formats={quillFormats}
+                      placeholder="Enter detailed job description, responsibilities, and requirements..."
+                    />
+                    {errors.description && (
+                      <Typography variant="caption" sx={{ color: '#ef4444', mt: 0.5, ml: 1, fontWeight: 500 }}>
+                        {errors.description}
+                      </Typography>
+                    )}
+                  </Box>
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                    <Button
+                      type="submit" variant="contained" size="large"
+                      disabled={isSubmitting}
+                      sx={{
+                        px: 5, py: 1.5, fontSize: '1rem', fontWeight: 700, borderRadius: 2.5, textTransform: 'none',
+                        background: '#0f172a', color: 'white',
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
+                        '&:hover': { background: '#333333', transform: 'translateY(-1px)' },
+                        '&.Mui-disabled': { background: 'rgba(15, 23, 42, 0.6)', color: 'rgba(255, 255, 255, 0.5)' }
+                      }}
+                    >
+                      {isSubmitting ? "Posting Job..." : "Submit Job"}
+                    </Button>
+                  </Box>
+                </Grid>
               </Grid>
-            </Grid>
-          </form>
+            </form>
+          )}
         </Paper>
       </Container>
 
-      {/* Login Modal */}
-      <Dialog open={loginModalOpen} onClose={() => { if(!loginLoading) setLoginModalOpen(false); }} PaperProps={{ sx: { borderRadius: 4, width: '100%', maxWidth: 400, p: 2 } }}>
-        <DialogTitle sx={{ textAlign: 'center', pb: 1, fontWeight: 800 }}>
-          {loginStep === 1 ? "Sign In to Continue" : "Verify OTP"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ textAlign: 'center', mb: 3, pt: 1 }}>
-            {loginStep === 1 ? "Please verify your mobile number to post this job." : `Enter the OTP sent to +91 ${loginForm.mobile}`}
-          </DialogContentText>
-          
-          {loginError && <Alert severity="error" sx={{ mb: 2 }}>{loginError}</Alert>}
-
-          {loginStep === 1 ? (
-            <Stack spacing={3} sx={{ mt: 1 }}>
-              <TextField 
-                fullWidth label="Your Name *" placeholder="John Doe" 
-                value={loginForm.name} onChange={(e) => setLoginForm(prev => ({ ...prev, name: e.target.value }))}
-                InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon sx={{ color: '#94a3b8' }} /></InputAdornment> }}
-              />
-              <TextField 
-                fullWidth label="Mobile Number *" placeholder="Enter 10 digit number" 
-                value={loginForm.mobile} onChange={(e) => setLoginForm(prev => ({ ...prev, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
-                InputProps={{ startAdornment: <InputAdornment position="start"><Typography sx={{ color: '#94a3b8', fontWeight: 600 }}>+91</Typography></InputAdornment> }}
-              />
-              <Button 
-                variant="contained" size="large" onClick={handleLoginNext} disabled={loginLoading}
-                sx={{ py: 1.5, background: '#0f172a', '&:hover': { background: '#333333' }, borderRadius: 2, fontWeight: 700 }}
-              >
-                {loginLoading ? "Sending..." : "Get OTP"}
-              </Button>
-            </Stack>
-          ) : (
-            <Stack spacing={3} sx={{ mt: 1 }}>
-              <TextField 
-                fullWidth label="OTP" placeholder="Enter 6-digit OTP" autoFocus
-                value={loginForm.otp} onChange={(e) => setLoginForm(prev => ({ ...prev, otp: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                InputProps={{ startAdornment: <InputAdornment position="start"><LockOutlinedIcon sx={{ color: '#94a3b8' }} /></InputAdornment> }}
-              />
-              <Typography variant="caption" sx={{ color: '#94a3b8', textAlign: 'center', mt: -2 }}>
-                For testing purposes use OTP: <b>123456</b>
-              </Typography>
-              <Button 
-                variant="contained" size="large" onClick={handleLoginVerify} disabled={loginLoading}
-                sx={{ py: 1.5, background: '#0f172a', '&:hover': { background: '#333333' }, borderRadius: 2, fontWeight: 700 }}
-              >
-                {loginLoading ? "Verifying..." : "Verify & Submit Job"}
-              </Button>
-              <Button variant="text" size="small" onClick={() => { setLoginStep(1); setLoginError(""); }} disabled={loginLoading} sx={{ mt: -1, color: '#64748b' }}>
-                Change Mobile Number
-              </Button>
-            </Stack>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Success Snackbar */}
       <Snackbar open={!!successMsg} autoHideDuration={3000} onClose={() => setSuccessMsg('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>

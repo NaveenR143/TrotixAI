@@ -1,6 +1,7 @@
 import { ADD_USERDETAILS, RESET_INITIAL_STATE, UPDATE_USER_PROFILE, DEBIT_POINTS } from '../constants';
 
 const INIT_STATE = {
+	userid: '',
 	fullname: '', // User Name
 	token: '', // User Api Token
 	email: '', // User Email
@@ -34,13 +35,7 @@ function UserReducer(state = INIT_STATE, action) {
 		case ADD_USERDETAILS:
 			return {
 				...state,
-				fullname: action.payload.fullname,
-				token: action.payload.token,
-				email: action.payload.email,
-				role: action.payload.role,
-				displayname: action.payload.displayname,
-				ip: action.payload.ip,
-				ri: action.payload.ri,
+				...action.payload
 			};
 		case UPDATE_USER_PROFILE:
 			return {

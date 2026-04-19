@@ -39,6 +39,7 @@ class UserRoleEnum(str, enum.Enum):
     jobseeker = "jobseeker"
     recruiter = "recruiter"
     admin = "admin"
+    consultant = "consultant"
 
 
 class UserStatusEnum(str, enum.Enum):
@@ -69,6 +70,38 @@ class SalaryCurrencyEnum(str, enum.Enum):
     GBP = "GBP"
     AED = "AED"
     SGD = "SGD"
+
+
+class JobStatusEnum(str, enum.Enum):
+    draft = "draft"
+    active = "active"
+    paused = "paused"
+    closed = "closed"
+    expired = "expired"
+    published = "published"
+
+
+class JobTypeEnum(str, enum.Enum):
+    full_time = "full_time"
+    part_time = "part_time"
+    contract = "contract"
+    freelance = "freelance"
+    internship = "internship"
+
+
+class WorkModeEnum(str, enum.Enum):
+    onsite = "onsite"
+    remote = "remote"
+    hybrid = "hybrid"
+
+
+class ExpLevelEnum(str, enum.Enum):
+    entry = "entry"
+    junior = "junior"
+    mid = "mid"
+    senior = "senior"
+    lead = "lead"
+    executive = "executive"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -583,24 +616,24 @@ class JobPosting(Base):
 
     id = Column(Integer, primary_key=True)  # bigint in DB
     slug = Column(String, nullable=False, unique=True, index=True)
+    status = Column(Enum(JobStatusEnum), default=JobStatusEnum.draft, nullable=False, index=True)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     summary = Column(Text, nullable=True)
-    status = Column(String, default="draft", nullable=False, index=True)
     experience_min_yrs = Column(Integer, nullable=True)
     experience_max_yrs = Column(Integer, nullable=True)
-    experience_level = Column(String, nullable=True)
+    experience_level = Column(Enum(ExpLevelEnum), nullable=True)
     salary_min = Column(Numeric(12, 2), nullable=True)
     salary_max = Column(Numeric(12, 2), nullable=True)
-    salary_currency = Column(String, nullable=True)
+    salary_currency = Column(Enum(SalaryCurrencyEnum), nullable=True)
     salary_is_hidden = Column(Boolean, default=False)
     salary_display = Column(String, nullable=True)
-    job_type = Column(String, nullable=True, index=True)
-    work_mode = Column(String, nullable=True, index=True)
+    job_type = Column(Enum(JobTypeEnum), nullable=True, index=True)
+    work_mode = Column(Enum(WorkModeEnum), nullable=True, index=True)
     openings = Column(Integer, default=1)
     department = Column(String, nullable=True)
-    company_id = Column(Integer, nullable=False, index=True)
-    recruiter_id = Column(Integer, nullable=True, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    recruiter_id = Column(Integer, ForeignKey("recruiters.id"), nullable=True, index=True)
     location = Column(String, nullable=True, index=True)
     state = Column(String, nullable=True)
     city = Column(String, nullable=True)
@@ -608,16 +641,49 @@ class JobPosting(Base):
     apply_url = Column(String, nullable=True)
     ai_summary = Column(Text, nullable=True)
     ai_tags = Column(ARRAY(String), nullable=True)
-    job_embedding = Column(String, nullable=True)  # pgvector(384) stored as string
+    job_embedding = Column(String, nullable=True)  # pgvector(384/768) stored as string
     posted_at = Column(DateTime(timezone=True), nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=True)
     closed_at = Column(DateTime(timezone=True), nullable=True)
     view_count = Column(Integer, default=0)
     apply_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # New fields found in DB
+    education_requirement = Column(Text, nullable=True)
+    industry_id = Column(Integer, ForeignKey("industries.id"), nullable=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
+    
+    # Relationships
+    company = relationship("Company")
+    industry = relationship("Industry")
+    dept = relationship("Department")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Industries Table (NEW)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class Industry(Base):
+    __tablename__ = "industries"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Education Levels Table (NEW)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class EducationLevel(Base):
+    __tablename__ = "education_levels"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

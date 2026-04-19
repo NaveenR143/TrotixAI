@@ -92,7 +92,9 @@ async def upload_resume(file: UploadFile = File(...)):
 
     try:
         async with AsyncSessionLocal() as session:
-            user_id, is_existing = await save_phone_to_db(primary_phone, session)
+            user_id, is_existing = await save_phone_to_db(
+                primary_phone, "jobseeker", session
+            )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
@@ -103,8 +105,7 @@ async def upload_resume(file: UploadFile = File(...)):
     except Exception as e:
         # We might still want to proceed if OTP fails, or fail the request.
         # Given it's a critical step, let's fail it.
-        raise HTTPException(
-            status_code=500, detail=f"Failed to send OTP: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to send OTP: {str(e)}")
 
     # # Initiate Upload in background
     uploaded_file_details = await AzureStorageService().upload_file(file, user_id)
@@ -151,10 +152,7 @@ async def wait_for_resume_completion(phone: str):
 
                 # Check if completed
                 if resume_status and resume_status.lower() == "completed":
-                    return {
-                        "phone": phone,
-                        "resume_status": resume_status
-                    }
+                    return {"phone": phone, "resume_status": resume_status}
         except Exception as e:
             print(f"Error checking resume status: {str(e)}")
             # Continue retrying on error
@@ -177,5 +175,5 @@ async def wait_for_resume_completion(phone: str):
     # Timeout reached - return failed status
     return {
         "status": "failed",
-        "message": "Resume processing did not complete within 50 seconds"
+        "message": "Resume processing did not complete within 50 seconds",
     }
