@@ -18,10 +18,13 @@ const JobDetailScreen = Loadable(lazy(() => import("../screens/candidate/JobDeta
 const AddCreditsScreen = Loadable(lazy(() => import("../screens/candidate/AddCreditsScreen")));
 const LoginScreen = Loadable(lazy(() => import("../screens/candidate/LoginWrapper")));
 const DashboardScreen = Loadable(lazy(() => import("../screens/candidate/DashboardScreen")));
+const RecruiterDashboardScreen = Loadable(lazy(() => import("../screens/recruiter/DashboardScreen")));
 const RecruitersScreen = Loadable(lazy(() => import("../screens/candidate/RecruitersScreen")));
 const ConsultantsScreen = Loadable(lazy(() => import("../screens/consultants/ConsultantsScreen")));
 const PostJobScreen = Loadable(lazy(() => import("../screens/recruiter/PostJobScreen")));
 const PostedJobsScreen = Loadable(lazy(() => import("../screens/recruiter/PostedJobsScreen")));
+const TemplateSelectorScreen = Loadable(lazy(() => import("../screens/resume_builder/TemplateSelectorScreen")));
+const ResumeBuilderScreen = Loadable(lazy(() => import("../screens/resume_builder/ResumeBuilderScreen")));
 
 /* ***Layouts**** */
 const BlankLayout = Loadable(lazy(() => import("../layouts/blank-layout/BlankLayout")));
@@ -38,6 +41,11 @@ const EntryRoute = () => {
 const ManualProfileRoute = () => {
   const navigate = useNavigate();
   return <ManualProfileScreen onSave={() => navigate('/feed')} onBack={() => navigate('/')} />;
+};
+
+const RecruiterDashboardRoute = () => {
+  const navigate = useNavigate();
+  return <RecruiterDashboardScreen onSave={() => navigate('/recruiter-dashboard')} onBack={() => navigate('/')} />;
 };
 
 const ProcessingRoute = () => {
@@ -58,7 +66,7 @@ const FeedRoute = () => {
   const navigate = useNavigate();
   const profile = useSelector((state) => state.UserReducer);
   const userId = profile?.id || '4bfcd973-7f38-4fd9-80f2-b8c133075fcb';
-  
+
   return <JobFeedScreen userId={userId} onOpenDetail={(job) => navigate('/detail/' + job.id)} onGoBack={() => navigate('/')} />;
 };
 
@@ -102,8 +110,10 @@ const Router = [
           { path: "posted-jobs", element: <PostedJobsScreen /> },
           { path: "recruiters", element: <RecruitersScreen /> },
           { path: "consultants", element: <ConsultantsScreen /> },
-          { path: "resume-builder", element: <div>Resume Builder Screen (Coming Soon)</div> },
+          { path: "resume-builder", element: <TemplateSelectorScreen /> },
+          { path: "resume-builder/create", element: <ResumeBuilderScreen /> },
           { path: "learning", element: <div>Learning Screen (Coming Soon)</div> },
+          { path: "recruiter-dashboard", element: <RecruiterDashboardRoute /> },
         ]
       },
       { path: "*", element: <Navigate to="/error/404" /> },

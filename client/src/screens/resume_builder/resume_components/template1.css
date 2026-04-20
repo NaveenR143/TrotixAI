@@ -1,0 +1,160 @@
+.resume-container {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  background: white;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  color: #1a202c;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.resume-page {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 15mm 20mm;
+  background: white;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Visual page break for web */
+.resume-page:not(:last-child) {
+  border-bottom: 2px dashed #e2e8f0;
+  margin-bottom: 20px;
+}
+
+.header {
+  text-align: center;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #2d3748;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 28pt;
+  margin: 0;
+  font-weight: 800;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.header h3 {
+  font-size: 14pt;
+  color: #4a5568;
+  margin: 5px 0;
+  font-weight: 500;
+}
+
+.header p {
+  font-size: 10pt;
+  color: #718096;
+  margin: 5px 0;
+}
+
+.body {
+  display: flex;
+  gap: 30px;
+  flex: 1;
+}
+
+.left {
+  width: 32%;
+  padding-right: 10px;
+}
+
+.right {
+  width: 68%;
+  border-left: 1px solid #edf2f7;
+  padding-left: 25px;
+}
+
+h4 {
+  font-size: 11pt;
+  font-weight: 800;
+  color: #2d3748;
+  border-bottom: 1px solid #edf2f7;
+  padding-bottom: 5px;
+  margin-top: 20px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.block {
+  margin-bottom: 18px;
+}
+
+.block strong {
+  display: block;
+  font-size: 11pt;
+  color: #1a202c;
+}
+
+.block p {
+  margin: 4px 0;
+  font-size: 10pt;
+  color: #4a5568;
+}
+
+.exp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2px;
+}
+
+.exp-header strong {
+  font-size: 11pt;
+}
+
+.exp-header span {
+  font-size: 9pt;
+  color: #718096;
+  font-weight: 600;
+}
+
+ul {
+  padding-left: 18px;
+  margin: 8px 0;
+}
+
+li {
+  font-size: 10pt;
+  color: #4a5568;
+  margin-bottom: 5px;
+}
+
+.references {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.references strong {
+  display: block;
+  font-size: 10pt;
+  margin-bottom: 2px;
+}
+
+.references p {
+  margin: 1px 0;
+  font-size: 9pt;
+  color: #718096;
+}
+
+@media print {
+  .resume-container {
+    width: 100%;
+    box-shadow: none;
+  }
+  .resume-page {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding: 0;
+  }
+}

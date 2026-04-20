@@ -108,15 +108,15 @@ const PostJobScreen = () => {
     if (!formData.company.trim()) temp.company = "Company Name is required";
     if (!formData.location.trim()) temp.location = "Location is required";
     if (!formData.type) temp.type = "Job Type is required";
-    if (!formData.description.trim()) temp.description = "Job Description is required";
+    if (!formData.workMode) temp.workMode = "Work Mode is required";
     if (!formData.expMin) temp.expMin = "Min Experience is required";
     if (!formData.expMax) temp.expMax = "Max Experience is required";
-    if (!formData.workMode) temp.workMode = "Work Mode is required";
     if (!formData.industry_id) temp.industry_id = "Industry is required";
     if (!formData.education_requirement) temp.education_requirement = "Education is required";
+    if (!formData.description || !formData.description.trim() || formData.description === '<p><br></p>') temp.description = "Job Description is required";
 
     setErrors(temp);
-    return Object.keys(temp).length === 0;
+    return temp;
   };
 
   const handleChange = (e) => {
@@ -154,6 +154,8 @@ const PostJobScreen = () => {
         salary: formData.salary
       };
 
+      debugger;
+
       const response = await createJob(payload);
 
       if (!response.error) {
@@ -172,7 +174,18 @@ const PostJobScreen = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      const firstErrorKey = Object.keys(validationErrors)[0];
+      const element = document.getElementById(firstErrorKey);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Optionally focus the input if it's a TextField
+        const input = element.querySelector('input');
+        if (input) input.focus();
+      }
+      return;
+    }
     performJobSubmit();
   };
 
@@ -220,6 +233,7 @@ const PostJobScreen = () => {
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
+                    id="title"
                     fullWidth label="Job Title *" name="title" value={formData.title} onChange={handleChange}
                     error={!!errors.title} helperText={errors.title}
                     InputProps={{ startAdornment: <InputAdornment position="start"><WorkOutlineIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
@@ -227,6 +241,7 @@ const PostJobScreen = () => {
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
+                    id="company"
                     fullWidth label="Company Name *" name="company" value={formData.company} onChange={handleChange}
                     error={!!errors.company} helperText={errors.company}
                     InputProps={{ startAdornment: <InputAdornment position="start"><BusinessIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
@@ -235,37 +250,57 @@ const PostJobScreen = () => {
 
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
-                    fullWidth label="Location *" name="location" value={formData.location} onChange={handleChange} placeholder="e.g. San Francisco or Remote"
+                    id="location"
+                    fullWidth label="Location *" name="location" value={formData.location} onChange={handleChange}
                     error={!!errors.location} helperText={errors.location}
                     InputProps={{ startAdornment: <InputAdornment position="start"><LocationOnIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                  <FormControl fullWidth error={!!errors.type}>
-                    <InputLabel>Job Type *</InputLabel>
-                    <Select name="type" value={formData.type} onChange={handleChange} label="Job Type *">
-                      {metadata.job_types.map(type => (
-                        <MenuItem key={type} value={type}>{type.replace('_', ' ')}</MenuItem>
-                      ))}
-                    </Select>
-                    {errors.type && <FormHelperText>{errors.type}</FormHelperText>}
-                  </FormControl>
+                  <Autocomplete
+                    id="type"
+                    options={metadata.job_types || []}
+                    getOptionLabel={(option) => option.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                    value={formData.type || null}
+                    onChange={(event, newValue) => {
+                      setFormData(prev => ({ ...prev, type: newValue || '' }));
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Job Type *"
+                        error={!!errors.type}
+                        helperText={errors.type}
+                        fullWidth
+                      />
+                    )}
+                  />
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 6 }}>
-                  <FormControl fullWidth error={!!errors.workMode}>
-                    <InputLabel>Work Mode *</InputLabel>
-                    <Select name="workMode" value={formData.workMode} onChange={handleChange} label="Work Mode *">
-                      {metadata.work_modes.map(mode => (
-                        <MenuItem key={mode} value={mode}>{mode.replace('_', ' ')}</MenuItem>
-                      ))}
-                    </Select>
-                    {errors.workMode && <FormHelperText>{errors.workMode}</FormHelperText>}
-                  </FormControl>
+                  <Autocomplete
+                    id="workMode"
+                    options={metadata.work_modes || []}
+                    getOptionLabel={(option) => option.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                    value={formData.workMode || null}
+                    onChange={(event, newValue) => {
+                      setFormData(prev => ({ ...prev, workMode: newValue || '' }));
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Work Mode *"
+                        error={!!errors.workMode}
+                        helperText={errors.workMode}
+                        fullWidth
+                      />
+                    )}
+                  />
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 3 }}>
                   <TextField
+                    id="expMin"
                     fullWidth label="Experience Min (Yrs) *" name="expMin" type="number"
                     value={formData.expMin} onChange={handleChange}
                     error={!!errors.expMin} helperText={errors.expMin}
@@ -273,6 +308,7 @@ const PostJobScreen = () => {
                 </Grid>
                 <Grid size={{ xs: 12, md: 3 }}>
                   <TextField
+                    id="expMax"
                     fullWidth label="Experience Max (Yrs) *" name="expMax" type="number"
                     value={formData.expMax} onChange={handleChange}
                     error={!!errors.expMax} helperText={errors.expMax}
@@ -286,43 +322,71 @@ const PostJobScreen = () => {
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 6 }}>
-                  <FormControl fullWidth error={!!errors.industry_id}>
-                    <InputLabel>Industry Type *</InputLabel>
-                    <Select name="industry_id" value={formData.industry_id} onChange={handleChange} label="Industry Type *">
-                      {metadata.industries.map(item => (
-                        <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
-                      ))}
-                    </Select>
-                    {errors.industry_id && <FormHelperText>{errors.industry_id}</FormHelperText>}
-                  </FormControl>
+                  <Autocomplete
+                    id="industry_id"
+                    options={metadata.industries || []}
+                    getOptionLabel={(option) => option.name || ""}
+                    value={metadata.industries.find(item => item.id === formData.industry_id) || null}
+                    isOptionEqualToValue={(option, value) => option.id === value?.id}
+                    onChange={(event, newValue) => {
+                      setFormData(prev => ({ ...prev, industry_id: newValue ? newValue.id : '' }));
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Industry Type *"
+                        error={!!errors.industry_id}
+                        helperText={errors.industry_id}
+                        fullWidth
+                      />
+                    )}
+                  />
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 6 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Department</InputLabel>
-                    <Select name="department_id" value={formData.department_id} onChange={handleChange} label="Department">
-                      {metadata.departments.map(item => (
-                        <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <Autocomplete
+                    options={metadata.departments || []}
+                    getOptionLabel={(option) => option.name || ""}
+                    value={metadata.departments.find(item => item.id === formData.department_id) || null}
+                    isOptionEqualToValue={(option, value) => option.id === value?.id}
+                    onChange={(event, newValue) => {
+                      setFormData(prev => ({ ...prev, department_id: newValue ? newValue.id : '' }));
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Department"
+                        fullWidth
+                      />
+                    )}
+                  />
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 6 }}>
-                  <FormControl fullWidth error={!!errors.education_requirement}>
-                    <InputLabel>Education Level *</InputLabel>
-                    <Select name="education_requirement" value={formData.education_requirement} onChange={handleChange} label="Education Level *">
-                      {metadata.education_levels.map(item => (
-                        <MenuItem key={item.name} value={item.name}>{item.name}</MenuItem>
-                      ))}
-                    </Select>
-                    {errors.education_requirement && <FormHelperText>{errors.education_requirement}</FormHelperText>}
-                  </FormControl>
+                  <Autocomplete
+                    id="education_requirement"
+                    options={metadata.education_levels || []}
+                    getOptionLabel={(option) => option.name || ""}
+                    value={metadata.education_levels.find(item => item.name === formData.education_requirement) || null}
+                    isOptionEqualToValue={(option, value) => option.name === value?.name}
+                    onChange={(event, newValue) => {
+                      setFormData(prev => ({ ...prev, education_requirement: newValue ? newValue.name : '' }));
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Education Level *"
+                        error={!!errors.education_requirement}
+                        helperText={errors.education_requirement}
+                        fullWidth
+                      />
+                    )}
+                  />
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
-                    fullWidth label="Salary Range (Optional)" name="salary" value={formData.salary} onChange={handleChange} placeholder="e.g. $80k - $120k"
+                    fullWidth label="Salary Range (Optional)" name="salary" value={formData.salary} onChange={handleChange}
                     InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
                   />
                 </Grid>
@@ -338,7 +402,7 @@ const PostJobScreen = () => {
                 </Grid>
 
                 <Grid size={{ xs: 12 }}>
-                  <Box sx={{
+                  <Box id="description" sx={{
                     '& .ql-container': {
                       borderRadius: '0 0 12px 12px',
                       minHeight: '250px',

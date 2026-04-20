@@ -18,6 +18,7 @@ import {
 import axios from "axios";
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
 import { updateUserProfile, debitPoints } from "../../redux/user/Action";
+import { fetchAndStoreProfile } from "../../redux/profile/ProfileAction";
 import { toTitleCase } from "./utils/profileUtils";
 
 // Sections
@@ -67,99 +68,24 @@ const UserProfile = () => {
 
   // Fetch user profile data from API
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // In a real app, phone would come from auth or state
-        // const phone = profile?.mobile || "9821071111";
-
-        const phone = "9789502974";
-
-        const response = await axios.get(
-          `${API_BASE_URL}${API_ENDPOINTS.USER_PROFILE}`,
-          {
-            params: { phone },
-            timeout: 10000,
-          }
-        );
-
-        if (response.data) {
-          const profileData = response.data?.data || response.data;
-          setUserId(profileData.id);
-
-          // Map API response to Redux format
-          const mappedData = {
-            id: profileData.id,
-            fullname: toTitleCase(profileData?.full_name) || "",
-            email: profileData?.email || "",
-            mobile: profileData?.phone || "",
-            website: profileData?.portfolio_url || profileData?.github_url || "",
-            preferredLocation: toTitleCase(profileData?.preferred_locations?.[0]) || toTitleCase(profileData?.current_location) || "",
-            currentLocation: toTitleCase(profileData?.current_location) || "",
-            headline: toTitleCase(profileData?.headline) || "",
-            about: toTitleCase(profileData?.summary) || "",
-            date_of_birth: profileData?.date_of_birth || "",
-            maritalStatus: profileData?.marital_status || "",
-            experience: profileData?.experience && Array.isArray(profileData.experience)
-              ? profileData.experience.map((exp) => ({
-                id: exp?.id || null,
-                company_name: toTitleCase(exp?.company_name || "") || "",
-                role: toTitleCase(exp?.title) || "",
-                location: toTitleCase(exp?.location) || "",
-                description: toTitleCase(exp?.description) || "",
-                startDate: exp?.start_date || "",
-                endDate: exp?.end_date || "",
-                isCurrent: exp?.is_current || false,
-                skills: exp?.skills_used || [],
-                achievements: exp?.achievements || [],
-              }))
-              : [],
-            education: profileData?.education && Array.isArray(profileData.education)
-              ? profileData.education.map((edu) => ({
-                id: edu?.id || null,
-                school: toTitleCase(edu?.institution) || "",
-                degree: toTitleCase(edu?.degree) || "",
-                field: toTitleCase(edu?.field_of_study) || "",
-                grade: edu?.grade || "",
-                year: edu?.end_year || "",
-              }))
-              : [],
-            projects: profileData?.projects && Array.isArray(profileData.projects)
-              ? profileData.projects.map((project) => ({
-                  id: project?.id || null,
-                  title: toTitleCase(project?.title || "") || "",
-                  description: project?.description || "",
-                  url: project?.url || "",
-                  repoUrl: project?.repo_url || "",
-                  startDate: project?.start_date || "",
-                  endDate: project?.end_date || "",
-                  skills: project?.skills_used && Array.isArray(project.skills_used)
-                    ? project.skills_used.map((s) => toTitleCase(typeof s === "string" ? s : s?.name))
-                    : [],
-                }))
-              : [],
-            skills: profileData?.skills && Array.isArray(profileData.skills)
-              ? profileData.skills.map((s) => toTitleCase(typeof s === "string" ? s : s?.name))
-              : [],
-            languages: profileData?.languages && Array.isArray(profileData.languages)
-              ? profileData.languages.map((l) => toTitleCase(typeof l === "string" ? l : l?.language))
-              : [],
-            gender: toTitleCase(profileData?.gender) || "",
-          };
-
-          dispatch(updateUserProfile(mappedData));
-        }
-      } catch (err) {
-        console.error("❌ Error fetching profile:", err);
-        setError(err.response?.data?.message || err.message || "Failed to load profile");
-      } finally {
-        setLoading(false);
+    const fetchUserProfileData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      const phone = profile?.mobile || "9789502974"; // Keep existing fallback logic if needed
+      
+      const result = await dispatch(fetchAndStoreProfile(phone));
+      
+      if (result.success) {
+        setUserId(result.data.id);
+      } else {
+        setError(result.message || "Failed to load profile");
       }
+      
+      setLoading(false);
     };
 
-    fetchUserProfile();
+    fetchUserProfileData();
   }, [retryCount, dispatch, profile?.mobile]);
 
   const handleRetryFetch = () => setRetryCount((prev) => prev + 1);

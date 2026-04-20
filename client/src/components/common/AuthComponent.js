@@ -12,7 +12,9 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { sendOTP, verifyOTP, sendRegistrationOTP } from "../../api/jobpostingAPI";
 import { UPDATE_USER_PROFILE } from "../../redux/constants";
+import { fetchAndStoreProfile } from "../../redux/profile/ProfileAction";
 import { fadeSlideUp } from "../../utils/themeUtils";
+import { scrollToFirstError } from "../../utils/formUtils";
 
 /**
  * AuthComponent - Universal login and registration component
@@ -49,7 +51,7 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
 
     switch (type) {
       case 'Recruiter':
-        navigate("/posted-jobs");
+        navigate("/recruiter-dashboard");
         break;
       case 'Consultant':
         navigate("/consultant-dashboard");
@@ -89,12 +91,13 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
     e.preventDefault();
 
     // Validation
-    if (!isLogin && !formData.name.trim()) {
-      setError("Please enter your name.");
-      return;
-    }
-    if (formData.mobile.length !== 10) {
-      setError("Please enter a valid 10-digit mobile number.");
+    const validationErrors = {};
+    if (!isLogin && !formData.name.trim()) validationErrors.name = "Please enter your name.";
+    if (formData.mobile.length !== 10) validationErrors.mobile = "Please enter a valid 10-digit mobile number.";
+
+    if (Object.keys(validationErrors).length > 0) {
+      setError(Object.values(validationErrors)[0]);
+      scrollToFirstError(validationErrors, ['name', 'mobile']);
       return;
     }
 
@@ -125,6 +128,7 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
     e.preventDefault();
     if (formData.otp.length !== 4) {
       setError("Please enter the 4-digit OTP.");
+      scrollToFirstError({ otp: true }, ['otp']);
       return;
     }
 
@@ -147,6 +151,9 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
             role: resp.data.user_type
           }
         });
+
+        // Fetch and store complete profile information
+        dispatch(fetchAndStoreProfile(formData.mobile));
 
         handleNavigation(verifiedType);
       } else {
@@ -213,6 +220,7 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
               <>
                 {!isLogin && (
                   <TextField
+                    id="name"
                     fullWidth label="Full Name" placeholder="Enter your name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -220,6 +228,7 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
                   />
                 )}
                 <TextField
+                  id="mobile"
                   fullWidth label="Mobile Number" placeholder="10-digit number"
                   value={formData.mobile}
                   onChange={(e) => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })}
@@ -253,6 +262,7 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
             ) : (
               <>
                 <TextField
+                  id="otp"
                   fullWidth label="4-Digit OTP" placeholder="0000" autoFocus
                   value={formData.otp}
                   onChange={(e) => setFormData({ ...formData, otp: e.target.value.replace(/\D/g, '').slice(0, 4) })}

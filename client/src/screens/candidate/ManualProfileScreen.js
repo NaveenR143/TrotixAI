@@ -22,6 +22,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CakeIcon from "@mui/icons-material/Cake";
 import FamilyRestroomIcon from "@mui/icons-material/FamilyRestroom";
 import { updateUserProfile, debitPoints } from "../../redux/user/Action";
+import { scrollToFirstError } from "../../utils/formUtils";
 
 const STEPS = ["Identity", "Experience & Education", "Summary & Skills"];
 const SKILLS_OPTIONS = [
@@ -83,12 +84,18 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
       if (!formData.about.trim()) newErrors.about = "Summary is required";
     }
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleNext = () => {
-    if (validateStep(activeStep)) {
+    const stepErrors = validateStep(activeStep);
+    if (Object.keys(stepErrors).length === 0) {
       setActiveStep((prev) => prev + 1);
+    } else {
+      const fieldOrder = activeStep === 0
+        ? ['firstName', 'lastName', 'email', 'phone', 'preferredLocation']
+        : activeStep === 1 ? ['education'] : ['skills', 'languages', 'dob', 'about'];
+      scrollToFirstError(stepErrors, fieldOrder);
     }
   };
   const handleBack = () => {
@@ -160,7 +167,12 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
   };
 
   const handleFinalSave = () => {
-    if (!validateStep(activeStep)) return;
+    const stepErrors = validateStep(activeStep);
+    if (Object.keys(stepErrors).length > 0) {
+      const fieldOrder = ['skills', 'languages', 'dob', 'about'];
+      scrollToFirstError(stepErrors, fieldOrder);
+      return;
+    }
 
     const profileToPersist = {
       mobile: formData.phone,
@@ -190,23 +202,23 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
           <Stack spacing={3}>
             <Grid container spacing={1}>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="First Name *" name="firstName" value={formData.firstName} onChange={handleInputChange} error={!!errors.firstName} helperText={errors.firstName} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+                <TextField id="firstName" fullWidth label="First Name *" name="firstName" value={formData.firstName} onChange={handleInputChange} error={!!errors.firstName} helperText={errors.firstName} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Last Name *" name="lastName" value={formData.lastName} onChange={handleInputChange} error={!!errors.lastName} helperText={errors.lastName} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+                <TextField id="lastName" fullWidth label="Last Name *" name="lastName" value={formData.lastName} onChange={handleInputChange} error={!!errors.lastName} helperText={errors.lastName} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
               </Grid>
             </Grid>
-            <TextField fullWidth label="Email Address *" name="email" value={formData.email} onChange={handleInputChange} error={!!errors.email} helperText={errors.email} size="small" InputProps={{ startAdornment: <EmailIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+            <TextField id="email" fullWidth label="Email Address *" name="email" value={formData.email} onChange={handleInputChange} error={!!errors.email} helperText={errors.email} size="small" InputProps={{ startAdornment: <EmailIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
             <Grid container spacing={1}>
               <Grid item xs={2} sm={2}>
                 <TextField fullWidth label="Code" value="+91" disabled size="small" InputProps={{ startAdornment: <WhatsAppIcon sx={{ mr: 0.5, fontSize: 18, color: '#25D366' }} /> }} />
               </Grid>
               <Grid item xs={9} sm={9.5}>
-                <TextField fullWidth label="Mobile Number *" name="phone" value={formData.phone} onChange={handleInputChange} error={!!errors.phone} helperText={errors.phone} size="small" placeholder="10-digit number" />
+                <TextField id="phone" fullWidth label="Mobile Number *" name="phone" value={formData.phone} onChange={handleInputChange} error={!!errors.phone} helperText={errors.phone} size="small" placeholder="10-digit number" />
               </Grid>
             </Grid>
             <TextField fullWidth label="Website / Portfolio" name="website" value={formData.website} onChange={handleInputChange} size="small" placeholder="https://..." InputProps={{ startAdornment: <PublicIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
-            <TextField fullWidth label="Job Preferred Location *" name="preferredLocation" value={formData.preferredLocation} onChange={handleInputChange} error={!!errors.preferredLocation} helperText={errors.preferredLocation} size="small" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+            <TextField id="preferredLocation" fullWidth label="Job Preferred Location *" name="preferredLocation" value={formData.preferredLocation} onChange={handleInputChange} error={!!errors.preferredLocation} helperText={errors.preferredLocation} size="small" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
           </Stack>
         );
       case 1:
@@ -235,7 +247,9 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                 <Typography variant="h6" sx={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 1 }}><SchoolIcon color="primary" /> EDUCATION</Typography>
                 <Button size="small" startIcon={<AddIcon />} onClick={addEducation} sx={{ textTransform: 'none' }}>Add Entry</Button>
               </Box>
-              {errors.education && <Alert severity="error" sx={{ mb: 2 }}>{errors.education}</Alert>}
+              <Box id="education">
+                {errors.education && <Alert severity="error" sx={{ mb: 2 }}>{errors.education}</Alert>}
+              </Box>
               {formData.education.map((edu, idx) => (
                 <Paper key={idx} variant="outlined" sx={{ p: 2, mb: 2, position: 'relative', bgcolor: '#f8fafc', borderStyle: 'dashed' }}>
                   <IconButton size="small" onClick={() => removeEducation(idx)} sx={{ position: 'absolute', top: 8, right: 8, color: '#f43f5e' }}><DeleteIcon fontSize="inherit" /></IconButton>
@@ -253,29 +267,31 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
         return (
           <Stack spacing={3}>
             <Box>
-              <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <AutoAwesomeIcon sx={{ fontSize: 18, color: '#6366f1' }} /> SKILLS *
-              </Typography>
-              <Autocomplete
-                multiple
-                freeSolo
-                options={SKILLS_OPTIONS}
-                filterSelectedOptions
-                value={formData.skills}
-                onChange={(event, newValue) => {
-                  setFormData(prev => ({ ...prev, skills: newValue }));
-                }}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip variant="filled" label={option} {...getTagProps({ index })} sx={{ borderRadius: 1.5, bgcolor: '#eef2ff', color: '#4f46e5', fontWeight: 600, '& .MuiChip-deleteIcon': { color: '#6366f1' } }} />
-                  ))
-                }
-                renderInput={(params) => (
-                  <TextField {...params} placeholder="Type or select skills..." error={!!errors.skills} helperText={errors.skills} />
-                )}
-              />
+              <Box id="skills">
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AutoAwesomeIcon sx={{ fontSize: 18, color: '#6366f1' }} /> SKILLS *
+                </Typography>
+                <Autocomplete
+                  multiple
+                  freeSolo
+                  options={SKILLS_OPTIONS}
+                  filterSelectedOptions
+                  value={formData.skills}
+                  onChange={(event, newValue) => {
+                    setFormData(prev => ({ ...prev, skills: newValue }));
+                  }}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip variant="filled" label={option} {...getTagProps({ index })} sx={{ borderRadius: 1.5, bgcolor: '#eef2ff', color: '#4f46e5', fontWeight: 600, '& .MuiChip-deleteIcon': { color: '#6366f1' } }} />
+                    ))
+                  }
+                  renderInput={(params) => (
+                    <TextField {...params} placeholder="Type or select skills..." error={!!errors.skills} helperText={errors.skills} />
+                  )}
+                />
+              </Box>
             </Box>
-            <Box>
+            <Box id="languages">
               <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LanguageIcon sx={{ fontSize: 18, color: '#0ea5e9' }} /> LANGUAGES *
               </Typography>
@@ -308,7 +324,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                   </Button>
                 </Tooltip>
               </Box>
-              <TextField fullWidth multiline rows={4} name="about" value={formData.about} onChange={handleInputChange} placeholder="Tell us about yourself..." error={!!errors.about} helperText={errors.about} />
+              <TextField id="about" fullWidth multiline rows={4} name="about" value={formData.about} onChange={handleInputChange} placeholder="Tell us about yourself..." error={!!errors.about} helperText={errors.about} />
             </Box>
 
             <Divider sx={{ my: 1 }} />
@@ -319,7 +335,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={4}>
-                  <TextField fullWidth label="Date of Birth *" name="dob" type="date" value={formData.dob} onChange={handleInputChange} error={!!errors.dob} helperText={errors.dob} size="small" InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <CakeIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+                  <TextField id="dob" fullWidth label="Date of Birth *" name="dob" type="date" value={formData.dob} onChange={handleInputChange} error={!!errors.dob} helperText={errors.dob} size="small" InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <CakeIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <TextField fullWidth select label="Marital Status" name="maritalStatus" value={formData.maritalStatus} onChange={handleInputChange} size="small" InputProps={{ startAdornment: <FamilyRestroomIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }}>

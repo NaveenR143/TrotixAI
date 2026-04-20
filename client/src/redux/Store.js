@@ -1,6 +1,7 @@
 import { applyMiddleware, createStore, compose } from 'redux';
 import { save, load } from "redux-localstorage-simple";
 import reduxReset from 'redux-reset';
+import { thunk } from 'redux-thunk';
 import RootReducers from './Rootreducers';
 
 const composeEnhancers = (typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) || compose;
@@ -8,7 +9,7 @@ const composeEnhancers = (typeof window !== 'undefined' && window.__REDUX_DEVTOO
 const PERSISTED_STATES = ["UserReducer", "CustomizerReducer", "RecentSearchesReducer"];
 
 const enHanceCreateStore = composeEnhancers(
-	applyMiddleware(save({ states: PERSISTED_STATES })),
+	applyMiddleware(thunk, save({ states: PERSISTED_STATES })),
 	reduxReset() // Will use 'RESET' as default action.type to trigger reset
 )(createStore);
 
