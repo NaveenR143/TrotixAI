@@ -1,9 +1,9 @@
+from ai.utils.extractor import DeterministicExtractor
 import re
 import io
 from pdfminer.high_level import extract_text as extract_pdf_text
 import docx
 import mammoth
-from ai.services.resume_pipeline.extractor import DeterministicExtractor
 
 
 def extract_phone_numbers_from_file(file_bytes: bytes, filename: str):
@@ -30,5 +30,8 @@ def extract_phone_numbers_from_file(file_bytes: bytes, filename: str):
 
     except Exception as e:
         import logging
-        logging.getLogger(__name__).error(f"Error extracting phone numbers from {filename}: {str(e)}")
+
+        logging.getLogger(__name__).error(
+            f"Error extracting phone numbers from {filename}: {str(e)}"
+        )
         return []

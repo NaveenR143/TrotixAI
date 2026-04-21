@@ -20,3 +20,7 @@ class AIRefinementError(ResumeProcessingError):
 class RepositoryError(ResumeProcessingError):
     """Raised when database persistence fails."""
 
+
+class CareerAdvisorError(ResumeProcessingError):
+    """Raised when career advice generation or parsing fails."""
+

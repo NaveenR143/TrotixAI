@@ -385,4 +385,9 @@ async def service_worker():
 # SPA fallback — must be absolutely last
 @app.get("/{full_path:path}")
 async def spa_fallback(full_path: str):
+    # Exclude API routes from SPA fallback to avoid confusing HTML responses
+    api_prefixes = ["profile", "jobs", "otp", "resume-process"]
+    if any(full_path.startswith(prefix) for prefix in api_prefixes):
+        raise HTTPException(status_code=404, detail=f"API route '/{full_path}' not found")
+        
     return FileResponse(PUBLIC_DIR / "index.html")

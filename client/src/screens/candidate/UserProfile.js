@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
 import {
   Box,
   Container,
@@ -40,6 +42,8 @@ const UserProfile = () => {
   // eslint-disable-next-line no-unused-vars
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
 
   const profile = useSelector((state) => state.UserReducer);
   const userPoints = useSelector((state) => state.UserReducer?.points ?? 0);
@@ -118,16 +122,9 @@ const UserProfile = () => {
   };
 
   const handleAiSuggestLearning = () => {
-    if (userPoints < 20) return alert("Not enough credits!");
-    setAiLoading((prev) => ({ ...prev, learning: true }));
-    setAiDialogs((prev) => ({ ...prev, learning: true }));
-    setTimeout(() => {
-      const result = `📚 Personalized Learning Roadmap:\n\n1. Kubernetes Basics (4hrs)\n2. Advanced React Patterns...`;
-      setAiResults((prev) => ({ ...prev, learning: result }));
-      dispatch(debitPoints(20));
-      setAiLoading((prev) => ({ ...prev, learning: false }));
-    }, 1500);
+    navigate("/career-advice");
   };
+
 
   return (
     <Box sx={{ minHeight: "calc(100vh - 64px)", bgcolor: "#f8fafc", py: { xs: 3, md: 6 } }}>

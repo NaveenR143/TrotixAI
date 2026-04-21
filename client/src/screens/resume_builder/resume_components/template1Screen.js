@@ -98,12 +98,26 @@ export default function Template1({ data }) {
                                 <h4>PROJECTS</h4>
                                 {projects.map((proj, i) => (
                                     <div key={i} className="block">
-                                        <strong>{proj.name}</strong>
-                                        <p>{proj.description}</p>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                                            <strong>{proj.name}</strong>
+                                            {proj.year && <span style={{ fontSize: '9pt', color: '#718096' }}>{proj.year}</span>}
+                                        </div>
+                                        {proj.link && (
+                                            <a href={proj.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: '9pt', color: '#3182ce', textDecoration: 'none', display: 'block', margin: '2px 0' }}>
+                                                {proj.link}
+                                            </a>
+                                        )}
+                                        <ul>
+                                            {proj.description && proj.description.split('\n').map((point, idx) => (
+                                                point.trim() && <li key={idx}>{point.replace(/^[•\-\*]\s?/, '')}</li>
+                                            ))}
+                                        </ul>
+
                                     </div>
                                 ))}
                             </section>
                         )}
+
                     </div>
                 </div>
             </div>

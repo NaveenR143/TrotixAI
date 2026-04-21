@@ -171,11 +171,14 @@ const TemplateSelectorScreen = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const handleSelect = (templateId) => {
+  const handleSelect = (rawName) => {
+    // Transform "template_1.png" -> "template1"
+    const templateId = rawName.split('.')[0].replace(/_/g, "");
     console.log("Selected template:", templateId);
     // Navigate to builder with selection
     navigate(`/resume-builder/create?template=${templateId}`);
   };
+
 
   const templates = Object.entries(templateImages);
 

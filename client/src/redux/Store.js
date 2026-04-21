@@ -6,7 +6,7 @@ import RootReducers from './Rootreducers';
 
 const composeEnhancers = (typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) || compose;
 
-const PERSISTED_STATES = ["UserReducer", "CustomizerReducer", "RecentSearchesReducer"];
+const PERSISTED_STATES = ["UserReducer", "CustomizerReducer", "RecentSearchesReducer", "ProfileReducer"];
 
 const enHanceCreateStore = composeEnhancers(
 	applyMiddleware(thunk, save({ states: PERSISTED_STATES })),

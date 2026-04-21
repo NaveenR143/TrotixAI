@@ -1,11 +1,11 @@
-from __future__ import annotations
+from .models import DeterministicResumeData
+
 
 import re
 
 from decimal import Decimal
 from typing import Sequence
 
-from .models import DeterministicResumeData
 
 # import spacy
 # name_nlp = spacy.load("en_core_web_sm")
@@ -198,8 +198,7 @@ class DeterministicExtractor:
         "ahmedabad",
     )
 
-    EMAIL_RE = re.compile(
-        r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
+    EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
     PHONE_RE = re.compile(
         r"""
         (?<!\d)           # not preceded by a digit
@@ -211,8 +210,7 @@ class DeterministicExtractor:
         """,
         re.VERBOSE,
     )
-    EXPERIENCE_RE = re.compile(
-        r"(\d+(?:\.\d+)?)\+?\s*(years?|yrs?)", re.IGNORECASE)
+    EXPERIENCE_RE = re.compile(r"(\d+(?:\.\d+)?)\+?\s*(years?|yrs?)", re.IGNORECASE)
 
     def _extract_phone_numbers(self, text: str) -> list[str]:
         if not text:
@@ -233,7 +231,9 @@ class DeterministicExtractor:
 
         return cleaned_numbers
 
-    def extract(self, clean_text: str, first_five_lines: str) -> DeterministicResumeData:
+    def extract(
+        self, clean_text: str, first_five_lines: str
+    ) -> DeterministicResumeData:
         lowered = clean_text.lower()
         lines = first_five_lines.splitlines()
 
@@ -520,8 +520,7 @@ class DeterministicExtractor:
 
         # Extract lines after project section header (limit to next 15 lines)
         for i in range(
-            project_section_start +
-                1, min(project_section_start + 15, len(lines))
+            project_section_start + 1, min(project_section_start + 15, len(lines))
         ):
             line = lines[i].strip()
             if not line:
@@ -554,8 +553,7 @@ class DeterministicExtractor:
     def _extract_job_titles(self, lowered: str, lines: Sequence[str]) -> list[str]:
         found: set[str] = set()
         for pattern in self.TITLE_PATTERNS:
-            found.update(match.group(0)
-                         for match in re.finditer(pattern, lowered))
+            found.update(match.group(0) for match in re.finditer(pattern, lowered))
 
         # Generic fallback: infer from common role labels in resumes.
         label_patterns = (
@@ -563,8 +561,7 @@ class DeterministicExtractor:
                 r"^(current|target|desired)?\s*(role|position|title|designation)\s*[:\-]\s*(.+)$",
                 re.IGNORECASE,
             ),
-            re.compile(
-                r"^(professional\s+title)\s*[:\-]\s*(.+)$", re.IGNORECASE),
+            re.compile(r"^(professional\s+title)\s*[:\-]\s*(.+)$", re.IGNORECASE),
         )
         for line in lines[:80]:
             stripped = line.strip()
@@ -573,8 +570,7 @@ class DeterministicExtractor:
             for pattern in label_patterns:
                 match = pattern.match(stripped)
                 if match:
-                    candidate = match.group(
-                        match.lastindex or 1).strip().lower()
+                    candidate = match.group(match.lastindex or 1).strip().lower()
                     if candidate and len(candidate) <= 80:
                         found.add(candidate)
 
@@ -589,8 +585,7 @@ class DeterministicExtractor:
 
     @staticmethod
     def _extract_url(text: str, domain: str) -> str | None:
-        url_re = re.compile(
-            rf"https?://[^\s]*{re.escape(domain)}[^\s]*", re.IGNORECASE)
+        url_re = re.compile(rf"https?://[^\s]*{re.escape(domain)}[^\s]*", re.IGNORECASE)
         match = url_re.search(text)
         return match.group(0) if match else None
 

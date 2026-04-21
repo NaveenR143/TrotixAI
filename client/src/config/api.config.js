@@ -24,7 +24,8 @@ const API_ENDPOINTS = {
   NEW_RECRUITER_OTP: '/otp/new-recruiter-otp',
   JOB_FEEDS: '/jobs/fetch-jobs',
   JOB_METADATA: '/jobs/metadata',
-  CREATE_JOB: '/jobs/create'
+  CREATE_JOB: '/jobs/create',
+  CAREER_ADVICE: '/profile/career-advice'
 };
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────

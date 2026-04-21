@@ -192,6 +192,55 @@ class TOONFormatter:
             "- Ensure the summary is embedding-friendly (clear, descriptive, semantically rich).\n\n"
         )
 
+    @staticmethod
+    def build_career_schema_instructions() -> str:
+        return (
+            "Return ONLY this TOON object and nothing else:\n\n"
+            "CareerAdviceTOON(\n"
+            "  career_paths: [\n"
+            "    CareerPathTOON(\n"
+            '      title: "str",\n'
+            '      description: "str",\n'
+            "      match_score: number,\n"
+            '      market_demand: "High|Medium|Low",\n'
+            '      top_skills_needed: ["str", ...]\n'
+            "    )\n"
+            "  ],\n"
+            "  skill_gaps: [\n"
+            "    SkillGapTOON(\n"
+            '      skill: "str",\n'
+            '      current_level: "str",\n'
+            '      required_level: "str",\n'
+            "      importance: number\n"
+            "    )\n"
+            "  ],\n"
+            "  recommendations: (\n"
+            "    courses: [\n"
+            "      CourseTOON(\n"
+            '        title: "str",\n'
+            '        provider: "str",\n'
+            '        url: "str|empty"\n'
+            "      )\n"
+            "    ],\n"
+            "    certifications: [\n"
+            "      CertificationTOON(\n"
+            '        title: "str",\n'
+            '        provider: "str",\n'
+            '        url: "str|empty"\n'
+            "      )\n"
+            "    ]\n"
+            "  ),\n"
+            "  action_plan: [\n"
+            "    StepTOON(\n"
+            "      step_number: int,\n"
+            '      action: "str",\n'
+            '      timeline: "str",\n'
+            '      resources: ["str", ...]\n'
+            "    )\n"
+            "  ]\n"
+            ")\n"
+        )
+
     def toon_to_json(self, toon_str: str) -> dict:
         """
         Convert a TOON-formatted string to a Python dict.

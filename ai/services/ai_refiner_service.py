@@ -6,9 +6,15 @@ from pathlib import Path
 from uuid import UUID
 from dotenv import load_dotenv
 
-from .errors import AIRefinementError
-from .models import DeterministicResumeData, JobSeekerProfile
-from .toon import TOONFormatter
+from ai.utils.errors import AIRefinementError, CareerAdvisorError
+from ai.utils.toon import TOONFormatter
+from typing import Dict, Any, List
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+
 
 try:
     from openai import AzureOpenAI  # type: ignore
@@ -53,18 +59,22 @@ class AzureOpenAIResumeRefiner:
             api_version=self._api_version,
         )
 
-    def refine(
+
+    async def generate_career_advice(
         self,
-        user_id: UUID,
-        clean_text: str,
-    ) -> JobSeekerProfile:
-        schema_instruction = self._formatter.build_schema_instructions()
+        profile_data: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Generate structured career advice using Azure OpenAI
+        """
+
+        schema_instruction = self._formatter.build_career_schema_instructions()
 
         messages = [
             {
                 "role": "system",
                 "content": (
-                    "You are a strict resume normalization engine.\n"
+                    "You are a strict career advisor engine.\n"
                     "Output MUST follow EXACT TOON syntax.\n"
                     "STRICT RULES:\n"
                     '1. Use only double quotes (") for all strings.\n'
@@ -77,14 +87,15 @@ class AzureOpenAIResumeRefiner:
                     "8. URLs must be valid and start with https://\n"
                     "9. Do NOT break strings across lines.\n"
                     "10. If unsure, return null instead of invalid syntax.\n"
+                    "11. Keep recommendations realistic and relevant.\n"
                 ),
             },
             {
                 "role": "user",
                 "content": (
                     f"{schema_instruction}\n\n"
-                    "Resume text (PII already removed, cleaned and deduplicated):\n"
-                    f"{clean_text}\n"
+                    "User profile data:\n"
+                    f"{json.dumps(profile_data, ensure_ascii=False)}\n"
                 ),
             },
         ]
@@ -93,46 +104,35 @@ class AzureOpenAIResumeRefiner:
             response = self._client.chat.completions.create(
                 model=self._deployment,
                 messages=messages,
-                temperature=0.0,  # 🔥 deterministic output
+                temperature=0.2,  # slight creativity for recommendations
             )
 
             content = (response.choices[0].message.content or "").strip()
 
-            print("AI Content Generated : ", content)
+            # 🔍 Debug (optional)
+            # print("Career Advice Raw Output:", content)
 
             # 🔴 Strong validation
-            if not content.startswith("JobSeekerProfileTOON("):
-                raise AIRefinementError("Invalid TOON format (missing root object)")
+            if not content.startswith("CareerAdviceTOON("):
+                raise CareerAdvisorError("Invalid TOON format (missing root object)")
 
             if not content.endswith(")"):
-                raise AIRefinementError(
+                raise CareerAdvisorError(
                     "Malformed TOON response (missing closing bracket)"
                 )
 
-            with open("toon.txt", "w", encoding="utf-8") as _debug_file:
-                _debug_file.write(content)
+            # 🧩 Convert TOON → JSON
+            advice_json = self._formatter.toon_to_json(content)
 
-            profile_json = self._formatter.toon_to_json(content)
+            # 🔍 Optional debug dump
+            # with open(f"career_advice_{user_id}.json", "w", encoding="utf-8") as f:
+            #     json.dump(advice_json, f, indent=2, ensure_ascii=False)
 
-            # with open(
-            #     Path.cwd() / f"profile_{user_id}.json", "w", encoding="utf-8"
-            # ) as debug_file:
-            #     json.dump(profile_json, debug_file, ensure_ascii=False, indent=2)
+            return advice_json
 
-            # print(f"Profile saved for user {user_id}")
-
-            return {
-                user_id: user_id,
-                "profile": profile_json,
-            }
-
-            # return self._formatter.parse_profile(
-            #     user_id=user_id,
-            #     profile=content,
-            # )
-
-        except AIRefinementError:
+        except CareerAdvisorError:
             raise
 
         except Exception as exc:
-            raise AIRefinementError(f"LLM refinement failed: {exc}") from exc
+            logger.error(f"Career advice generation failed: {exc}", exc_info=True)
+            raise CareerAdvisorError(f"LLM career advice failed: {exc}") from exc
