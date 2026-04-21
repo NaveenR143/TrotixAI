@@ -25,6 +25,8 @@ class CareerRecommendations(BaseModel):
 class ActionPlanStep(BaseModel):
     phase: str
     action: str
+    timeline: Optional[str] = None
+    resources: List[str] = []
 
 class CareerAdvisorResponse(BaseModel):
     career_paths: CareerPaths

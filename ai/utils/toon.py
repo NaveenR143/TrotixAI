@@ -232,7 +232,7 @@ class TOONFormatter:
             "  ),\n"
             "  action_plan: [\n"
             "    StepTOON(\n"
-            "      step_number: int,\n"
+            '      phase: "str",\n'
             '      action: "str",\n'
             '      timeline: "str",\n'
             '      resources: ["str", ...]\n'
@@ -335,6 +335,78 @@ class TOONFormatter:
                 f"Failed to parse TOON string: {e.msg} "
                 f"at line {e.lineno}, col {e.colno}"
             ) from e
+
+    def career_toon_to_json(self, toon_str: str) -> dict:
+        """
+        Convert a TOON-formatted string to a Python dict.
+
+        Fixes:
+        - Handles TOON(...) → {}
+        - Handles non-TOON object parentheses like: key: (...)
+        - Protects strings before transformations
+        - Cleans trailing commas and literals
+        """
+
+        try:
+            toon_str = toon_str.strip()
+
+            # ── Step 1 ──────────────────────────────────────────────────────────
+            # Replace TOON constructors → {
+            toon_str = re.sub(r"\b\w+TOON\(", "{", toon_str)
+
+            # Handle non-TOON parentheses used as objects (e.g. key: (...))
+            toon_str = re.sub(r"([:,]\s*)\(", r"\1{", toon_str)
+
+            # ── Step 2 ──────────────────────────────────────────────────────────
+            # Extract and protect all string literals
+            placeholders = {}
+            counter = [0]
+
+            def _extract_string(m: re.Match) -> str:
+                token = f'"__STR{counter[0]}__"'
+                placeholders[token] = m.group(0)
+                counter[0] += 1
+                return token
+
+            toon_str = re.sub(r'"(?:[^"\\]|\\.)*"', _extract_string, toon_str)
+
+            # ── Step 3 ──────────────────────────────────────────────────────────
+            # Replace closing ) → }
+            toon_str = re.sub(r"\)(?=\s*[,\}\]]|\s*$)", "}", toon_str)
+
+            # ── Step 4 ──────────────────────────────────────────────────────────
+            # Quote keys
+            toon_str = re.sub(r"(\b\w+\b)\s*:", r'"\1":', toon_str)
+
+            # ── Step 5 ──────────────────────────────────────────────────────────
+            # Restore strings
+            for token, original_val in placeholders.items():
+                toon_str = toon_str.replace(token, original_val)
+
+            # ── Step 6 ──────────────────────────────────────────────────────────
+            # Normalize literals
+            toon_str = re.sub(r"\bempty\b", "null", toon_str)
+            toon_str = re.sub(r"\bNone\b", "null", toon_str)
+            toon_str = toon_str.replace("True", "true")
+            toon_str = toon_str.replace("False", "false")
+
+            # ── Step 7 ──────────────────────────────────────────────────────────
+            # Remove trailing commas
+            toon_str = re.sub(r",\s*(\}|\])", r"\1", toon_str)
+
+            # ── Step 8 ──────────────────────────────────────────────────────────
+            # Normalize whitespace
+            toon_str = (
+                toon_str.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+            )
+
+            # ── Final parse ─────────────────────────────────────────────────────
+            return json.loads(toon_str)
+
+        except Exception as e:
+            raise ValueError(
+                f"Failed to parse TOON string.\nError: {e}\nProcessed string:\n{toon_str}"
+            )
 
     def parse_profile(self, user_id: UUID, toon_text: str) -> JobSeekerProfile:
         with open("toon.txt", "w", encoding="utf-8") as _debug_file:

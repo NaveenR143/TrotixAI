@@ -108,9 +108,6 @@ const CareerAdvisorDashboard = () => {
 
     useEffect(() => {
         // Trigger fetch only if we have identifiers and don't have advice yet
-        const hasId = profile?.id || user?.mobile || localStorage.getItem("mobile_number");
-
-        debugger;
         if (hasId) {
             fetchCareerAdvice();
         }

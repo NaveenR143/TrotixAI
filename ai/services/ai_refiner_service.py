@@ -14,8 +14,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
-
 try:
     from openai import AzureOpenAI  # type: ignore
 except Exception:  # pragma: no cover
@@ -58,7 +56,6 @@ class AzureOpenAIResumeRefiner:
             api_key=self._api_key,
             api_version=self._api_version,
         )
-
 
     async def generate_career_advice(
         self,
@@ -122,7 +119,7 @@ class AzureOpenAIResumeRefiner:
                 )
 
             # 🧩 Convert TOON → JSON
-            advice_json = self._formatter.toon_to_json(content)
+            advice_json = self._formatter.career_toon_to_json(content)
 
             # 🔍 Optional debug dump
             # with open(f"career_advice_{user_id}.json", "w", encoding="utf-8") as f:

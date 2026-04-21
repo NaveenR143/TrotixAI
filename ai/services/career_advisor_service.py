@@ -1,13 +1,34 @@
-
 from ai.db.career_advisor_repository import CareerAdvisorRepository
 from typing import Optional, Dict, Any, List
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
+from datetime import date
+from enum import Enum
+
 
 from ai.services.ai_refiner_service import AzureOpenAIResumeRefiner
 
 logger = logging.getLogger(__name__)
+
+
+def _serialize(obj):
+    if isinstance(obj, date):
+        return obj.isoformat()
+    if isinstance(obj, Enum):
+        return obj.value
+    return obj
+
+
+def _clean(value):
+    if isinstance(value, dict):
+        return {
+            k: _clean(v) for k, v in value.items() if v not in [None, "", []]
+        }
+    elif isinstance(value, list):
+        return [_clean(v) for v in value if v not in [None, "", []]]
+    else:
+        return _serialize(value)
 
 
 class CareerAdvisorService:
@@ -41,7 +62,10 @@ class CareerAdvisorService:
 
     @classmethod
     async def generate_career_advice(
-        cls, profile_data: Dict[str, Any], session: AsyncSession, force_refresh: bool = False
+        cls,
+        profile_data: Dict[str, Any],
+        session: AsyncSession,
+        force_refresh: bool = False,
     ) -> Dict[str, Any]:
         """
         Generate or fetch career advice
@@ -104,9 +128,10 @@ class CareerAdvisorService:
             return advice_data
 
         # Example: sort skill gaps by importance
-        if "skill_gaps" in advice_data:
+        skill_gaps = advice_data.get("skill_gaps") or []
+        if skill_gaps:
             advice_data["skill_gaps"] = sorted(
-                advice_data["skill_gaps"],
+                skill_gaps,
                 key=lambda x: x.get("importance", 0),
                 reverse=True,
             )
@@ -121,14 +146,45 @@ class CareerAdvisorService:
         Transform profile into GPT-friendly format
         """
 
-        return {
-            "experience": profile_data.get("experience", []),
-            "education": profile_data.get("education", []),
-            "skills": profile_data.get("skills", []),
-            "projects": profile_data.get("projects", []),
-            "current_role": profile_data.get("current_role"),
-            "career_goal": profile_data.get("career_goal"),
-        }
+        return _clean(
+            {
+                "experience": [
+                    {
+                        "company": exp.get("company_name"),
+                        "role": exp.get("title"),
+                        "duration": f"{_serialize(exp.get('start_date'))} - {_serialize(exp.get('end_date')) or 'present'}",
+                        "summary": exp.get("description"),
+                        "skills": exp.get("skills_used", []),
+                    }
+                    for exp in (profile_data.get("experience") or [])
+                ],
+                "education": [
+                    {
+                        "school": edu.get("institution"),
+                        "degree": edu.get("degree"),
+                        "field": edu.get("field_of_study"),
+                        "year": edu.get("end_year"),
+                    }
+                    for edu in (profile_data.get("education") or [])
+                ],
+                "skills": list(
+                    {
+                        _serialize(skill.get("name"))
+                        for skill in (profile_data.get("skills") or [])
+                    }
+                ),
+                "projects": [
+                    {
+                        "title": proj.get("title"),
+                        "summary": proj.get("description"),
+                        "skills": proj.get("skills_used", []),
+                    }
+                    for proj in (profile_data.get("projects") or [])
+                ],
+                "current_role": profile_data.get("current_role"),
+                "career_goal": profile_data.get("career_goal"),
+            }
+        )
 
     @staticmethod
     def _normalize_ai_response(ai_response: Dict[str, Any]) -> Dict[str, Any]:
@@ -136,24 +192,32 @@ class CareerAdvisorService:
         Ensure AI response matches expected schema
         """
 
-        career_paths = ai_response.get("career_paths", {})
+        career_paths = ai_response.get("career_paths") or {}
         if isinstance(career_paths, list):
             career_paths = {}
 
         action_plan = []
-        for item in ai_response.get("action_plan", []):
+        for item in (ai_response.get("action_plan") or []):
             if isinstance(item, dict):
-                action_plan.append({
-                    "phase": item.get("phase") or item.get("step_number") or "Next Step",
-                    "action": item.get("action") or item.get("description") or ""
-                })
+                action_plan.append(
+                    {
+                        "phase": str(
+                            item.get("phase") or item.get("step_number") or "Next Step"
+                        ),
+                        "action": str(
+                            item.get("action") or item.get("description") or ""
+                        ),
+                        "timeline": item.get("timeline"),
+                        "resources": item.get("resources") or [],
+                    }
+                )
 
         return {
             "career_paths": career_paths,
-            "skill_gaps": ai_response.get("skill_gaps", []),
+            "skill_gaps": ai_response.get("skill_gaps") or [],
             "recommendations": {
-                "courses": ai_response.get("courses", []),
-                "certifications": ai_response.get("certifications", []),
+                "courses": ai_response.get("courses") or [],
+                "certifications": ai_response.get("certifications") or [],
             },
             "action_plan": action_plan,
         }
