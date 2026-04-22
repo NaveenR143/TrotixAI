@@ -195,7 +195,13 @@ class TOONFormatter:
     @staticmethod
     def build_career_schema_instructions() -> str:
         return (
-            "Return ONLY this TOON object and nothing else:\n\n"
+            "Return ONLY this TOON object and nothing else.\n"
+            "All fields MUST be populated. Use null ONLY if absolutely unavoidable.\n"
+            "Each list MUST contain at least 2 items. NEVER return empty arrays.\n"
+            "If data is missing, infer realistic and relevant entries.\n"
+            "recommendations.courses and recommendations.certifications MUST NOT be empty.\n"
+            "Every resource MUST include a valid https:// URL.\n"
+            "Include handpicked free or open-source learning resources wherever possible.\n\n"
             "CareerAdviceTOON(\n"
             "  career_paths: [\n"
             "    CareerPathTOON(\n"
@@ -203,7 +209,7 @@ class TOONFormatter:
             '      description: "str",\n'
             "      match_score: number,\n"
             '      market_demand: "High|Medium|Low",\n'
-            '      top_skills_needed: ["str", ...]\n'
+            '      top_skills_needed: ["str", "str"]\n'
             "    )\n"
             "  ],\n"
             "  skill_gaps: [\n"
@@ -219,14 +225,33 @@ class TOONFormatter:
             "      CourseTOON(\n"
             '        title: "str",\n'
             '        provider: "str",\n'
-            '        url: "str|empty"\n'
+            '        url: "https://example.com"\n'
             "      )\n"
             "    ],\n"
             "    certifications: [\n"
             "      CertificationTOON(\n"
             '        title: "str",\n'
             '        provider: "str",\n'
-            '        url: "str|empty"\n'
+            '        url: "https://example.com"\n'
+            "      )\n"
+            "    ],\n"
+            "    higher_studies: [\n"
+            "      HigherStudyTOON(\n"
+            '        degree: "str",\n'
+            '        specialization: "str",\n'
+            '        mode: "Full-time|Part-time|Online",\n'
+            '        duration: "str",\n'
+            "        target_universities: [\n"
+            "          UniversityTOON(\n"
+            '            name: "str",\n'
+            '            program: "str",\n'
+            '            industry_alignment: "High|Medium|Low",\n'
+            '            hiring_companies: ["str", "str"],\n'
+            '            url: "https://example.com"\n'
+            "          )\n"
+            "        ],\n"
+            '        entrance_exams: ["str", "str"],\n'
+            '        url: "https://example.com"\n'
             "      )\n"
             "    ]\n"
             "  ),\n"
@@ -235,7 +260,7 @@ class TOONFormatter:
             '      phase: "str",\n'
             '      action: "str",\n'
             '      timeline: "str",\n'
-            '      resources: ["str", ...]\n'
+            '      resources: ["https://example.com", "https://example.com"]\n'
             "    )\n"
             "  ]\n"
             ")\n"

@@ -84,7 +84,19 @@ class AzureOpenAIResumeRefiner:
                     "8. URLs must be valid and start with https://\n"
                     "9. Do NOT break strings across lines.\n"
                     "10. If unsure, return null instead of invalid syntax.\n"
-                    "11. Keep recommendations realistic and relevant.\n"
+                    "11. ALL sections must be filled with realistic data.\n"
+                    "12. ALWAYS include resource URLs in courses, certifications, and action_plan.\n"
+                    "13. ALWAYS include globally recognized or top regional universities.\n"
+                    "14. Prefer universities offering online or flexible programs where applicable.\n"
+                    "15. hiring_companies MUST be real well-known companies relevant to the field.\n"
+                    "16. entrance_exams MUST be realistic (e.g., GATE, GRE, CAT, IELTS).\n"
+                    "17. Strongly prefer FREE, open-source, or high-quality free resources.\n"
+                    "18. recommendations.courses MUST contain at least 2 valid courses.\n"
+                    "19. recommendations.certifications MUST contain at least 2 valid certifications.\n"
+                    "20. Empty arrays are STRICTLY forbidden.\n"
+                    "21. If unsure, generate the most relevant real-world options instead of leaving blank.\n"
+                    "22. Prefer well-known platforms like Coursera, edX, Udemy, Kaggle, freeCodeCamp, AWS, Google, Microsoft.\n"
+                    "23. Use real and verifiable course/certification names.\n"
                 ),
             },
             {

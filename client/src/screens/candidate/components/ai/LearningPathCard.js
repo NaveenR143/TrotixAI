@@ -18,13 +18,13 @@ const LearningPathCard = ({ userPoints, loading, onSuggest }) => {
         p: 2.5,
         border: "1px solid #e2e8f0",
         bgcolor: "#fff",
-        cursor: userPoints >= 20 ? "pointer" : "default",
-        opacity: userPoints >= 20 ? 1 : 0.6,
+        cursor: userPoints >= 50 ? "pointer" : "default",
+        opacity: userPoints >= 50 ? 1 : 0.6,
         transition: "all 0.3s ease",
         "&:hover": {
-          border: userPoints >= 20 ? "1px solid #c4b5fd" : "1px solid #e2e8f0",
-          boxShadow: userPoints >= 20 ? "0 4px 12px rgba(99,102,241,0.15)" : "none",
-          transform: userPoints >= 20 ? "translateY(-2px)" : "none",
+          border: userPoints >= 50 ? "1px solid #c4b5fd" : "1px solid #e2e8f0",
+          boxShadow: userPoints >= 50 ? "0 4px 12px rgba(99,102,241,0.15)" : "none",
+          transform: userPoints >= 50 ? "translateY(-2px)" : "none",
         },
       }}
     >
@@ -43,7 +43,7 @@ const LearningPathCard = ({ userPoints, loading, onSuggest }) => {
           <SchoolIcon sx={{ color: "#059669", fontSize: 20 }} />
         </Box>
         <Chip
-          label="20 Credits"
+          label="50 Credits"
           size="small"
           sx={{
             bgcolor: "#d1fae5",
@@ -60,19 +60,19 @@ const LearningPathCard = ({ userPoints, loading, onSuggest }) => {
       <Typography sx={{ fontSize: "0.85rem", color: "#64748b", mb: 2 }}>
         Personalized resources to improve your skills
       </Typography>
-      <Tooltip title={userPoints < 20 ? `Need ${20 - userPoints} more credits` : "Click to get learning recommendations"}>
+      <Tooltip title={userPoints < 50 ? `Need ${50 - userPoints} more credits` : "Click to get learning recommendations"}>
         <Button
           variant="outlined"
           size="small"
           fullWidth
           onClick={onSuggest}
-          disabled={userPoints < 20}
+          disabled={userPoints < 50}
           sx={{
-            color: userPoints >= 20 ? "#059669" : "#94a3b8",
-            borderColor: userPoints >= 20 ? "#d1fae5" : "#e2e8f0",
+            color: userPoints >= 50 ? "#059669" : "#94a3b8",
+            borderColor: userPoints >= 50 ? "#d1fae5" : "#e2e8f0",
             "&:hover": {
-              borderColor: userPoints >= 20 ? "#059669" : "#e2e8f0",
-              bgcolor: userPoints >= 20 ? "#f0fdf4" : "transparent",
+              borderColor: userPoints >= 50 ? "#059669" : "#e2e8f0",
+              bgcolor: userPoints >= 50 ? "#f0fdf4" : "transparent",
             },
           }}
         >
