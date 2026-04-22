@@ -110,15 +110,7 @@ const UserProfile = () => {
   };
 
   const handleAiIdentifySkills = () => {
-    if (userPoints < 20) return alert("Not enough credits!");
-    setAiLoading((prev) => ({ ...prev, skills: true }));
-    setAiDialogs((prev) => ({ ...prev, skills: true }));
-    setTimeout(() => {
-      const result = `📊 Market Analysis - Skills Gap Report:\n\nBased on your profile, consider learning: Kubernetes, GraphQL...`;
-      setAiResults((prev) => ({ ...prev, skills: result }));
-      dispatch(debitPoints(20));
-      setAiLoading((prev) => ({ ...prev, skills: false }));
-    }, 1500);
+    navigate("/skill-development");
   };
 
   const handleAiSuggestLearning = () => {

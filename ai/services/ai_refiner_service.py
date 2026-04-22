@@ -145,3 +145,81 @@ class AzureOpenAIResumeRefiner:
         except Exception as exc:
             logger.error(f"Career advice generation failed: {exc}", exc_info=True)
             raise CareerAdvisorError(f"LLM career advice failed: {exc}") from exc
+
+    async def generate_skill_development_analysis(
+        self,
+        profile_data: Dict[str, Any],
+        market_skills: List[str],
+    ) -> Dict[str, Any]:
+        """
+        Generate structured skill development analysis using Azure OpenAI
+        """
+        schema_instruction = self._formatter.build_skill_development_instructions()
+
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are an expert career and skill development advisor.\n"
+                    "Your task is to analyze the user's profile and the provided market trend skills to recommend a personalized skill development path.\n"
+                    "Output MUST follow EXACT TOON syntax.\n"
+                    "STRICT RULES:\n"
+                    '1. Use only double quotes (") for all strings.\n'
+                    '2. Escape all internal quotes using \\".\n'
+                    "3. Parentheses () are for objects.\n"
+                    "4. Separate all fields with commas.\n"
+                    "5. Do NOT add any extra text outside the TOON object.\n"
+                    "CONTENT RULES:\n"
+                    "6. Categorize skills as 'technical', 'soft', or 'domain-specific'.\n"
+                    "7. Identify 8-10 skills most relevant to the user's background and industry trends.\n"
+                    "8. Provide a clear importance rationale for each skill.\n"
+                    "9. Include practical learning suggestions (projects, practice, etc.).\n"
+                    "RESOURCE RULES (MANDATORY):\n"
+                    "10. For EACH skill, include a 'resources' field.\n"
+                    "11. Each skill MUST have at least 2 resources.\n"
+                    "12. Resources MUST include real, specific items such as:\n"
+                    "    - Course names\n"
+                    "    - Certification programs\n"
+                    "    - Learning platforms\n"
+                    "    - URLs (valid-looking links)\n"
+                    "13. Each resource must include: name, type, provider, url, cost, description.\n"
+                    "14. Ensure a mix of 'free' and 'paid' resources where possible.\n"
+                    "15. Avoid generic placeholders like 'search online' or 'various courses'.\n"
+                    "ROADMAP RULE:\n"
+                    "16. Assign 'short-term' or 'long-term' priority for each skill.\n"
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"{schema_instruction}\n\n"
+                    "User profile data:\n"
+                    f"{json.dumps(profile_data, ensure_ascii=False)}\n\n"
+                    "Top in-demand skills in user's industry that they lack:\n"
+                    f"{json.dumps(market_skills, ensure_ascii=False)}\n"
+                ),
+            },
+        ]
+
+        try:
+            response = self._client.chat.completions.create(
+                model=self._deployment,
+                messages=messages,
+                temperature=0.3,
+            )
+
+            content = (response.choices[0].message.content or "").strip()
+
+            if not content.startswith("SkillDevelopmentTOON("):
+                raise CareerAdvisorError(
+                    "Invalid TOON format for skill development analysis"
+                )
+
+            # Convert TOON → JSON
+            analysis_json = self._formatter.career_toon_to_json(content)
+
+            return analysis_json
+
+        except Exception as exc:
+            logger.error(f"Skill development analysis failed: {exc}", exc_info=True)
+            raise CareerAdvisorError(f"LLM skill analysis failed: {exc}") from exc

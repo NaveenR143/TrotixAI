@@ -120,8 +120,8 @@ const CareerAdvisorDashboard = () => {
     const [downloadingPDF, setDownloadingPDF] = useState(false);
     const [error, setError] = useState(null);
 
-    const fetchCareerAdvice = async (forceRefresh = false) => {
-        if (forceRefresh) setRefreshing(true);
+    const fetchCareerAdvice = async (isRegenerating = false) => {
+        if (isRegenerating) setRefreshing(true);
         else setLoading(true);
 
         setError(null);
@@ -137,14 +137,29 @@ const CareerAdvisorDashboard = () => {
                 return;
             }
 
-            // Note: In a real scenario, profileAPI.fetchCareerAdvice might return the whole response
-            // including status and timestamp if it follows the CareerAdvisorSuccessResponse model.
-            const result = await profileAPI.fetchCareerAdvice(phone, userId, forceRefresh);
+            let result = null;
+
+            // Step 1: If not regenerating, try fetching existing advice first
+            if (!isRegenerating) {
+                const existingResult = await profileAPI.fetchExistingCareerAdvice(phone, userId);
+                
+                // Check if data is valid and not "none" or null
+                if (!existingResult.error && existingResult.data && existingResult.data !== "none") {
+                    const data = existingResult.data;
+                    const innerData = data.data || data;
+                    // Heuristic to check if it's actual career advice content
+                    if (innerData && (innerData.career_paths || innerData.skill_gaps || innerData.recommendations)) {
+                        result = existingResult;
+                    }
+                }
+            }
+
+            // Step 2: If no existing advice found or if we are regenerating, fetch/generate new advice
+            if (!result) {
+                result = await profileAPI.fetchCareerAdvice(phone, userId);
+            }
 
             if (!result.error) {
-                // If result.data contains the inner 'data' field, we might need to adjust
-                // depending on how profileAPI handles the response structure.
-                // Assuming result.data IS the whole response object for status/timestamp access
                 setFullResponse(result.data);
             } else {
                 setError(result.message || "Failed to generate career advice");
@@ -374,7 +389,7 @@ const CareerAdvisorDashboard = () => {
                     <Grid item xs={12}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, px: 1 }}>
                             <Stack direction="row" spacing={1} alignItems="center">
-                                <Chip
+                                {/* <Chip
                                     icon={<CheckCircleOutlineIcon style={{ fontSize: 16, color: '#10b981' }} />}
                                     label={`API Status: ${apiStatus}`}
                                     size="small"
@@ -385,7 +400,7 @@ const CareerAdvisorDashboard = () => {
                                         border: '1px solid #10b981',
                                         fontSize: '0.75rem'
                                     }}
-                                />
+                                /> */}
                             </Stack>
                             <Stack direction="row" spacing={1} alignItems="center" color="text.secondary">
                                 <AccessTimeIcon sx={{ fontSize: 14 }} />

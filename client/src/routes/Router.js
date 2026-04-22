@@ -26,6 +26,7 @@ const PostedJobsScreen = Loadable(lazy(() => import("../screens/recruiter/Posted
 const TemplateSelectorScreen = Loadable(lazy(() => import("../screens/resume_builder/TemplateSelectorScreen")));
 const ResumeBuilderScreen = Loadable(lazy(() => import("../screens/resume_builder/ResumeBuilderScreen")));
 const CareerAdvisorScreen = Loadable(lazy(() => import("../screens/career_advisor/CareerAdvisorScreen")));
+const SkillDevelopmentScreen = Loadable(lazy(() => import("../screens/skill_development/SkillDevelopmentScreen")));
 
 
 /* ***Layouts**** */
@@ -115,6 +116,7 @@ const Router = [
           { path: "resume-builder", element: <TemplateSelectorScreen /> },
           { path: "resume-builder/create", element: <ResumeBuilderScreen /> },
           { path: "career-advice", element: <CareerAdvisorScreen /> },
+          { path: "skill-development", element: <SkillDevelopmentScreen /> },
           { path: "learning", element: <div>Learning Screen (Coming Soon)</div> },
 
           { path: "recruiter-dashboard", element: <RecruiterDashboardRoute /> },

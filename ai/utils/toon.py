@@ -266,6 +266,40 @@ class TOONFormatter:
             ")\n"
         )
 
+    @staticmethod
+    def build_skill_development_instructions() -> str:
+        return (
+            "Return ONLY this TOON object and nothing else.\n"
+            "Identify 8-10 key skills the user should develop to stay competitive based on market trends.\n"
+            "Categorize each skill as 'technical', 'soft', or 'domain-specific'.\n"
+            "Provide a clear rationale for why each skill is important.\n"
+            "Suggest practical ways to learn each skill (projects, courses, certifications).\n"
+            "Additionally, include concrete learning resources such as URLs, course names, certifications, and institutions.\n"
+            "Ensure resources include a mix of free and paid options where possible.\n"
+            "Recommend a priority for the learning roadmap (short-term vs long-term).\n\n"
+            "SkillDevelopmentTOON(\n"
+            "  skills_analysis: [\n"
+            "    SkillAnalysisTOON(\n"
+            '      skill: "str",\n'
+            '      category: "technical|soft|domain-specific",\n'
+            '      importance_rationale: "str",\n'
+            '      learning_suggestions: ["str", "str"],\n'
+            "      resources: [\n"
+            "        ResourceTOON(\n"
+            '          name: "str",\n'
+            '          type: "course|certification|website|book|project",\n'
+            '          provider: "str",\n'
+            '          url: "str",\n'
+            '          cost: "free|paid",\n'
+            '          description: "str"\n'
+            "        )\n"
+            "      ],\n"
+            '      roadmap_priority: "short-term|long-term"\n'
+            "    )\n"
+            "  ]\n"
+            ")\n"
+        )
+
     def toon_to_json(self, toon_str: str) -> dict:
         """
         Convert a TOON-formatted string to a Python dict.

@@ -216,10 +216,10 @@ const DashboardScreen = () => {
     },
     {
       icon: SchoolIcon,
-      title: 'Learning',
-      description: 'Upskill with curated courses',
+      title: 'Skill Development',
+      description: 'Upskill with AI-curated missing skills',
       gradient: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
-      onClick: () => navigate('/learning'),
+      onClick: () => navigate('/skill-development'),
       delay: 0.5,
     },
   ];

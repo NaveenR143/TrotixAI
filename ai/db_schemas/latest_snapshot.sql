@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict GFReqddYlYljvR4bwxHOZPAVZAKtT6LX3jKxrteY4eVrP7eTQkDkuwSuztbvtzf
+\restrict WWA5uwjtqyKCRJy4ok2EIt1qoLlnUukESFvmXnWYThLzXBMnySlaI81EwHNg8sg
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
@@ -488,6 +488,32 @@ $$;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: career_advice; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.career_advice (
+    id integer NOT NULL,
+    advice jsonb NOT NULL,
+    user_id uuid,
+    created_date date DEFAULT now()
+);
+
+
+--
+-- Name: career_advice_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.career_advice ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.career_advice_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
 
 --
 -- Name: career_goals; Type: TABLE; Schema: public; Owner: -
@@ -1235,6 +1261,14 @@ ALTER TABLE ONLY public.recruiters ALTER COLUMN id SET DEFAULT nextval('public.r
 
 
 --
+-- Name: career_advice career_advice_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.career_advice
+    ADD CONSTRAINT career_advice_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: career_goals career_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1897,6 +1931,14 @@ CREATE TRIGGER trg_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW E
 
 
 --
+-- Name: career_advice career_advice_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.career_advice
+    ADD CONSTRAINT career_advice_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: career_goals career_goals_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2156,5 +2198,5 @@ ALTER TABLE ONLY public.work_skills
 -- PostgreSQL database dump complete
 --
 
-\unrestrict GFReqddYlYljvR4bwxHOZPAVZAKtT6LX3jKxrteY4eVrP7eTQkDkuwSuztbvtzf
+\unrestrict WWA5uwjtqyKCRJy4ok2EIt1qoLlnUukESFvmXnWYThLzXBMnySlaI81EwHNg8sg
 

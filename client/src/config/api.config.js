@@ -25,7 +25,9 @@ const API_ENDPOINTS = {
   JOB_FEEDS: '/jobs/fetch-jobs',
   JOB_METADATA: '/jobs/metadata',
   CREATE_JOB: '/jobs/create',
-  CAREER_ADVICE: '/profile/career-advice'
+  CAREER_ADVICE: '/profile/career-advice',
+  EXISTING_CAREER_ADVICE: '/profile/existing-career-advice',
+  SKILL_DEVELOPMENT_ANALYSIS: '/profile/skill-development-analysis'
 };
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────

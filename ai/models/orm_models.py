@@ -129,6 +129,9 @@ class User(Base):
     is_email_verified = Column(Boolean, default=False)
     is_phone_verified = Column(Boolean, default=False)
     last_login_at = Column(DateTime(timezone=True), nullable=True)
+    industry_id = Column(
+        Integer, ForeignKey("industries.id", ondelete="SET NULL"), nullable=True
+    )
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -171,6 +174,10 @@ class User(Base):
     resume_builder_docs = relationship(
         "ResumeBuilderDoc", back_populates="user", cascade="all, delete-orphan"
     )
+    career_advice = relationship(
+        "CareerAdvice", back_populates="user", cascade="all, delete-orphan"
+    )
+    industry = relationship("Industry")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -577,6 +584,28 @@ class ResumeBuilderDoc(Base):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Career Advice Table
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class CareerAdvice(Base):
+    __tablename__ = "career_advice"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    advice = Column(JSON, nullable=False)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
+    created_date = Column(Date, server_default=func.now())
+
+    # Relationships
+    user = relationship("User", back_populates="career_advice")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Departments Table (NEW)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -671,7 +700,6 @@ class Industry(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 # ─────────────────────────────────────────────────────────────────────────────

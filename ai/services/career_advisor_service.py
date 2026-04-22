@@ -105,7 +105,10 @@ class CareerAdvisorService:
             # ✅ Step 4: Normalize response
             structured_data = cls._normalize_ai_response(ai_response)
 
-            # ✅ Step 5: Store in DB
+            # ✅ Step 5: Post-process / enrich
+            structured_data = cls.enrich_advice(structured_data)
+
+            # ✅ Step 6: Store in DB
             await CareerAdvisorRepository.save_user_advice(
                 user_id=user_id, advice_data=structured_data, session=session
             )
@@ -117,6 +120,16 @@ class CareerAdvisorService:
         except Exception as e:
             logger.error(f"Error in career advice generation: {str(e)}", exc_info=True)
             raise
+
+    @staticmethod
+    async def get_existing_advice(
+        user_id: UUID,
+        session: AsyncSession
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Fetch existing career advice from database
+        """
+        return await CareerAdvisorRepository.get_user_advice(user_id, session)
 
     @staticmethod
     def enrich_advice(advice_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -220,4 +233,50 @@ class CareerAdvisorService:
                 "certifications": ai_response.get("certifications") or [],
             },
             "action_plan": action_plan,
+        }
+
+    @classmethod
+    async def generate_skill_development_plan(
+        cls,
+        user_id: UUID,
+        session: AsyncSession,
+    ) -> Dict[str, Any]:
+        """
+        Generate a standalone skill development analysis based on industry trends.
+        """
+        from ai.services.profile_service import ProfileService
+
+        # 1. Fetch complete profile
+        profile_data = await ProfileService.fetch_user_profile(user_id=user_id, session=session)
+
+        # 2. Get industry_id (user specifically mentioned they added it to the users table)
+        industry_id = profile_data.get("industry_id")
+
+        if not industry_id:
+            logger.warning(f"No industry_id found for user {user_id}. Market trend analysis may be limited.")
+            # We can still proceed, but the repository method might return empty if it expects a valid industry_id
+            # I'll just use 1 as a fallback or handle in repo (but user provided a query with WHERE jp.industry_id = :industry_id)
+        
+        # 3. Fetch skills from job postings in the same industry that the user lacks
+        market_skills = await CareerAdvisorRepository.get_market_trend_skills_by_industry(
+            user_id=user_id,
+            industry_id=industry_id or 0,
+            session=session
+        )
+
+        # 4. Prepare data for AI
+        gpt_input = cls._build_gpt_input(profile_data)
+
+        # 5. Call AI service for specialized skill analysis
+        refiner = cls._get_refiner()
+        ai_response = await refiner.generate_skill_development_analysis(
+            profile_data=gpt_input,
+            market_skills=market_skills
+        )
+
+        # 6. Return structured data
+        return {
+            "user_id": user_id,
+            "industry": profile_data.get("industry_name") or "Your Industry",
+            "skills_analysis": ai_response.get("skills_analysis") or []
         }
