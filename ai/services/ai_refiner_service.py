@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from ai.utils.errors import AIRefinementError, CareerAdvisorError
 from ai.utils.toon import TOONFormatter
+from ai.utils.data_utils import clean_dict
 from typing import Dict, Any, List
 import logging
 
@@ -104,7 +105,7 @@ class AzureOpenAIResumeRefiner:
                 "content": (
                     f"{schema_instruction}\n\n"
                     "User profile data:\n"
-                    f"{json.dumps(profile_data, ensure_ascii=False)}\n"
+                    f"{json.dumps(clean_dict(profile_data), ensure_ascii=False)}\n"
                 ),
             },
         ]
@@ -194,9 +195,9 @@ class AzureOpenAIResumeRefiner:
                 "content": (
                     f"{schema_instruction}\n\n"
                     "User profile data:\n"
-                    f"{json.dumps(profile_data, ensure_ascii=False)}\n\n"
+                    f"{json.dumps(clean_dict(profile_data), ensure_ascii=False)}\n\n"
                     "Top in-demand skills in user's industry that they lack:\n"
-                    f"{json.dumps(market_skills, ensure_ascii=False)}\n"
+                    f"{json.dumps(clean_dict(market_skills), ensure_ascii=False)}\n"
                 ),
             },
         ]

@@ -26,7 +26,7 @@ import { calculateExperienceDuration } from "../utils/profileUtils";
 import * as profileAPI from "../../../api/profileAPI";
 import { updateUserProfile } from "../../../redux/user/Action";
 
-const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess }) => {
+const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess, enhancedData }) => {
   const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [sectionLoading, setSectionLoading] = useState(false);
@@ -37,14 +37,42 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess 
   const [newExperienceIndices, setNewExperienceIndices] = useState(new Set());
   const [recordLoading, setRecordLoading] = useState({});
   const [recordErrors, setRecordErrors] = useState({});
+  const [showReviewBanner, setShowReviewBanner] = useState(false);
 
   useEffect(() => {
     if (!isEditing && initialExperiences) {
       setExperiences(JSON.parse(JSON.stringify(initialExperiences)));
-
-      debugger;
     }
   }, [initialExperiences, isEditing]);
+
+  // Handle AI Enhancement
+  useEffect(() => {
+    if (enhancedData && Array.isArray(enhancedData)) {
+      // Map enhanced data to local state, trying to preserve IDs if possible or treating as new
+      const updatedExperiences = enhancedData.map((newExp, idx) => {
+        const existing = experiences[idx] || {};
+        return {
+          ...existing,
+          role: newExp.role || newExp.title || existing.role,
+          company_name: newExp.company_name || existing.company_name,
+          location: newExp.location || existing.location,
+          description: newExp.description || existing.description,
+          skills: newExp.skills || existing.skills,
+          startDate: newExp.startDate || existing.startDate,
+          endDate: newExp.endDate || existing.endDate,
+          isCurrent: newExp.isCurrent || existing.isCurrent,
+        };
+      });
+      
+      setExperiences(updatedExperiences);
+      setIsEditing(true);
+      setShowReviewBanner(true);
+      
+      // Mark all as changed
+      const allIndices = new Set(updatedExperiences.map((_, i) => i));
+      setChangedExperience(allIndices);
+    }
+  }, [enhancedData]);
 
   const handleToggleEdit = () => {
     if (isEditing) {
@@ -166,6 +194,9 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess 
       }
     } finally {
       setSectionLoading(false);
+      if (changedExperience.size === 0) {
+        setShowReviewBanner(false);
+      }
     }
   };
 
@@ -212,6 +243,16 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess 
       {sectionErrors && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {sectionErrors}
+        </Alert>
+      )}
+
+      {showReviewBanner && (
+        <Alert 
+          severity="info" 
+          sx={{ mb: 2, bgcolor: "#f5f3ff", border: "1px solid #c4b5fd", "& .MuiAlert-icon": { color: "#6366f1" } }}
+          onClose={() => setShowReviewBanner(false)}
+        >
+          ✨ <strong>AI Enhanced:</strong> We've professionally rewritten your work experience. Please review and <strong>Save</strong> each record.
         </Alert>
       )}
 

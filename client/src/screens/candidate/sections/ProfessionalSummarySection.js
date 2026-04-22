@@ -15,19 +15,29 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import EditIcon from "@mui/icons-material/Edit";
 import { updateUserProfile } from "../../../redux/user/Action";
 
-const ProfessionalSummarySection = ({ profile, initialAbout, onSuccess }) => {
+const ProfessionalSummarySection = ({ profile, initialAbout, onSuccess, enhancedData }) => {
   const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [about, setAbout] = useState("");
   const [formErrors, setFormErrors] = useState({});
+  const [showReviewBanner, setShowReviewBanner] = useState(false);
 
   useEffect(() => {
     if (!isEditing && initialAbout !== undefined) {
       setAbout(initialAbout || "");
     }
   }, [initialAbout, isEditing]);
+
+  // Handle AI Enhancement
+  useEffect(() => {
+    if (enhancedData) {
+      setAbout(enhancedData);
+      setIsEditing(true);
+      setShowReviewBanner(true);
+    }
+  }, [enhancedData]);
 
   const handleToggleEdit = () => {
     if (isEditing) {
@@ -66,6 +76,7 @@ const ProfessionalSummarySection = ({ profile, initialAbout, onSuccess }) => {
       
       if (onSuccess) onSuccess("Professional summary updated!");
       setIsEditing(false);
+      setShowReviewBanner(false);
     } catch (err) {
       setError("Failed to update summary");
     } finally {
@@ -113,6 +124,16 @@ const ProfessionalSummarySection = ({ profile, initialAbout, onSuccess }) => {
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
+        </Alert>
+      )}
+      
+      {showReviewBanner && (
+        <Alert 
+          severity="info" 
+          sx={{ mb: 2, bgcolor: "#f5f3ff", border: "1px solid #c4b5fd", "& .MuiAlert-icon": { color: "#6366f1" } }}
+          onClose={() => setShowReviewBanner(false)}
+        >
+          ✨ <strong>AI Enhanced:</strong> We've professionally rewritten your summary. Please review and <strong>Save</strong> to apply changes.
         </Alert>
       )}
 

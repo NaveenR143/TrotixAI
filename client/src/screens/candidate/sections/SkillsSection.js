@@ -19,7 +19,7 @@ import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import * as profileAPI from "../../../api/profileAPI";
 import { updateUserProfile } from "../../../redux/user/Action";
 
-const SkillsSection = ({ userId, profile, initialSkills, onSuccess }) => {
+const SkillsSection = ({ userId, profile, initialSkills, onSuccess, enhancedData }) => {
   const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -28,12 +28,25 @@ const SkillsSection = ({ userId, profile, initialSkills, onSuccess }) => {
   const [dropdownLoading, setDropdownLoading] = useState(false);
   const [skillsDropdown, setSkillsDropdown] = useState([]);
   const [formErrors, setFormErrors] = useState({});
+  const [showReviewBanner, setShowReviewBanner] = useState(false);
 
   useEffect(() => {
     if (!isEditing && initialSkills) {
       setSkills(Array.isArray(initialSkills) ? [...initialSkills] : []);
     }
   }, [initialSkills, isEditing]);
+
+  // Handle AI Enhancement
+  useEffect(() => {
+    if (enhancedData) {
+      setSkills(Array.isArray(enhancedData) ? [...enhancedData] : []);
+      setIsEditing(true);
+      setShowReviewBanner(true);
+      if (skillsDropdown.length === 0) {
+        fetchDropdownData();
+      }
+    }
+  }, [enhancedData]);
 
   const fetchDropdownData = async () => {
     setDropdownLoading(true);
@@ -93,6 +106,7 @@ const SkillsSection = ({ userId, profile, initialSkills, onSuccess }) => {
           skills: skills,
         }));
         setIsEditing(false);
+        setShowReviewBanner(false);
       }
     } catch (err) {
       setError("Failed to update skills");
@@ -144,6 +158,16 @@ const SkillsSection = ({ userId, profile, initialSkills, onSuccess }) => {
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
+        </Alert>
+      )}
+
+      {showReviewBanner && (
+        <Alert 
+          severity="info" 
+          sx={{ mb: 2, bgcolor: "#f5f3ff", border: "1px solid #c4b5fd", "& .MuiAlert-icon": { color: "#6366f1" } }}
+          onClose={() => setShowReviewBanner(false)}
+        >
+          ✨ <strong>AI Enhanced:</strong> We've suggested relevant skills based on your profile. Please review and <strong>Save</strong> to apply.
         </Alert>
       )}
 

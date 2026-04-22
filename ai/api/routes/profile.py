@@ -10,6 +10,7 @@ import logging
 from ai.db.database import get_db
 from ai.services.profile_service import ProfileService
 from ai.services.career_advisor_service import CareerAdvisorService
+from ai.services.resume_enhancer_service import ResumeEnhancerService
 from ai.db.profile_repository import ProfileRepository
 from ai.models.profile_models import (
     UserProfileResponse,
@@ -21,6 +22,7 @@ from ai.models.profile_models import (
     EducationUpdate,
     SkillsUpdate,
     LanguagesUpdate,
+    ProjectUpdate,
     BlockUpdateResponse,
     DropdownResponse,
 )
@@ -28,7 +30,11 @@ from ai.models.career_models import (
     CareerAdvisorResponse,
     CareerAdvisorSuccessResponse,
     CareerAdvisorErrorResponse,
+    SkillDevelopmentAnalysis,
     SkillDevelopmentSuccessResponse,
+    ResumeEnhanceRequest,
+    ResumeEnhanceSuccessResponse,
+    EnhancedResume,
 )
 
 # Logger
@@ -446,6 +452,64 @@ async def update_skills(
 
 
 @router.put(
+    "/update/project/{user_id}",
+    response_model=BlockUpdateResponse,
+    responses={
+        400: {"model": ProfileErrorResponse},
+        404: {"model": ProfileErrorResponse},
+        500: {"model": ProfileErrorResponse},
+    },
+    summary="Update Project",
+    description="Add or update a project entry",
+)
+async def update_project(
+    user_id: UUID,
+    project_data: ProjectUpdate,
+    session: AsyncSession = Depends(get_db),
+) -> BlockUpdateResponse:
+    """
+    Add or update project
+
+    Args:
+        user_id: User UUID
+        project_data: Project details
+        session: Async database session
+
+    Returns:
+        BlockUpdateResponse with updated profile
+    """
+    try:
+        logger.info(f"Updating project for user: {user_id}")
+
+        # Convert to dict
+        proj_dict = project_data.model_dump(exclude_none=True)
+        project_id = proj_dict.pop("project_id", None)
+
+        # Perform update
+        updated_profile = await ProfileRepository.update_project(
+            user_id, proj_dict, session, project_id
+        )
+
+        action = "updated" if project_id else "added"
+        logger.info(f"Project {action} successfully for user: {user_id}")
+
+        return BlockUpdateResponse(
+            status="success",
+            message=f"Project {action} successfully",
+            data=updated_profile,
+        )
+
+    except ValueError as e:
+        logger.warning(f"Validation error: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating project: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+
+
+@router.put(
     "/update/languages/{user_id}",
     response_model=BlockUpdateResponse,
     responses={
@@ -809,4 +873,113 @@ async def get_skill_development_analysis(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(f"Error generating skill analysis: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.get(
+    "/existing-skill-analysis",
+    response_model=SkillDevelopmentSuccessResponse,
+    responses={
+        400: {"model": CareerAdvisorErrorResponse},
+        404: {"model": CareerAdvisorErrorResponse},
+        500: {"model": CareerAdvisorErrorResponse},
+    },
+    summary="Fetch Existing Skill Analysis",
+    description="Retrieve the latest saved skill analysis for a user",
+)
+async def fetch_existing_skill_analysis(
+    user_id: UUID = Query(..., description="User UUID"),
+    session: AsyncSession = Depends(get_db),
+) -> SkillDevelopmentSuccessResponse:
+    """
+    Fetch existing skill analysis from the database
+    """
+    try:
+        logger.info(f"Fetching existing skill analysis for user: {user_id}")
+
+        analysis_data = await CareerAdvisorService.get_existing_skill_analysis(
+            user_id, session
+        )
+
+        if not analysis_data:
+            logger.info(f"No existing skill analysis found for user: {user_id}")
+            # We return an empty analysis rather than 404 to handle frontend states gracefully
+            return SkillDevelopmentSuccessResponse(
+                status="success",
+                data=SkillDevelopmentAnalysis(user_id=user_id, skills_analysis=[]),
+            )
+
+        # Build response
+        response = SkillDevelopmentAnalysis(**analysis_data)
+
+        return SkillDevelopmentSuccessResponse(status="success", data=response)
+
+    except Exception as e:
+        logger.error(f"Error fetching existing skill analysis: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.post(
+    "/enhance-resume",
+    response_model=ResumeEnhanceSuccessResponse,
+    responses={
+        400: {"model": CareerAdvisorErrorResponse},
+        404: {"model": CareerAdvisorErrorResponse},
+        500: {"model": CareerAdvisorErrorResponse},
+    },
+    summary="Enhance User Resume with AI",
+    description="Uses GPT to professionally rewrite summary, skills, experience, and projects.",
+)
+async def enhance_user_resume(
+    request: ResumeEnhanceRequest,
+    session: AsyncSession = Depends(get_db),
+) -> ResumeEnhanceSuccessResponse:
+    """
+    Professionally enhance user resume content using AI.
+
+    Args:
+        request: Resume enhancement request containing user_id
+        session: Database session
+
+    Returns:
+        ResumeEnhanceSuccessResponse with AI-enhanced content
+    """
+    try:
+        user_id = request.user_id
+        logger.info(f"Enhancing resume for user: {user_id}")
+
+        # ✅ Step 1: Fetch profile
+        profile_data = await ProfileService.fetch_user_profile(
+            user_id=user_id, session=session
+        )
+
+        if not profile_data:
+            raise ValueError("User profile not found")
+
+        # ✅ Step 2: Call AI enhancement service
+        enhancer = ResumeEnhancerService()
+
+        # Pass only required sections for enhancement
+        enhancement_input = {
+            "skills": profile_data.get("skills", []),
+            "experience": profile_data.get("experience", []),
+            "projects": profile_data.get("projects", []),
+            "languages": profile_data.get("languages", []),
+            "education": profile_data.get("education", []),
+        }
+
+        enhanced_data = await enhancer.enhance_resume(enhancement_input)
+
+        logger.info(f"Resume enhanced successfully for user: {user_id}")
+
+        # ✅ Step 3: Build response
+        response = EnhancedResume(**enhanced_data)
+
+        return ResumeEnhanceSuccessResponse(status="success", data=response)
+
+    except ValueError as e:
+        logger.warning(f"Validation error: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error enhancing resume: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

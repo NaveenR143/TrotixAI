@@ -1,4 +1,43 @@
 import re
+import json
+from datetime import date, datetime
+from enum import Enum
+from typing import Any, Dict, List
+
+
+from uuid import UUID
+from decimal import Decimal
+
+def json_serializable(obj: Any) -> Any:
+    """
+    Convert non-serializable objects (date, datetime, Enum, UUID, Decimal) to JSON-serializable formats.
+    """
+    if isinstance(obj, (date, datetime)):
+        return obj.isoformat()
+    if isinstance(obj, Enum):
+        return obj.value
+    if isinstance(obj, UUID):
+        return str(obj)
+    if isinstance(obj, Decimal):
+        return float(obj)
+    return obj
+
+
+def clean_dict(value: Any) -> Any:
+    """
+    Recursively clean a dictionary/list by:
+    1. Converting non-serializable objects to strings
+    2. Removing None, empty strings, and empty lists
+    """
+    if isinstance(value, dict):
+        return {
+            k: clean_dict(v) for k, v in value.items() 
+            if v not in [None, "", []]
+        }
+    elif isinstance(value, list):
+        return [clean_dict(v) for v in value if v not in [None, "", []]]
+    else:
+        return json_serializable(value)
 
 
 

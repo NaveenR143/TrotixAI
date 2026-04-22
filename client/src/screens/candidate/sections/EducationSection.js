@@ -22,7 +22,7 @@ import SchoolIcon from "@mui/icons-material/School";
 import * as profileAPI from "../../../api/profileAPI";
 import { updateUserProfile } from "../../../redux/user/Action";
 
-const EducationSection = ({ userId, profile, initialEducation, onSuccess }) => {
+const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhancedData }) => {
   const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [sectionLoading, setSectionLoading] = useState(false);
@@ -33,12 +33,37 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess }) => {
   const [newEducationIndices, setNewEducationIndices] = useState(new Set());
   const [recordLoading, setRecordLoading] = useState({});
   const [recordErrors, setRecordErrors] = useState({});
+  const [showReviewBanner, setShowReviewBanner] = useState(false);
 
   useEffect(() => {
     if (!isEditing && initialEducation) {
       setEducation(JSON.parse(JSON.stringify(initialEducation)));
     }
   }, [initialEducation, isEditing]);
+
+  // Handle AI Enhancement
+  useEffect(() => {
+    if (enhancedData && Array.isArray(enhancedData)) {
+      const updatedEducation = enhancedData.map((newEdu, idx) => {
+        const existing = education[idx] || {};
+        return {
+          ...existing,
+          school: newEdu.school || newEdu.institution || existing.school,
+          degree: newEdu.degree || existing.degree,
+          field: newEdu.field || newEdu.field_of_study || existing.field,
+          year: newEdu.year || newEdu.end_year || existing.year,
+        };
+      });
+      
+      setEducation(updatedEducation);
+      setIsEditing(true);
+      setShowReviewBanner(true);
+      
+      // Mark all as changed
+      const allIndices = new Set(updatedEducation.map((_, i) => i));
+      setChangedEducation(allIndices);
+    }
+  }, [enhancedData]);
 
   const handleToggleEdit = () => {
     if (isEditing) {
@@ -155,6 +180,9 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess }) => {
       }
     } finally {
       setSectionLoading(false);
+      if (changedEducation.size === 0) {
+        setShowReviewBanner(false);
+      }
     }
   };
 
@@ -201,6 +229,16 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess }) => {
       {sectionErrors && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {sectionErrors}
+        </Alert>
+      )}
+
+      {showReviewBanner && (
+        <Alert 
+          severity="info" 
+          sx={{ mb: 2, bgcolor: "#f5f3ff", border: "1px solid #c4b5fd", "& .MuiAlert-icon": { color: "#6366f1" } }}
+          onClose={() => setShowReviewBanner(false)}
+        >
+          ✨ <strong>AI Enhanced:</strong> We've professionally rewritten your education details. Please review and <strong>Save</strong> each record.
         </Alert>
       )}
 

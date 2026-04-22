@@ -156,6 +156,28 @@ export const updateEducation = async (userId, educationData) => {
 };
 
 /**
+ * Update Project
+ */
+export const updateProject = async (userId, projectData) => {
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}${API_ENDPOINTS.PROFILE}/update/project/${userId}`,
+      projectData,
+      { headers: getHeaders(), timeout: 10000 }
+    );
+
+    return {
+      error: false,
+      data: response.data,
+      message: response.data?.message || "Project updated successfully",
+    };
+  } catch (error) {
+    console.error("Error updating project:", error);
+    return handleError(error);
+  }
+};
+
+/**
  * Update Skills
  */
 export const updateSkills = async (userId, skills) => {
@@ -318,6 +340,30 @@ export const fetchMissingSkills = async (userId) => {
     };
   } catch (error) {
     console.error("Error fetching missing skills:", error);
+    return handleError(error);
+  }
+};
+
+/**
+ * Fetch Enhance Resume Post API
+ */
+export const fetchEnhanceResume = async (userId) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}${API_ENDPOINTS.ENHANCE_RESUME}`,
+      {
+        user_id: userId,
+      },
+      { headers: getHeaders() }
+    );
+
+    return {
+      error: false,
+      data: response.data?.data || response.data,
+      message: "Resume Enhanced successfully",
+    };
+  } catch (error) {
+    console.error("Error enhancing resume:", error);
     return handleError(error);
   }
 };

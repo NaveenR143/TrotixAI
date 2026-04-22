@@ -19,7 +19,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import * as profileAPI from "../../../api/profileAPI";
 import { updateUserProfile } from "../../../redux/user/Action";
 
-const LanguagesSection = ({ userId, profile, initialLanguages, onSuccess }) => {
+const LanguagesSection = ({ userId, profile, initialLanguages, onSuccess, enhancedData }) => {
   const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -28,12 +28,25 @@ const LanguagesSection = ({ userId, profile, initialLanguages, onSuccess }) => {
   const [dropdownLoading, setDropdownLoading] = useState(false);
   const [languagesDropdown, setLanguagesDropdown] = useState([]);
   const [formErrors, setFormErrors] = useState({});
+  const [showReviewBanner, setShowReviewBanner] = useState(false);
 
   useEffect(() => {
     if (!isEditing && initialLanguages) {
       setLanguages(Array.isArray(initialLanguages) ? [...initialLanguages] : []);
     }
   }, [initialLanguages, isEditing]);
+
+  // Handle AI Enhancement
+  useEffect(() => {
+    if (enhancedData) {
+      setLanguages(Array.isArray(enhancedData) ? [...enhancedData] : []);
+      setIsEditing(true);
+      setShowReviewBanner(true);
+      if (languagesDropdown.length === 0) {
+        fetchDropdownData();
+      }
+    }
+  }, [enhancedData]);
 
   const fetchDropdownData = async () => {
     setDropdownLoading(true);
@@ -93,6 +106,7 @@ const LanguagesSection = ({ userId, profile, initialLanguages, onSuccess }) => {
           languages: languages,
         }));
         setIsEditing(false);
+        setShowReviewBanner(false);
       }
     } catch (err) {
       setError("Failed to update languages");
@@ -144,6 +158,16 @@ const LanguagesSection = ({ userId, profile, initialLanguages, onSuccess }) => {
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
+        </Alert>
+      )}
+
+      {showReviewBanner && (
+        <Alert 
+          severity="info" 
+          sx={{ mb: 2, bgcolor: "#f5f3ff", border: "1px solid #c4b5fd", "& .MuiAlert-icon": { color: "#6366f1" } }}
+          onClose={() => setShowReviewBanner(false)}
+        >
+          ✨ <strong>AI Enhanced:</strong> We've suggested languages based on your profile. Please review and <strong>Save</strong> to apply.
         </Alert>
       )}
 

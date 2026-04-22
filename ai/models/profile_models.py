@@ -302,6 +302,29 @@ class LanguagesUpdate(BaseModel):
         from_attributes = True
 
 
+class ProjectUpdate(BaseModel):
+    """Update project (single entry)"""
+
+    title: str = Field(..., description="Project title")
+    description: Optional[str] = Field(None, description="Project description")
+    url: Optional[str] = Field(None, description="Live link")
+    repo_url: Optional[str] = Field(None, description="Repository link")
+    skills_used: Optional[List[str]] = Field([], description="Skills used")
+    start_date: Optional[date] = Field(None, description="Start date")
+    end_date: Optional[date] = Field(None, description="End date")
+    project_id: Optional[int] = Field(None, description="Project ID for updates")
+
+    class Config:
+        from_attributes = True
+
+    @field_validator("start_date", "end_date", mode="before")
+    @classmethod
+    def handle_empty_dates(cls, v):
+        if v == "":
+            return None
+        return v
+
+
 class BlockUpdateResponse(BaseModel):
     """Generic success response for block updates"""
 

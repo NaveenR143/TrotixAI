@@ -27,7 +27,8 @@ const API_ENDPOINTS = {
   CREATE_JOB: '/jobs/create',
   CAREER_ADVICE: '/profile/career-advice',
   EXISTING_CAREER_ADVICE: '/profile/existing-career-advice',
-  SKILL_DEVELOPMENT_ANALYSIS: '/profile/skill-development-analysis'
+  SKILL_DEVELOPMENT_ANALYSIS: '/profile/skill-development-analysis',
+  ENHANCE_RESUME: '/profile/enhance-resume'
 };
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────

@@ -8,27 +8,9 @@ from enum import Enum
 
 
 from ai.services.ai_refiner_service import AzureOpenAIResumeRefiner
+from ai.utils.data_utils import clean_dict, json_serializable
 
 logger = logging.getLogger(__name__)
-
-
-def _serialize(obj):
-    if isinstance(obj, date):
-        return obj.isoformat()
-    if isinstance(obj, Enum):
-        return obj.value
-    return obj
-
-
-def _clean(value):
-    if isinstance(value, dict):
-        return {
-            k: _clean(v) for k, v in value.items() if v not in [None, "", []]
-        }
-    elif isinstance(value, list):
-        return [_clean(v) for v in value if v not in [None, "", []]]
-    else:
-        return _serialize(value)
 
 
 class CareerAdvisorService:
@@ -123,8 +105,7 @@ class CareerAdvisorService:
 
     @staticmethod
     async def get_existing_advice(
-        user_id: UUID,
-        session: AsyncSession
+        user_id: UUID, session: AsyncSession
     ) -> Optional[Dict[str, Any]]:
         """
         Fetch existing career advice from database
@@ -159,13 +140,13 @@ class CareerAdvisorService:
         Transform profile into GPT-friendly format
         """
 
-        return _clean(
+        return clean_dict(
             {
                 "experience": [
                     {
                         "company": exp.get("company_name"),
                         "role": exp.get("title"),
-                        "duration": f"{_serialize(exp.get('start_date'))} - {_serialize(exp.get('end_date')) or 'present'}",
+                        "duration": f"{json_serializable(exp.get('start_date'))} - {json_serializable(exp.get('end_date')) or 'present'}",
                         "summary": exp.get("description"),
                         "skills": exp.get("skills_used", []),
                     }
@@ -182,7 +163,7 @@ class CareerAdvisorService:
                 ],
                 "skills": list(
                     {
-                        _serialize(skill.get("name"))
+                        json_serializable(skill.get("name"))
                         for skill in (profile_data.get("skills") or [])
                     }
                 ),
@@ -210,7 +191,7 @@ class CareerAdvisorService:
             career_paths = {}
 
         action_plan = []
-        for item in (ai_response.get("action_plan") or []):
+        for item in ai_response.get("action_plan") or []:
             if isinstance(item, dict):
                 action_plan.append(
                     {
@@ -240,43 +221,77 @@ class CareerAdvisorService:
         cls,
         user_id: UUID,
         session: AsyncSession,
+        force_refresh: bool = False,
     ) -> Dict[str, Any]:
         """
         Generate a standalone skill development analysis based on industry trends.
         """
         from ai.services.profile_service import ProfileService
 
-        # 1. Fetch complete profile
-        profile_data = await ProfileService.fetch_user_profile(user_id=user_id, session=session)
+        try:
+            # ✅ Step 1: Check cache
+            if not force_refresh:
+                cached_data = await CareerAdvisorRepository.get_user_skill_analysis(
+                    user_id, session
+                )
+                if cached_data:
+                    logger.info(f"Returning cached skill analysis for user: {user_id}")
+                    return cached_data
 
-        # 2. Get industry_id (user specifically mentioned they added it to the users table)
-        industry_id = profile_data.get("industry_id")
+            # 2. Fetch complete profile
+            profile_data = await ProfileService.fetch_user_profile(
+                user_id=user_id, session=session
+            )
 
-        if not industry_id:
-            logger.warning(f"No industry_id found for user {user_id}. Market trend analysis may be limited.")
-            # We can still proceed, but the repository method might return empty if it expects a valid industry_id
-            # I'll just use 1 as a fallback or handle in repo (but user provided a query with WHERE jp.industry_id = :industry_id)
-        
-        # 3. Fetch skills from job postings in the same industry that the user lacks
-        market_skills = await CareerAdvisorRepository.get_market_trend_skills_by_industry(
-            user_id=user_id,
-            industry_id=industry_id or 0,
-            session=session
-        )
+            # 2. Get industry_id (user specifically mentioned they added it to the users table)
+            industry_id = profile_data.get("industry_id")
 
-        # 4. Prepare data for AI
-        gpt_input = cls._build_gpt_input(profile_data)
+            if not industry_id:
+                logger.warning(
+                    f"No industry_id found for user {user_id}. Market trend analysis may be limited."
+                )
 
-        # 5. Call AI service for specialized skill analysis
-        refiner = cls._get_refiner()
-        ai_response = await refiner.generate_skill_development_analysis(
-            profile_data=gpt_input,
-            market_skills=market_skills
-        )
+            # 3. Fetch skills from job postings in the same industry that the user lacks
+            market_skills = (
+                await CareerAdvisorRepository.get_market_trend_skills_by_industry(
+                    user_id=user_id, industry_id=industry_id or 0, session=session
+                )
+            )
 
-        # 6. Return structured data
-        return {
-            "user_id": user_id,
-            "industry": profile_data.get("industry_name") or "Your Industry",
-            "skills_analysis": ai_response.get("skills_analysis") or []
-        }
+            # 4. Prepare data for AI
+            gpt_input = cls._build_gpt_input(profile_data)
+
+            # 5. Call AI service for specialized skill analysis
+            refiner = cls._get_refiner()
+            ai_response = await refiner.generate_skill_development_analysis(
+                profile_data=gpt_input, market_skills=market_skills
+            )
+
+            # 6. Normalize and format
+            structured_data = {
+                "user_id": str(user_id),
+                "industry": profile_data.get("industry_name") or "Your Industry",
+                "skills_analysis": ai_response.get("skills_analysis") or [],
+            }
+
+            # 7. Store in DB
+            await CareerAdvisorRepository.save_user_skill_analysis(
+                user_id=user_id, analysis_data=structured_data, session=session
+            )
+
+            logger.info(f"Generated new skill analysis for user: {user_id}")
+
+            return structured_data
+
+        except Exception as e:
+            logger.error(f"Error generating skill analysis: {str(e)}", exc_info=True)
+            raise
+
+    @staticmethod
+    async def get_existing_skill_analysis(
+        user_id: UUID, session: AsyncSession
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Fetch existing skill analysis from database
+        """
+        return await CareerAdvisorRepository.get_user_skill_analysis(user_id, session)

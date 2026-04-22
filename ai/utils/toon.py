@@ -300,6 +300,46 @@ class TOONFormatter:
             ")\n"
         )
 
+    @staticmethod
+    def build_resume_enhancement_instructions() -> str:
+        return (
+            "You are a resume enhancement engine.\n"
+            "STRICT OUTPUT RULES:\n"
+            "- Output ONLY a valid EnhancedResumeTOON object.\n"
+            "- Do NOT include explanations, markdown, or extra text.\n"
+            "- Do NOT invent or assume any user experience, skills, or achievements.\n"
+            "- Only rewrite or improve what is explicitly provided.\n\n"
+            "TASK:\n"
+            "Improve the user's resume content for ATS optimization, clarity, and impact while preserving factual accuracy.\n\n"
+            "GUIDELINES:\n"
+            "- Summary must be 60–100 words, professional, and concise.\n"
+            "- Skills must be grouped, relevant, and industry-standard.\n"
+            "- Work experience must use strong action verbs and quantify impact where present.\n"
+            "- Projects must highlight technologies, outcomes, and real impact.\n"
+            "- If data is missing, do NOT fabricate it—keep it minimal or reuse original meaning.\n\n"
+            "OUTPUT SCHEMA (must match exactly):\n"
+            "EnhancedResumeTOON(\n"
+            "  summary: str,\n"
+            "  skills: list[str],\n"
+            "  workExperience: list[ExperienceEnhancementTOON],\n"
+            "  projects: list[ProjectEnhancementTOON],\n"
+            ")\n\n"
+            "ExperienceEnhancementTOON(\n"
+            "  company_name: str,\n"
+            "  title: str,\n"
+            "  original_description: str,\n"
+            "  enhanced_description: str,\n"
+            "  key_achievements: list[str]\n"
+            ")\n\n"
+            "ProjectEnhancementTOON(\n"
+            "  name: str,\n"
+            "  original_description: str,\n"
+            "  enhanced_description: str,\n"
+            "  technologies: list[str],\n"
+            "  impact: str\n"
+            ")\n"
+        )
+
     def toon_to_json(self, toon_str: str) -> dict:
         """
         Convert a TOON-formatted string to a Python dict.

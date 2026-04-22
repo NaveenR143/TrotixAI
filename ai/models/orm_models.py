@@ -177,6 +177,9 @@ class User(Base):
     career_advice = relationship(
         "CareerAdvice", back_populates="user", cascade="all, delete-orphan"
     )
+    skill_analysis = relationship(
+        "SkillAnalysis", back_populates="user", cascade="all, delete-orphan"
+    )
     industry = relationship("Industry")
 
 
@@ -603,6 +606,23 @@ class CareerAdvice(Base):
 
     # Relationships
     user = relationship("User", back_populates="career_advice")
+
+
+class SkillAnalysis(Base):
+    __tablename__ = "skill_analysis"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    skill_analysis = Column(JSON, nullable=False)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    created_date = Column(Date, server_default=func.now())
+
+    # Relationships
+    user = relationship("User", back_populates="skill_analysis")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

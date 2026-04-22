@@ -24,6 +24,7 @@ import { fetchAndStoreProfile } from "../../redux/profile/ProfileAction";
 import { toTitleCase } from "./utils/profileUtils";
 
 // Sections
+import * as profileAPI from "../../api/profileAPI";
 import PersonalInformationSection from "./sections/PersonalInformationSection";
 import WorkExperienceSection from "./sections/WorkExperienceSection";
 import EducationSection from "./sections/EducationSection";
@@ -97,16 +98,25 @@ const UserProfile = () => {
   const handleSuccess = (message) => setSuccessMessage(message);
 
   // AI Handlers
-  const handleAiEnhanceResume = () => {
-    if (userPoints < 50) return alert("Not enough credits!");
+  const [enhancedData, setEnhancedData] = useState(null);
+
+  const handleAiEnhanceResume = async () => {
+    if (!userId) return alert("User ID not found. Please refresh.");
+    
     setAiLoading((prev) => ({ ...prev, resume: true }));
-    setAiDialogs((prev) => ({ ...prev, resume: true }));
-    setTimeout(() => {
-      const result = `✨ AI-Enhanced Resume Summary:\n\nInnovative professional with strong background in delivering scalable solutions...`;
-      setAiResults((prev) => ({ ...prev, resume: result }));
-      dispatch(debitPoints(50));
+    try {
+      const result = await profileAPI.fetchEnhanceResume(userId);
+      if (result.error) {
+        setError(result.message);
+      } else {
+        setEnhancedData(result.data);
+        handleSuccess("Resume enhanced! Please review each section and save.");
+      }
+    } catch (err) {
+      setError("Failed to enhance resume");
+    } finally {
       setAiLoading((prev) => ({ ...prev, resume: false }));
-    }, 1500);
+    }
   };
 
   const handleAiIdentifySkills = () => {
@@ -181,6 +191,7 @@ const UserProfile = () => {
               profile={profile}
               initialExperiences={profile?.experience}
               onSuccess={handleSuccess}
+              enhancedData={enhancedData?.workExperience}
             />
 
             <EducationSection
@@ -188,11 +199,15 @@ const UserProfile = () => {
               profile={profile}
               initialEducation={profile?.education}
               onSuccess={handleSuccess}
+              enhancedData={enhancedData?.education}
             />
 
             <ProjectsSection
+              userId={userId}
               profile={profile}
               initialProjects={profile?.projects}
+              onSuccess={handleSuccess}
+              enhancedData={enhancedData?.projects}
             />
 
             <SkillsSection
@@ -200,6 +215,7 @@ const UserProfile = () => {
               profile={profile}
               initialSkills={profile?.skills}
               onSuccess={handleSuccess}
+              enhancedData={enhancedData?.skills}
             />
 
             <LanguagesSection
@@ -207,12 +223,14 @@ const UserProfile = () => {
               profile={profile}
               initialLanguages={profile?.languages}
               onSuccess={handleSuccess}
+              enhancedData={enhancedData?.languages}
             />
 
             <ProfessionalSummarySection
               profile={profile}
               initialAbout={profile?.about}
               onSuccess={handleSuccess}
+              enhancedData={enhancedData?.summary}
             />
 
             <PersonalDetailsSection
@@ -235,7 +253,6 @@ const UserProfile = () => {
           onClose={() => setAiDialogs(prev => ({ ...prev, resume: false }))}
           title="🚀 AI-Enhanced Resume Summary"
           content={aiResults.resume}
-          creditsText="✓ 50 credits debited"
           onAction={() => setAiDialogs(prev => ({ ...prev, resume: false }))}
         />
         <AiResultDialog
@@ -243,7 +260,6 @@ const UserProfile = () => {
           onClose={() => setAiDialogs(prev => ({ ...prev, skills: false }))}
           title="📊 Skills Gap Analysis"
           content={aiResults.skills}
-          creditsText="✓ 20 credits debited"
           onAction={() => setAiDialogs(prev => ({ ...prev, skills: false }))}
         />
         <AiResultDialog
@@ -251,7 +267,6 @@ const UserProfile = () => {
           onClose={() => setAiDialogs(prev => ({ ...prev, learning: false }))}
           title="📚 Learning Roadmap"
           content={aiResults.learning}
-          creditsText="✓ 20 credits debited"
           onAction={() => setAiDialogs(prev => ({ ...prev, learning: false }))}
         />
       </Container>

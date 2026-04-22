@@ -72,3 +72,21 @@ class SkillDevelopmentSuccessResponse(BaseModel):
     status: str = "success"
     data: SkillDevelopmentAnalysis
     timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+
+# --- Resume Enhancement Models ---
+
+class ResumeEnhanceRequest(BaseModel):
+    user_id: UUID
+
+class EnhancedResume(BaseModel):
+    summary: str
+    skills: List[str]
+    workExperience: List[Dict]
+    projects: List[Dict]
+    languages: List[str]
+
+class ResumeEnhanceSuccessResponse(BaseModel):
+    status: str = "success"
+    data: EnhancedResume
+    timestamp: datetime = Field(default_factory=datetime.utcnow)

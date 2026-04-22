@@ -11,7 +11,7 @@ from uuid import UUID
 
 from sqlalchemy import select, desc, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from ai.models.orm_models import CareerAdvice
+from ai.models.orm_models import CareerAdvice, SkillAnalysis
 
 LOGGER = logging.getLogger(__name__)
 
@@ -80,6 +80,61 @@ class CareerAdvisorRepository:
         except Exception as e:
             await session.rollback()
             LOGGER.error(f"Error saving career advice: {str(e)}")
+            raise
+
+    @staticmethod
+    async def get_user_skill_analysis(user_id: UUID, session: AsyncSession) -> Optional[dict]:
+        """
+        Fetch the latest skill analysis for a given user.
+
+        Args:
+            user_id: UUID of the user
+            session: Async database session
+
+        Returns:
+            Analysis data as a dictionary if found, None otherwise
+        """
+        try:
+            query = (
+                select(SkillAnalysis)
+                .where(SkillAnalysis.user_id == user_id)
+                .order_by(desc(SkillAnalysis.created_date), desc(SkillAnalysis.id))
+            )
+            result = await session.execute(query)
+            analysis = result.scalars().first()
+
+            if analysis:
+                return analysis.skill_analysis
+
+            return None
+
+        except Exception as e:
+            LOGGER.error(f"Error fetching user skill analysis: {str(e)}")
+            return None
+
+    @staticmethod
+    async def save_user_skill_analysis(user_id: UUID, analysis_data: dict, session: AsyncSession):
+        """
+        Save skill analysis for a user.
+
+        Args:
+            user_id: UUID of the user
+            analysis_data: Dictionary containing structured skill analysis
+            session: Async database session
+        """
+        try:
+            # We insert a new record to keep history
+            new_analysis = SkillAnalysis(
+                user_id=user_id,
+                skill_analysis=analysis_data
+            )
+            session.add(new_analysis)
+            await session.commit()
+            LOGGER.info(f"Saved skill analysis for user: {user_id}")
+
+        except Exception as e:
+            await session.rollback()
+            LOGGER.error(f"Error saving skill analysis: {str(e)}")
             raise
 
     @staticmethod

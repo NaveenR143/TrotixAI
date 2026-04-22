@@ -463,6 +463,56 @@ class ProfileRepository:
             raise
 
     @staticmethod
+    async def update_project(
+        user_id: UUID,
+        project_data: dict,
+        session: AsyncSession,
+        project_id: Optional[int] = None,
+    ) -> dict:
+        """
+        Add or update project
+
+        Args:
+            user_id: User UUID
+            project_data: Project details
+            session: Async database session
+            project_id: ID of existing project (for updates)
+
+        Returns:
+            Updated profile data
+        """
+        try:
+            if project_id:
+                # Update existing project
+                query = select(Project).where(
+                    Project.id == project_id, Project.user_id == user_id
+                )
+                result = await session.execute(query)
+                project = result.scalars().first()
+
+                if not project:
+                    raise ValueError("Project not found")
+
+                # Update fields
+                for field, value in project_data.items():
+                    if field != "project_id" and hasattr(project, field):
+                        setattr(project, field, value)
+            else:
+                # Create new project
+                project = Project(
+                    user_id=user_id,
+                    **{k: v for k, v in project_data.items() if k != "project_id"},
+                )
+                session.add(project)
+
+            await session.commit()
+            return await ProfileRepository.get_user_profile_by_id(user_id, session)
+
+        except Exception as e:
+            await session.rollback()
+            raise
+
+    @staticmethod
     async def update_skills(
         user_id: UUID, skill_names: list, session: AsyncSession
     ) -> dict:
