@@ -287,12 +287,6 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
             )}
           </Stack>
         </form>
-
-        <Box sx={{ mt: 4, textAlign: 'center' }}>
-          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-            For testing use OTP: <b>1234</b>
-          </Typography>
-        </Box>
       </Paper>
     </Box>
   );

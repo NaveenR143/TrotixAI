@@ -38,12 +38,12 @@ const EntryRoute = () => {
   return <EntryScreen onUpload={(data) => {
     // Navigate to processing and pass resume data
     navigate('/processing', { state: data });
-  }} onDirectSearch={() => navigate('/feed')} onManualEntry={() => navigate('/manual-profile')} onPostJob={() => navigate('/post-job')} />;
+  }} onDirectSearch={() => navigate('/dashboard')} onManualEntry={() => navigate('/manual-profile')} onPostJob={() => navigate('/post-job')} />;
 };
 
 const ManualProfileRoute = () => {
   const navigate = useNavigate();
-  return <ManualProfileScreen onSave={() => navigate('/feed')} onBack={() => navigate('/')} />;
+  return <ManualProfileScreen onSave={() => navigate('/dashboard')} onBack={() => navigate('/')} />;
 };
 
 const RecruiterDashboardRoute = () => {
@@ -86,7 +86,7 @@ const CreditsRoute = () => {
 };
 
 const DashboardRoute = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   return <DashboardScreen />;
 };
 

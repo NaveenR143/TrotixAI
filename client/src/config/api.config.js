@@ -28,6 +28,7 @@ const API_ENDPOINTS = {
   CAREER_ADVICE: '/profile/career-advice',
   EXISTING_CAREER_ADVICE: '/profile/existing-career-advice',
   SKILL_DEVELOPMENT_ANALYSIS: '/profile/skill-development-analysis',
+  EXISTING_SKILL_DEVELOPMENT_ANALYSIS: '/profile/existing-skill-analysis',
   ENHANCE_RESUME: '/profile/enhance-resume'
 };
 

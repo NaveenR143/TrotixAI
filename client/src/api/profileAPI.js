@@ -317,6 +317,33 @@ export const fetchExistingCareerAdvice = async (phone, userId = null) => {
   }
 };
 
+/**
+ * Fetch Existing Skill Analysis
+ */
+
+export const fetchExistingSkillAnalysis = async (userId) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}${API_ENDPOINTS.EXISTING_SKILL_DEVELOPMENT_ANALYSIS}`,
+      {
+        params: {
+          user_id: userId,
+        },
+        headers: getHeaders(),
+      }
+    );
+
+    return {
+      error: false,
+      data: response.data?.data || response.data,
+      message: "Existing Skill Analysis fetched successfully",
+    };
+  } catch (error) {
+    console.error("Error fetching Existing Skill Analysis:", error);
+    return handleError(error);
+  }
+};
+
 
 /**
  * Fetch Missing Skills and Enhancement

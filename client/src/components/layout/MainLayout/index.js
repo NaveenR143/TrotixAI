@@ -1,8 +1,8 @@
 import React from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { 
-  ThemeProvider, createTheme, CssBaseline, Box, Typography, Button, Chip, 
+import {
+  ThemeProvider, createTheme, CssBaseline, Box, Typography, Button, Chip,
   Tooltip, IconButton, useMediaQuery, Menu, MenuItem, ListItemIcon, Divider, Avatar
 } from "@mui/material";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
@@ -10,9 +10,11 @@ import PersonIcon from "@mui/icons-material/Person";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
+import HomeIcon from "@mui/icons-material/Home";
 import { Helmet } from "react-helmet-async";
 import { useDispatch } from "react-redux";
-import { RESET_INITIAL_STATE } from "../../../redux/constants";
+import { RESET_INITIAL_STATE, RESET } from "../../../redux/constants";
+import { auth } from "../../../firebase";
 
 // ── Premium design system ──────────────────────────────────────────────────────
 const theme = createTheme({
@@ -174,14 +176,29 @@ const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
 
       {/* Nav actions */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1.5 }, flexShrink: 0 }}>
+        <Tooltip title="Home" arrow>
+          <IconButton
+            onClick={handleLogoClickNav}
+            sx={{
+              color: '#0f172a',
+              bgcolor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              padding: { xs: '6px', sm: '8px' },
+              '&:hover': { bgcolor: '#f1f5f9', borderColor: '#cbd5e1' }
+            }}
+          >
+            <HomeIcon sx={{ fontSize: { xs: 20, sm: 22 } }} />
+          </IconButton>
+        </Tooltip>
+
         <Tooltip title="Click to add credits" placement="top" arrow transitionDuration={300}>
           {isMobile ? (
-            <IconButton 
-              color="secondary" 
+            <IconButton
+              color="secondary"
               onClick={() => onLogoClick('/credits')}
               aria-label="Add credits"
-              sx={{ 
-                bgcolor: '#faf5ff', 
+              sx={{
+                bgcolor: '#faf5ff',
                 border: '1px solid #ddd6fe',
                 padding: '6px',
                 '&:hover': { bgcolor: '#f3e8ff' }
@@ -195,18 +212,18 @@ const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
               label={`${points || 100} Credits`}
               onClick={() => onLogoClick('/credits')}
               aria-label="Add credits"
-              sx={{ 
-                bgcolor: '#faf5ff', 
-                color: '#6366f1', 
-                border: '1px solid #ddd6fe', 
-                fontWeight: 700, 
+              sx={{
+                bgcolor: '#faf5ff',
+                color: '#6366f1',
+                border: '1px solid #ddd6fe',
+                fontWeight: 700,
                 fontSize: '0.82rem',
-                cursor: 'pointer', 
+                cursor: 'pointer',
                 px: 1,
                 py: 2,
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                '&:hover': { 
-                  bgcolor: '#f3e8ff', 
+                '&:hover': {
+                  bgcolor: '#f3e8ff',
                   borderColor: '#6366f1',
                   transform: 'translateY(-1px)',
                   boxShadow: '0 4px 12px rgba(99, 102, 241, 0.12)'
@@ -216,15 +233,15 @@ const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
             />
           )}
         </Tooltip>
-        
+
         {mobile ? (
           <>
             <IconButton
               onClick={handleMenuClick}
               size="small"
-              sx={{ 
-                ml: 1, 
-                border: '1px solid #e2e8f0', 
+              sx={{
+                ml: 1,
+                border: '1px solid #e2e8f0',
                 bgcolor: '#fff',
                 '&:hover': { bgcolor: '#f8fafc' }
               }}
@@ -275,10 +292,10 @@ const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
                 <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon>
                 View Profile
               </MenuItem>
-              <MenuItem onClick={() => handleAction('/')}>
+              {/* <MenuItem onClick={() => handleAction('/')}>
                 <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
                 Settings
-              </MenuItem>
+              </MenuItem> */}
               <Divider sx={{ my: 1 }} />
               <MenuItem onClick={handleSignOut} sx={{ color: 'error.main' }}>
                 <ListItemIcon><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
@@ -312,14 +329,23 @@ const MainLayout = () => {
   const { points, mobile } = useSelector((state) => state.UserReducer);
 
   const handleLogoClick = (path = '/') => navigate(path);
-  const handleLogout = () => {
-    // Clear localStorage
-    localStorage.removeItem('user');
-    localStorage.removeItem('userType');
-    localStorage.removeItem('mobileNumber');
-    
+  const handleLogout = async () => {
+    // 2. Clear all web storage (localStorage & sessionStorage)
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // 3. Clear all cookies
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+
+    // 4. Reset Redux store to initial state
     dispatch({ type: RESET_INITIAL_STATE });
-    navigate('/login');
+
+    // 5. Hard redirect to login to ensure all memory state is purged
+    window.location.href = "/login";
   };
 
   return (
@@ -333,10 +359,10 @@ const MainLayout = () => {
       </Helmet>
 
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
-        <NavBar 
-          activeState={activeState} 
-          onLogoClick={handleLogoClick} 
-          points={points} 
+        <NavBar
+          activeState={activeState}
+          onLogoClick={handleLogoClick}
+          points={points}
           mobile={mobile}
           onLogout={handleLogout}
         />

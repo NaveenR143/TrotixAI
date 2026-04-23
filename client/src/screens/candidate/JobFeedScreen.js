@@ -61,7 +61,8 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, userId }) =>
         setError(null);
 
         // Use provided userId or default userId
-        const userIdToUse = userId || '4bfcd973-7f38-4fd9-80f2-b8c133075fcb';
+        // const userIdToUse = userId || '4bfcd973-7f38-4fd9-80f2-b8c133075fcb';
+        const userIdToUse = 'e741ca0e-dcc5-4c7e-8688-90fd71f149dd';
 
         // Make API request
         const response = await axios.get(
@@ -280,10 +281,10 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, userId }) =>
     if (showMobileDetailView) {
       return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)' }}>
-          <JobDetailScreen 
-            job={job} 
+          <JobDetailScreen
+            job={job}
             isEmbedded={false}
-            savedJobs={savedJobs} 
+            savedJobs={savedJobs}
             onToggleSave={() => toggleSave(job.id)}
             onBack={() => setShowMobileDetailView(false)}
           />

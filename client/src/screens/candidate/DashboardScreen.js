@@ -1,7 +1,7 @@
 // screens/candidate/DashboardScreen.js
 import React from "react";
 import {
-  Box, Typography, Container, Paper, Grid, Button, Tooltip, 
+  Box, Typography, Container, Paper, Grid, Button, Tooltip,
   useMediaQuery, useTheme, Stack, Card, Avatar, LinearProgress
 } from "@mui/material";
 import Grid2 from "@mui/material/Grid2";
@@ -168,7 +168,7 @@ const DashboardScreen = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
-  const { mobile, displayname } = useSelector((state) => state.UserReducer);
+  const { mobile, fullname } = useSelector((state) => state.UserReducer);
 
   const dashboardSections = [
     {
@@ -190,15 +190,6 @@ const DashboardScreen = () => {
       delay: 0.1,
     },
     {
-      icon: TrendingUpIcon,
-      title: 'Recruiters',
-      description: 'Get discovered by top recruiters',
-      gradient: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
-      onClick: () => navigate('/recruiters'),
-      count: '2k+',
-      delay: 0.2,
-    },
-    {
       icon: PersonIcon,
       title: 'Profile',
       description: 'Manage your professional profile',
@@ -207,9 +198,18 @@ const DashboardScreen = () => {
       delay: 0.3,
     },
     {
+      icon: TrendingUpIcon,
+      title: 'Career Advice',
+      description: 'Discover personalized career guidance',
+      gradient: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
+      onClick: () => navigate('/career-advice'),
+      delay: 0.2,
+    },
+
+    {
       icon: DescriptionIcon,
       title: 'Resume Builder',
-      description: 'Create AI-optimized resumes',
+      description: 'Build a polished resume in minutes with smart templates',
       gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
       onClick: () => navigate('/resume-builder'),
       delay: 0.4,
@@ -217,7 +217,7 @@ const DashboardScreen = () => {
     {
       icon: SchoolIcon,
       title: 'Skill Development',
-      description: 'Upskill with AI-curated missing skills',
+      description: 'Discover skills, courses, and certifications to stay ahead.',
       gradient: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
       onClick: () => navigate('/skill-development'),
       delay: 0.5,
@@ -271,7 +271,7 @@ const DashboardScreen = () => {
                 lineHeight: 1.1,
               }}
             >
-              Welcome back, <Box component="span" sx={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{displayname || 'Candidate'}</Box>
+              Welcome, <Box component="span" sx={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{(fullname || '').replace(/\w\S*/g, t => t[0].toUpperCase() + t.slice(1).toLowerCase())}</Box>
             </Typography>
             <Typography
               sx={{
@@ -288,7 +288,7 @@ const DashboardScreen = () => {
       </Box>
 
       {/* Quick Stats */}
-      <Container maxWidth="lg" sx={{ mt: { xs: 4, md: 6 }, mb: { xs: 4, md: 6 } }}>
+      {/* <Container maxWidth="lg" sx={{ mt: { xs: 4, md: 6 }, mb: { xs: 4, md: 6 } }}>
         <Grid2 container spacing={{ xs: 2, md: 3 }}>
           <Grid2 size={{ xs: 4, md: 4 }}>
             <StatCard label="Active Applications" value="12" icon={WorkIcon} color="#6366f1" delay={0} />
@@ -300,10 +300,10 @@ const DashboardScreen = () => {
             <StatCard label="Saved Jobs" value="34" icon={TrendingUpIcon} color="#0ea5e9" delay={0.2} />
           </Grid2>
         </Grid2>
-      </Container>
+      </Container> */}
 
       {/* Main Dashboard Sections */}
-      <Container maxWidth="lg" sx={{ pb: 4 }}>
+      <Container maxWidth="lg" sx={{ pb: 4, mt: { xs: 4, md: 6 }, }}>
         <Grid2 container spacing={{ xs: 2.5, md: 3, lg: 4 }}>
           {dashboardSections.map((section, index) => (
             <Grid2 key={index} size={{ xs: 12, sm: 6, lg: 4 }}>

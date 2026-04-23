@@ -112,7 +112,27 @@ const SkillDevelopmentScreen = () => {
                 return;
             }
 
-            const result = await profileAPI.fetchMissingSkills(userId);
+            let result = null;
+
+            // Step 1: If not regenerating, try fetching existing analysis first
+            if (!isRegenerating) {
+                const existingResult = await profileAPI.fetchExistingSkillAnalysis(userId);
+                
+                // Check if data is valid
+                if (!existingResult.error && existingResult.data && existingResult.data !== "none") {
+                    const data = existingResult.data;
+                    const innerData = data.data || data;
+                    // Heuristic to check if it's actual skill analysis content
+                    if (innerData && (innerData.skills_analysis || innerData.industry)) {
+                        result = existingResult;
+                    }
+                }
+            }
+
+            // Step 2: If no existing analysis found or if we are regenerating, fetch/generate new analysis
+            if (!result) {
+                result = await profileAPI.fetchMissingSkills(userId);
+            }
 
             if (!result.error) {
                 setFullResponse(result.data);
