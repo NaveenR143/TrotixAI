@@ -22,6 +22,7 @@ from sqlalchemy import (
     UniqueConstraint,
     PrimaryKeyConstraint,
 )
+from sqlalchemy.types import NullType
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
@@ -116,10 +117,13 @@ class User(Base):
     email = Column(String, unique=True, nullable=False, index=True)
     phone = Column(String, unique=True, nullable=True, index=True)
     role = Column(
-        Enum(UserRoleEnum), nullable=False, default=UserRoleEnum.jobseeker, index=True
+        Enum(UserRoleEnum, name="user_role", create_type=False),
+        nullable=False,
+        default=UserRoleEnum.jobseeker,
+        index=True,
     )
     status = Column(
-        Enum(UserStatusEnum),
+        Enum(UserStatusEnum, name="user_status", create_type=False),
         nullable=False,
         default=UserStatusEnum.pending_verification,
         index=True,
@@ -211,7 +215,10 @@ class JobseekerProfile(Base):
     notice_period_days = Column(Integer, nullable=True)
     current_salary = Column(Numeric(12, 2), nullable=True)
     expected_salary = Column(Numeric(12, 2), nullable=True)
-    salary_currency = Column(Enum(SalaryCurrencyEnum), default=SalaryCurrencyEnum.INR)
+    salary_currency = Column(
+        Enum(SalaryCurrencyEnum, name="salary_currency", create_type=False),
+        default=SalaryCurrencyEnum.INR,
+    )
     is_actively_looking = Column(Boolean, default=True, index=True)
     linkedin_url = Column(String, nullable=True)
     github_url = Column(String, nullable=True)
@@ -269,7 +276,10 @@ class JobseekerSkill(Base):
         nullable=False,
         index=True,
     )
-    level = Column(Enum(SkillLevelEnum), default=SkillLevelEnum.intermediate)
+    level = Column(
+        Enum(SkillLevelEnum, name="skill_level", create_type=False),
+        default=SkillLevelEnum.intermediate,
+    )
     years = Column(Numeric(4, 1), nullable=True)
     is_primary = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -432,12 +442,7 @@ class Company(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    slug = Column(String, unique=True, nullable=False, index=True)
-    logo_url = Column(String, nullable=True)
     website = Column(String, nullable=True)
-    industry = Column(String, nullable=True, index=True)
-    size_range = Column(String, nullable=True)
-    founded_year = Column(Integer, nullable=True)
     description = Column(Text, nullable=True)
     headquarters = Column(String, nullable=True)
     linkedin_url = Column(String, nullable=True)
@@ -548,7 +553,7 @@ class Resume(Base):
     mime_type = Column(String, nullable=True)
     parsed_at = Column(DateTime(timezone=True), nullable=True)
     parsed_summary = Column(Text, nullable=True)
-    resume_embedding = Column(String, nullable=True)  # pgvector(384) stored as string
+    resume_embedding = Column(NullType, nullable=True)  # pgvector column — use NullType to avoid varchar cast
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -664,25 +669,42 @@ class JobPosting(Base):
     __tablename__ = "job_postings"
 
     id = Column(Integer, primary_key=True)  # bigint in DB
-    slug = Column(String, nullable=False, unique=True, index=True)
-    status = Column(Enum(JobStatusEnum), default=JobStatusEnum.draft, nullable=False, index=True)
+    status = Column(
+        Enum(JobStatusEnum, name="job_status", create_type=False),
+        default=JobStatusEnum.draft,
+        nullable=False,
+        index=True,
+    )
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     summary = Column(Text, nullable=True)
     experience_min_yrs = Column(Integer, nullable=True)
     experience_max_yrs = Column(Integer, nullable=True)
-    experience_level = Column(Enum(ExpLevelEnum), nullable=True)
+    experience_level = Column(
+        Enum(ExpLevelEnum, name="exp_level", create_type=False), nullable=True
+    )
     salary_min = Column(Numeric(12, 2), nullable=True)
     salary_max = Column(Numeric(12, 2), nullable=True)
-    salary_currency = Column(Enum(SalaryCurrencyEnum), nullable=True)
+    salary_currency = Column(
+        Enum(SalaryCurrencyEnum, name="salary_currency", create_type=False),
+        nullable=True,
+    )
     salary_is_hidden = Column(Boolean, default=False)
     salary_display = Column(String, nullable=True)
-    job_type = Column(Enum(JobTypeEnum), nullable=True, index=True)
-    work_mode = Column(Enum(WorkModeEnum), nullable=True, index=True)
+    job_type = Column(
+        Enum(JobTypeEnum, name="job_type", create_type=False), nullable=True, index=True
+    )
+    work_mode = Column(
+        Enum(WorkModeEnum, name="work_mode", create_type=False),
+        nullable=True,
+        index=True,
+    )
     openings = Column(Integer, default=1)
     department = Column(String, nullable=True)
     company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
-    recruiter_id = Column(Integer, ForeignKey("recruiters.id"), nullable=True, index=True)
+    recruiter_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True
+    )
     location = Column(String, nullable=True, index=True)
     state = Column(String, nullable=True)
     city = Column(String, nullable=True)
@@ -690,20 +712,22 @@ class JobPosting(Base):
     apply_url = Column(String, nullable=True)
     ai_summary = Column(Text, nullable=True)
     ai_tags = Column(ARRAY(String), nullable=True)
-    job_embedding = Column(String, nullable=True)  # pgvector(384/768) stored as string
+    job_embedding = Column(NullType, nullable=True)  # pgvector column — use NullType to avoid varchar cast
     posted_at = Column(DateTime(timezone=True), nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=True)
     closed_at = Column(DateTime(timezone=True), nullable=True)
     view_count = Column(Integer, default=0)
     apply_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
     # New fields found in DB
     education_requirement = Column(Text, nullable=True)
     industry_id = Column(Integer, ForeignKey("industries.id"), nullable=True)
     department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
-    
+
     # Relationships
     company = relationship("Company")
     industry = relationship("Industry")

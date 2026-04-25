@@ -35,7 +35,6 @@ ALTER TABLE public.certifications ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTI
 CREATE TABLE public.companies (
     id integer NOT NULL,
     name text NOT NULL,
-    slug text,
     logo_url text,
     website text,
     industry text,

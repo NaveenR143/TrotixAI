@@ -13,6 +13,7 @@ LOGGER = logging.getLogger(__name__)
 env_path = Path(__file__).resolve().parents[2] / ".env"
 load_dotenv(dotenv_path=env_path)
 
+
 class MessageService:
     """Service for sending messages to Azure Queue Storage."""
 
@@ -21,7 +22,9 @@ class MessageService:
         self.queue_name = "resumes-queue"
 
         if not self.connection_string:
-            raise ValueError("AZURE_STORAGE_CONNECTION_STRING environment variable not set")
+            raise ValueError(
+                "AZURE_STORAGE_CONNECTION_STRING environment variable not set"
+            )
 
     def _get_queue_client(self):
         """Get or create queue service client and ensure queue exists."""
@@ -56,16 +59,52 @@ class MessageService:
         """
         try:
             # Create message payload
-            message_payload = {
-                "user_id": user_id,
-                "blob_url": blob_url
-            }
+            message_payload = {"user_id": user_id, "blob_url": blob_url}
 
             # Convert to JSON string
             message_json = json.dumps(message_payload)
 
             # Encode as UTF-8 bytes, then base64
-            encoded_message = base64.b64encode(message_json.encode('utf-8')).decode('utf-8')
+            encoded_message = base64.b64encode(message_json.encode("utf-8")).decode(
+                "utf-8"
+            )
+
+            # Get queue client and send message
+            queue_client = self._get_queue_client()
+            response = queue_client.send_message(encoded_message)
+
+            print(
+                f"Successfully sent message to queue '{self.queue_name}' "
+                f"for user_id: {user_id}, Message ID: {response.id}"
+            )
+            return response.id
+
+        except Exception as e:
+            print(f"Error sending message to queue: {str(e)}")
+            raise
+
+    def send_jobid_to_queue(self, user_id: str, job_id: str) -> str:
+        """
+        Send a message to the queue with user_id and job_id.
+
+        Args:
+            user_id: The user's unique identifier
+            job_id: The job's unique identifier
+
+        Returns:
+            Message ID if successful, error message otherwise
+        """
+        try:
+            # Create message payload
+            message_payload = {"user_id": user_id, "job_id": job_id}
+
+            # Convert to JSON string
+            message_json = json.dumps(message_payload)
+
+            # Encode as UTF-8 bytes, then base64
+            encoded_message = base64.b64encode(message_json.encode("utf-8")).decode(
+                "utf-8"
+            )
 
             # Get queue client and send message
             queue_client = self._get_queue_client()

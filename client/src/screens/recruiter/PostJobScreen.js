@@ -61,7 +61,9 @@ const PostJobScreen = () => {
     company: '',
     location: '',
     type: '',
-    salary: '',
+    salaryMin: '',
+    salaryMax: '',
+    experienceLevel: '',
     description: '',
     skills: [],
     expMin: '',
@@ -78,12 +80,14 @@ const PostJobScreen = () => {
     education_levels: [],
     departments: [],
     work_modes: [],
-    job_types: []
+    job_types: [],
+    experience_levels: []
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [isSkillsFocused, setIsSkillsFocused] = useState(false);
 
 
   // Fetch Metadata
@@ -147,11 +151,13 @@ const PostJobScreen = () => {
         education_requirement: formData.education_requirement,
         experience_min: parseInt(formData.expMin),
         experience_max: parseInt(formData.expMax),
+        experience_level: formData.experienceLevel,
+        salary_min: formData.salaryMin ? parseFloat(formData.salaryMin) : null,
+        salary_max: formData.salaryMax ? parseFloat(formData.salaryMax) : null,
         description: formData.description,
         skills: formData.skills,
-        email: userEmail || '',
-        mobile: mobile || '',
-        salary: formData.salary
+        email: email || '',
+        mobile: mobile || ''
       };
 
       debugger;
@@ -385,19 +391,75 @@ const PostJobScreen = () => {
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 6 }}>
+                  <Autocomplete
+                    id="experienceLevel"
+                    options={metadata.experience_levels || []}
+                    getOptionLabel={(option) => option.charAt(0).toUpperCase() + option.slice(1)}
+                    value={formData.experienceLevel || null}
+                    onChange={(event, newValue) => {
+                      setFormData(prev => ({ ...prev, experienceLevel: newValue || '' }));
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Experience Level (Optional)"
+                        fullWidth
+                      />
+                    )}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 3 }}>
                   <TextField
-                    fullWidth label="Salary Range (Optional)" name="salary" value={formData.salary} onChange={handleChange}
+                    fullWidth label="Salary Min (Optional)" name="salaryMin" type="number"
+                    value={formData.salaryMin} onChange={handleChange}
+                    inputProps={{ min: 0 }}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <TextField
+                    fullWidth label="Salary Max (Optional)" name="salaryMax" type="number"
+                    value={formData.salaryMax} onChange={handleChange}
+                    inputProps={{ min: 0 }}
                     InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
                   />
                 </Grid>
 
                 <Grid size={{ xs: 12 }}>
+                  {isSkillsFocused && (
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        color: '#4f46e5', 
+                        display: 'block', 
+                        mb: 0.5, 
+                        fontWeight: 500,
+                        animation: 'fadeIn 0.3s ease-in-out',
+                        '@keyframes fadeIn': {
+                          from: { opacity: 0, transform: 'translateY(-5px)' },
+                          to: { opacity: 1, transform: 'translateY(0)' }
+                        }
+                      }}
+                    >
+                      If the skill you’re looking for isn’t available in the dropdown, simply type it in and press Enter.
+                    </Typography>
+                  )}
                   <Autocomplete
                     multiple freeSolo options={predefinedSkills} value={formData.skills} onChange={handleSkillsChange}
                     renderTags={(value, getTagProps) => value.map((option, index) => (
                       <Chip variant="outlined" label={option} size="small" sx={{ borderColor: '#c7d2fe', color: '#4f46e5', bgcolor: '#e0e7ff' }} {...getTagProps({ index })} />
                     ))}
-                    renderInput={(params) => <TextField {...params} variant="outlined" label="Required Skills (Optional)" placeholder="Add skills" />}
+                    renderInput={(params) => (
+                      <TextField 
+                        {...params} 
+                        variant="outlined" 
+                        label="Required Skills" 
+                        placeholder="Add skills" 
+                        onFocus={() => setIsSkillsFocused(true)}
+                        onBlur={() => setIsSkillsFocused(false)}
+                      />
+                    )}
                   />
                 </Grid>
 

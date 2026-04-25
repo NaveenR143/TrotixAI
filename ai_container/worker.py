@@ -1,3 +1,4 @@
+from ProcessPDF.process_job import ProcessJobHandler
 from datetime import datetime
 import os
 import time
@@ -17,8 +18,7 @@ from db.db_worker import DBWorker, db_queue
 # Logging Configuration
 # ----------------------------
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ QUEUE_NAME = "resumes-queue"
 # ----------------------------
 MAX_WORKERS = 5
 VISIBILITY_TIMEOUT = 120  # seconds
-POLL_INTERVAL = 3         # seconds
+POLL_INTERVAL = 30000  # seconds
 MAX_RETRIES = 5
 
 
@@ -46,8 +46,7 @@ class QueueWorker:
 
     def __init__(self, max_workers=MAX_WORKERS):
         self.queue_client = QueueClient.from_connection_string(
-            conn_str=QUEUE_CONNECTION_STRING,
-            queue_name=QUEUE_NAME
+            conn_str=QUEUE_CONNECTION_STRING, queue_name=QUEUE_NAME
         )
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
 
@@ -76,28 +75,33 @@ class QueueWorker:
             blob_url = data.get("blob_url")
             user_id = data.get("user_id")
 
+            job_id = data.get("job_id")
+
             logger.info(f"📄 Processing user_id={user_id}")
             logger.info(f"📦 Blob URL: {blob_url}")
+            logger.info(f"📦 Job ID: {job_id}")
 
-            handler = ProcessPDFHandler(
-                blob_url=blob_url,
-                user_id=user_id
-            )
+            if blob_url:
+                handler = ProcessPDFHandler(blob_url=blob_url, user_id=user_id)
 
-            # ✅ SAFE async execution
-            # self._run_async(handler.process_file())
+                db_queue.put({"user_id": user_id, "update_status": "processing"})
 
-            db_queue.put({
-                "user_id": user_id, "update_status": "processing"
-            })
+                # Run async processing
+                result = self._run_async(handler.process_file())
 
-            # Run async processing
-            result = self._run_async(handler.process_file())
+                # 👉 PUSH to DB queue (instead of saving directly)
+                db_queue.put(result)
 
-            # 👉 PUSH to DB queue (instead of saving directly)
-            db_queue.put(result)
+                logger.info("✅ Resume processed successfully")
+            else:
+                job_handler = ProcessJobHandler(job_id=job_id, user_id=user_id)
 
-            logger.info("✅ Resume processed successfully")
+                # Execute job processing logic safely asynchronously
+                self._run_async(job_handler.save_embedding())
+
+                logger.info(
+                    f"✅ Job handler processed successfully for job_id={job_id}"
+                )
 
         except json.JSONDecodeError as e:
             logger.exception(f"❌ JSON parsing failed: {e}")
@@ -160,8 +164,7 @@ class QueueWorker:
         while True:
             try:
                 messages = self.queue_client.receive_messages(
-                    messages_per_page=10,
-                    visibility_timeout=VISIBILITY_TIMEOUT
+                    messages_per_page=10, visibility_timeout=VISIBILITY_TIMEOUT
                 )
 
                 for msg_batch in messages.by_page():

@@ -42,36 +42,40 @@ import { useNavigate } from "react-router-dom";
 import { fadeSlideUp } from "../../utils/themeUtils";
 import ApplicantsScreen from "./ApplicantsScreen";
 
-const RecruiterJobDetailScreen = ({ jobId, onBack }) => {
+const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
     const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const [viewingApplicants, setViewingApplicants] = useState(false);
 
-    // Mock job data - in real app, fetch from API using jobId
-    const [job] = useState({
-        id: 1,
-        title: "Senior React Developer",
-        company: "TechNova AI",
-        location: "Remote (Global)",
-        workMode: "Remote",
-        salary: "$130k – $160k",
-        type: "Full-time",
-        experience: "5–8 yrs",
-        department: "Engineering",
-        posted: "2 days ago",
-        postedDate: "2024-01-20",
-        openings: 2,
-        applicants: 24,
-        applicantsTrend: "+12 this week",
-        status: "Active",
-        description: "TechNova AI is seeking a Senior React Developer to lead the frontend architecture of our next-generation AI platforms. You will work closely with our machine learning engineers to create intuitive, highly responsive dashboards.\n\nResponsibilities:\n• Architect and build scalable frontend applications using React\n• Mentor junior developers and establish best practices\n• Collaborate with design and product teams to ship high-quality features\n• Own performance monitoring and optimization\n\nRequirements:\n• 5+ years with React in production environments\n• Deep understanding of state management patterns\n• Excellent communication and leadership skills",
-        logoColor: "#6366f1",
-        about: "TechNova AI is a Series B startup building the next generation of AI-native productivity tools, trusted by 500+ enterprise teams worldwide.",
-        requiredSkills: ["React", "JavaScript", "TypeScript", "Redux", "Node.js", "REST APIs"],
-        preferredSkills: ["GraphQL", "Next.js", "Testing (Jest/RTL)", "CI/CD"],
-        benefits: ["Equity", "Health Insurance", "$3k Learning Budget", "Unlimited PTO", "Remote First"],
-    });
+    const [job, setJob] = useState(null);
+
+    React.useEffect(() => {
+        if (jobData) {
+            setJob({
+                id: jobData.id,
+                title: jobData.title,
+                company: jobData.company?.name,
+                location: jobData.location,
+                workMode: jobData.work_mode,
+                salary: jobData.salary_min && jobData.salary_max ? `$${jobData.salary_min} – $${jobData.salary_max}` : (jobData.salary_min ? `$${jobData.salary_min}` : null),
+                type: jobData.job_type,
+                experience: jobData.experience_min_yrs !== null && jobData.experience_max_yrs !== null ? `${jobData.experience_min_yrs}–${jobData.experience_max_yrs} yrs` : (jobData.experience_min_yrs !== null ? `${jobData.experience_min_yrs}+ yrs` : null),
+                department: jobData.department?.name,
+                posted: jobData.posted_at ? new Date(jobData.posted_at).toLocaleDateString() : null,
+                openings: jobData.openings,
+                applicants: jobData.apply_count,
+                applicantsTrend: null,
+                status: jobData.status === "active" ? "Active" : jobData.status,
+                description: jobData.description,
+                logoColor: "#6366f1",
+                about: jobData.company?.description,
+                requiredSkills: jobData.required_skills,
+                preferredSkills: jobData.preferred_skills,
+                benefits: jobData.benefits,
+            });
+        }
+    }, [jobData]);
 
     const [anchorEl, setAnchorEl] = useState(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -205,15 +209,18 @@ const RecruiterJobDetailScreen = ({ jobId, onBack }) => {
         navigate(`/ai-candidate-search/${job.id}`);
     };
 
-    // Show Applicants Screen if viewing applicants
     if (viewingApplicants) {
         return (
             <ApplicantsScreen
-                jobId={job.id}
-                jobTitle={job.title}
+                jobId={job?.id}
+                jobTitle={job?.title}
                 onBack={() => setViewingApplicants(false)}
             />
         );
+    }
+
+    if (!job) {
+        return null;
     }
 
     return (
@@ -321,31 +328,37 @@ const RecruiterJobDetailScreen = ({ jobId, onBack }) => {
                                     {job.company?.[0]}
                                 </Avatar>
                                 <Box sx={{ flex: 1 }}>
-                                    <Typography
-                                        sx={{
-                                            fontWeight: 900,
-                                            fontSize: { xs: "1.6rem", md: "2rem" },
-                                            color: "#0f172a",
-                                            letterSpacing: "-0.02em",
-                                            mb: 0.5,
-                                            lineHeight: 1.2,
-                                        }}
-                                    >
-                                        {job.title}
-                                    </Typography>
-                                    <Typography
-                                        sx={{
-                                            fontSize: "1.1rem",
-                                            color: "#6366f1",
-                                            fontWeight: 700,
-                                            mb: 1,
-                                        }}
-                                    >
-                                        {job.company}
-                                    </Typography>
-                                    <Typography sx={{ color: "#64748b", fontSize: "0.95rem" }}>
-                                        {job.about}
-                                    </Typography>
+                                    {job.title && (
+                                        <Typography
+                                            sx={{
+                                                fontWeight: 900,
+                                                fontSize: { xs: "1.6rem", md: "2rem" },
+                                                color: "#0f172a",
+                                                letterSpacing: "-0.02em",
+                                                mb: 0.5,
+                                                lineHeight: 1.2,
+                                            }}
+                                        >
+                                            {job.title}
+                                        </Typography>
+                                    )}
+                                    {job.company && (
+                                        <Typography
+                                            sx={{
+                                                fontSize: "1.1rem",
+                                                color: "#6366f1",
+                                                fontWeight: 700,
+                                                mb: 1,
+                                            }}
+                                        >
+                                            {job.company}
+                                        </Typography>
+                                    )}
+                                    {job.about && (
+                                        <Typography sx={{ color: "#64748b", fontSize: "0.95rem" }}>
+                                            {job.about}
+                                        </Typography>
+                                    )}
                                 </Box>
                             </Box>
 
@@ -359,209 +372,236 @@ const RecruiterJobDetailScreen = ({ jobId, onBack }) => {
                                     "& > *": { flexShrink: 0 },
                                 }}
                             >
-                                <Chip
-                                    icon={<LocationOnIcon sx={{ fontSize: "1rem !important" }} />}
-                                    label={job.location}
-                                    variant="outlined"
-                                    sx={{
-                                        borderColor: "#e2e8f0",
-                                        color: "#475569",
-                                        fontWeight: 600,
-                                        fontSize: "0.9rem",
-                                        borderRadius: 2,
-                                    }}
-                                />
-                                <Chip
-                                    icon={<WorkIcon sx={{ fontSize: "1rem !important" }} />}
-                                    label={`${job.type} • ${job.workMode}`}
-                                    variant="outlined"
-                                    sx={{
-                                        borderColor: "#e2e8f0",
-                                        color: "#475569",
-                                        fontWeight: 600,
-                                        fontSize: "0.9rem",
-                                        borderRadius: 2,
-                                    }}
-                                />
-                                <Chip
-                                    label={job.salary}
-                                    sx={{
-                                        bgcolor: "#ecfdf5",
-                                        color: "#047857",
-                                        fontWeight: 700,
-                                        borderRadius: 2,
-                                        fontSize: "0.9rem",
-                                    }}
-                                />
-                                <Chip
-                                    label={job.status}
-                                    sx={{
-                                        bgcolor: "#e0e7ff",
-                                        color: "#4f46e5",
-                                        fontWeight: 700,
-                                        borderRadius: 2,
-                                        fontSize: "0.9rem",
-                                    }}
-                                />
+                                {job.location && (
+                                    <Chip
+                                        icon={<LocationOnIcon sx={{ fontSize: "1rem !important" }} />}
+                                        label={job.location}
+                                        variant="outlined"
+                                        sx={{
+                                            borderColor: "#e2e8f0",
+                                            color: "#475569",
+                                            fontWeight: 600,
+                                            fontSize: "0.9rem",
+                                            borderRadius: 2,
+                                        }}
+                                    />
+                                )}
+                                {(job.type || job.workMode) && (
+                                    <Chip
+                                        icon={<WorkIcon sx={{ fontSize: "1rem !important" }} />}
+                                        label={[job.type, job.workMode].filter(Boolean).join(' • ')}
+                                        variant="outlined"
+                                        sx={{
+                                            borderColor: "#e2e8f0",
+                                            color: "#475569",
+                                            fontWeight: 600,
+                                            fontSize: "0.9rem",
+                                            borderRadius: 2,
+                                        }}
+                                    />
+                                )}
+                                {job.salary && (
+                                    <Chip
+                                        label={job.salary}
+                                        sx={{
+                                            bgcolor: "#ecfdf5",
+                                            color: "#047857",
+                                            fontWeight: 700,
+                                            borderRadius: 2,
+                                            fontSize: "0.9rem",
+                                        }}
+                                    />
+                                )}
+                                {job.status && (
+                                    <Chip
+                                        label={job.status}
+                                        sx={{
+                                            bgcolor: "#e0e7ff",
+                                            color: "#4f46e5",
+                                            fontWeight: 700,
+                                            borderRadius: 2,
+                                            fontSize: "0.9rem",
+                                            textTransform: 'capitalize'
+                                        }}
+                                    />
+                                )}
                             </Stack>
                         </Paper>
 
                         {/* Key Metrics */}
                         <Grid container spacing={2} sx={{ mb: 3 }}>
-                            <Grid item xs={12} sm={6}>
-                                <Paper
-                                    elevation={0}
-                                    onClick={handleViewApplicants}
-                                    sx={{
-                                        p: 3,
-                                        bgcolor: "#fff",
-                                        border: "1px solid #e2e8f0",
-                                        borderRadius: 3,
-                                        textAlign: "center",
-                                        cursor: "pointer",
-                                        transition: "all 0.2s",
-                                        "&:hover": {
-                                            borderColor: "#c7d2fe",
-                                            boxShadow: "0 10px 25px rgba(99, 102, 241, 0.05)",
-                                            transform: "translateY(-2px)",
-                                        },
-                                    }}
-                                >
-                                    <GroupIcon sx={{ color: "#6366f1", fontSize: 32, mb: 1 }} />
-                                    <Typography sx={{ color: "#64748b", fontSize: "0.85rem", mb: 0.5 }}>
-                                        Total Applicants
-                                    </Typography>
-                                    <Typography sx={{ fontSize: "1.8rem", fontWeight: 900, color: "#0f172a" }}>
-                                        {job.applicants}
-                                    </Typography>
-                                    <Typography sx={{ fontSize: "0.75rem", color: "#10b981", fontWeight: 600 }}>
-                                        {job.applicantsTrend}
-                                    </Typography>
-                                </Paper>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Paper
-                                    elevation={0}
-                                    sx={{
-                                        p: 3,
-                                        bgcolor: "#fff",
-                                        border: "1px solid #e2e8f0",
-                                        borderRadius: 3,
-                                        textAlign: "center",
-                                    }}
-                                >
-                                    <TrendingUpIcon sx={{ color: "#6366f1", fontSize: 32, mb: 1 }} />
-                                    <Typography sx={{ color: "#64748b", fontSize: "0.85rem", mb: 0.5 }}>
-                                        Open Positions
-                                    </Typography>
-                                    <Typography sx={{ fontSize: "1.8rem", fontWeight: 900, color: "#0f172a" }}>
-                                        {job.openings}
-                                    </Typography>
-                                    <Typography sx={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>
-                                        To fill
-                                    </Typography>
-                                </Paper>
-                            </Grid>
+                            {job.applicants !== undefined && job.applicants !== null && (
+                                <Grid item xs={12} sm={6}>
+                                    <Paper
+                                        elevation={0}
+                                        onClick={handleViewApplicants}
+                                        sx={{
+                                            p: 3,
+                                            bgcolor: "#fff",
+                                            border: "1px solid #e2e8f0",
+                                            borderRadius: 3,
+                                            textAlign: "center",
+                                            cursor: "pointer",
+                                            transition: "all 0.2s",
+                                            "&:hover": {
+                                                borderColor: "#c7d2fe",
+                                                boxShadow: "0 10px 25px rgba(99, 102, 241, 0.05)",
+                                                transform: "translateY(-2px)",
+                                            },
+                                        }}
+                                    >
+                                        <GroupIcon sx={{ color: "#6366f1", fontSize: 32, mb: 1 }} />
+                                        <Typography sx={{ color: "#64748b", fontSize: "0.85rem", mb: 0.5 }}>
+                                            Total Applicants
+                                        </Typography>
+                                        <Typography sx={{ fontSize: "1.8rem", fontWeight: 900, color: "#0f172a" }}>
+                                            {job.applicants}
+                                        </Typography>
+                                        {job.applicantsTrend && (
+                                            <Typography sx={{ fontSize: "0.75rem", color: "#10b981", fontWeight: 600 }}>
+                                                {job.applicantsTrend}
+                                            </Typography>
+                                        )}
+                                    </Paper>
+                                </Grid>
+                            )}
+                            {job.openings !== undefined && job.openings !== null && (
+                                <Grid item xs={12} sm={6}>
+                                    <Paper
+                                        elevation={0}
+                                        sx={{
+                                            p: 3,
+                                            bgcolor: "#fff",
+                                            border: "1px solid #e2e8f0",
+                                            borderRadius: 3,
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        <TrendingUpIcon sx={{ color: "#6366f1", fontSize: 32, mb: 1 }} />
+                                        <Typography sx={{ color: "#64748b", fontSize: "0.85rem", mb: 0.5 }}>
+                                            Open Positions
+                                        </Typography>
+                                        <Typography sx={{ fontSize: "1.8rem", fontWeight: 900, color: "#0f172a" }}>
+                                            {job.openings}
+                                        </Typography>
+                                        <Typography sx={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>
+                                            To fill
+                                        </Typography>
+                                    </Paper>
+                                </Grid>
+                            )}
                         </Grid>
 
                         {/* Job Description */}
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: { xs: 3, md: 4 },
-                                bgcolor: "#fff",
-                                border: "1px solid #e2e8f0",
-                                borderRadius: 3,
-                                mb: 3,
-                            }}
-                        >
-                            <SectionHeader icon={AssignmentIcon} title="Job Description" />
-                            <Typography
+                        {job.description && (
+                            <Paper
+                                elevation={0}
                                 sx={{
-                                    color: "#475569",
-                                    lineHeight: 1.8,
-                                    whiteSpace: "pre-line",
-                                    fontSize: "0.95rem",
+                                    p: { xs: 3, md: 4 },
+                                    bgcolor: "#fff",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 3,
+                                    mb: 3,
                                 }}
                             >
-                                {job.description}
-                            </Typography>
-                        </Paper>
+                                <SectionHeader icon={AssignmentIcon} title="Job Description" />
+                                <Typography
+                                    sx={{
+                                        color: "#475569",
+                                        lineHeight: 1.8,
+                                        fontSize: "0.95rem",
+                                        wordWrap: "break-word",
+                                        overflowWrap: "break-word",
+                                        '& p': { margin: '0 0 1em 0' },
+                                        '& ul': { margin: '0 0 1em 0', paddingLeft: '1.5em' },
+                                        '& li': { marginBottom: '0.5em' },
+                                        '& a': { wordBreak: 'break-all' }
+                                    }}
+                                    dangerouslySetInnerHTML={{ __html: job.description.replace(/&nbsp;/g, ' ') }}
+                                />
+                            </Paper>
+                        )}
 
                         {/* Required Skills */}
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: { xs: 3, md: 4 },
-                                bgcolor: "#fff",
-                                border: "1px solid #e2e8f0",
-                                borderRadius: 3,
-                                mb: 3,
-                            }}
-                        >
-                            <SectionHeader icon={CheckCircleIcon} title="Required Skills" />
-                            <Stack direction="row" spacing={1.5} flexWrap="wrap" sx={{ gap: 1.5 }}>
-                                {job.requiredSkills.map((skill, idx) => (
-                                    <SkillChip key={idx} skill={skill} variant="required" />
-                                ))}
-                            </Stack>
-                        </Paper>
+                        {job.requiredSkills && job.requiredSkills.length > 0 && (
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: { xs: 3, md: 4 },
+                                    bgcolor: "#fff",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 3,
+                                    mb: 3,
+                                }}
+                            >
+                                <SectionHeader icon={CheckCircleIcon} title="Required Skills" />
+                                <Stack direction="row" spacing={1.5} flexWrap="wrap" sx={{ gap: 1.5 }}>
+                                    {job.requiredSkills.map((skill, idx) => (
+                                        <SkillChip key={idx} skill={skill} variant="required" />
+                                    ))}
+                                </Stack>
+                            </Paper>
+                        )}
 
                         {/* Preferred Skills */}
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: { xs: 3, md: 4 },
-                                bgcolor: "#fff",
-                                border: "1px solid #e2e8f0",
-                                borderRadius: 3,
-                                mb: 3,
-                            }}
-                        >
-                            <SectionHeader icon={SchoolIcon} title="Preferred Skills" />
-                            <Stack direction="row" spacing={1.5} flexWrap="wrap" sx={{ gap: 1.5 }}>
-                                {job.preferredSkills.map((skill, idx) => (
-                                    <SkillChip key={idx} skill={skill} variant="preferred" />
-                                ))}
-                            </Stack>
-                        </Paper>
+                        {job.preferredSkills && job.preferredSkills.length > 0 && (
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: { xs: 3, md: 4 },
+                                    bgcolor: "#fff",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 3,
+                                    mb: 3,
+                                }}
+                            >
+                                <SectionHeader icon={SchoolIcon} title="Preferred Skills" />
+                                <Stack direction="row" spacing={1.5} flexWrap="wrap" sx={{ gap: 1.5 }}>
+                                    {job.preferredSkills.map((skill, idx) => (
+                                        <SkillChip key={idx} skill={skill} variant="preferred" />
+                                    ))}
+                                </Stack>
+                            </Paper>
+                        )}
 
                         {/* Benefits */}
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: { xs: 3, md: 4 },
-                                bgcolor: "#fff",
-                                border: "1px solid #e2e8f0",
-                                borderRadius: 3,
-                            }}
-                        >
-                            <SectionHeader icon={TrendingUpIcon} title="Benefits & Perks" />
-                            <Grid container spacing={2}>
-                                {job.benefits.map((benefit, idx) => (
-                                    <Grid item xs={12} sm={6} key={idx}>
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 1.5,
-                                                p: 1.5,
-                                                bgcolor: "#f8fafc",
-                                                borderRadius: 2,
-                                                border: "1px solid #e2e8f0",
-                                            }}
-                                        >
-                                            <CheckCircleIcon
-                                                sx={{ color: "#10b981", fontWeight: 700, fontSize: 20 }}
-                                            />
-                                            <Typography sx={{ fontWeight: 600, color: "#0f172a" }}>
-                                                {benefit}
-                                            </Typography>
-                                        </Box>
-                                    </Grid>
-                                ))}
-                            </Grid>
-                        </Paper>
+                        {job.benefits && job.benefits.length > 0 && (
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: { xs: 3, md: 4 },
+                                    bgcolor: "#fff",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 3,
+                                }}
+                            >
+                                <SectionHeader icon={TrendingUpIcon} title="Benefits & Perks" />
+                                <Grid container spacing={2}>
+                                    {job.benefits.map((benefit, idx) => (
+                                        <Grid item xs={12} sm={6} key={idx}>
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: 1.5,
+                                                    p: 1.5,
+                                                    bgcolor: "#f8fafc",
+                                                    borderRadius: 2,
+                                                    border: "1px solid #e2e8f0",
+                                                }}
+                                            >
+                                                <CheckCircleIcon
+                                                    sx={{ color: "#10b981", fontWeight: 700, fontSize: 20 }}
+                                                />
+                                                <Typography sx={{ fontWeight: 600, color: "#0f172a" }}>
+                                                    {benefit}
+                                                </Typography>
+                                            </Box>
+                                        </Grid>
+                                    ))}
+                                </Grid>
+                            </Paper>
+                        )}
                     </Grid>
 
                     {/* Sidebar */}
@@ -615,41 +655,24 @@ const RecruiterJobDetailScreen = ({ jobId, onBack }) => {
                                 Job Information
                             </Typography>
                             <Stack spacing={2}>
-                                <Box>
-                                    <Typography sx={{ fontSize: "0.8rem", color: "#64748b", mb: 0.5 }}>
-                                        Job Type
-                                    </Typography>
-                                    <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
-                                        {job.type}
-                                    </Typography>
-                                </Box>
-                                <Divider />
-                                <Box>
-                                    <Typography sx={{ fontSize: "0.8rem", color: "#64748b", mb: 0.5 }}>
-                                        Experience Level
-                                    </Typography>
-                                    <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
-                                        {job.experience}
-                                    </Typography>
-                                </Box>
-                                <Divider />
-                                <Box>
-                                    <Typography sx={{ fontSize: "0.8rem", color: "#64748b", mb: 0.5 }}>
-                                        Department
-                                    </Typography>
-                                    <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
-                                        {job.department}
-                                    </Typography>
-                                </Box>
-                                <Divider />
-                                <Box>
-                                    <Typography sx={{ fontSize: "0.8rem", color: "#64748b", mb: 0.5 }}>
-                                        Posted Date
-                                    </Typography>
-                                    <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
-                                        {job.posted}
-                                    </Typography>
-                                </Box>
+                                {[
+                                    { label: "Job Type", value: job.type },
+                                    { label: "Experience Level", value: job.experience },
+                                    { label: "Department", value: job.department },
+                                    { label: "Posted Date", value: job.posted }
+                                ].filter(field => field.value).map((field, index, array) => (
+                                    <React.Fragment key={field.label}>
+                                        <Box>
+                                            <Typography sx={{ fontSize: "0.8rem", color: "#64748b", mb: 0.5 }}>
+                                                {field.label}
+                                            </Typography>
+                                            <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
+                                                {field.value}
+                                            </Typography>
+                                        </Box>
+                                        {index < array.length - 1 && <Divider />}
+                                    </React.Fragment>
+                                ))}
                             </Stack>
                         </Paper>
                     </Grid>

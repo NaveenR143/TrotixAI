@@ -9,6 +9,7 @@ class JobMetadataResponse(BaseModel):
     departments: List[dict]
     work_modes: List[str]
     job_types: List[str]
+    experience_levels: List[str]
 
 class JobCreateRequest(BaseModel):
     userid: UUID
@@ -22,11 +23,13 @@ class JobCreateRequest(BaseModel):
     education_requirement: str
     experience_min: int
     experience_max: int
+    experience_level: Optional[str] = None
+    salary_min: Optional[float] = None
+    salary_max: Optional[float] = None
     description: str
     skills: List[str]
     email: str
     mobile: str
-    salary: Optional[str] = None
 
 class JobCreateResponse(BaseModel):
     status: str

@@ -123,34 +123,36 @@ class ResumeRepository:
 
         # List of common suffixes to remove
         suffixes = [
-            r'\bpvt\.?\s*(ltd\.)?\b',
-            r'\bltd\.?\b',
-            r'\bco\.?\b',
-            r'\bcompany\b',
-            r'\binc\.?\b',
-            r'\bincorporated\b',
-            r'\bllc\b',
-            r'\bllp\b',
-            r'\bcorp\.?\b',
-            r'\bcorporation\b',
-            r'\bpch?\b',
-            r'\bpvt\.?\bltd\.?\b',
-            r',\s*inc\.?\b',
-            r',\s*ltd\.?\b',
-            r',\s*limited\.?\b',
-            r',\s*private\.?\b',
+            r"\bpvt\.?\s*(ltd\.)?\b",
+            r"\bltd\.?\b",
+            r"\bco\.?\b",
+            r"\bcompany\b",
+            r"\binc\.?\b",
+            r"\bincorporated\b",
+            r"\bllc\b",
+            r"\bllp\b",
+            r"\bcorp\.?\b",
+            r"\bcorporation\b",
+            r"\bpch?\b",
+            r"\bpvt\.?\bltd\.?\b",
+            r",\s*inc\.?\b",
+            r",\s*ltd\.?\b",
+            r",\s*limited\.?\b",
+            r",\s*private\.?\b",
         ]
 
         for suffix in suffixes:
-            normalized = re.sub(suffix, '', normalized, flags=re.IGNORECASE)
+            normalized = re.sub(suffix, "", normalized, flags=re.IGNORECASE)
 
         # Remove extra spaces and commas at the end
-        normalized = re.sub(r'[,\s]+$', '', normalized)
-        normalized = ' '.join(normalized.split())  # Normalize internal spaces
+        normalized = re.sub(r"[,\s]+$", "", normalized)
+        normalized = " ".join(normalized.split())  # Normalize internal spaces
 
         return normalized
 
-    async def get_or_create_company(self, company_name: str, commit: bool = True) -> int:
+    async def get_or_create_company(
+        self, company_name: str, commit: bool = True
+    ) -> int:
         """
         Fetch company ID from the companies table. If no matching record exists,
         insert the normalized company name and retrieve the newly created ID.
@@ -171,7 +173,8 @@ class ResumeRepository:
 
             if not normalized_name:
                 raise ValueError(
-                    f"Company name '{company_name}' cannot be normalized to empty string")
+                    f"Company name '{company_name}' cannot be normalized to empty string"
+                )
 
             # Check if company already exists
             query = text(
@@ -185,7 +188,8 @@ class ResumeRepository:
             if row:
                 company_id = int(row[0])
                 LOGGER.debug(
-                    f"Found existing company: {normalized_name} (ID: {company_id})")
+                    f"Found existing company: {normalized_name} (ID: {company_id})"
+                )
                 return company_id
 
             # Company doesn't exist, create it
@@ -205,13 +209,13 @@ class ResumeRepository:
                 await self.session.commit()
 
             company_id = int(row[0])
-            LOGGER.info(
-                f"Created new company: {normalized_name} (ID: {company_id})")
+            LOGGER.info(f"Created new company: {normalized_name} (ID: {company_id})")
             return company_id
 
         except Exception as e:
             LOGGER.error(
-                f"Error in get_or_create_company for '{company_name}': {str(e)}")
+                f"Error in get_or_create_company for '{company_name}': {str(e)}"
+            )
             if commit:
                 await self.session.rollback()
             raise
@@ -328,7 +332,9 @@ class ResumeRepository:
             # Validate user exists before attempting profile upsert
             user_exists = await self.user_exists(user_id)
             if not user_exists:
-                error_msg = f"Cannot save profile: User {user_id} does not exist in database"
+                error_msg = (
+                    f"Cannot save profile: User {user_id} does not exist in database"
+                )
                 LOGGER.error(error_msg)
                 raise UserNotFoundError(error_msg)
 
@@ -374,7 +380,7 @@ class ResumeRepository:
                     "notice_period_days": profile_data.get("notice_period_days"),
                     "current_salary": profile_data.get("current_salary"),
                     "expected_salary": profile_data.get("expected_salary"),
-                    "salary_currency":  "INR",
+                    "salary_currency": "INR",
                     "linkedin_url": profile_data.get("linkedin_url"),
                     "github_url": profile_data.get("github_url"),
                     "portfolio_url": profile_data.get("portfolio_url"),
@@ -382,8 +388,7 @@ class ResumeRepository:
             )
             if commit:
                 await self.session.commit()
-            LOGGER.info(
-                f"Successfully upserted jobseeker profile for user {user_id}")
+            LOGGER.info(f"Successfully upserted jobseeker profile for user {user_id}")
 
         except UserNotFoundError:
             # Re-raise UserNotFoundError without rollback (no transaction started)
@@ -391,18 +396,27 @@ class ResumeRepository:
         except Exception as e:
             error_msg = str(e)
             # Check for foreign key or integrity errors
-            if "ForeignKeyViolationError" in str(type(e)) or "IntegrityError" in str(type(e)):
-                if "jobseeker_profiles_user_id_fkey" in error_msg or "users" in error_msg:
-                    user_error = f"User {user_id} does not exist. Cannot create profile."
+            if "ForeignKeyViolationError" in str(type(e)) or "IntegrityError" in str(
+                type(e)
+            ):
+                if (
+                    "jobseeker_profiles_user_id_fkey" in error_msg
+                    or "users" in error_msg
+                ):
+                    user_error = (
+                        f"User {user_id} does not exist. Cannot create profile."
+                    )
                     LOGGER.error(user_error)
                     await self.session.rollback()
                     raise DatabaseIntegrityError(user_error) from e
                 else:
                     LOGGER.error(
-                        f"Database integrity constraint violation: {error_msg}")
+                        f"Database integrity constraint violation: {error_msg}"
+                    )
                     await self.session.rollback()
                     raise DatabaseIntegrityError(
-                        f"Database integrity error: {error_msg}") from e
+                        f"Database integrity error: {error_msg}"
+                    ) from e
             else:
                 LOGGER.error(f"Error upserting jobseeker profile: {error_msg}")
                 await self.session.rollback()
@@ -502,8 +516,7 @@ class ResumeRepository:
                 degree = ", ".join(degree) if degree else None
 
             if isinstance(field_of_study, list):
-                field_of_study = ", ".join(
-                    field_of_study) if field_of_study else None
+                field_of_study = ", ".join(field_of_study) if field_of_study else None
 
             query = text(
                 """
@@ -627,7 +640,8 @@ class ResumeRepository:
 
             exp_id = int(row[0])
             LOGGER.debug(
-                f"Added work experience for user {user_id} with company ID {company_id}")
+                f"Added work experience for user {user_id} with company ID {company_id}"
+            )
             return exp_id
 
         except Exception as e:
@@ -762,7 +776,8 @@ class ResumeRepository:
             )
 
             print(
-                f"Resume embedding length: {len(resume_embedding) if resume_embedding else 'None'}")
+                f"Resume embedding length: {len(resume_embedding) if resume_embedding else 'None'}"
+            )
 
             result = await self.session.execute(
                 query,
@@ -830,8 +845,7 @@ class ResumeRepository:
                     normalized_skills.add(normalized)
 
             if not normalized_skills:
-                LOGGER.info(
-                    f"No valid skills after normalization for user {user_id}")
+                LOGGER.info(f"No valid skills after normalization for user {user_id}")
                 return
 
             LOGGER.info(
@@ -1001,8 +1015,7 @@ class ResumeRepository:
 
             if commit:
                 await self.session.commit()
-            LOGGER.debug(
-                f"Added {len(all_skill_ids)} skills to project {project_id}")
+            LOGGER.debug(f"Added {len(all_skill_ids)} skills to project {project_id}")
 
         except Exception as e:
             LOGGER.error(f"Error adding project skills: {str(e)}")
@@ -1138,7 +1151,8 @@ class ResumeRepository:
 
             if not normalized_languages:
                 LOGGER.info(
-                    f"No valid languages after normalization for user {user_id}")
+                    f"No valid languages after normalization for user {user_id}"
+                )
                 return
 
             LOGGER.info(
@@ -1229,7 +1243,7 @@ class ResumeRepository:
 
         Args:
             user_id: User UUID
-            resume_status: New status for the user 
+            resume_status: New status for the user
         """
         try:
 
@@ -1238,17 +1252,16 @@ class ResumeRepository:
                 UPDATE users SET resume_status = :resume_status WHERE id = :user_id
             """
             )
-            result = await self.session.execute(query, {"resume_status": resume_status, "user_id": str(user_id)})
+            result = await self.session.execute(
+                query, {"resume_status": resume_status, "user_id": str(user_id)}
+            )
 
             await self.session.commit()
 
-            LOGGER.debug(
-                f"Updated resume_status for user {user_id} to {resume_status}"
-            )
+            LOGGER.debug(f"Updated resume_status for user {user_id} to {resume_status}")
 
         except Exception as e:
-            LOGGER.error(
-                f"Error updating resume_status for user {user_id}: {str(e)}")
+            LOGGER.error(f"Error updating resume_status for user {user_id}: {str(e)}")
             await self.session.rollback()
             raise
 
@@ -1283,12 +1296,14 @@ class ResumeRepository:
 
             # Only update if at least one field has a value
             if email or name:
-                update_query = text("""
+                update_query = text(
+                    """
                     UPDATE users SET 
                         email = COALESCE(:email, email),
                         full_name = COALESCE(:full_name, full_name)
                     WHERE id = :user_id
-                """)
+                """
+                )
                 await self.session.execute(
                     update_query,
                     {
@@ -1301,12 +1316,9 @@ class ResumeRepository:
                 if commit:
                     await self.session.commit()
 
-                LOGGER.debug(
-                    f"Updated name and/or email for user {user_id}"
-                )
+                LOGGER.debug(f"Updated name and/or email for user {user_id}")
         except Exception as e:
-            LOGGER.error(
-                f"Error updating user name and email for {user_id}: {str(e)}")
+            LOGGER.error(f"Error updating user name and email for {user_id}: {str(e)}")
             if commit:
                 await self.session.rollback()
             raise
@@ -1362,8 +1374,7 @@ class ResumeRepository:
                     commit=False,
                 )
 
-            LOGGER.info(
-                f"Basic profile, resume, and skills saved for user {user_id}")
+            LOGGER.info(f"Basic profile, resume, and skills saved for user {user_id}")
 
             # -------------------------
             # 2. Education (can parallelize if using separate sessions)
@@ -1424,14 +1435,14 @@ class ResumeRepository:
             # 4. Commit once
             # -------------------------
             await self.session.commit()
-            LOGGER.info(
-                f"Successfully saved complete profile for user {user_id}")
+            LOGGER.info(f"Successfully saved complete profile for user {user_id}")
 
             await self.update_user_resume_status(user_id, "completed")
 
         except Exception as e:
             LOGGER.error(
-                f"Error saving profile and resume for user {user_id}: {str(e)}")
+                f"Error saving profile and resume for user {user_id}: {str(e)}"
+            )
             try:
                 await self.session.rollback()
             except Exception as rollback_error:
@@ -1479,8 +1490,7 @@ class ResumeRepository:
             # 1. Read and parse JSON file
             json_path = Path(json_file_path)
             if not json_path.exists():
-                raise FileNotFoundError(
-                    f"JSON file not found: {json_file_path}")
+                raise FileNotFoundError(f"JSON file not found: {json_file_path}")
 
             with open(json_path, "r", encoding="utf-8") as f:
                 profile_data = json.load(f)
@@ -1496,7 +1506,17 @@ class ResumeRepository:
 
             # 4. Insert languages
             languages = profile_data.get("languages", [])
-            languages_count = len(set(lang.lower().strip() for lang in languages if isinstance(lang, str) and lang.strip())) if languages else 0
+            languages_count = (
+                len(
+                    set(
+                        lang.lower().strip()
+                        for lang in languages
+                        if isinstance(lang, str) and lang.strip()
+                    )
+                )
+                if languages
+                else 0
+            )
             if languages:
                 await self.bulk_add_user_languages(
                     user_id=user_id,
@@ -1519,8 +1539,7 @@ class ResumeRepository:
                     try:
                         await self.add_project(
                             user_id=user_id,
-                            title=project.get(
-                                "name", project.get("title", "")),
+                            title=project.get("name", project.get("title", "")),
                             description=project.get("description"),
                             url=project.get("url"),
                             repo_url=project.get("repo_url"),
@@ -1557,8 +1576,7 @@ class ResumeRepository:
             LOGGER.error(f"JSON parsing error: {str(e)}")
             raise
         except Exception as e:
-            LOGGER.error(
-                f"Error importing profile from JSON: {str(e)}", exc_info=True)
+            LOGGER.error(f"Error importing profile from JSON: {str(e)}", exc_info=True)
             await self.session.rollback()
             raise
 
@@ -1608,8 +1626,7 @@ class ResumeRepository:
                         sort_order=exp_idx,
                     )
                     work_exp_count += 1
-                    LOGGER.info(
-                        f"Inserted work experience {exp_id} for user {user_id}")
+                    LOGGER.info(f"Inserted work experience {exp_id} for user {user_id}")
 
                     # Insert nested projects from this work experience
                     nested_projects = exp.get("projects", [])
@@ -1618,8 +1635,7 @@ class ResumeRepository:
                             proj_id = await self.add_project(
                                 user_id=user_id,
                                 work_experience_id=exp_id,
-                                title=project.get(
-                                    "name", project.get("title", "")),
+                                title=project.get("name", project.get("title", "")),
                                 description=project.get("description"),
                                 url=project.get("url"),
                                 repo_url=project.get("repo_url"),
@@ -1637,16 +1653,13 @@ class ResumeRepository:
                             if project.get("technologies"):
                                 await self.add_project_skills(
                                     project_id=proj_id,
-                                    skill_names=project.get(
-                                        "technologies", []),
+                                    skill_names=project.get("technologies", []),
                                 )
                         except Exception as e:
-                            LOGGER.warning(
-                                f"Failed to insert project: {str(e)}")
+                            LOGGER.warning(f"Failed to insert project: {str(e)}")
 
                 except Exception as e:
-                    LOGGER.warning(
-                        f"Failed to insert work experience: {str(e)}")
+                    LOGGER.warning(f"Failed to insert work experience: {str(e)}")
 
             if work_exp_count > 0:
                 LOGGER.info(
@@ -1684,12 +1697,10 @@ class ResumeRepository:
                         sort_order=edu_idx,
                     )
                     education_count += 1
-                    LOGGER.debug(
-                        f"Inserted education {edu_id} for user {user_id}")
+                    LOGGER.debug(f"Inserted education {edu_id} for user {user_id}")
 
                 except Exception as e:
-                    LOGGER.warning(
-                        f"Failed to insert education record: {str(e)}")
+                    LOGGER.warning(f"Failed to insert education record: {str(e)}")
 
             if education_count > 0:
                 LOGGER.info(
@@ -1700,3 +1711,61 @@ class ResumeRepository:
         except Exception as e:
             LOGGER.warning(f"Error inserting education: {str(e)}")
             return 0
+
+    async def get_job_description_by_job_id(self, id: int) -> Optional[str]:
+        """
+        Fetch job description from jobs table using job ID.
+
+        Args:
+            id: Job ID to search for
+
+        Returns:
+            Job description if found, None otherwise
+        """
+        try:
+            query = text("SELECT description FROM job_postings WHERE id = :id LIMIT 1")
+            result = await self.session.execute(query, {"id": int(id)})
+            row = result.fetchone()
+
+            if row:
+                return row[0]
+
+            LOGGER.warning(f"No job description found for Job ID: {id}")
+            return None
+
+        except Exception as e:
+            LOGGER.error(f"Error fetching job description by job ID: {str(e)}")
+            raise
+
+    async def save_job_embedding(
+        self, job_id: int, job_embedding: list[float]
+    ) -> bool:
+        """
+        Add or update job embedding in the database.
+
+        Args:
+            job_id: ID of the job
+            job_embedding: List of floats representing the job embedding
+
+        Returns:
+            True if job embedding was saved successfully, False otherwise
+        """
+        try:
+
+            query = text(
+                f"""
+                UPDATE job_postings SET job_embedding = :job_embedding WHERE id = :job_id
+            """
+            )
+            result = await self.session.execute(
+                query, {"job_embedding": str(job_embedding), "job_id": int(job_id)}
+            )
+
+            await self.session.commit()
+
+            LOGGER.debug(f"Saved job embedding for job {job_id}")
+
+        except Exception as e:
+            LOGGER.error(f"Error saving job embedding for job {job_id}: {str(e)}")
+            await self.session.rollback()
+            raise

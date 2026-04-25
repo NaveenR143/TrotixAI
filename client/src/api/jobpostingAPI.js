@@ -68,8 +68,8 @@ export const fetchJobMetadata = async () => {
 export const sendRegistrationOTP = async (name, phone, userType = 'Recruiter') => {
     try {
         // Map userType to specific endpoint if needed in future
-        const endpoint = userType === 'Recruiter' 
-            ? API_ENDPOINTS.NEW_RECRUITER_OTP 
+        const endpoint = userType === 'Recruiter'
+            ? API_ENDPOINTS.NEW_RECRUITER_OTP
             : API_ENDPOINTS.SEND_OTP;
 
         const response = await axios.post(
@@ -151,6 +151,33 @@ export const createJob = async (jobData) => {
         };
     } catch (error) {
         console.error("Error creating job posting:", error);
+        return handleError(error);
+    }
+};
+
+
+/**
+ * Fetch Recruiter posted jobs
+ */
+export const fetchRecruiterPostedJobs = async (recruiterId) => {
+    try {
+        const response = await axios.get(
+            `${API_BASE_URL}${API_ENDPOINTS.POSTED_JOBS}`,
+            {
+                params: {
+                    user_id: recruiterId,
+                },
+                headers: getHeaders(),
+            }
+        );
+
+        return {
+            error: false,
+            data: response.data?.data || response.data,
+            message: "Recruiter posted jobs fetched successfully",
+        };
+    } catch (error) {
+        console.error("Error fetching Recruiter posted jobs:", error);
         return handleError(error);
     }
 };

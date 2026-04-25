@@ -19,6 +19,8 @@ import { mockJobs } from "../../services/mockData";
 import { fadeSlideUp } from "../../utils/themeUtils";
 import RecruiterJobDetailScreen from "./RecruiterJobDetailScreen";
 import ApplicantsScreen from "./ApplicantsScreen";
+import { useSelector } from "react-redux";
+import { fetchRecruiterPostedJobs } from "../../api/jobpostingAPI";
 
 const PostedJobsScreen = () => {
   const navigate = useNavigate();
@@ -33,27 +35,49 @@ const PostedJobsScreen = () => {
   const [selectedJobId, setSelectedJobId] = useState(jobId || null);
   const [viewingApplicantsForJob, setViewingApplicantsForJob] = useState(null);
 
+  const { userid } = useSelector((state) => state.UserReducer);
+
   useEffect(() => {
-    // Simulate API fetch
-    const fetchJobs = () => {
-      setTimeout(() => {
-        // Enhance mock data with applicants count for recruiter view
-        const recruiterJobs = mockJobs.map(job => ({
-          ...job,
-          applicants: Math.floor(Math.random() * 50) + 5, // Simulated applicant count
-          status: Math.random() > 0.2 ? "Active" : "Closed",
-        }));
-        setJobs(recruiterJobs);
+    const fetchJobs = async () => {
+      setLoading(true);
+      try {
+        const response = await fetchRecruiterPostedJobs(userid);
+        if (!response.error && response.data) {
+          const recruiterJobs = response.data.map(job => ({
+            id: job.id,
+            title: job.title,
+            company: job.company?.name,
+            location: job.location,
+            type: job.job_type,
+            posted: job.posted_at ? new Date(job.posted_at).toLocaleDateString() : null,
+            applicants: job.apply_count,
+            status: job.status === "active" ? "Active" : job.status,
+            logoColor: "#6366f1",
+            rawJob: job
+          }));
+          setJobs(recruiterJobs);
+        } else {
+          setJobs([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch jobs", error);
+        setJobs([]);
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     };
-    fetchJobs();
-  }, []);
+
+    if (userid) {
+      fetchJobs();
+    } else {
+      setLoading(false);
+    }
+  }, [userid]);
 
   const filteredJobs = useMemo(() => {
     return jobs.filter(job => {
-      const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        job.company.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = (!searchQuery) || (job.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        job.company?.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesFilter = filterType === "All" || job.type === filterType;
       return matchesSearch && matchesFilter;
     });
@@ -97,9 +121,11 @@ const PostedJobsScreen = () => {
 
   // Show job details screen if jobId is selected
   if (selectedJobId) {
+    const selectedJobData = jobs.find(j => j.id === selectedJobId)?.rawJob;
     return (
       <RecruiterJobDetailScreen
         jobId={selectedJobId}
+        jobData={selectedJobData}
         onBack={() => setSelectedJobId(null)}
       />
     );
@@ -218,13 +244,15 @@ const PostedJobsScreen = () => {
 
                       <Box sx={{ display: 'flex', gap: 2, flex: 1, width: '100%' }}>
                         <Box sx={{ width: 48, height: 48, borderRadius: 2, bgcolor: job.logoColor || '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'white', fontWeight: 700, fontSize: '1.2rem' }}>
-                          {job.company.charAt(0)}
+                          {job.company ? job.company.charAt(0) : 'J'}
                         </Box>
                         <Box sx={{ flex: 1 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f172a', lineHeight: 1.2, mb: 0.5 }}>
-                              {job.title}
-                            </Typography>
+                            {job.title && (
+                              <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f172a', lineHeight: 1.2, mb: 0.5 }}>
+                                {job.title}
+                              </Typography>
+                            )}
                             {isMobile && (
                               <IconButton size="small" onClick={(e) => {
                                 e.stopPropagation();
@@ -234,20 +262,28 @@ const PostedJobsScreen = () => {
                               </IconButton>
                             )}
                           </Box>
-                          <Typography sx={{ color: '#6366f1', fontWeight: 600, fontSize: '0.9rem', mb: 1 }}>
-                            {job.company}
-                          </Typography>
+                          {job.company && (
+                            <Typography sx={{ color: '#6366f1', fontWeight: 600, fontSize: '0.9rem', mb: 1 }}>
+                              {job.company}
+                            </Typography>
+                          )}
 
                           <Stack direction="row" flexWrap="wrap" gap={1.5} sx={{ color: '#64748b', fontSize: '0.85rem' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <WorkOutlineIcon sx={{ fontSize: 16 }} /> {job.type}
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <LocationOnIcon sx={{ fontSize: 16 }} /> {job.location}
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <DateRangeIcon sx={{ fontSize: 16 }} /> {job.posted}
-                            </Box>
+                            {job.type && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <WorkOutlineIcon sx={{ fontSize: 16 }} /> {job.type}
+                              </Box>
+                            )}
+                            {job.location && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <LocationOnIcon sx={{ fontSize: 16 }} /> {job.location}
+                              </Box>
+                            )}
+                            {job.posted && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <DateRangeIcon sx={{ fontSize: 16 }} /> {job.posted}
+                              </Box>
+                            )}
                           </Stack>
                         </Box>
                       </Box>
@@ -259,33 +295,38 @@ const PostedJobsScreen = () => {
                           <Typography sx={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500, mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             <GroupIcon sx={{ fontSize: 16 }} /> Applicants
                           </Typography>
-                          <Chip
-                            label={job.applicants}
-                            size="small"
-                            sx={{
-                              bgcolor: job.applicants > 0 ? '#dcfce7' : '#f1f5f9',
-                              color: job.applicants > 0 ? '#16a34a' : '#64748b',
-                              fontWeight: 700,
-                              borderRadius: 1.5,
-                              cursor: 'pointer'
-                            }}
-                          />
+                          {job.applicants !== undefined && job.applicants !== null && (
+                            <Chip
+                              label={job.applicants}
+                              size="small"
+                              sx={{
+                                bgcolor: job.applicants > 0 ? '#dcfce7' : '#f1f5f9',
+                                color: job.applicants > 0 ? '#16a34a' : '#64748b',
+                                fontWeight: 700,
+                                borderRadius: 1.5,
+                                cursor: 'pointer'
+                              }}
+                            />
+                          )}
                         </Box>
 
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'flex-end', sm: 'center' }, minWidth: 80 }}>
                           <Typography sx={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500, mb: 0.5 }}>
                             Status
                           </Typography>
-                          <Chip
-                            label={job.status}
-                            size="small"
-                            sx={{
-                              bgcolor: job.status === "Active" ? '#e0e7ff' : '#fee2e2',
-                              color: job.status === "Active" ? '#4f46e5' : '#ef4444',
-                              fontWeight: 600,
-                              borderRadius: 1.5
-                            }}
-                          />
+                          {job.status && (
+                            <Chip
+                              label={job.status}
+                              size="small"
+                              sx={{
+                                bgcolor: job.status === "Active" || job.status === "active" ? '#e0e7ff' : '#fee2e2',
+                                color: job.status === "Active" || job.status === "active" ? '#4f46e5' : '#ef4444',
+                                fontWeight: 600,
+                                borderRadius: 1.5,
+                                textTransform: 'capitalize'
+                              }}
+                            />
+                          )}
                         </Box>
 
                         {!isMobile && (

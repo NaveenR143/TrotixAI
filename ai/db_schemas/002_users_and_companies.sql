@@ -4,7 +4,6 @@
 CREATE TABLE public.companies (
     id integer NOT NULL,
     name text NOT NULL,
-    slug text,
     logo_url text,
     website text,
     industry text,

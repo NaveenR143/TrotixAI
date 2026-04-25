@@ -53,7 +53,6 @@ ALTER TABLE public.certifications ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTI
 CREATE TABLE public.companies (
     id integer NOT NULL,
     name text NOT NULL,
-    slug text,
     logo_url text,
     website text,
     industry text,
@@ -527,14 +526,6 @@ ALTER TABLE ONLY public.companies
 
 
 --
--- Name: companies companies_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.companies
-    ADD CONSTRAINT companies_slug_key UNIQUE (slug);
-
-
---
 -- Name: credit_packs credit_packs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -761,13 +752,6 @@ CREATE INDEX idx_companies_fts ON public.companies USING gin (to_tsvector('engli
 --
 
 CREATE INDEX idx_companies_industry ON public.companies USING btree (industry) WITH (fillfactor='100', deduplicate_items='true');
-
-
---
--- Name: idx_companies_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_companies_slug ON public.companies USING btree (slug) WITH (fillfactor='100', deduplicate_items='true');
 
 
 --

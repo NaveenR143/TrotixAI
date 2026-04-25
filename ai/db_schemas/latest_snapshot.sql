@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict WWA5uwjtqyKCRJy4ok2EIt1qoLlnUukESFvmXnWYThLzXBMnySlaI81EwHNg8sg
+\restrict GJXmQZubcaUeP7Hd6VuLeqrtwz4ZBN5fwebzbTezCOuQHnCahcEWKqw61fvyXJu
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
@@ -566,19 +566,17 @@ ALTER TABLE public.certifications ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTI
 CREATE TABLE public.companies (
     id integer NOT NULL,
     name text NOT NULL,
-    slug text,
-    logo_url text,
     website text,
-    industry text,
-    size_range text,
-    founded_year integer,
     description text,
     headquarters text,
     linkedin_url text,
     is_verified boolean DEFAULT false,
     created_by uuid,
     created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    updated_at timestamp with time zone DEFAULT now(),
+    careers_url text,
+    hiring_email text,
+    recruitment_agency boolean DEFAULT false
 );
 
 
@@ -808,7 +806,6 @@ ALTER TABLE public.industries ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 
 CREATE TABLE public.job_postings (
     id bigint NOT NULL,
-    slug text NOT NULL,
     status public.job_status DEFAULT 'draft'::public.job_status NOT NULL,
     description text,
     summary text,
@@ -1121,6 +1118,32 @@ ALTER TABLE public.resumes ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 
 
 --
+-- Name: skill_analysis; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.skill_analysis (
+    id integer NOT NULL,
+    skill_analysis jsonb NOT NULL,
+    user_id uuid NOT NULL,
+    created_date date DEFAULT now()
+);
+
+
+--
+-- Name: skill_analysis_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.skill_analysis ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.skill_analysis_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: skill_gaps; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1189,7 +1212,8 @@ CREATE TABLE public.users (
     last_login_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
-    resume_status public.resume_status DEFAULT 'queued'::public.resume_status NOT NULL
+    resume_status public.resume_status DEFAULT 'queued'::public.resume_status NOT NULL,
+    industry_id integer
 );
 
 
@@ -1293,14 +1317,6 @@ ALTER TABLE ONLY public.companies
 
 
 --
--- Name: companies companies_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.companies
-    ADD CONSTRAINT companies_slug_key UNIQUE (slug);
-
-
---
 -- Name: credit_packs credit_packs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1378,6 +1394,14 @@ ALTER TABLE ONLY public.industries
 
 ALTER TABLE ONLY public.job_postings
     ADD CONSTRAINT job_postings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: job_postings job_postings_title_company_postedat_ukey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.job_postings
+    ADD CONSTRAINT job_postings_title_company_postedat_ukey UNIQUE (company_id, title, posted_at);
 
 
 --
@@ -1501,6 +1525,14 @@ ALTER TABLE ONLY public.resumes
 
 
 --
+-- Name: skill_analysis skill_analysis_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.skill_analysis
+    ADD CONSTRAINT skill_analysis_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: skill_gaps skill_gaps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1592,20 +1624,6 @@ CREATE INDEX idx_cert_user ON public.certifications USING btree (user_id) WITH (
 --
 
 CREATE INDEX idx_companies_fts ON public.companies USING gin (to_tsvector('english'::regconfig, ((COALESCE(name, ''::text) || ' '::text) || COALESCE(description, ''::text)))) WITH (fastupdate='true', gin_pending_list_limit='4194304');
-
-
---
--- Name: idx_companies_industry; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_companies_industry ON public.companies USING btree (industry) WITH (fillfactor='100', deduplicate_items='true');
-
-
---
--- Name: idx_companies_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_companies_slug ON public.companies USING btree (slug) WITH (fillfactor='100', deduplicate_items='true');
 
 
 --
@@ -2131,6 +2149,14 @@ ALTER TABLE ONLY public.resumes
 
 
 --
+-- Name: skill_analysis skill_analysis_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.skill_analysis
+    ADD CONSTRAINT skill_analysis_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: skill_gaps skill_gaps_skill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2160,6 +2186,14 @@ ALTER TABLE ONLY public.user_languages
 
 ALTER TABLE ONLY public.user_languages
     ADD CONSTRAINT user_languages_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) NOT VALID;
+
+
+--
+-- Name: users users_industry_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_industry_id_fkey FOREIGN KEY (industry_id) REFERENCES public.industries(id) NOT VALID;
 
 
 --
@@ -2198,5 +2232,5 @@ ALTER TABLE ONLY public.work_skills
 -- PostgreSQL database dump complete
 --
 
-\unrestrict WWA5uwjtqyKCRJy4ok2EIt1qoLlnUukESFvmXnWYThLzXBMnySlaI81EwHNg8sg
+\unrestrict GJXmQZubcaUeP7Hd6VuLeqrtwz4ZBN5fwebzbTezCOuQHnCahcEWKqw61fvyXJu
 
