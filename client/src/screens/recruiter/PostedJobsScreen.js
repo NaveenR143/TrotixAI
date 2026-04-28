@@ -14,6 +14,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import AddIcon from "@mui/icons-material/Add";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import { useNavigate, useParams } from "react-router-dom";
 import { mockJobs } from "../../services/mockData";
 import { fadeSlideUp } from "../../utils/themeUtils";
@@ -106,6 +107,11 @@ const PostedJobsScreen = () => {
   const handleViewApplicants = (event, job) => {
     event.stopPropagation();
     setViewingApplicantsForJob(job);
+  };
+
+  const handleViewMatchCandidates = (event, job) => {
+    event.stopPropagation();
+    navigate(`/candidate-feed/${job.id}`, { state: { jobTitle: job.title } });
   };
 
   // Show applicants screen if viewing applicants for a specific job
@@ -308,6 +314,28 @@ const PostedJobsScreen = () => {
                               }}
                             />
                           )}
+                        </Box>
+
+                        <Box 
+                          sx={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: { xs: 'flex-start', sm: 'center' }, 
+                            minWidth: 80, 
+                            cursor: 'pointer', 
+                            p: 1.5, 
+                            borderRadius: 2, 
+                            transition: 'all 0.2s', 
+                            '&:hover': { bgcolor: '#ede9fe' } 
+                          }} 
+                          onClick={(e) => handleViewMatchCandidates(e, job)}
+                        >
+                          <Typography sx={{ color: '#6366f1', fontSize: '0.8rem', fontWeight: 600, mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <AutoAwesomeIcon sx={{ fontSize: 16 }} /> Match
+                          </Typography>
+                          <Typography sx={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 500 }}>
+                            AI Discovery
+                          </Typography>
                         </Box>
 
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'flex-end', sm: 'center' }, minWidth: 80 }}>

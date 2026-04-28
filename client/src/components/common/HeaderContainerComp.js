@@ -1,18 +1,11 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { makeStyles, styled } from "@mui/styles";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Grid,
   Typography,
   Divider,
-  Paper,
-  List,
-  ListItemButton,
-  ListItemText,
-  Chip,
 } from "@mui/material";
 import { Helmet } from "react-helmet-async";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../authContext";
 import SidebarComp from "./SidebarComp";
@@ -21,24 +14,10 @@ import { Alert } from "@mui/material";
 import SignIn from "./SignIn";
 import Signup from "./SignUp";
 import { auth } from "../../firebase";
+import NavBarLogo from "./NavBarLogo";
 
-const useStyles = makeStyles((theme) => ({
-  logo: {
-    padding: "10px",
-    fontSize: "medium",
-    fontWeight: 700,
-    color: "#575656",
-    lineHeight: "2vh",
-    fontFamily: "system-ui",
-  },
-  logoimg: {
-    width: "150px",
-    height: "auto",
-  },
-}));
 
 const HeaderContainerComp = ({ children }) => {
-  const classes = useStyles();
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -118,22 +97,7 @@ const HeaderContainerComp = ({ children }) => {
             }}
           >
             {/* Logo on the left */}
-            <Box
-              className={classes?.logo}
-              sx={{ display: "flex", alignItems: "center", cursor: "pointer" }}
-              onClick={() => navigate("/")}
-
-            >
-              <img
-                className={classes?.logoimg}
-                src="/logo.png"
-                alt="Logo"
-                style={{
-                  maxWidth: "150px",
-                  height: "auto",
-                }}
-              />
-            </Box>
+            <NavBarLogo />
 
             {/* User on the right */}
             <Box sx={{ textAlign: "right" }}>

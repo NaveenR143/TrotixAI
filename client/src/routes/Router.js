@@ -27,6 +27,9 @@ const TemplateSelectorScreen = Loadable(lazy(() => import("../screens/resume_bui
 const ResumeBuilderScreen = Loadable(lazy(() => import("../screens/resume_builder/ResumeBuilderScreen")));
 const CareerAdvisorScreen = Loadable(lazy(() => import("../screens/career_advisor/CareerAdvisorScreen")));
 const SkillDevelopmentScreen = Loadable(lazy(() => import("../screens/skill_development/SkillDevelopmentScreen")));
+const CandidateFeedScreen = Loadable(lazy(() => import("../screens/recruiter/CandidateFeedScreen")));
+const CandidateProfileScreen = Loadable(lazy(() => import("../screens/recruiter/CandidateProfileScreen")));
+
 
 
 /* ***Layouts**** */
@@ -35,6 +38,16 @@ const BlankLayout = Loadable(lazy(() => import("../layouts/blank-layout/BlankLay
 /* ***Route Wrappers*** */
 const EntryRoute = () => {
   const navigate = useNavigate();
+  const user = useSelector((state) => state.UserReducer);
+
+  if (user?.mobile && user?.role) {
+    if (user.role === "jobseeker") {
+      return <Navigate to="/dashboard" replace />;
+    } else if (user.role === "recruiter") {
+      return <Navigate to="/recruiter-dashboard" replace />;
+    }
+  }
+
   return <EntryScreen onUpload={(data) => {
     // Navigate to processing and pass resume data
     navigate('/processing', { state: data });
@@ -118,6 +131,9 @@ const Router = [
           { path: "career-advice", element: <CareerAdvisorScreen /> },
           { path: "skill-development", element: <SkillDevelopmentScreen /> },
           { path: "learning", element: <div>Learning Screen (Coming Soon)</div> },
+          { path: "candidate-feed/:jobId", element: <CandidateFeedScreen /> },
+          { path: "candidate-profile/:userId", element: <CandidateProfileScreen /> },
+
 
           { path: "recruiter-dashboard", element: <RecruiterDashboardRoute /> },
         ]

@@ -206,7 +206,7 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
     };
 
     const handleAISearch = () => {
-        navigate(`/ai-candidate-search/${job.id}`);
+        navigate(`/candidate-feed/${job.id}`, { state: { jobTitle: job.title } });
     };
 
     if (viewingApplicants) {

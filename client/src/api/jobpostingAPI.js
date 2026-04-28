@@ -181,3 +181,29 @@ export const fetchRecruiterPostedJobs = async (recruiterId) => {
         return handleError(error);
     }
 };
+
+/**
+ * Fetch Job Matching Candidates
+ */
+export const fetchJobMatchingCandidates = async (jobId) => {
+    try {
+        const response = await axios.get(
+            `${API_BASE_URL}${API_ENDPOINTS.JOB_MATCHING_CANDIDATES}`,
+            {
+                params: {
+                    job_id: jobId,
+                },
+                headers: getHeaders(),
+            }
+        );
+
+        return {
+            error: false,
+            data: response.data?.data || response.data,
+            message: "Job Matching Candidates fetched successfully",
+        };
+    } catch (error) {
+        console.error("Error fetching Job Matching Candidates:", error);
+        return handleError(error);
+    }
+};

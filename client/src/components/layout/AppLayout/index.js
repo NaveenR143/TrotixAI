@@ -3,9 +3,9 @@ import Grid from "@mui/material/Grid2";
 import Box from "@mui/material/Box";
 import { makeStyles } from "@mui/styles";
 import "leaflet/dist/leaflet.css";
-
 import { Card, CardContent, Paper } from "@mui/material";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import NavBarLogo from "../../common/NavBarLogo";
 
 const useStyles = makeStyles((theme) => ({
   logo: {
@@ -39,10 +39,7 @@ const AppLayout = () => {
         }}
       >
         <Grid item size={2}>
-          {/* <span className={classes.logo}>OilGasGPT</span> */}
-          <div className="logo">
-            <img src="../../assets/images/logo.png" alt="Logo" />
-          </div>
+          <NavBarLogo />
         </Grid>
         <Grid item size={8}>
           <Paper sx={{ height: "100%" }}>

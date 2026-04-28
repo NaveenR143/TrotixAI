@@ -104,7 +104,7 @@ const theme = createTheme({
 });
 
 // ── Top navigation bar ─────────────────────────────────────────────────────────
-const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
+const NavBar = ({ activeState, onLogoClick, points, mobile, role, onLogout }) => {
   const isMobile = useMediaQuery('(max-width:600px)');
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
@@ -123,9 +123,15 @@ const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
   };
 
   const handleLogoClickNav = () => {
-    // Navigate to dashboard if logged in, otherwise to entry screen
-    if (mobile) {
-      onLogoClick('/dashboard');
+    // Role-aware navigation — mirrors NavBarLogo logic
+    if (mobile && role) {
+      if (role === 'jobseeker') {
+        onLogoClick('/dashboard');
+      } else if (role === 'recruiter') {
+        onLogoClick('/recruiter-dashboard');
+      } else {
+        onLogoClick('/');
+      }
     } else {
       onLogoClick('/');
     }
@@ -326,7 +332,7 @@ const MainLayout = () => {
   // Compute active state for NavBar
   const currentPath = location.pathname.replace(/^\/|\/$/g, '').split('/')[0];
   const activeState = currentPath === '' ? 'entry' : currentPath;
-  const { points, mobile } = useSelector((state) => state.UserReducer);
+  const { points, mobile, role } = useSelector((state) => state.UserReducer);
 
   const handleLogoClick = (path = '/') => navigate(path);
   const handleLogout = async () => {
@@ -364,6 +370,7 @@ const MainLayout = () => {
           onLogoClick={handleLogoClick}
           points={points}
           mobile={mobile}
+          role={role}
           onLogout={handleLogout}
         />
 

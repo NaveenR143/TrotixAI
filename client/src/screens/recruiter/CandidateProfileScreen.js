@@ -1,5 +1,4 @@
-// screens/recruiter/CandidateProfileScreen.js
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -21,24 +20,25 @@ import {
   TextField,
   Menu,
   MenuItem,
+  CircularProgress,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import EmailIcon from "@mui/icons-material/Email";
-import PhoneIcon from "@mui/icons-material/Phone";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import BusinessIcon from "@mui/icons-material/Business";
 import SchoolIcon from "@mui/icons-material/School";
 import WorkHistoryIcon from "@mui/icons-material/WorkHistory";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import StarIcon from "@mui/icons-material/Star";
 import MessageIcon from "@mui/icons-material/Message";
 import VideoCallIcon from "@mui/icons-material/VideoCall";
 import DownloadIcon from "@mui/icons-material/Download";
 import { useNavigate, useLocation } from "react-router-dom";
 import { fadeSlideUp } from "../../utils/themeUtils";
+import { fetchProfile } from "../../api/profileAPI";
+import { toTitleCase } from "../../screens/candidate/utils/profileUtils";
+
 
 const CandidateProfileScreen = () => {
   const navigate = useNavigate();
@@ -46,17 +46,109 @@ const CandidateProfileScreen = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  const { applicant, jobId, jobTitle } = location.state || {};
+  // Get initial data from location state
+  const { applicant: rawApplicant, jobId, jobTitle } = location.state || {};
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [profileData, setProfileData] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
 
-  if (!applicant) {
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!rawApplicant?.phone) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await fetchProfile(rawApplicant.phone);
+        if (!response.error && response.data) {
+          setProfileData(response.data);
+        } else {
+          setError(response.message || "Failed to load candidate profile");
+        }
+      } catch (err) {
+        console.error("Error loading profile:", err);
+        setError("An unexpected error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [rawApplicant]);
+
+  // Normalize applicant data with API data and fallbacks
+  const applicant = useMemo(() => {
+    if (!rawApplicant) return null;
+
+    // Enrich with API data if available (profileData is a flat object from ProfileRepository)
+    const apiData = profileData || {};
+    const apiExperience = apiData.experience || [];
+    const apiEducation = apiData.education || [];
+    const apiSkills = apiData.skills?.map(s => s.name).filter(Boolean) || [];
+
+    return {
+      ...rawApplicant,
+      name: toTitleCase(apiData.full_name || rawApplicant.name),
+      jobTitle: toTitleCase(apiData.headline || rawApplicant.jobTitle),
+      location: toTitleCase(apiData.current_location || rawApplicant.location),
+      experience: apiData.years_of_experience ? `${apiData.years_of_experience} yrs` : toTitleCase(rawApplicant.experience),
+      about: apiData.summary || rawApplicant.summary || "No summary provided.",
+      keySkills: apiSkills.length > 0 ? apiSkills.map(toTitleCase) : (rawApplicant.allSkills || rawApplicant.keySkills || rawApplicant.matchedSkills || []).map(toTitleCase),
+      company: toTitleCase(apiData.company_name || rawApplicant.company || "Company"),
+      phone: apiData.phone || rawApplicant.phone,
+      email: apiData.email || `${(apiData.full_name || rawApplicant.name).toLowerCase().replace(/ /g, ".")}@email.com`,
+      profileImage: apiData.avatar_url || rawApplicant.profileImage,
+
+      workHistory: apiExperience.length > 0 ? apiExperience.map(exp => ({
+        title: toTitleCase(exp.title),
+        company_name: toTitleCase(exp.company_name || "Company"),
+        duration: exp.start_date ? `${exp.start_date} - ${exp.is_current ? 'Present' : (exp.end_date || '')}` : exp.duration,
+        description: exp.description
+      })) : [
+        {
+          title: toTitleCase(rawApplicant.jobTitle || "Senior Developer"),
+          company_name: "Previous Tech Corp",
+          duration: rawApplicant.experience || "3 years",
+          description: "Leading development teams and architecting scalable solutions using modern web technologies."
+        }
+      ],
+
+      education: apiEducation.length > 0 ? apiEducation.map(edu => ({
+        degree: toTitleCase(edu.degree),
+        school: toTitleCase(edu.institution),
+        year: edu.end_year ? edu.end_year.toString() : (edu.start_year ? `${edu.start_year} - Present` : "")
+      })) : [
+        {
+          degree: "Bachelor of Science in Computer Science",
+          school: "State University of Technology",
+          year: "2018"
+        }
+      ]
+    };
+  }, [rawApplicant, profileData]);
+
+
+  if (loading) {
     return (
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-        <Typography>Candidate not found</Typography>
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", gap: 3 }}>
+        <CircularProgress size={50} sx={{ color: '#6366f1' }} />
+        <Typography sx={{ color: '#64748b', fontWeight: 500 }}>Fetching candidate profile...</Typography>
+      </Box>
+    );
+  }
+
+  if (error || !applicant) {
+    return (
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", gap: 2 }}>
+        <Typography variant="h6" color="error">{error || "Candidate profile not found"}</Typography>
+        <Button variant="contained" onClick={() => navigate(-1)}>Go Back</Button>
       </Box>
     );
   }
@@ -119,7 +211,7 @@ const CandidateProfileScreen = () => {
   return (
     <Box sx={{ bgcolor: "#f8fafc", minHeight: "100vh", pb: 4 }}>
       {/* Header */}
-      <Box sx={{ bgcolor: "#fff", borderBottom: "1px solid #e2e8f0" }}>
+      <Box sx={{ bgcolor: "#fff", borderBottom: "1px solid #e2e8f0", position: 'sticky', top: 0, zIndex: 100 }}>
         <Container maxWidth="lg">
           <Box
             sx={{
@@ -141,9 +233,16 @@ const CandidateProfileScreen = () => {
             >
               Back
             </Button>
-            <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
-              Candidate Profile
-            </Typography>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography sx={{ fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>
+                Candidate Profile
+              </Typography>
+              {jobTitle && (
+                <Typography variant="caption" sx={{ color: '#6366f1', fontWeight: 600 }}>
+                  Matching for: {toTitleCase(jobTitle)}
+                </Typography>
+              )}
+            </Box>
             <IconButton
               onClick={handleMenuOpen}
               size="small"
@@ -203,7 +302,7 @@ const CandidateProfileScreen = () => {
                 </Typography>
               </Box>
 
-              <Box sx={{ display: "flex", gap: 3, mb: 3 }}>
+              <Box sx={{ display: "flex", gap: 3, mb: 3, flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'center', sm: 'flex-start' } }}>
                 <Avatar
                   src={applicant.profileImage}
                   sx={{
@@ -214,7 +313,7 @@ const CandidateProfileScreen = () => {
                     flexShrink: 0,
                   }}
                 />
-                <Box sx={{ flex: 1 }}>
+                <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
                   <Typography
                     sx={{
                       fontWeight: 900,
@@ -240,6 +339,7 @@ const CandidateProfileScreen = () => {
                     sx={{
                       display: "flex",
                       alignItems: "center",
+                      justifyContent: { xs: 'center', sm: 'flex-start' },
                       gap: 0.5,
                       color: "#64748b",
                       fontSize: "0.95rem",
@@ -249,7 +349,7 @@ const CandidateProfileScreen = () => {
                     <LocationOnIcon sx={{ fontSize: 18 }} />
                     {applicant.location}
                   </Typography>
-                  <Stack direction="row" spacing={2} sx={{ mt: 1.5 }}>
+                  <Stack direction="row" spacing={2} sx={{ mt: 1.5, justifyContent: { xs: 'center', sm: 'flex-start' } }}>
                     <Chip
                       icon={<WorkHistoryIcon />}
                       label={applicant.experience}
@@ -286,7 +386,7 @@ const CandidateProfileScreen = () => {
                 mb: 3,
               }}
             >
-              <SectionHeader icon={MessageIcon} title="About" />
+              <SectionHeader icon={MessageIcon} title="Professional Summary" />
               <Typography
                 sx={{
                   color: "#475569",
@@ -309,7 +409,7 @@ const CandidateProfileScreen = () => {
                 mb: 3,
               }}
             >
-              <SectionHeader icon={StarIcon} title="Key Skills" />
+              <SectionHeader icon={StarIcon} title="Skills & Expertise" />
               <Stack direction="row" spacing={1.5} flexWrap="wrap" sx={{ gap: 1.5 }}>
                 {applicant.keySkills.map((skill, idx) => (
                   <Chip
@@ -321,7 +421,7 @@ const CandidateProfileScreen = () => {
                       fontWeight: 600,
                       fontSize: "0.9rem",
                       borderRadius: 2,
-                      py: 2.5,
+                      py: 2,
                     }}
                   />
                 ))}
@@ -374,7 +474,7 @@ const CandidateProfileScreen = () => {
                             sx={{
                               fontWeight: 700,
                               color: "#0f172a",
-                              fontSize: "0.95rem",
+                              fontSize: "1rem",
                             }}
                           >
                             {exp.title}
@@ -392,7 +492,7 @@ const CandidateProfileScreen = () => {
                         <Typography
                           sx={{
                             color: "#6366f1",
-                            fontWeight: 600,
+                            fontWeight: 700,
                             fontSize: "0.9rem",
                             mb: 1,
                           }}
@@ -475,145 +575,103 @@ const CandidateProfileScreen = () => {
 
           {/* Sidebar */}
           <Grid item xs={12} md={4}>
-            {/* Action Buttons */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                bgcolor: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 3,
-                mb: 3,
-                position: { xs: "fixed", md: "relative" },
-                bottom: { xs: 0, md: "auto" },
-                left: { xs: 0, md: "auto" },
-                right: { xs: 0, md: "auto" },
-                width: { xs: "100%", md: "auto" },
-                borderRadius: { xs: "24px 24px 0 0", md: 3 },
-                zIndex: 20,
-              }}
-            >
-              <Stack spacing={2.5}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  startIcon={<VideoCallIcon />}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    py: isMobile ? 1.5 : 1,
-                    background: "linear-gradient(135deg, #6366f1, #4f46e5)",
-                    "&:hover": {
-                      background: "linear-gradient(135deg, #4f46e5, #4338ca)",
-                    },
-                  }}
-                >
-                  Schedule Interview
-                </Button>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<MessageIcon />}
-                  onClick={handleSendMessage}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    py: isMobile ? 1.5 : 1,
-                    borderColor: "#e2e8f0",
-                    color: "#475569",
-                    "&:hover": {
-                      borderColor: "#6366f1",
-                      color: "#6366f1",
-                    },
-                  }}
-                >
-                  Send Message
-                </Button>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={
-                    isSaved ? <FavoriteIcon /> : <FavoriteBorderIcon />
-                  }
-                  onClick={() => setIsSaved(!isSaved)}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    py: isMobile ? 1.5 : 1,
-                    color: isSaved ? "#ef4444" : "#475569",
-                    borderColor: isSaved ? "#ef4444" : "#e2e8f0",
-                    "&:hover": {
-                      borderColor: "#ef4444",
-                      color: "#ef4444",
-                    },
-                  }}
-                >
-                  {isSaved ? "Saved" : "Save Candidate"}
-                </Button>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<DownloadIcon />}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    py: isMobile ? 1.5 : 1,
-                    borderColor: "#e2e8f0",
-                    color: "#475569",
-                    "&:hover": {
-                      borderColor: "#6366f1",
-                      color: "#6366f1",
-                    },
-                  }}
-                >
-                  Download Resume
-                </Button>
-              </Stack>
-            </Paper>
+            <Stack spacing={3} sx={{ position: { md: 'sticky' }, top: { md: 100 } }}>
+              {/* Action Buttons */}
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  bgcolor: "#fff",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 3,
+                }}
+              >
+                <Stack spacing={2}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<VideoCallIcon />}
+                    sx={{
+                      textTransform: "none",
+                      fontWeight: 700,
+                      py: 1.5,
+                      background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                      "&:hover": {
+                        background: "linear-gradient(135deg, #4f46e5, #4338ca)",
+                      },
+                    }}
+                  >
+                    Download Resume
+                  </Button>
 
-            {/* Contact Info */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                bgcolor: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 3,
-                mb: { xs: 0, md: 3 },
-              }}
-            >
-              <Typography sx={{ fontWeight: 800, color: "#0f172a", mb: 2 }}>
-                Contact Information
-              </Typography>
-              <Stack spacing={2}>
-                <Box>
-                  <Typography sx={{ fontSize: "0.75rem", color: "#64748b", mb: 0.5 }}>
-                    Email
-                  </Typography>
-                  <Typography sx={{ fontWeight: 600, color: "#0f172a" }}>
-                    {applicant.name.toLowerCase().replace(" ", ".")}@email.com
-                  </Typography>
-                </Box>
-                <Divider />
-                <Box>
-                  <Typography sx={{ fontSize: "0.75rem", color: "#64748b", mb: 0.5 }}>
-                    Phone
-                  </Typography>
-                  <Typography sx={{ fontWeight: 600, color: "#0f172a" }}>
-                    +1 (555) 123-4567
-                  </Typography>
-                </Box>
-                <Divider />
-                <Box>
-                  <Typography sx={{ fontSize: "0.75rem", color: "#64748b", mb: 0.5 }}>
-                    Location
-                  </Typography>
-                  <Typography sx={{ fontWeight: 600, color: "#0f172a" }}>
-                    {applicant.location}
-                  </Typography>
-                </Box>
-              </Stack>
-            </Paper>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={
+                      isSaved ? <FavoriteIcon /> : <FavoriteBorderIcon />
+                    }
+                    onClick={() => setIsSaved(!isSaved)}
+                    sx={{
+                      textTransform: "none",
+                      fontWeight: 700,
+                      py: 1.5,
+                      color: isSaved ? "#ef4444" : "#475569",
+                      borderColor: isSaved ? "#ef4444" : "#e2e8f0",
+                      "&:hover": {
+                        borderColor: "#ef4444",
+                        color: "#ef4444",
+                      },
+                    }}
+                  >
+                    {isSaved ? "Saved" : "Save Candidate"}
+                  </Button>
+
+                </Stack>
+              </Paper>
+
+              {/* Contact Info */}
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  bgcolor: "#fff",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 3,
+                }}
+              >
+                <Typography sx={{ fontWeight: 800, color: "#0f172a", mb: 2 }}>
+                  Contact Information
+                </Typography>
+                <Stack spacing={2}>
+                  <Box>
+                    <Typography sx={{ fontSize: "0.75rem", color: "#64748b", mb: 0.5 }}>
+                      Email
+                    </Typography>
+                    <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
+                      {applicant.email}
+                    </Typography>
+                  </Box>
+                  <Divider />
+                  <Box>
+                    <Typography sx={{ fontSize: "0.75rem", color: "#64748b", mb: 0.5 }}>
+                      Phone
+                    </Typography>
+                    <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
+                      {applicant.phone || "+1 (555) 123-4567"}
+                    </Typography>
+                  </Box>
+                  <Divider />
+                  <Box>
+                    <Typography sx={{ fontSize: "0.75rem", color: "#64748b", mb: 0.5 }}>
+                      Location
+                    </Typography>
+                    <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
+                      {applicant.location}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+            </Stack>
           </Grid>
         </Grid>
       </Container>
@@ -680,3 +738,4 @@ const CandidateProfileScreen = () => {
 };
 
 export default CandidateProfileScreen;
+

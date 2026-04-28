@@ -20,6 +20,8 @@ from ai.models.orm_models import (
     JobStatusEnum,
     JobTypeEnum,
     WorkModeEnum,
+    Skill,
+    JobSkill,
 )
 from ai.models.job_models import (
     JobMetadataResponse,
@@ -35,6 +37,13 @@ async def fetch_jobs(user_id: str, db: AsyncSession = Depends(get_db)):
     jobs = await JobMatcherService.get_matching_jobs(user_id, db)
 
     return {"status": "completed", "jobs": jobs}
+
+
+@router.get("/fetch-job-matching-candidates")
+async def fetch_job_matching_candidates(job_id: str, db: AsyncSession = Depends(get_db)):
+    candidates = await JobMatcherService.get_matching_candidates(job_id, db)
+
+    return {"status": "completed", "candidates": candidates}
 
 
 @router.get("/fetch-recruiter-posted-jobs")
@@ -229,12 +238,39 @@ async def create_job(request: JobCreateRequest, db: AsyncSession = Depends(get_d
             industry_id=resolved_industry_id,
             department_id=resolved_department_id,
             recruiter_id=uuid.UUID(str(request.userid)) if request.userid else None,
-            posted_at=datetime.now().isoformat(),
+            posted_at=datetime.now(),
         )
 
         db.add(new_job)
         await db.commit()
         await db.refresh(new_job)
+
+        # 6. Insert skills
+        if request.skills:
+            unique_skills = set()
+            for skill_name in request.skills:
+                skill_name_lower = skill_name.strip().lower()
+                if not skill_name_lower or skill_name_lower in unique_skills:
+                    continue
+                unique_skills.add(skill_name_lower)
+                
+                # Check if skill exists
+                skill_result = await db.execute(
+                    select(Skill).where(func.lower(Skill.name) == skill_name_lower).limit(1)
+                )
+                skill_obj = skill_result.scalar_one_or_none()
+                
+                if not skill_obj:
+                    # Create new skill if it doesn't exist
+                    skill_obj = Skill(name=skill_name.strip())
+                    db.add(skill_obj)
+                    await db.flush()
+                
+                # Link skill to job
+                job_skill = JobSkill(job_posting_id=new_job.id, skills_id=skill_obj.id)
+                db.add(job_skill)
+            
+            await db.commit()
 
         message_service = MessageService()
         message_service.send_jobid_to_queue(str(request.userid), str(new_job.id))
