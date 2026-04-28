@@ -20,6 +20,7 @@ from ai.models.orm_models import (
     JobseekerProfile,
     Skill,
     Company,
+    JobStatusEnum,
 )
 
 
@@ -47,9 +48,9 @@ class JobMatcherService:
         if not user_data:
             return []
 
-        # Step 2: Fetch top 100 jobs by embedding similarity
+        # Step 2: Fetch top 200 jobs by embedding similarity (increased pool for filtering)
         candidate_jobs = await JobMatcherService._fetch_candidate_jobs(
-            user_data, session, limit=100
+            user_data, session, limit=200
         )
 
         # Step 3: Compute full scores for candidate jobs
@@ -57,9 +58,12 @@ class JobMatcherService:
             user_data, candidate_jobs, session
         )
 
-        # Step 4: Sort by final score and return top results
-        scored_jobs.sort(key=lambda x: x["final_score"], reverse=True)
-        return scored_jobs[:limit]
+        # Step 4: Filter jobs with no matched skills, sort by final score
+        filtered_jobs = [
+            j for j in scored_jobs if j.get("matched_skills")
+        ]
+        filtered_jobs.sort(key=lambda x: x["final_score"], reverse=True)
+        return filtered_jobs[:limit]
 
     @staticmethod
     async def get_matching_candidates(
@@ -153,15 +157,19 @@ class JobMatcherService:
         """Fetch candidate jobs with their skills, ranked by embedding similarity"""
         try:
             if not user_data.get("embedding"):
-                # Fallback: get all jobs if no embedding
-                jobs_query = select(JobPosting, Company).join(
-                    Company, JobPosting.company_id == Company.id
-                ).limit(limit)
-            else:
-                # Use pgvector cosine similarity to get top jobs
+                # Fallback: get all active jobs if no embedding
                 jobs_query = (
                     select(JobPosting, Company)
                     .join(Company, JobPosting.company_id == Company.id)
+                    .where(JobPosting.status == JobStatusEnum.active)
+                    .limit(limit)
+                )
+            else:
+                # Use pgvector cosine similarity to get top active jobs
+                jobs_query = (
+                    select(JobPosting, Company)
+                    .join(Company, JobPosting.company_id == Company.id)
+                    .where(JobPosting.status == JobStatusEnum.active)
                     .order_by(text("job_embedding <=> :user_embedding"))
                     .limit(limit)
                 )

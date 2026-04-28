@@ -243,22 +243,29 @@ const JobDetailScreen = ({
               }}
             >
               <SectionHeader icon={WorkIcon} title="About the Role" />
-              <Typography
+              <Box
                 sx={{
                   color: "#475569",
                   lineHeight: 1.8,
-                  whiteSpace: "pre-line",
                   fontSize: "0.95rem",
-                  display: '-webkit-box',
-                  WebkitLineClamp: expandedDescription ? 'unset' : 3,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: expandedDescription ? 'visible' : 'hidden',
-                  maxHeight: expandedDescription ? 'none' : 'calc(1.8em * 3)',
+                  position: 'relative',
+                  maxHeight: expandedDescription ? 'none' : 'calc(1.8em * 6)', 
+                  overflow: 'hidden',
+                  transition: 'max-height 0.4s ease-in-out',
+                  '& p': { mb: 2, '&:last-child': { mb: 0 } },
+                  '& ul, & ol': { mb: 2, pl: 3 },
+                  '& li': { mb: 1 },
+                  '& b, & strong': { color: '#0f172a', fontWeight: 700 },
+                  '& h1, & h2, & h3, & h4': { color: '#0f172a', mb: 2, mt: 3, fontWeight: 800 },
+                  '& a': { color: '#6366f1', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } },
+                  '& img': { maxWidth: '100%', height: 'auto', borderRadius: 2, my: 2 },
+                  '& table': { width: '100%', borderCollapse: 'collapse', mb: 2 },
+                  '& th, & td': { border: '1px solid #e2e8f0', p: 1, textAlign: 'left' },
                   marginBottom: '1rem',
+                  wordBreak: 'break-word',
                 }}
-              >
-                {job.description}
-              </Typography>
+                dangerouslySetInnerHTML={{ __html: job.description }}
+              />
               <Button
                 onClick={() => setExpandedDescription(!expandedDescription)}
                 sx={{
