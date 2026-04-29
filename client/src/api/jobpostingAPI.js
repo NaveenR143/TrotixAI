@@ -230,3 +230,29 @@ export const fetchJobMatchingCandidates = async (jobId) => {
         return handleError(error);
     }
 };
+
+/**
+ * Fetch Job Applicants
+ */
+export const fetchJobApplicants = async (jobId) => {
+    try {
+        const response = await axios.get(
+            `${API_BASE_URL}${API_ENDPOINTS.JOB_APPLICANTS}`,
+            {
+                params: {
+                    job_id: jobId,
+                },
+                headers: getHeaders(),
+            }
+        );
+
+        return {
+            error: false,
+            data: response.data?.data || response.data,
+            message: "Job Applicants fetched successfully",
+        };
+    } catch (error) {
+        console.error("Error fetching Job Applicants:", error);
+        return handleError(error);
+    }
+};

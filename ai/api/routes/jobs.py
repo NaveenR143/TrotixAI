@@ -52,6 +52,18 @@ async def fetch_job_matching_candidates(
     return {"status": "completed", "candidates": candidates}
 
 
+@router.get("/fetch-job-applicants")
+async def fetch_job_applicants(job_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        candidates = await JobMatcherService.get_job_applicants(job_id, db)
+
+        return {"status": "completed", "candidates": candidates}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error fetching job applicants: {str(e)}"
+        )
+
+
 @router.get("/fetch-recruiter-posted-jobs")
 async def fetch_recruiter_posted_jobs(user_id: str, db: AsyncSession = Depends(get_db)):
     try:
@@ -324,7 +336,10 @@ async def apply_job(request: JobApplicationRequest, db: AsyncSession = Depends(g
 
         await db.commit()
 
-        return {"status": "success", "message": "Job application submitted successfully"}
+        return {
+            "status": "success",
+            "message": "Job application submitted successfully",
+        }
 
     except IntegrityError:
         await db.rollback()

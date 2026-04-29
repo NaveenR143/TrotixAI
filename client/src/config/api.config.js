@@ -32,7 +32,8 @@ const API_ENDPOINTS = {
   ENHANCE_RESUME: '/profile/enhance-resume',
   POSTED_JOBS: '/jobs/fetch-recruiter-posted-jobs',
   JOB_MATCHING_CANDIDATES: '/jobs/fetch-job-matching-candidates',
-  APPLY_JOB: '/jobs/apply-job'
+  JOB_APPLICANTS: '/jobs/fetch-job-applicants',
+  APPLY_JOB: '/jobs/apply-job',
 };
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────

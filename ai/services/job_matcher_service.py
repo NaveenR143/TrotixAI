@@ -92,6 +92,100 @@ class JobMatcherService:
         return filtered_candidates[:limit]
 
     @staticmethod
+    async def get_job_applicants(
+        job_id: str, session: AsyncSession, limit: int = 100
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve and rank candidates who have applied for a given job_id.
+        """
+        # Step 1: Fetch Job Data
+        job_data = await JobMatcherService._fetch_job_data(job_id, session)
+        if not job_data:
+            return []
+
+        # Step 2: Fetch candidates from JobApplication table
+        try:
+            job_id_int = int(job_id)
+            applicants_query = (
+                select(JobApplication, Resume, JobseekerProfile, User)
+                .join(User, JobApplication.user_id == User.id)
+                .join(Resume, JobApplication.user_id == Resume.user_id, isouter=True)
+                .join(
+                    JobseekerProfile,
+                    JobApplication.user_id == JobseekerProfile.user_id,
+                    isouter=True,
+                )
+                .where(JobApplication.job_posting_id == job_id_int)
+                .limit(limit)
+            )
+
+            result = await session.execute(applicants_query)
+            rows = result.all()
+
+            candidate_users = []
+            for application, resume, profile, user in rows:
+                # Get user skills
+                skills_query = (
+                    select(Skill.name)
+                    .join(
+                        JobseekerSkill,
+                        Skill.id == JobseekerSkill.skill_id,
+                    )
+                    .where(JobseekerSkill.user_id == user.id)
+                )
+                skills_result = await session.execute(skills_query)
+                user_skills = [row[0] for row in skills_result.all()]
+
+                candidate_users.append(
+                    {
+                        "user_id": str(user.id),
+                        "summary": resume.parsed_summary if resume else "",
+                        "experience_years": (
+                            float(profile.years_of_experience or 0) if profile else 0.0
+                        ),
+                        "resume_embedding": resume.resume_embedding if resume else None,
+                        "skills": user_skills,
+                        "full_name": user.full_name if user else "",
+                        "phone": user.phone if user else "",
+                        "headline": profile.headline if profile else "",
+                        "current_location": profile.current_location if profile else "",
+                    }
+                )
+
+            # Step 3: Compute scores
+            scored_candidates = await JobMatcherService._compute_candidate_scores(
+                job_data, candidate_users, session
+            )
+
+            # Map application metadata by user_id to re-attach after scoring
+            app_meta = {
+                str(user.id): {
+                    "application_status": (
+                        application.application_status.value
+                        if application.application_status
+                        else None
+                    ),
+                    "applied_date": (
+                        application.applied_date.isoformat()
+                        if application.applied_date
+                        else None
+                    ),
+                }
+                for application, resume, profile, user in rows
+            }
+
+            for cand in scored_candidates:
+                meta = app_meta.get(cand["user_id"], {})
+                cand.update(meta)
+
+            scored_candidates.sort(key=lambda x: x["final_score"], reverse=True)
+            return scored_candidates
+
+        except Exception as e:
+            print(f"Error fetching job applicants: {str(e)}")
+            return []
+
+    @staticmethod
     async def _fetch_user_data(
         user_id: str, session: AsyncSession
     ) -> Optional[Dict[str, Any]]:
