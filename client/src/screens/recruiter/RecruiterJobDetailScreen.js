@@ -40,7 +40,6 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import LinkIcon from "@mui/icons-material/Link";
 import { useNavigate } from "react-router-dom";
 import { fadeSlideUp } from "../../utils/themeUtils";
-import ApplicantsScreen from "./ApplicantsScreen";
 
 const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
     const navigate = useNavigate();
@@ -202,22 +201,13 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
     };
 
     const handleViewApplicants = () => {
-        setViewingApplicants(true);
+        navigate(`/job-applicants/${job.id}`, { state: { jobTitle: job.title } });
     };
 
     const handleAISearch = () => {
         navigate(`/candidate-feed/${job.id}`, { state: { jobTitle: job.title } });
     };
 
-    if (viewingApplicants) {
-        return (
-            <ApplicantsScreen
-                jobId={job?.id}
-                jobTitle={job?.title}
-                onBack={() => setViewingApplicants(false)}
-            />
-        );
-    }
 
     if (!job) {
         return null;

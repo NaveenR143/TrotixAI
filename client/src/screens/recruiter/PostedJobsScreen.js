@@ -19,7 +19,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { mockJobs } from "../../services/mockData";
 import { fadeSlideUp } from "../../utils/themeUtils";
 import RecruiterJobDetailScreen from "./RecruiterJobDetailScreen";
-import ApplicantsScreen from "./ApplicantsScreen";
 import { useSelector } from "react-redux";
 import { fetchRecruiterPostedJobs } from "../../api/jobpostingAPI";
 
@@ -106,7 +105,7 @@ const PostedJobsScreen = () => {
 
   const handleViewApplicants = (event, job) => {
     event.stopPropagation();
-    setViewingApplicantsForJob(job);
+    navigate(`/job-applicants/${job.id}`, { state: { jobTitle: job.title } });
   };
 
   const handleViewMatchCandidates = (event, job) => {
@@ -114,16 +113,6 @@ const PostedJobsScreen = () => {
     navigate(`/candidate-feed/${job.id}`, { state: { jobTitle: job.title } });
   };
 
-  // Show applicants screen if viewing applicants for a specific job
-  if (viewingApplicantsForJob) {
-    return (
-      <ApplicantsScreen
-        jobId={viewingApplicantsForJob.id}
-        jobTitle={viewingApplicantsForJob.title}
-        onBack={() => setViewingApplicantsForJob(null)}
-      />
-    );
-  }
 
   // Show job details screen if jobId is selected
   if (selectedJobId) {

@@ -34,6 +34,7 @@ import StarIcon from "@mui/icons-material/Star";
 import MessageIcon from "@mui/icons-material/Message";
 import VideoCallIcon from "@mui/icons-material/VideoCall";
 import DownloadIcon from "@mui/icons-material/Download";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import { useNavigate, useLocation } from "react-router-dom";
 import { fadeSlideUp } from "../../utils/themeUtils";
 import { fetchProfile } from "../../api/profileAPI";
@@ -59,14 +60,16 @@ const CandidateProfileScreen = () => {
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (!rawApplicant?.phone) {
+      const phoneToUse = rawApplicant?.phone || "9789502974";
+
+      if (!phoneToUse) {
         setLoading(false);
         return;
       }
 
       setLoading(true);
       try {
-        const response = await fetchProfile(rawApplicant.phone);
+        const response = await fetchProfile(phoneToUse);
         if (!response.error && response.data) {
           setProfileData(response.data);
         } else {
@@ -91,6 +94,7 @@ const CandidateProfileScreen = () => {
     const apiData = profileData || {};
     const apiExperience = apiData.experience || [];
     const apiEducation = apiData.education || [];
+    const apiProjects = apiData.projects || [];
     const apiSkills = apiData.skills?.map(s => s.name).filter(Boolean) || [];
 
     return {
@@ -130,7 +134,32 @@ const CandidateProfileScreen = () => {
           school: "State University of Technology",
           year: "2018"
         }
-      ]
+      ],
+
+      projects: apiProjects.length > 0 ? apiProjects.map(proj => {
+        const formatProjDate = (dateStr) => {
+          if (!dateStr) return null;
+          try {
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+          } catch (e) {
+            return dateStr;
+          }
+        };
+
+        const start = formatProjDate(proj.start_date);
+        const end = proj.end_date ? formatProjDate(proj.end_date) : (proj.start_date ? 'Present' : null);
+
+        return {
+          title: toTitleCase(proj.title),
+          description: proj.description,
+          duration: start ? `${start} - ${end}` : "",
+          url: proj.url,
+          repo_url: proj.repo_url,
+          skills: (proj.skills_used || []).map(toTitleCase)
+        };
+      }) : []
     };
   }, [rawApplicant, profileData]);
 
@@ -514,6 +543,86 @@ const CandidateProfileScreen = () => {
                 ))}
               </Stack>
             </Paper>
+
+            {/* Projects */}
+            {applicant.projects && applicant.projects.length > 0 && (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: { xs: 3, md: 4 },
+                  bgcolor: "#fff",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 3,
+                  mb: 3,
+                }}
+              >
+                <SectionHeader icon={AccountTreeIcon} title="Key Projects" />
+                <Stack spacing={3}>
+                  {applicant.projects.map((proj, idx) => (
+                    <Box key={idx}>
+                      {idx > 0 && <Divider sx={{ mb: 3 }} />}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                        <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.1rem' }}>
+                          {proj.title}
+                        </Typography>
+                        {proj.duration && (
+                          <Typography sx={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>
+                            {proj.duration}
+                          </Typography>
+                        )}
+                      </Box>
+
+                      <Typography sx={{ color: '#475569', fontSize: '0.95rem', lineHeight: 1.7, mb: 2 }}>
+                        {proj.description}
+                      </Typography>
+
+                      {proj.skills && proj.skills.length > 0 && (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                          {proj.skills.map((skill, sIdx) => (
+                            <Chip
+                              key={sIdx}
+                              label={skill}
+                              size="small"
+                              sx={{
+                                bgcolor: '#f1f5f9',
+                                color: '#475569',
+                                fontWeight: 600,
+                                fontSize: '0.75rem'
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      )}
+
+                      <Stack direction="row" spacing={2}>
+                        {proj.url && (
+                          <Button
+                            size="small"
+                            variant="text"
+                            href={proj.url}
+                            target="_blank"
+                            sx={{ textTransform: 'none', fontWeight: 700, color: '#6366f1', p: 0 }}
+                          >
+                            Live Demo
+                          </Button>
+                        )}
+                        {proj.repo_url && (
+                          <Button
+                            size="small"
+                            variant="text"
+                            href={proj.repo_url}
+                            target="_blank"
+                            sx={{ textTransform: 'none', fontWeight: 700, color: '#6366f1', p: 0 }}
+                          >
+                            Source Code
+                          </Button>
+                        )}
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              </Paper>
+            )}
 
             {/* Education */}
             <Paper

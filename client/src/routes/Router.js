@@ -103,6 +103,8 @@ const DashboardRoute = () => {
   return <DashboardScreen />;
 };
 
+const JobApplicantsScreen = Loadable(lazy(() => import("../screens/recruiter/JobApplicantsScreen")));
+
 /* ****Routes***** */
 const Router = [
   {
@@ -132,6 +134,7 @@ const Router = [
           { path: "skill-development", element: <SkillDevelopmentScreen /> },
           { path: "learning", element: <div>Learning Screen (Coming Soon)</div> },
           { path: "candidate-feed/:jobId", element: <CandidateFeedScreen /> },
+          { path: "job-applicants/:jobId", element: <JobApplicantsScreen /> },
           { path: "candidate-profile/:userId", element: <CandidateProfileScreen /> },
 
 
