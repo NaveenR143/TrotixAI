@@ -2,8 +2,9 @@ from datetime import datetime
 from ai.services.message_service import MessageService
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from sqlalchemy.orm import joinedload
+from sqlalchemy.exc import IntegrityError
 from typing import List, Dict, Any
 import uuid
 
@@ -22,11 +23,14 @@ from ai.models.orm_models import (
     WorkModeEnum,
     Skill,
     JobSkill,
+    User,
+    JobApplication,
 )
 from ai.models.job_models import (
     JobMetadataResponse,
     JobCreateRequest,
     JobCreateResponse,
+    JobApplicationRequest,
 )
 
 router = APIRouter()
@@ -40,7 +44,9 @@ async def fetch_jobs(user_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/fetch-job-matching-candidates")
-async def fetch_job_matching_candidates(job_id: str, db: AsyncSession = Depends(get_db)):
+async def fetch_job_matching_candidates(
+    job_id: str, db: AsyncSession = Depends(get_db)
+):
     candidates = await JobMatcherService.get_matching_candidates(job_id, db)
 
     return {"status": "completed", "candidates": candidates}
@@ -253,23 +259,25 @@ async def create_job(request: JobCreateRequest, db: AsyncSession = Depends(get_d
                 if not skill_name_lower or skill_name_lower in unique_skills:
                     continue
                 unique_skills.add(skill_name_lower)
-                
+
                 # Check if skill exists
                 skill_result = await db.execute(
-                    select(Skill).where(func.lower(Skill.name) == skill_name_lower).limit(1)
+                    select(Skill)
+                    .where(func.lower(Skill.name) == skill_name_lower)
+                    .limit(1)
                 )
                 skill_obj = skill_result.scalar_one_or_none()
-                
+
                 if not skill_obj:
                     # Create new skill if it doesn't exist
                     skill_obj = Skill(name=skill_name.strip())
                     db.add(skill_obj)
                     await db.flush()
-                
+
                 # Link skill to job
                 job_skill = JobSkill(job_posting_id=new_job.id, skills_id=skill_obj.id)
                 db.add(job_skill)
-            
+
             await db.commit()
 
         message_service = MessageService()
@@ -283,3 +291,51 @@ async def create_job(request: JobCreateRequest, db: AsyncSession = Depends(get_d
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Error creating job: {str(e)}")
+
+
+@router.post("/apply-job")
+async def apply_job(request: JobApplicationRequest, db: AsyncSession = Depends(get_db)):
+    """
+    Handle job applications by inserting a record into job_applications.
+    """
+    try:
+        # 1. Check if job exists
+        job_result = await db.execute(
+            select(JobPosting).where(JobPosting.id == request.job_id)
+        )
+        job = job_result.scalar_one_or_none()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+
+        # 2. Check if user exists
+        user_result = await db.execute(select(User).where(User.id == request.user_id))
+        user = user_result.scalar_one_or_none()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # 3. Create application
+        new_application = JobApplication(
+            job_posting_id=request.job_id, user_id=request.user_id
+        )
+        db.add(new_application)
+
+        # 4. Increment apply_count in JobPosting
+        job.apply_count += 1
+
+        await db.commit()
+
+        return {"status": "success", "message": "Job application submitted successfully"}
+
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="Duplicate application: User has already applied for this job",
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"Database insertion failure: {str(e)}"
+        )

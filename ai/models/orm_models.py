@@ -105,6 +105,17 @@ class ExpLevelEnum(str, enum.Enum):
     executive = "executive"
 
 
+class ApplyStatusEnum(str, enum.Enum):
+    applied = "applied"
+    shortlisted = "shortlisted"
+    interview_scheduled = "interview_scheduled"
+    interview_completed = "interview_completed"
+    offer_made = "offer_made"
+    hired = "hired"
+    rejected = "rejected"
+    withdrawn = "withdrawn"
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Users Table (from 002_users_and_companies.sql)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -455,6 +466,11 @@ class Company(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
+    # New fields found in DB
+    careers_url = Column(String, nullable=True)
+    hiring_email = Column(String, nullable=True)
+    recruitment_agency = Column(Boolean, default=False)
+
     # Relationships
     work_experiences = relationship(
         "WorkExperience", back_populates="company", cascade="all, delete-orphan"
@@ -732,6 +748,36 @@ class JobPosting(Base):
     company = relationship("Company")
     industry = relationship("Industry")
     dept = relationship("Department")
+
+
+class JobApplication(Base):
+    __tablename__ = "job_applications"
+    __table_args__ = (
+        UniqueConstraint("job_posting_id", "user_id", name="uq_job_user_application"),
+    )
+
+    id = Column(Integer, primary_key=True)
+    job_posting_id = Column(
+        Integer, ForeignKey("job_postings.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    application_status = Column(
+        Enum(ApplyStatusEnum, name="apply_status", create_type=False),
+        default=ApplyStatusEnum.applied,
+        nullable=False,
+    )
+    applied_date = Column(Date, server_default=func.now())
+    recruiter_notes = Column(Text)
+    feedback = Column(Text)
+    updated_at = Column(
+        Date, server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    job = relationship("JobPosting", backref="applications")
+    user = relationship("User", backref="applications")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

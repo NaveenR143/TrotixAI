@@ -31,7 +31,8 @@ const API_ENDPOINTS = {
   EXISTING_SKILL_DEVELOPMENT_ANALYSIS: '/profile/existing-skill-analysis',
   ENHANCE_RESUME: '/profile/enhance-resume',
   POSTED_JOBS: '/jobs/fetch-recruiter-posted-jobs',
-  JOB_MATCHING_CANDIDATES: '/jobs/fetch-job-matching-candidates'
+  JOB_MATCHING_CANDIDATES: '/jobs/fetch-job-matching-candidates',
+  APPLY_JOB: '/jobs/apply-job'
 };
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────

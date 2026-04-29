@@ -61,7 +61,8 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, userId }) =>
         setError(null);
 
         // Use provided userId or default userId
-        const userIdToUse = userId || '4bfcd973-7f38-4fd9-80f2-b8c133075fcb';
+        const userIdToUse = userId;
+        // const userIdToUse = '4bfcd973-7f38-4fd9-80f2-b8c133075fcb';
         // const userIdToUse = 'e741ca0e-dcc5-4c7e-8688-90fd71f149dd';
 
         // Make API request
@@ -90,6 +91,9 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, userId }) =>
             summary: job.summary || '',
             logoColor: job.logoColor || '#6366f1',
             about: job.about || '',
+            careers_url: job.careers_url || '',
+            hiring_email: job.hiring_email || '',
+            recruiter_id: job.recruiter_id || '',
           }));
 
           setJobs(fetchedJobs);

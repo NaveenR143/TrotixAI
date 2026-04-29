@@ -35,3 +35,8 @@ class JobCreateResponse(BaseModel):
     status: str
     message: str
     job_id: Optional[int] = None
+
+
+class JobApplicationRequest(BaseModel):
+    job_id: int
+    user_id: UUID

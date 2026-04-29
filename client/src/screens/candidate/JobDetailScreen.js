@@ -14,6 +14,13 @@ import {
   useMediaQuery,
   useTheme,
   Divider,
+  Snackbar,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Tooltip,
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
@@ -27,8 +34,12 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import MoreTimeIcon from "@mui/icons-material/MoreTime";
 import GroupsIcon from "@mui/icons-material/Groups";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import EmailIcon from "@mui/icons-material/Email";
 import MatchBadge from "../../components/jobs/MatchBadge";
 import { getWorkModeIcon } from "../../utils/themeUtils";
+import { useSelector } from "react-redux";
+import { applyJob } from "../../api/jobpostingAPI";
 
 const JobDetailScreen = ({
   job,
@@ -41,6 +52,71 @@ const JobDetailScreen = ({
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const isSaved = savedJobs.has(job.id);
   const [expandedDescription, setExpandedDescription] = useState(false);
+  const [applying, setApplying] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const { userid } = useSelector((state) => state.UserReducer);
+
+  const handleApply = async () => {
+    if (job.recruiter_id) {
+      // Internal Application
+      setApplying(true);
+      try {
+        const result = await applyJob({
+          job_id: job.id,
+          user_id: userid,
+        });
+
+        if (!result.error) {
+          setSnackbar({
+            open: true,
+            message: "Application submitted successfully!",
+            severity: "success",
+          });
+        } else {
+          setSnackbar({
+            open: true,
+            message: result.message || "Failed to submit application.",
+            severity: "error",
+          });
+        }
+      } catch (error) {
+        setSnackbar({
+          open: true,
+          message: "An unexpected error occurred.",
+          severity: "error",
+        });
+      } finally {
+        setApplying(false);
+      }
+    } else if (job.careers_url) {
+      // External Application
+      window.open(job.careers_url, "_blank");
+    } else if (job.hiring_email) {
+      // Email Contact
+      setShowEmailDialog(true);
+    } else {
+      setSnackbar({
+        open: true,
+        message: "No application method available for this job.",
+        severity: "info",
+      });
+    }
+  };
+
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText(job.hiring_email);
+    setSnackbar({
+      open: true,
+      message: "Email address copied to clipboard!",
+      severity: "success",
+    });
+  };
 
   // Helper component for section headers with icons
   const SectionHeader = ({ icon: Icon, title }) => (
@@ -249,7 +325,7 @@ const JobDetailScreen = ({
                   lineHeight: 1.8,
                   fontSize: "0.95rem",
                   position: 'relative',
-                  maxHeight: expandedDescription ? 'none' : 'calc(1.8em * 6)', 
+                  maxHeight: expandedDescription ? 'none' : 'calc(1.8em * 6)',
                   overflow: 'hidden',
                   transition: 'max-height 0.4s ease-in-out',
                   '& p': { mb: 2, '&:last-child': { mb: 0 } },
@@ -532,7 +608,6 @@ const JobDetailScreen = ({
                   </Box>
                 </Box>
               </Box>
-
               {job.teamSize && (
                 <Box>
                   <Box
@@ -567,6 +642,7 @@ const JobDetailScreen = ({
                         }}
                       >
                         {job.teamSize}
+
                       </Typography>
                     </Box>
                   </Box>
@@ -580,6 +656,8 @@ const JobDetailScreen = ({
                 variant="contained"
                 fullWidth
                 size="large"
+                disabled={applying}
+                onClick={handleApply}
                 sx={{
                   py: 1.8,
                   borderRadius: 1.5,
@@ -596,12 +674,13 @@ const JobDetailScreen = ({
                   },
                 }}
               >
-                Apply Now
+                {applying ? "Applying..." : "Apply Now"}
               </Button>
               <Button
                 variant="outlined"
                 fullWidth
                 size="large"
+                onClick={() => onToggleSave?.(job.id)}
                 sx={{
                   py: 1.5,
                   borderRadius: 1.5,
@@ -623,6 +702,92 @@ const JobDetailScreen = ({
           </Grid>
         </Grid>
       </Container>
+
+      {/* Email Contact Dialog */}
+      <Dialog
+        open={showEmailDialog}
+        onClose={() => setShowEmailDialog(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 3, p: 1 }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, color: "#0f172a", pb: 1 }}>
+          Apply via Email
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: "#64748b", mb: 3, fontSize: "0.95rem" }}>
+            Please send your resume and cover letter to the following email address to apply for this position:
+          </Typography>
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: "#f8fafc",
+              border: "1px dashed #cbd5e1",
+              borderRadius: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, overflow: "hidden" }}>
+              <EmailIcon sx={{ color: "#6366f1", flexShrink: 0 }} />
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  color: "#0f172a",
+                  fontSize: "1rem",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap"
+                }}
+              >
+                {job.hiring_email}
+              </Typography>
+            </Box>
+            <Tooltip title="Copy Email">
+              <IconButton onClick={handleCopyEmail} size="small" sx={{ color: "#6366f1" }}>
+                <ContentCopyIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5, pt: 1 }}>
+          <Button
+            onClick={() => setShowEmailDialog(false)}
+            fullWidth
+            variant="contained"
+            sx={{
+              borderRadius: 1.5,
+              textTransform: "none",
+              fontWeight: 700,
+              bgcolor: "#0f172a",
+              "&:hover": { bgcolor: "#1e293b" }
+            }}
+          >
+            Got it
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Feedback Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%", borderRadius: 2, fontWeight: 600 }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

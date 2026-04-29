@@ -12,3 +12,4 @@ test*
 keys
 token.json
 .venv_old
+inspect*

@@ -2,13 +2,14 @@
 Job Matcher Service - Match users with jobs using embeddings, skills, and experience
 """
 
+from ai.models.orm_models import JobApplication
 import json
 import math
 from typing import List, Dict, Any, Optional
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, text
+from sqlalchemy import select, func, text, or_, not_
 from sqlalchemy.orm import selectinload
 
 from ai.models.orm_models import (
@@ -59,9 +60,7 @@ class JobMatcherService:
         )
 
         # Step 4: Filter jobs with no matched skills, sort by final score
-        filtered_jobs = [
-            j for j in scored_jobs if j.get("matched_skills")
-        ]
+        filtered_jobs = [j for j in scored_jobs if j.get("matched_skills")]
         filtered_jobs.sort(key=lambda x: x["final_score"], reverse=True)
         return filtered_jobs[:limit]
 
@@ -88,9 +87,7 @@ class JobMatcherService:
         )
 
         # Step 4: Filter candidates with no matched skills, sort by final score
-        filtered_candidates = [
-            c for c in scored_candidates if c.get("matched_skills")
-        ]
+        filtered_candidates = [c for c in scored_candidates if c.get("matched_skills")]
         filtered_candidates.sort(key=lambda x: x["final_score"], reverse=True)
         return filtered_candidates[:limit]
 
@@ -156,12 +153,31 @@ class JobMatcherService:
     ) -> List[Dict[str, Any]]:
         """Fetch candidate jobs with their skills, ranked by embedding similarity"""
         try:
+            user_id = UUID(user_data["user_id"])
+
+            # Subquery to get jobs the user has already applied for
+            applied_jobs_subquery = (
+                select(JobApplication.job_posting_id)
+                .where(JobApplication.user_id == user_id)
+            ).scalar_subquery()
+
+            # Base filters: Active, Not Applied, and Has Valid Application Path
+            base_filters = [
+                JobPosting.status == JobStatusEnum.active,
+                not_(JobPosting.id.in_(applied_jobs_subquery)),
+                or_(
+                    JobPosting.recruiter_id.isnot(None),
+                    Company.careers_url.isnot(None),
+                    Company.hiring_email.isnot(None),
+                ),
+            ]
+
             if not user_data.get("embedding"):
-                # Fallback: get all active jobs if no embedding
+                # Fallback: get all filtered active jobs if no embedding
                 jobs_query = (
                     select(JobPosting, Company)
                     .join(Company, JobPosting.company_id == Company.id)
-                    .where(JobPosting.status == JobStatusEnum.active)
+                    .where(*base_filters)
                     .limit(limit)
                 )
             else:
@@ -169,12 +185,11 @@ class JobMatcherService:
                 jobs_query = (
                     select(JobPosting, Company)
                     .join(Company, JobPosting.company_id == Company.id)
-                    .where(JobPosting.status == JobStatusEnum.active)
+                    .where(*base_filters)
                     .order_by(text("job_embedding <=> :user_embedding"))
                     .limit(limit)
                 )
-                jobs_query = jobs_query.params(
-                    user_embedding=user_data["embedding"])
+                jobs_query = jobs_query.params(user_embedding=user_data["embedding"])
 
             jobs_result = await session.execute(jobs_query)
             jobs_rows = jobs_result.all()
@@ -201,18 +216,22 @@ class JobMatcherService:
                         "experience_min_yrs": job.experience_min_yrs or 0,
                         "job_embedding": job.job_embedding,
                         "company_name": company.name,
+                        "careers_url": company.careers_url,
+                        "hiring_email": company.hiring_email,
                         "skills": job_skills,
                         "location": job.location,
                         "state": job.state,
                         "city": job.city,
-                        "posted_date": job.posted_at.isoformat() if job.posted_at else None,
+                        "posted_date": (
+                            job.posted_at.isoformat() if job.posted_at else None
+                        ),
                         "department": job.department,
                         "work_mode": job.work_mode,
                         "job_type": job.job_type,
                         "experience_level": job.experience_level,
                         "summary": job.summary,
                         "description": job.description,
-
+                        "recruiter_id": job.recruiter_id,
                     }
                 )
 
@@ -245,11 +264,10 @@ class JobMatcherService:
                         {
                             "job_emb": job["job_embedding"],
                             "user_emb": user_data["embedding"],
-                        }
+                        },
                     )
 
-                    embedding_score = max(
-                        0.0, min(1.0, result.scalar() or 0.0))
+                    embedding_score = max(0.0, min(1.0, result.scalar() or 0.0))
                 else:
                     embedding_score = 0.5  # Default neutral score
 
@@ -288,7 +306,6 @@ class JobMatcherService:
                         "matched_skills": matched_skills,
                         "missing_skills": missing_skills,
                         "reason": reason,
-                        
                         "description": job["description"],
                         "experience_min_yrs": job["experience_min_yrs"],
                         # "job_embedding": job["job_embedding"],
@@ -303,6 +320,9 @@ class JobMatcherService:
                         "job_type": job["job_type"],
                         "experience_level": job["experience_level"],
                         "summary": job["summary"],
+                        "careers_url": job["careers_url"],
+                        "hiring_email": job["hiring_email"],
+                        "recruiter_id": job["recruiter_id"],
                     }
                 )
 
@@ -391,9 +411,7 @@ class JobMatcherService:
                     .order_by(text("resume_embedding <=> :job_embedding"))
                     .limit(limit)
                 )
-                users_query = users_query.params(
-                    job_embedding=job_data["embedding"]
-                )
+                users_query = users_query.params(job_embedding=job_data["embedding"])
 
             users_result = await session.execute(users_query)
             users_rows = users_result.all()
@@ -416,14 +434,15 @@ class JobMatcherService:
                     {
                         "user_id": str(resume.user_id),
                         "summary": resume.parsed_summary or "",
-                        "experience_years": float(profile.years_of_experience or 0) if profile else 0.0,
+                        "experience_years": (
+                            float(profile.years_of_experience or 0) if profile else 0.0
+                        ),
                         "resume_embedding": resume.resume_embedding,
                         "skills": user_skills,
                         "full_name": user.full_name if user else "",
                         "phone": user.phone if user else "",
                         "headline": profile.headline if profile else "",
                         "current_location": profile.current_location if profile else "",
-
                     }
                 )
 
@@ -435,7 +454,9 @@ class JobMatcherService:
 
     @staticmethod
     async def _compute_candidate_scores(
-        job_data: Dict[str, Any], candidates: List[Dict[str, Any]], session: AsyncSession
+        job_data: Dict[str, Any],
+        candidates: List[Dict[str, Any]],
+        session: AsyncSession,
     ) -> List[Dict[str, Any]]:
         """Compute detailed scores for each candidate"""
         scored_candidates = []
@@ -454,7 +475,7 @@ class JobMatcherService:
                         {
                             "resume_emb": candidate["resume_embedding"],
                             "job_emb": job_data["embedding"],
-                        }
+                        },
                     )
                     embedding_score = max(0.0, min(1.0, result.scalar() or 0.0))
                 else:
@@ -463,7 +484,9 @@ class JobMatcherService:
                 # Skills Score
                 skill_score, matched_skills, missing_skills = (
                     JobMatcherService._compute_skill_score(
-                        candidate["skills"], job_data["skills"], job_data.get("description", "")
+                        candidate["skills"],
+                        job_data["skills"],
+                        job_data.get("description", ""),
                     )
                 )
 
@@ -489,7 +512,6 @@ class JobMatcherService:
                         "phone": candidate["phone"],
                         "headline": candidate["headline"],
                         "current_location": candidate["current_location"],
-
                         "final_score": round(final_score, 3),
                         "scores": {
                             "embedding": round(embedding_score, 3),
@@ -507,7 +529,9 @@ class JobMatcherService:
                 )
 
             except Exception as e:
-                print(f"Error computing score for candidate {candidate['user_id']}: {str(e)}")
+                print(
+                    f"Error computing score for candidate {candidate['user_id']}: {str(e)}"
+                )
                 continue
 
         return scored_candidates
@@ -519,7 +543,11 @@ class JobMatcherService:
         """Compute skill matching score"""
         if not job_skills:
             if not job_description:
-                return 1.0, [], []  # Perfect score if no skills required and no description
+                return (
+                    1.0,
+                    [],
+                    [],
+                )  # Perfect score if no skills required and no description
 
             # Fallback: Check if user skills are mentioned in the job description
             matched_skills = []
@@ -527,13 +555,13 @@ class JobMatcherService:
             for skill in user_skills:
                 if skill.lower().strip() in desc_lower:
                     matched_skills.append(skill)
-            
+
             # Score based on number of matched skills (e.g., 0.5 base + 0.1 per matched skill, up to 1.0)
             if matched_skills:
                 skill_score = min(1.0, 0.5 + (len(matched_skills) * 0.1))
             else:
                 skill_score = 0.5  # Neutral score if no skills matched
-                
+
             return skill_score, matched_skills, []
 
         user_skills_lower = [skill.lower().strip() for skill in user_skills]
@@ -565,8 +593,7 @@ class JobMatcherService:
                 if not found_match:
                     missing_skills.append(job_skill)
 
-        skill_score = len(matched_skills) / \
-            len(job_skills) if job_skills else 1.0
+        skill_score = len(matched_skills) / len(job_skills) if job_skills else 1.0
         return skill_score, matched_skills, missing_skills
 
     @staticmethod
@@ -612,13 +639,11 @@ class JobMatcherService:
             reasons.append("Limited content match")
 
         if skill_score > 0.8:
-            reasons.append(
-                f"Excellent skill match ({len(matched_skills)} skills)")
+            reasons.append(f"Excellent skill match ({len(matched_skills)} skills)")
         elif skill_score > 0.5:
             reasons.append(f"Good skill match ({len(matched_skills)} skills)")
         elif skill_score > 0.2:
-            reasons.append(
-                f"Partial skill match ({len(matched_skills)} skills)")
+            reasons.append(f"Partial skill match ({len(matched_skills)} skills)")
         else:
             reasons.append("Limited skill match")
 

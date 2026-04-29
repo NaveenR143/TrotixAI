@@ -157,6 +157,29 @@ export const createJob = async (jobData) => {
 
 
 /**
+ * Apply for a job
+ */
+export const applyJob = async (jobData) => {
+    try {
+        const response = await axios.post(
+            `${API_BASE_URL}${API_ENDPOINTS.APPLY_JOB}`,
+            jobData,
+            { headers: getHeaders(), timeout: 15000 }
+        );
+
+        return {
+            error: false,
+            data: response.data,
+            message: response.data?.message || "Job applied successfully",
+        };
+    } catch (error) {
+        console.error("Error applying for job:", error);
+        return handleError(error);
+    }
+};
+
+
+/**
  * Fetch Recruiter posted jobs
  */
 export const fetchRecruiterPostedJobs = async (recruiterId) => {
