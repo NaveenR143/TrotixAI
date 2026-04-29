@@ -128,55 +128,61 @@ const PostedJobsScreen = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)' }}>
-        <CircularProgress size={48} sx={{ color: '#4f46e5', mb: 2 }} />
-        <Typography sx={{ color: '#64748b', fontWeight: 600 }}>Loading posted jobs...</Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)', bgcolor: '#F8FAFC' }}>
+        <CircularProgress size={40} thickness={5} sx={{ color: '#2563EB', mb: 2 }} />
+        <Typography sx={{ color: '#6B7280', fontWeight: 600 }}>Loading your jobs...</Typography>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ bgcolor: '#f8fafc', minHeight: 'calc(100vh - 64px)', py: { xs: 3, md: 5 } }}>
-      <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 4, gap: 2 }}>
-          <Box>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: 'calc(100vh - 64px)', pb: 8 }}>
+      {/* Header Section */}
+      <Box sx={{ bgcolor: '#FFFFFF', borderBottom: '1px solid #E5E7EB', mb: 5, py: 4 }}>
+        <Container maxWidth="lg">
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 3 }}>
+            <Box>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+                <IconButton onClick={() => navigate(-1)} size="small" sx={{ color: '#6B7280', bgcolor: '#F8FAFC' }}>
+                  <ArrowBackIcon fontSize="small" />
+                </IconButton>
+                <Typography variant="caption" sx={{ color: '#2563EB', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Recruiter Dashboard
+                </Typography>
+              </Stack>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: '#111827', mb: 1, letterSpacing: '-0.03em' }}>
+                Posted Jobs
+              </Typography>
+              <Typography variant="body1" sx={{ color: '#475569', fontWeight: 500 }}>
+                Manage {jobs.length} active job postings and track applicant progress.
+              </Typography>
+            </Box>
             <Button
-              startIcon={<ArrowBackIcon />}
-              onClick={() => navigate(-1)}
-              sx={{ mb: 1, color: '#64748b', fontWeight: 600, textTransform: 'none', '&:hover': { bgcolor: 'transparent', color: '#0f172a' } }}
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => navigate('/post-job')}
+              sx={{
+                px: 4, py: 1.5, fontWeight: 800, borderRadius: '12px', bgcolor: '#2563EB',
+                boxShadow: '0 8px 20px rgba(37, 99, 235, 0.2)',
+                '&:hover': { bgcolor: '#1e40af', boxShadow: '0 8px 25px rgba(37, 99, 235, 0.3)' }
+              }}
             >
-              Back
+              Post New Job
             </Button>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
-              Posted Jobs
-            </Typography>
-            <Typography variant="subtitle1" sx={{ color: '#64748b', mt: 0.5 }}>
-              Manage and track all your active job postings.
-            </Typography>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/post-job')}
-            sx={{
-              px: 3, py: 1.2, fontWeight: 700, borderRadius: 2, textTransform: 'none',
-              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-              boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)',
-              '&:hover': { background: 'linear-gradient(135deg, #4f46e5, #4338ca)' }
-            }}
-          >
-            Post a Job
-          </Button>
-        </Box>
+        </Container>
+      </Box>
 
+      <Container maxWidth="lg">
+        {/* Search and Filter */}
         {jobs.length > 0 && (
-          <Paper elevation={0} sx={{ p: 2, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0', display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+          <Paper elevation={0} sx={{ p: 1.5, mb: 4, borderRadius: '16px', border: '1px solid #E5E7EB', display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', bgcolor: '#FFFFFF' }}>
             <TextField
-              placeholder="Search jobs..."
+              placeholder="Search by job title or keyword..."
               size="small"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: 250 }, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+              sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: 300 }, '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#F8FAFC', border: 'none' } }}
               InputProps={{
                 startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: '#94a3b8' }} /></InputAdornment>,
               }}
@@ -186,7 +192,7 @@ const PostedJobsScreen = () => {
               size="small"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+              sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#F8FAFC' } }}
               InputProps={{
                 startAdornment: <InputAdornment position="start"><FilterListIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment>,
               }}
@@ -198,170 +204,162 @@ const PostedJobsScreen = () => {
           </Paper>
         )}
 
+        {/* Jobs Grid */}
         {jobs.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 10, bgcolor: '#ffffff', borderRadius: 4, border: '1px dashed #cbd5e1' }}>
-            <WorkOutlineIcon sx={{ fontSize: 64, color: '#cbd5e1', mb: 2 }} />
-            <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f172a', mb: 1 }}>No jobs posted yet</Typography>
-            <Typography sx={{ color: '#64748b', mb: 3 }}>Create your first job posting to start receiving applications.</Typography>
-            <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate('/post-job')} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, borderColor: '#e2e8f0', color: '#0f172a', '&:hover': { borderColor: '#0f172a' } }}>
-              Post a New Job
+          <Box sx={{ textAlign: 'center', py: 12, bgcolor: '#ffffff', borderRadius: '24px', border: '2px dashed #E5E7EB' }}>
+            <Box sx={{ width: 80, height: 80, borderRadius: '24px', bgcolor: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 3 }}>
+              <WorkOutlineIcon sx={{ fontSize: 40, color: '#CBD5E1' }} />
+            </Box>
+            <Typography variant="h5" sx={{ fontWeight: 800, color: '#111827', mb: 1 }}>No jobs posted yet</Typography>
+            <Typography sx={{ color: '#6B7280', mb: 4, maxWidth: 400, mx: 'auto' }}>
+              Create your first job posting to start receiving AI-matched applications from top talent.
+            </Typography>
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={() => navigate('/post-job')}
+              sx={{ borderRadius: '12px', fontWeight: 800, px: 4, py: 1.2, borderColor: '#E5E7EB', color: '#111827' }}
+            >
+              Get Started
             </Button>
           </Box>
         ) : filteredJobs.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography sx={{ fontWeight: 600, color: '#64748b' }}>No jobs found matching your criteria.</Typography>
-            <Button variant="text" onClick={() => { setSearchQuery(""); setFilterType("All"); }} sx={{ mt: 1, textTransform: 'none' }}>
-              Clear Filters
+          <Box sx={{ textAlign: 'center', py: 10 }}>
+            <Typography sx={{ fontWeight: 700, color: '#6B7280', mb: 2 }}>No results found for "{searchQuery}"</Typography>
+            <Button variant="text" onClick={() => { setSearchQuery(""); setFilterType("All"); }} sx={{ fontWeight: 800, color: '#2563EB' }}>
+              Reset Filters
             </Button>
           </Box>
         ) : (
-          <Grid container spacing={3}>
+          <Stack spacing={3}>
             {filteredJobs.map((job, index) => (
-              <Grid size={{ xs: 12 }} key={job.id}>
-                <Card
-                  elevation={0}
-                  onClick={() => setSelectedJobId(job.id)}
-                  sx={{
-                    borderRadius: 3,
-                    border: '1px solid #e2e8f0',
-                    transition: 'all 0.2s',
-                    animation: `${fadeSlideUp} 0.4s ease-out ${index * 0.1}s both`,
-                    cursor: 'pointer',
-                    '&:hover': {
-                      borderColor: '#c7d2fe',
-                      boxShadow: '0 10px 25px rgba(99, 102, 241, 0.05)',
-                      transform: 'translateY(-2px)'
-                    }
-                  }}
-                >
-                  <CardContent sx={{ p: { xs: 2.5, sm: 3 }, '&:last-child': { pb: { xs: 2.5, sm: 3 } } }}>
-                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 2 }}>
-
-                      <Box sx={{ display: 'flex', gap: 2, flex: 1, width: '100%' }}>
-                        <Box sx={{ width: 48, height: 48, borderRadius: 2, bgcolor: job.logoColor || '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'white', fontWeight: 700, fontSize: '1.2rem' }}>
+              <Card
+                key={job.id}
+                elevation={0}
+                onClick={() => setSelectedJobId(job.id)}
+                sx={{
+                  borderRadius: '16px',
+                  border: '1px solid #E5E7EB',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  cursor: 'pointer',
+                  overflow: 'visible',
+                  '&:hover': {
+                    borderColor: '#bfdbfe',
+                    boxShadow: '0 12px 40px rgba(37, 99, 235, 0.08)',
+                    transform: 'translateY(-4px)'
+                  }
+                }}
+              >
+                <CardContent sx={{ p: 4 }}>
+                  <Grid container spacing={3} alignItems="center">
+                    {/* Left: Job Info */}
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <Stack direction="row" spacing={3} alignItems="flex-start">
+                        <Box sx={{
+                          width: 64, height: 64, borderRadius: '16px',
+                          background: `linear-gradient(135deg, ${job.logoColor || '#2563EB'}, #4f46e5)`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                          color: 'white', fontWeight: 800, fontSize: '1.5rem',
+                          boxShadow: '0 8px 20px rgba(0,0,0,0.1)'
+                        }}>
                           {job.company ? job.company.charAt(0) : 'J'}
                         </Box>
                         <Box sx={{ flex: 1 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            {job.title && (
-                              <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f172a', lineHeight: 1.2, mb: 0.5 }}>
-                                {job.title}
-                              </Typography>
-                            )}
-                            {isMobile && (
-                              <IconButton size="small" onClick={(e) => {
-                                e.stopPropagation();
-                                handleMenuOpen(e, job);
-                              }} sx={{ ml: 1, mt: -0.5 }}>
-                                <MoreVertIcon fontSize="small" />
-                              </IconButton>
-                            )}
-                          </Box>
-                          {job.company && (
-                            <Typography sx={{ color: '#6366f1', fontWeight: 600, fontSize: '0.9rem', mb: 1 }}>
-                              {job.company}
-                            </Typography>
-                          )}
-
-                          <Stack direction="row" flexWrap="wrap" gap={1.5} sx={{ color: '#64748b', fontSize: '0.85rem' }}>
-                            {job.type && (
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <WorkOutlineIcon sx={{ fontSize: 16 }} /> {job.type}
-                              </Box>
-                            )}
-                            {job.location && (
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <LocationOnIcon sx={{ fontSize: 16 }} /> {job.location}
-                              </Box>
-                            )}
-                            {job.posted && (
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <DateRangeIcon sx={{ fontSize: 16 }} /> {job.posted}
-                              </Box>
-                            )}
+                          <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827', mb: 0.5, letterSpacing: '-0.02em', fontSize: '1.15rem' }}>
+                            {job.title}
+                          </Typography>
+                          <Typography sx={{ color: '#2563EB', fontWeight: 700, mb: 2 }}>
+                            {job.company}
+                          </Typography>
+                          <Stack direction="row" spacing={2} flexWrap="wrap" gap={1}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: '#6B7280' }}>
+                              <WorkOutlineIcon sx={{ fontSize: 18 }} />
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{job.type}</Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: '#6B7280' }}>
+                              <LocationOnIcon sx={{ fontSize: 18 }} />
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{job.location}</Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: '#6B7280' }}>
+                              <DateRangeIcon sx={{ fontSize: 18 }} />
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{job.posted}</Typography>
+                            </Box>
                           </Stack>
                         </Box>
-                      </Box>
+                      </Stack>
+                    </Grid>
 
-                      <Divider orientation={isMobile ? "horizontal" : "vertical"} flexItem sx={{ display: { xs: 'none', sm: 'block' }, my: 1 }} />
-
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: { xs: '100%', sm: 'auto' }, gap: 3 }}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'flex-start', sm: 'center' }, minWidth: 80, cursor: 'pointer', p: 1.5, borderRadius: 2, transition: 'all 0.2s', '&:hover': { bgcolor: '#dcfce7' } }} onClick={(e) => handleViewApplicants(e, job)}>
-                          <Typography sx={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500, mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <GroupIcon sx={{ fontSize: 16 }} /> Applicants
-                          </Typography>
-                          {job.applicants !== undefined && job.applicants !== null && (
-                            <Chip
-                              label={job.applicants}
-                              size="small"
-                              sx={{
-                                bgcolor: job.applicants > 0 ? '#dcfce7' : '#f1f5f9',
-                                color: job.applicants > 0 ? '#16a34a' : '#64748b',
-                                fontWeight: 700,
-                                borderRadius: 1.5,
-                                cursor: 'pointer'
-                              }}
-                            />
-                          )}
-                        </Box>
-
-                        <Box 
-                          sx={{ 
-                            display: 'flex', 
-                            flexDirection: 'column', 
-                            alignItems: { xs: 'flex-start', sm: 'center' }, 
-                            minWidth: 80, 
-                            cursor: 'pointer', 
-                            p: 1.5, 
-                            borderRadius: 2, 
-                            transition: 'all 0.2s', 
-                            '&:hover': { bgcolor: '#ede9fe' } 
-                          }} 
-                          onClick={(e) => handleViewMatchCandidates(e, job)}
+                    {/* Right: Stats & Actions */}
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <Stack direction="row" spacing={{ xs: 2, md: 4 }} alignItems="center" justifyContent={{ xs: 'space-between', md: 'flex-end' }}>
+                        {/* Applicants */}
+                        <Box
+                          sx={{ textAlign: 'center', cursor: 'pointer', transition: 'opacity 0.2s', '&:hover': { opacity: 0.7 } }}
+                          onClick={(e) => handleViewApplicants(e, job)}
                         >
-                          <Typography sx={{ color: '#6366f1', fontSize: '0.8rem', fontWeight: 600, mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <AutoAwesomeIcon sx={{ fontSize: 16 }} /> Match
+                          <Typography variant="h5" sx={{ fontWeight: 800, color: '#111827', lineHeight: 1 }}>
+                            {job.applicants || 0}
                           </Typography>
-                          <Typography sx={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 500 }}>
-                            AI Discovery
+                          <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.65rem' }}>
+                            Applicants
                           </Typography>
                         </Box>
 
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'flex-end', sm: 'center' }, minWidth: 80 }}>
-                          <Typography sx={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500, mb: 0.5 }}>
+                        {/* Status */}
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Chip
+                            label={job.status}
+                            size="small"
+                            sx={{
+                              bgcolor: job.status?.toLowerCase() === 'active' ? '#dcfce7' : '#fef2f2',
+                              color: job.status?.toLowerCase() === 'active' ? '#16a34a' : '#ef4444',
+                              fontWeight: 800,
+                              borderRadius: '8px',
+                              height: 24,
+                              px: 1
+                            }}
+                          />
+                          <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 700, textTransform: 'uppercase', display: 'block', mt: 0.5, fontSize: '0.65rem' }}>
                             Status
                           </Typography>
-                          {job.status && (
-                            <Chip
-                              label={job.status}
-                              size="small"
-                              sx={{
-                                bgcolor: job.status === "Active" || job.status === "active" ? '#e0e7ff' : '#fee2e2',
-                                color: job.status === "Active" || job.status === "active" ? '#4f46e5' : '#ef4444',
-                                fontWeight: 600,
-                                borderRadius: 1.5,
-                                textTransform: 'capitalize'
-                              }}
-                            />
-                          )}
                         </Box>
 
-                        {!isMobile && (
-                          <IconButton onClick={(e) => {
-                            e.stopPropagation();
-                            handleMenuOpen(e, job);
-                          }} sx={{ border: '1px solid #e2e8f0', '&:hover': { bgcolor: '#f8fafc' } }}>
-                            <MoreVertIcon fontSize="small" />
-                          </IconButton>
-                        )}
-                      </Box>
+                        {/* AI Match CTA */}
+                        <Button
+                          variant="contained"
+                          startIcon={<AutoAwesomeIcon />}
+                          onClick={(e) => handleViewMatchCandidates(e, job)}
+                          sx={{
+                            background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
+                            color: 'white',
+                            fontWeight: 800,
+                            borderRadius: '12px',
+                            px: 3,
+                            py: 1.2,
+                            boxShadow: '0 4px 14px 0 rgba(124, 58, 237, 0.3)',
+                            border: 'none',
+                            textTransform: 'none',
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            '&:hover': {
+                              background: 'linear-gradient(135deg, #6D28D9 0%, #1E40AF 100%)',
+                              boxShadow: '0 6px 20px rgba(124, 58, 237, 0.4)',
+                              transform: 'translateY(-2px)'
+                            }
+                          }}
+                        >
+                          AI Match
+                        </Button>
 
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
+                        <IconButton onClick={(e) => handleMenuOpen(e, job)} sx={{ border: '1px solid #E5E7EB', borderRadius: '10px' }}>
+                          <MoreVertIcon />
+                        </IconButton>
+                      </Stack>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
             ))}
-          </Grid>
+          </Stack>
         )}
       </Container>
 
@@ -374,18 +372,26 @@ const PostedJobsScreen = () => {
           elevation: 0,
           sx: {
             mt: 1,
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-            borderRadius: 2,
-            minWidth: 160
+            border: '1px solid #E5E7EB',
+            boxShadow: '0 12px 30px rgba(0,0,0,0.1)',
+            borderRadius: '12px',
+            minWidth: 200,
+            p: 1
           }
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={handleViewDetails} sx={{ fontSize: '0.9rem', py: 1.5 }}>View Details</MenuItem>
-        <MenuItem onClick={handleMenuClose} sx={{ fontSize: '0.9rem', py: 1.5 }}>Edit Job</MenuItem>
-        <MenuItem onClick={handleMenuClose} sx={{ fontSize: '0.9rem', py: 1.5, color: '#ef4444' }}>Close Job</MenuItem>
+        <MenuItem onClick={handleViewDetails} sx={{ borderRadius: '8px', fontWeight: 600, py: 1.5 }}>
+          View Details
+        </MenuItem>
+        <MenuItem onClick={handleMenuClose} sx={{ borderRadius: '8px', fontWeight: 600, py: 1.5 }}>
+          Edit Posting
+        </MenuItem>
+        <Divider sx={{ my: 1 }} />
+        <MenuItem onClick={handleMenuClose} sx={{ borderRadius: '8px', fontWeight: 600, py: 1.5, color: '#ef4444' }}>
+          Deactivate Job
+        </MenuItem>
       </Menu>
     </Box>
   );

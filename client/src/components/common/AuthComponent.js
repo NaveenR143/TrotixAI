@@ -1,27 +1,21 @@
+// components/common/AuthComponent.js
 import React, { useState } from "react";
 import {
   Box, Typography, Button, TextField, Paper,
-  InputAdornment, Stack, Fade, Alert, Link
+  InputAdornment, Stack, Fade, Alert, Link, IconButton
 } from "@mui/material";
 import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import PersonIcon from "@mui/icons-material/Person";
+import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { sendOTP, verifyOTP, sendRegistrationOTP } from "../../api/jobpostingAPI";
 import { UPDATE_USER_PROFILE } from "../../redux/constants";
 import { fetchAndStoreProfile } from "../../redux/profile/ProfileAction";
-import { fadeSlideUp } from "../../utils/themeUtils";
-import { scrollToFirstError } from "../../utils/formUtils";
 
-/**
- * AuthComponent - Universal login and registration component
- * @param {string} userType - 'Candidate', 'Recruiter', or 'Consultant'
- * @param {string} invokedFrom - Context identifier (e.g., 'JobPost')
- * @param {function} onSuccess - Callback for successful authentication
- */
 const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -32,7 +26,6 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Role mapping helper
   const mapRoleToType = (role) => {
     switch (role?.toLowerCase()) {
       case 'jobseeker': return 'Candidate';
@@ -42,34 +35,22 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
     }
   };
 
-  // Redirection logic
   const handleNavigation = (type) => {
     if (invokedFrom === 'JobPost') {
       if (onSuccess) onSuccess();
       return;
     }
-
     switch (type) {
-      case 'Recruiter':
-        navigate("/recruiter-dashboard");
-        break;
-      case 'Consultant':
-        navigate("/consultant-dashboard");
-        break;
-      default:
-        navigate("/dashboard");
+      case 'Recruiter': navigate("/recruiter-dashboard"); break;
+      case 'Consultant': navigate("/consultant-dashboard"); break;
+      default: navigate("/dashboard");
     }
   };
 
-  /**
-   * Dedicated function for New User Registration Flow
-   * Handles /new-recruiter-otp and can be extended for other roles
-   */
   const handleNewUserRegistration = async (name, phone, role) => {
     setLoading(true);
     setError("");
     try {
-      // Logic for new user flow
       const resp = await sendRegistrationOTP(name, phone, role);
       if (!resp.error) {
         setStep(2);
@@ -77,48 +58,30 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
         setError(resp.message);
       }
     } catch (err) {
-      setError("Registration flow failed. Please try again.");
+      setError("Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  /**
-   * Main handler for requesting OTP
-   * Determines whether to trigger Login or Registration flow
-   */
   const handleGetOtp = async (e) => {
     e.preventDefault();
+    if (!isLogin && !formData.name.trim()) { setError("Name is required"); return; }
+    if (formData.mobile.length !== 10) { setError("Enter valid 10-digit number"); return; }
 
-    // Validation
-    const validationErrors = {};
-    if (!isLogin && !formData.name.trim()) validationErrors.name = "Please enter your name.";
-    if (formData.mobile.length !== 10) validationErrors.mobile = "Please enter a valid 10-digit mobile number.";
-
-    if (Object.keys(validationErrors).length > 0) {
-      setError(Object.values(validationErrors)[0]);
-      scrollToFirstError(validationErrors, ['name', 'mobile']);
-      return;
-    }
-
-    // New User Flow (Registration)
     if (!isLogin) {
       await handleNewUserRegistration(formData.name, formData.mobile, userType);
       return;
     }
 
-    // Existing User Flow (Login)
     setLoading(true);
     setError("");
     try {
       const resp = await sendOTP(formData.mobile);
-      if (!resp.error) {
-        setStep(2);
-      } else {
-        setError(resp.message);
-      }
+      if (!resp.error) setStep(2);
+      else setError(resp.message);
     } catch (err) {
-      setError("Failed to send OTP. Please try again.");
+      setError("Failed to send OTP.");
     } finally {
       setLoading(false);
     }
@@ -126,11 +89,7 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    if (formData.otp.length !== 4) {
-      setError("Please enter the 4-digit OTP.");
-      scrollToFirstError({ otp: true }, ['otp']);
-      return;
-    }
+    if (formData.otp.length !== 4) { setError("Enter 4-digit OTP"); return; }
 
     setLoading(true);
     setError("");
@@ -138,8 +97,6 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
       const resp = await verifyOTP(formData.mobile, formData.otp);
       if (!resp.error) {
         const verifiedType = mapRoleToType(resp.data.user_type);
-
-        // Update Redux
         dispatch({
           type: UPDATE_USER_PROFILE,
           payload: {
@@ -151,137 +108,125 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
             role: resp.data.user_type
           }
         });
-
-        // Fetch and store complete profile information
         dispatch(fetchAndStoreProfile(formData.mobile));
-
         handleNavigation(verifiedType);
       } else {
         setError(resp.message);
       }
     } catch (err) {
-      setError("Verification failed. Please try again.");
+      setError("Verification failed.");
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleMode = () => {
-    setIsLogin(!isLogin);
-    setStep(1);
-    setError("");
-    setFormData({ ...formData, otp: "" });
-  };
-
   return (
-    <Box sx={{ width: '100%', maxWidth: 420, mx: 'auto' }}>
+    <Box sx={{ width: '100%', maxWidth: 440, mx: 'auto' }}>
       <Paper
         elevation={0}
         sx={{
-          p: { xs: 3, sm: 4 },
-          borderRadius: 4,
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 10px 40px rgba(15,23,42,0.08)',
-          bgcolor: '#ffffff',
-          position: 'relative',
-          overflow: 'hidden',
-          animation: `${fadeSlideUp} 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both`
+          p: { xs: 4, sm: 5 },
+          borderRadius: '32px',
+          border: '1px solid #E5E7EB',
+          bgcolor: '#FFFFFF',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.04)',
+          position: 'relative'
         }}
       >
-        <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }} />
-
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
-          {/* <Box
-            sx={{
-              width: 56, height: 56, borderRadius: '16px',
-              bgcolor: '#ede9fe', color: '#6366f1',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              mx: 'auto', mb: 2.5,
-              boxShadow: '0 8px 16px rgba(99, 102, 241, 0.15)'
-            }}
+        {step === 2 && (
+          <IconButton 
+            onClick={() => setStep(1)}
+            sx={{ position: 'absolute', top: 24, left: 24, color: '#64748B' }}
           >
-            {step === 1 ? <PhoneIphoneIcon sx={{ fontSize: 28 }} /> : <LockOutlinedIcon sx={{ fontSize: 28 }} />}
-          </Box> */}
-          <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f172a', mb: 1, letterSpacing: '-0.02em' }}>
-            {step === 1 ? (isLogin ? "Welcome Back" : "Create Account") : "Verify OTP"}
+            <KeyboardBackspaceIcon />
+          </IconButton>
+        )}
+
+        <Box sx={{ textAlign: 'center', mb: 5 }}>
+          <Typography variant="h4" sx={{ fontWeight: 900, color: '#111827', mb: 1.5, letterSpacing: '-0.03em' }}>
+            {step === 1 ? (isLogin ? "Welcome back" : "Create account") : "Verification"}
           </Typography>
-          <Typography variant="body2" sx={{ color: '#64748b' }}>
-            {step === 1
-              ? (isLogin ? "Sign in to access your profile" : "Join us to explore opportunities")
+          <Typography sx={{ color: '#64748B', fontSize: '0.95rem', fontWeight: 500 }}>
+            {step === 1 
+              ? (isLogin ? "Enter your mobile to continue" : "Join the platform to start matching")
               : `Enter the code sent to +91 ${formData.mobile}`}
           </Typography>
         </Box>
 
-        {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 4, borderRadius: '12px', fontWeight: 600 }}>
+            {error}
+          </Alert>
+        )}
 
         <form onSubmit={step === 1 ? handleGetOtp : handleVerifyOtp}>
-          <Stack spacing={2.5}>
+          <Stack spacing={3}>
             {step === 1 ? (
               <>
                 {!isLogin && (
                   <TextField
-                    id="name"
-                    fullWidth label="Full Name" placeholder="Enter your name"
+                    fullWidth label="Full Name" placeholder="John Doe"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon sx={{ color: '#94a3b8' }} /></InputAdornment> }}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
                   />
                 )}
                 <TextField
-                  id="mobile"
-                  fullWidth label="Mobile Number" placeholder="10-digit number"
+                  fullWidth label="Mobile Number" placeholder="9876543210"
                   value={formData.mobile}
                   onChange={(e) => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                   InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Typography sx={{ color: '#94a3b8', fontWeight: 600 }}>+91</Typography>
-                      </InputAdornment>
-                    )
+                    startAdornment: <InputAdornment position="start"><Typography sx={{ color: '#94A3B8', fontWeight: 700 }}>+91</Typography></InputAdornment>
                   }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
                 />
                 <Button
                   fullWidth variant="contained" size="large" type="submit"
                   disabled={loading || (isLogin ? formData.mobile.length !== 10 : (!formData.name.trim() || formData.mobile.length !== 10))}
-                  endIcon={!loading && <ArrowForwardIcon />}
-                  sx={{ py: 1.5, borderRadius: 2.5, fontWeight: 700, background: 'black', '&:hover': { background: '#333' } }}
+                  sx={{ 
+                    py: 2, borderRadius: '16px', fontWeight: 800, textTransform: 'none', fontSize: '1rem',
+                    bgcolor: '#2563EB', boxShadow: '0 8px 20px rgba(37, 99, 235, 0.2)',
+                    '&:hover': { bgcolor: '#1e40af' }
+                  }}
                 >
                   {loading ? "Sending..." : "Get OTP"}
                 </Button>
 
-                <Box sx={{ textAlign: 'center', mt: 1 }}>
+                <Box sx={{ textAlign: 'center', pt: 1 }}>
                   <Link
-                    component="button" type="button" variant="body2"
-                    onClick={toggleMode}
-                    sx={{ color: '#6366f1', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+                    component="button" type="button" 
+                    onClick={() => { setIsLogin(!isLogin); setError(""); }}
+                    sx={{ color: '#2563EB', fontWeight: 700, textDecoration: 'none', fontSize: '0.9rem', '&:hover': { textDecoration: 'underline' } }}
                   >
-                    {isLogin ? "New user? Register here" : "Existing user? Login"}
+                    {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
                   </Link>
                 </Box>
               </>
             ) : (
               <>
                 <TextField
-                  id="otp"
-                  fullWidth label="4-Digit OTP" placeholder="0000" autoFocus
+                  fullWidth label="Enter 4-Digit OTP" placeholder="0 0 0 0" autoFocus
                   value={formData.otp}
                   onChange={(e) => setFormData({ ...formData, otp: e.target.value.replace(/\D/g, '').slice(0, 4) })}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><LockOutlinedIcon sx={{ color: '#94a3b8' }} /></InputAdornment> }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' }, '& input': { textAlign: 'center', letterSpacing: '8px', fontWeight: 800, fontSize: '1.2rem' } }}
                 />
                 <Button
                   fullWidth variant="contained" size="large" type="submit"
                   disabled={loading || formData.otp.length !== 4}
-                  endIcon={!loading && <CheckCircleOutlineIcon />}
-                  sx={{ py: 1.5, borderRadius: 2.5, fontWeight: 700, background: 'black', '&:hover': { background: '#333' } }}
+                  sx={{ 
+                    py: 2, borderRadius: '16px', fontWeight: 800, textTransform: 'none', fontSize: '1rem',
+                    bgcolor: '#2563EB', boxShadow: '0 8px 20px rgba(37, 99, 235, 0.2)',
+                    '&:hover': { bgcolor: '#1e40af' }
+                  }}
                 >
-                  {loading ? "Verifying..." : "Verify & Continue"}
+                  {loading ? "Verifying..." : "Verify OTP"}
                 </Button>
                 <Button
                   fullWidth variant="text" size="small"
                   onClick={() => { setStep(1); setError(""); }}
-                  sx={{ color: '#64748b', fontWeight: 600 }}
+                  sx={{ color: '#64748B', fontWeight: 700, textTransform: 'none' }}
                 >
-                  Change Mobile Number
+                  Resend code or change number
                 </Button>
               </>
             )}

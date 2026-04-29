@@ -2,7 +2,7 @@
 import React from "react";
 import {
     Box, Typography, Container, Paper, Tooltip,
-    useMediaQuery, useTheme, Stack, Button
+    useMediaQuery, useTheme, Stack, Button, Avatar, IconButton, Badge
 } from "@mui/material";
 import Grid2 from "@mui/material/Grid2";
 
@@ -13,63 +13,103 @@ import EventIcon from "@mui/icons-material/Event";
 import InsightsIcon from "@mui/icons-material/Insights";
 import BusinessIcon from "@mui/icons-material/Business";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import AddIcon from "@mui/icons-material/Add";
 
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-/* ---------- Reusable Cards (same as yours, trimmed) ---------- */
-const DashboardSection = ({ icon: Icon, title, description, gradient, onClick, count, delay = 0 }) => (
-    <Tooltip title={`View ${title}`} arrow>
-        <Paper
-            onClick={onClick}
-            sx={{
-                p: 3,
-                cursor: "pointer",
-                borderRadius: 4,
-                border: "1px solid #e2e8f0",
-                background: "linear-gradient(135deg, #fff 0%, #f8fafc 100%)",
-                transition: "0.3s",
-                animation: `fadeIn 0.5s ease ${delay}s both`,
-                "&:hover": { transform: "translateY(-6px)", boxShadow: 6 },
-            }}
-        >
-            <Stack spacing={2}>
-                <Box
-                    sx={{
-                        width: 64,
-                        height: 64,
-                        borderRadius: 3,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#fff",
-                        background: gradient,
-                    }}
-                >
-                    <Icon />
-                </Box>
+/* ---------- Reusable Components ---------- */
 
-                <Typography fontWeight={800}>{title}</Typography>
-                <Typography fontSize={14} color="#64748b">{description}</Typography>
+const DashboardSection = ({ icon: Icon, title, description, accent, onClick, count }) => (
+    <Paper
+        onClick={onClick}
+        elevation={0}
+        sx={{
+            p: 3,
+            cursor: "pointer",
+            borderRadius: '20px',
+            border: "1px solid #E5E7EB",
+            bgcolor: "#FFFFFF",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            position: 'relative',
+            overflow: 'hidden',
+            "&:hover": {
+                transform: "translateY(-6px)",
+                boxShadow: "0 20px 40px rgba(0,0,0,0.05)",
+                borderColor: accent,
+                "& .icon-box": { transform: "scale(1.1)", bgcolor: accent },
+                "& .arrow-icon": { transform: "translateX(4px)", color: accent }
+            },
+        }}
+    >
+        <Stack spacing={2.5}>
+            <Box
+                className="icon-box"
+                sx={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: '16px',
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#FFFFFF",
+                    bgcolor: accent || "#2563EB",
+                    transition: "all 0.3s ease",
+                    boxShadow: `0 8px 16px ${accent}20`,
+                }}
+            >
+                <Icon sx={{ fontSize: 28 }} />
+            </Box>
 
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    {count && (
-                        <Typography fontWeight={700} fontSize="1.4rem">
-                            {count}
-                        </Typography>
-                    )}
-                    <ArrowForwardIcon />
-                </Stack>
+            <Box>
+                <Typography sx={{ fontWeight: 800, fontSize: "1.1rem", color: "#111827", mb: 0.5 }}>
+                    {title}
+                </Typography>
+                <Typography sx={{ fontSize: "0.9rem", color: "#64748B", fontWeight: 500, lineHeight: 1.5 }}>
+                    {description}
+                </Typography>
+            </Box>
+
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ pt: 1 }}>
+                {count ? (
+                    <Typography sx={{ fontWeight: 800, fontSize: "1.5rem", color: "#111827", letterSpacing: "-0.02em" }}>
+                        {count}
+                    </Typography>
+                ) : <Box />}
+                <ArrowForwardIcon className="arrow-icon" sx={{ color: "#94A3B8", transition: "all 0.3s ease", fontSize: 20 }} />
             </Stack>
-        </Paper>
-    </Tooltip>
+        </Stack>
+    </Paper>
 );
 
 const StatCard = ({ label, value, icon: Icon, color }) => (
-    <Paper sx={{ p: 2, textAlign: "center", borderRadius: 3 }}>
-        <Icon sx={{ color, fontSize: 28 }} />
-        <Typography fontWeight={800} fontSize="1.4rem">{value}</Typography>
-        <Typography fontSize={12} color="#64748b">{label}</Typography>
+    <Paper
+        elevation={0}
+        sx={{
+            p: 3,
+            borderRadius: '20px',
+            bgcolor: "#FFFFFF",
+            border: "1px solid #E5E7EB",
+            display: 'flex',
+            alignItems: 'center',
+            gap: 3
+        }}
+    >
+        <Box sx={{
+            width: 52, height: 52, borderRadius: '14px', bgcolor: `${color}10`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+            <Icon sx={{ color, fontSize: 24 }} />
+        </Box>
+        <Box>
+            <Typography sx={{ fontWeight: 800, fontSize: "1.5rem", color: "#111827", lineHeight: 1 }}>
+                {value}
+            </Typography>
+            <Typography sx={{ fontSize: "0.85rem", color: "#64748B", fontWeight: 600, mt: 0.5 }}>
+                {label}
+            </Typography>
+        </Box>
     </Paper>
 );
 
@@ -81,106 +121,187 @@ const DashboardScreen = () => {
     const sections = [
         {
             icon: WorkIcon,
-            title: "Job Posts",
-            description: "Create and manage job listings",
-            gradient: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+            title: "Manage Job Posts",
+            description: "Review, edit and track your active job listings",
+            accent: "#2563EB",
             onClick: () => navigate("/posted-jobs"),
             count: "24",
         },
         {
             icon: PeopleIcon,
-            title: "Candidates",
-            description: "Browse and manage talent pool",
-            gradient: "linear-gradient(135deg,#ec4899,#f43f5e)",
+            title: "Talent Pool",
+            description: "Discover and manage potential candidates",
+            accent: "#7C3AED",
             onClick: () => navigate("/recruiter/candidates"),
             count: "1.2k",
         },
         {
             icon: AssignmentTurnedInIcon,
             title: "Applications",
-            description: "Track candidate applications",
-            gradient: "linear-gradient(135deg,#0ea5e9,#06b6d4)",
+            description: "Monitor candidate application status",
+            accent: "#06B6D4",
             onClick: () => navigate("/recruiter/applications"),
             count: "320",
         },
         {
             icon: EventIcon,
-            title: "Interviews",
-            description: "Schedule & manage interviews",
-            gradient: "linear-gradient(135deg,#10b981,#14b8a6)",
+            title: "Interview Desk",
+            description: "Schedule and coordinate hiring sessions",
+            accent: "#10B981",
             onClick: () => navigate("/recruiter/interviews"),
         },
         {
             icon: InsightsIcon,
-            title: "Analytics",
-            description: "Hiring insights & performance",
-            gradient: "linear-gradient(135deg,#f59e0b,#d97706)",
+            title: "Recruitment Insights",
+            description: "View pipeline data and hiring performance",
+            accent: "#F59E0B",
             onClick: () => navigate("/recruiter/analytics"),
         },
         {
             icon: BusinessIcon,
-            title: "Company Profile",
-            description: "Manage company branding",
-            gradient: "linear-gradient(135deg,#8b5cf6,#6366f1)",
+            title: "Company Brand",
+            description: "Update your company profile and settings",
+            accent: "#475569",
             onClick: () => navigate("/recruiter/company"),
         },
     ];
 
     return (
-        <Box sx={{ bgcolor: "#f8fafc", minHeight: "100vh" }}>
+        <Box sx={{ bgcolor: "#F8FAFC", minHeight: "100vh", pb: 8 }}>
 
-            {/* Hero */}
-            <Box sx={{ p: 4 }}>
-                <Typography fontSize="2.5rem" fontWeight={900}>
-                    Welcome back, {displayname || "Recruiter"}
-                </Typography>
-                <Typography color="#64748b">
-                    Manage your hiring pipeline and find the best talent faster.
-                </Typography>
+            {/* Top Navigation Bar */}
+            <Box sx={{ bgcolor: "#FFFFFF", borderBottom: "1px solid #E5E7EB", py: 2 }}>
+                <Container maxWidth="lg">
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Stack direction="row" spacing={2} alignItems="center">
+                            <Avatar
+                                sx={{
+                                    width: 40, height: 40, bgcolor: "#2563EB",
+                                    fontWeight: 800, fontSize: '0.9rem'
+                                }}
+                            >
+                                {displayname?.[0] || "R"}
+                            </Avatar>
+                            <Box>
+                                <Typography sx={{ fontWeight: 800, color: "#111827", fontSize: '1rem' }}>
+                                    {displayname || "Recruiter"}
+                                </Typography>
+                                <Typography sx={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>
+                                    Recruiter Dashboard
+                                </Typography>
+                            </Box>
+                        </Stack>
+                        <Stack direction="row" spacing={1}>
+                            <IconButton sx={{ border: '1px solid #E5E7EB', borderRadius: '12px' }}>
+                                <Badge variant="dot" color="error">
+                                    <NotificationsIcon sx={{ fontSize: 20, color: '#475569' }} />
+                                </Badge>
+                            </IconButton>
+                        </Stack>
+                    </Stack>
+                </Container>
             </Box>
 
-            {/* Stats */}
-            <Container>
-                <Grid2 container spacing={2}>
-                    <Grid2 size={4}>
-                        <StatCard label="Active Jobs" value="24" icon={WorkIcon} color="#6366f1" />
+            {/* Hero Header */}
+            <Container maxWidth="lg" sx={{ mt: 6, mb: 4 }}>
+                <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={3}>
+                    <Box>
+                        <Typography variant="h4" sx={{ fontWeight: 900, color: "#111827", letterSpacing: "-0.03em", mb: 1 }}>
+                            Welcome back, {displayname?.split(' ')[0] || "Recruiter"}!
+                        </Typography>
+                        <Typography sx={{ color: "#64748B", fontSize: "1.1rem", fontWeight: 500 }}>
+                            Everything you need to manage your hiring pipeline in one place.
+                        </Typography>
+                    </Box>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => navigate("/post-job")}
+                        sx={{
+                            px: 3, py: 1.5, borderRadius: '14px', fontWeight: 800, textTransform: 'none',
+                            bgcolor: '#2563EB', boxShadow: '0 8px 20px rgba(37, 99, 235, 0.2)',
+                            '&:hover': { bgcolor: '#1e40af', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)' }
+                        }}
+                    >
+                        Post New Job
+                    </Button>
+                </Stack>
+            </Container>
+
+            {/* Quick Stats Grid */}
+            <Container maxWidth="lg" sx={{ mb: 6 }}>
+                <Grid2 container spacing={3}>
+                    <Grid2 size={{ xs: 12, sm: 4 }}>
+                        <StatCard label="Active Openings" value="24" icon={WorkIcon} color="#2563EB" />
                     </Grid2>
-                    <Grid2 size={4}>
-                        <StatCard label="Total Applications" value="320" icon={AssignmentTurnedInIcon} color="#ec4899" />
+                    <Grid2 size={{ xs: 12, sm: 4 }}>
+                        <StatCard label="Total Applicants" value="1,240" icon={PeopleIcon} color="#7C3AED" />
                     </Grid2>
-                    <Grid2 size={4}>
-                        <StatCard label="Interviews Scheduled" value="18" icon={EventIcon} color="#0ea5e9" />
+                    <Grid2 size={{ xs: 12, sm: 4 }}>
+                        <StatCard label="Interviews" value="18" icon={EventIcon} color="#10B981" />
                     </Grid2>
                 </Grid2>
             </Container>
 
-            {/* Sections */}
-            <Container sx={{ mt: 4 }}>
+            {/* Main Sections Grid */}
+            <Container maxWidth="lg">
+                <Typography sx={{ fontWeight: 800, fontSize: "1.2rem", color: "#111827", mb: 3 }}>
+                    Management Hub
+                </Typography>
                 <Grid2 container spacing={3}>
                     {sections.map((s, i) => (
                         <Grid2 key={i} size={{ xs: 12, sm: 6, md: 4 }}>
-                            <DashboardSection {...s} delay={i * 0.1} />
+                            <DashboardSection {...s} />
                         </Grid2>
                     ))}
                 </Grid2>
             </Container>
 
-            {/* CTA */}
-            <Container sx={{ mt: 6 }}>
-                <Paper sx={{ p: 4, textAlign: "center", borderRadius: 4, bgcolor: "#6366f1", color: "#fff" }}>
-                    <Typography fontWeight={900} fontSize="1.8rem">
-                        Ready to hire top talent?
-                    </Typography>
-                    <Typography sx={{ opacity: 0.9 }}>
-                        Post a job and start receiving qualified candidates instantly.
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        sx={{ mt: 2, bgcolor: "#fff", color: "#6366f1" }}
-                        onClick={() => navigate("/post-job")}
-                    >
-                        Post a Job
-                    </Button>
+            {/* Bottom CTA Banner */}
+            <Container maxWidth="lg" sx={{ mt: 8 }}>
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: { xs: 4, md: 6 },
+                        borderRadius: '24px',
+                        bgcolor: "#111827",
+                        color: "#FFFFFF",
+                        position: 'relative',
+                        overflow: 'hidden',
+                        backgroundImage: 'radial-gradient(circle at top right, rgba(37, 99, 235, 0.2), transparent)',
+                    }}
+                >
+                    <Grid2 container spacing={4} alignItems="center">
+                        <Grid2 size={{ xs: 12, md: 8 }}>
+                            <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, letterSpacing: '-0.02em' }}>
+                                Scale your team with AI power
+                            </Typography>
+                            <Typography sx={{ opacity: 0.7, fontSize: '1.1rem', fontWeight: 500 }}>
+                                Use our advanced matching algorithms to find the perfect candidates for your open roles in seconds.
+                            </Typography>
+                        </Grid2>
+                        <Grid2 size={{ xs: 12, md: 4 }} sx={{ textAlign: { md: 'right' } }}>
+                            <Button
+                                variant="contained"
+                                size="large"
+                                onClick={() => navigate("/post-job")}
+                                sx={{
+                                    px: 4, py: 2, borderRadius: '14px', fontWeight: 800, textTransform: 'none',
+                                    background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                                    color: '#FFFFFF',
+                                    boxShadow: '0 10px 25px rgba(37, 99, 235, 0.25)',
+                                    '&:hover': {
+                                        background: 'linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%)',
+                                        boxShadow: '0 12px 30px rgba(37, 99, 235, 0.35)',
+                                        transform: 'translateY(-2px)'
+                                    },
+                                    transition: 'all 0.3s ease'
+                                }}
+                            >
+                                Start Hiring Now
+                            </Button>
+                        </Grid2>
+                    </Grid2>
                 </Paper>
             </Container>
         </Box>

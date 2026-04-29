@@ -55,7 +55,7 @@ const SkillDevelopmentReport = ({ data, profile, timestamp }) => {
         >
             {/* Header */}
             <Box className="report-section" sx={{ borderBottom: '4px solid #6366f1', pb: 2 }}>
-                <Typography variant="h3" fontWeight={900} sx={{ letterSpacing: -1, color: '#0f172a' }}>
+                <Typography variant="h4" fontWeight={900} sx={{ letterSpacing: -1, color: '#0f172a' }}>
                     Skill Enhancement Report
                 </Typography>
                 <Typography variant="h6" color="#6366f1" fontWeight={700} sx={{ mt: 1 }}>
@@ -77,8 +77,8 @@ const SkillDevelopmentReport = ({ data, profile, timestamp }) => {
                     Skill Analysis Overview
                 </Typography>
                 <Typography variant="body1" sx={{ color: '#475569', lineHeight: 1.6 }}>
-                    This report identifies key skills required to stay competitive in the {industry} sector. 
-                    It provides rationales for each skill, practical learning suggestions, and curated resources 
+                    This report identifies key skills required to stay competitive in the {industry} sector.
+                    It provides rationales for each skill, practical learning suggestions, and curated resources
                     to accelerate your professional growth.
                 </Typography>
             </Box>
@@ -102,7 +102,7 @@ const SkillDevelopmentReport = ({ data, profile, timestamp }) => {
                         </Box>
                     </Stack>
 
-                    <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.7rem', mb: 0.5 }}>
+                    <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.8rem', mb: 1, letterSpacing: 1 }}>
                         Why this matters
                     </Typography>
                     <Typography variant="body2" sx={{ mb: 2, color: '#334155' }}>
@@ -113,22 +113,22 @@ const SkillDevelopmentReport = ({ data, profile, timestamp }) => {
 
                     <Grid container spacing={3}>
                         <Grid item xs={12} md={6}>
-                            <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.7rem', mb: 1 }}>
+                            <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.8rem', mb: 1.5, letterSpacing: 1 }}>
                                 Learning Path
                             </Typography>
                             <List dense disablePadding>
                                 {item.learning_suggestions?.map((s, i) => (
-                                    <ListItem key={i} sx={{ px: 0, py: 0.25 }}>
-                                        <ListItemText 
-                                            primary={`• ${s}`} 
-                                            primaryTypographyProps={{ variant: 'body2', color: '#475569' }} 
+                                    <ListItem key={i} sx={{ px: 0, py: 0.5 }}>
+                                        <ListItemText
+                                            primary={`• ${s}`}
+                                            primaryTypographyProps={{ variant: 'body2', color: '#475569' }}
                                         />
                                     </ListItem>
                                 ))}
                             </List>
                         </Grid>
                         <Grid item xs={12} md={6}>
-                            <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.7rem', mb: 1 }}>
+                            <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.8rem', mb: 1.5, letterSpacing: 1 }}>
                                 Curated Resources
                             </Typography>
                             <Stack spacing={1}>

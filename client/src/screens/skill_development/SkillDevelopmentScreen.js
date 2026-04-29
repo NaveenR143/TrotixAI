@@ -75,7 +75,7 @@ const SectionTitle = ({ icon, title, subtitle }) => (
             </Typography>
         </Stack>
         {subtitle && (
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
                 {subtitle}
             </Typography>
         )}
@@ -117,7 +117,7 @@ const SkillDevelopmentScreen = () => {
             // Step 1: If not regenerating, try fetching existing analysis first
             if (!isRegenerating) {
                 const existingResult = await profileAPI.fetchExistingSkillAnalysis(userId);
-                
+
                 // Check if data is valid
                 if (!existingResult.error && existingResult.data && existingResult.data !== "none") {
                     const data = existingResult.data;
@@ -264,12 +264,12 @@ const SkillDevelopmentScreen = () => {
                                         <Typography variant="overline" sx={{ opacity: 0.7, letterSpacing: 3, fontWeight: 800 }}>
                                             SKILL DEVELOPMENT ENGINE
                                         </Typography>
-                                        <Typography variant="h3" fontWeight={900} sx={{ letterSpacing: -1.5, mb: 1.5, lineHeight: 1 }}>
+                                        <Typography variant="h4" fontWeight={900} sx={{ letterSpacing: -1.5, mb: 1.5, lineHeight: 1 }}>
                                             Skills Enhancement
                                         </Typography>
                                         <Stack direction="row" spacing={1} alignItems="center">
                                             <VerifiedIcon sx={{ fontSize: 18, color: '#818cf8' }} />
-                                            <Typography variant="body1" sx={{ opacity: 0.85, fontWeight: 500 }}>
+                                            <Typography variant="body1" sx={{ opacity: 0.85, fontWeight: 300 }}>
                                                 Target Industry: <strong>{industry || "IT & Software"}</strong>
                                             </Typography>
                                         </Stack>
@@ -302,9 +302,9 @@ const SkillDevelopmentScreen = () => {
 
                     {/* Content Section */}
                     <Grid item xs={12}>
-                        <SectionTitle 
-                            icon={<LightbulbIcon />} 
-                            title="Missing Skills & Recommendations" 
+                        <SectionTitle
+                            icon={<LightbulbIcon />}
+                            title="Missing Skills & Recommendations"
                             subtitle={`Identified ${skills_analysis?.length || 0} key areas for development to excel in ${industry}.`}
                         />
                     </Grid>
@@ -322,22 +322,22 @@ const SkillDevelopmentScreen = () => {
                                                 </Typography>
                                                 <Stack direction="row" spacing={1}>
                                                     <Chip label={item.category} size="small" sx={{ bgcolor: '#e0e7ff', color: '#4338ca', fontWeight: 700, borderRadius: 1.5 }} />
-                                                    <Chip 
-                                                        label={item.roadmap_priority} 
-                                                        size="small" 
+                                                    <Chip
+                                                        label={item.roadmap_priority}
+                                                        size="small"
                                                         variant="outlined"
-                                                        sx={{ 
-                                                            borderColor: item.roadmap_priority === 'short-term' ? '#f59e0b' : '#10b981', 
-                                                            color: item.roadmap_priority === 'short-term' ? '#b45309' : '#047857', 
+                                                        sx={{
+                                                            borderColor: item.roadmap_priority === 'short-term' ? '#f59e0b' : '#10b981',
+                                                            color: item.roadmap_priority === 'short-term' ? '#b45309' : '#047857',
                                                             fontWeight: 700,
-                                                            borderRadius: 1.5 
-                                                        }} 
+                                                            borderRadius: 1.5
+                                                        }}
                                                     />
                                                 </Stack>
                                             </Box>
                                             <Divider />
                                             <Box>
-                                                <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.65rem', mb: 1, letterSpacing: 1 }}>
+                                                <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.75rem', mb: 2, letterSpacing: 1.5 }}>
                                                     The Rationale
                                                 </Typography>
                                                 <Typography variant="body2" sx={{ color: '#475569', lineHeight: 1.6 }}>
@@ -351,37 +351,37 @@ const SkillDevelopmentScreen = () => {
                                     <Grid item xs={12} md={8} sx={{ p: 4 }}>
                                         <Grid container spacing={4}>
                                             <Grid item xs={12} sm={6}>
-                                                <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.65rem', mb: 2, letterSpacing: 1 }}>
+                                                <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.75rem', mb: 2, letterSpacing: 1.5 }}>
                                                     Learning Suggestions
                                                 </Typography>
                                                 <List dense disablePadding>
                                                     {item.learning_suggestions?.map((suggestion, idx) => (
-                                                        <ListItem key={idx} sx={{ px: 0, alignItems: 'flex-start' }}>
+                                                        <ListItem key={idx} sx={{ px: 0, py: 0.75, alignItems: 'flex-start' }}>
                                                             <ListItemIcon sx={{ minWidth: 28, mt: 0.5 }}>
                                                                 <CheckCircleOutlineIcon sx={{ fontSize: 16, color: '#10b981' }} />
                                                             </ListItemIcon>
-                                                            <ListItemText 
-                                                                primary={suggestion} 
-                                                                primaryTypographyProps={{ variant: 'body2', sx: { color: '#334155', fontWeight: 500 } }} 
+                                                            <ListItemText
+                                                                primary={suggestion}
+                                                                primaryTypographyProps={{ variant: 'body2', sx: { color: '#334155', fontWeight: 500 } }}
                                                             />
                                                         </ListItem>
                                                     ))}
                                                 </List>
                                             </Grid>
                                             <Grid item xs={12} sm={6}>
-                                                <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.65rem', mb: 2, letterSpacing: 1 }}>
+                                                <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.75rem', mb: 2, letterSpacing: 1.5 }}>
                                                     Recommended Resources
                                                 </Typography>
-                                                <Stack spacing={1.5}>
+                                                <Stack spacing={2}>
                                                     {item.resources?.map((res, idx) => (
-                                                        <Paper 
-                                                            key={idx} 
-                                                            variant="outlined" 
-                                                            sx={{ 
-                                                                p: 1.5, 
-                                                                borderRadius: 3, 
+                                                        <Paper
+                                                            key={idx}
+                                                            variant="outlined"
+                                                            sx={{
+                                                                p: 1.5,
+                                                                borderRadius: 3,
                                                                 transition: 'all 0.2s',
-                                                                '&:hover': { borderColor: '#6366f1', bgcolor: '#f5f3ff' } 
+                                                                '&:hover': { borderColor: '#6366f1', bgcolor: '#f5f3ff' }
                                                             }}
                                                         >
                                                             <Stack direction="row" spacing={1.5} alignItems="center">

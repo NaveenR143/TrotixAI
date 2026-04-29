@@ -142,7 +142,7 @@ const CareerAdvisorDashboard = () => {
             // Step 1: If not regenerating, try fetching existing advice first
             if (!isRegenerating) {
                 const existingResult = await profileAPI.fetchExistingCareerAdvice(phone, userId);
-                
+
                 // Check if data is valid and not "none" or null
                 if (!existingResult.error && existingResult.data && existingResult.data !== "none") {
                     const data = existingResult.data;
@@ -427,7 +427,7 @@ const CareerAdvisorDashboard = () => {
                                         <Typography variant="overline" sx={{ opacity: 0.7, letterSpacing: 3, fontWeight: 800 }}>
                                             PROFESSIONAL GROWTH ENGINE
                                         </Typography>
-                                        <Typography variant="h3" fontWeight={900} sx={{ letterSpacing: -1.5, mb: 1.5, lineHeight: 1 }}>
+                                        <Typography variant="h4" fontWeight={900} sx={{ letterSpacing: -1.5, mb: 1.5, lineHeight: 1 }}>
                                             Career Advisor
                                         </Typography>
                                         <Typography variant="body1" sx={{ opacity: 0.85, maxWidth: 650, fontSize: '1.1rem', fontWeight: 400 }}>

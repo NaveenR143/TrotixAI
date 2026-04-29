@@ -51,7 +51,7 @@ const CareerAdviceReport = ({ data, profile, timestamp }) => {
         >
             {/* Header */}
             <Box className="report-section" sx={{ borderBottom: '4px solid #0f172a', pb: 2 }}>
-                <Typography variant="h3" fontWeight={900} sx={{ letterSpacing: -1, color: '#0f172a' }}>
+                <Typography variant="h4" fontWeight={900} sx={{ letterSpacing: -1, color: '#0f172a' }}>
                     Career Strategy Report
                 </Typography>
                 <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>

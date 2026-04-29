@@ -117,7 +117,7 @@ export default function TermsOfUseComp() {
         <Container maxWidth="md" sx={{ py: 4 }}>
             <Card elevation={3}>
                 <CardContent sx={{ p: 4 }}>
-                    <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+                    <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', textAlign: 'center' }}>
                         TERMS OF USE
                     </Typography>
                     <Typography variant="subtitle2" color="text.secondary" align="center" gutterBottom sx={{ mb: 4 }}>

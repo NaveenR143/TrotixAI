@@ -47,7 +47,7 @@ const AddCreditsScreen = () => {
     <Box sx={{ py: { xs: 2, sm: 4, md: 6 }, bgcolor: '#f8fafc', minHeight: 'calc(100vh - 64px)' }}>
       <Container maxWidth="lg" sx={{ px: { xs: 2.5, sm: 4, md: 5 } }}>
         <Box sx={{ textAlign: 'center', mb: { xs: 6, md: 10 } }}>
-          <Typography variant="h2" sx={{ fontWeight: 800, mb: 2, color: '#0f172a', fontSize: { xs: '2.2rem', sm: '3rem', md: '3.75rem' }, letterSpacing: '-0.02em' }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, mb: 2, color: '#0f172a', fontSize: { xs: '1.75rem', sm: '2.5rem', md: '2.75rem' }, letterSpacing: '-0.02em' }}>
             Add <Box component="span" sx={{ color: '#6366f1' }}>Credits</Box>
           </Typography>
           <Typography sx={{ color: '#64748b', fontWeight: 500, maxWidth: 700, mx: 'auto', fontSize: { xs: '1rem', md: '1.2rem' }, lineHeight: 1.6 }}>
@@ -101,7 +101,7 @@ const AddCreditsScreen = () => {
                     {plan.name}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'baseline', mb: 3 }}>
-                    <Typography variant="h3" sx={{ fontWeight: 800, color: '#0f172a', fontSize: { xs: '2.5rem', md: '3rem' } }}>{plan.price}</Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f172a', fontSize: { xs: '2.5rem', md: '3rem' } }}>{plan.price}</Typography>
                     <Typography variant="body1" sx={{ color: '#64748b', ml: 1, fontWeight: 500 }}>one-time</Typography>
                   </Box>
 

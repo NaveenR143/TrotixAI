@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
-  Box, Typography, Button, Stack, useMediaQuery, useTheme, Tooltip, IconButton, Chip, Drawer, Badge, CircularProgress, Paper, Avatar, Container, Divider, Grid
+  Box, Typography, Button, Stack, useMediaQuery, useTheme, Tooltip, IconButton, Chip, Drawer, Badge, CircularProgress, Paper, Avatar, Container, Divider, Grid, Menu, MenuItem
 } from "@mui/material";
 import TuneIcon from "@mui/icons-material/Tune";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -13,6 +13,7 @@ import WorkHistoryIcon from "@mui/icons-material/WorkHistory";
 import StarIcon from "@mui/icons-material/Star";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import PeopleIcon from "@mui/icons-material/People";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { fetchJobMatchingCandidates, fetchJobApplicants } from "../../api/jobpostingAPI";
 import { fadeSlideUp } from "../../utils/themeUtils";
@@ -34,6 +35,10 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
   const [savedCandidates, setSavedCandidates] = useState(new Set());
   const [animating, setAnimating] = useState(false);
   const [animDir, setAnimDir] = useState('left');
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
 
   // Touch handling for swipe
   const touchStartX = useRef(0);
@@ -172,148 +177,178 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
   }
 
   const currentCandidate = candidates[currentIndex];
-  const matchColor = getMatchColor(currentCandidate.matchScore);
 
   const CandidateDetail = ({ candidate }) => (
-    <Box sx={{ p: { xs: 2, md: 4 } }}>
-      <Box sx={{ display: 'flex', gap: 3, mb: 4, flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'center', sm: 'flex-start' } }}>
-        <Avatar src={candidate.profileImage} sx={{ width: 120, height: 120, borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+    <Box sx={{ p: { xs: 3, md: 5 } }}>
+      <Box sx={{ display: 'flex', gap: 4, mb: 4, flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'center', sm: 'flex-start' } }}>
+        <Avatar src={candidate.profileImage} sx={{ width: 100, height: 100, borderRadius: '20px', boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }} />
         <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, flexWrap: 'wrap', gap: 1 }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f172a' }}>{candidate.name}</Typography>
-            <Box sx={{ bgcolor: matchColor.bg, border: `2px solid ${matchColor.main}`, borderRadius: 2, px: 2, py: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <StarIcon sx={{ color: matchColor.main, fontSize: 20 }} />
-              <Typography sx={{ fontWeight: 700, color: matchColor.main }}>{candidate.matchScore}% Match</Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, flexWrap: 'wrap', gap: 2 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: '#111827' }}>{candidate.name}</Typography>
+            <Box sx={{ bgcolor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <StarIcon sx={{ color: '#2563EB', fontSize: 18 }} />
+              <Typography sx={{ fontWeight: 800, color: '#2563EB', fontSize: '1rem' }}>{candidate.matchScore}% Match</Typography>
             </Box>
           </Box>
-          <Typography variant="h6" sx={{ color: '#6366f1', fontWeight: 600, mb: 1 }}>{candidate.jobTitle}</Typography>
-          <Stack direction="row" spacing={2} justifyContent={{ xs: 'center', sm: 'flex-start' }} sx={{ color: '#64748b' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><LocationOnIcon fontSize="small" /> {candidate.location}</Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><WorkHistoryIcon fontSize="small" /> {candidate.experience}</Box>
+          <Typography variant="h6" sx={{ color: '#2563EB', fontWeight: 700, mb: 1.5 }}>{candidate.jobTitle}</Typography>
+          <Stack direction="row" spacing={3} justifyContent={{ xs: 'center', sm: 'flex-start' }} sx={{ color: '#6B7280' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><LocationOnIcon sx={{ fontSize: 18 }} /> <Typography variant="body2">{candidate.location}</Typography></Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><WorkHistoryIcon sx={{ fontSize: 18 }} /> <Typography variant="body2">{candidate.experience}</Typography></Box>
           </Stack>
         </Box>
       </Box>
 
-      <Paper elevation={0} sx={{ p: 2, bgcolor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 2, mb: 4 }}>
-        <Typography variant="subtitle2" sx={{ color: '#0369a1', fontWeight: 700, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <AutoAwesomeIcon fontSize="small" /> AI Rationale
+      <Paper elevation={0} sx={{ p: 3, bgcolor: '#f5f3ff', border: '1px solid #e5e0fa', borderRadius: '16px', mb: 4 }}>
+        <Typography variant="subtitle2" sx={{ color: '#7C3AED', fontWeight: 800, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AutoAwesomeIcon fontSize="small" /> Why this match?
         </Typography>
-        <Typography sx={{ color: '#0c4a6e', fontSize: '0.95rem' }}>{candidate.reason}</Typography>
+        <Typography variant="body2" sx={{ color: '#4c1d95', lineHeight: 1.7, fontWeight: 500 }}>{candidate.reason}</Typography>
       </Paper>
 
-      <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Professional Summary</Typography>
-      <Typography sx={{ color: '#475569', lineHeight: 1.7, mb: 4 }}>{candidate.summary}</Typography>
+      <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: '#111827' }}>Professional Summary</Typography>
+      <Typography variant="body1" sx={{ color: '#475569', lineHeight: 1.8, mb: 4 }}>{candidate.summary}</Typography>
 
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-            Matched Skills <Chip label={candidate.matchedSkills.length} size="small" sx={{ bgcolor: '#dcfce7', color: '#16a34a', fontWeight: 700 }} />
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 2, color: '#111827', display: 'flex', alignItems: 'center', gap: 1 }}>
+            Top Skills <Chip label={candidate.matchedSkills.length} size="small" sx={{ bgcolor: '#dcfce7', color: '#10b981', fontWeight: 800, height: 20 }} />
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {candidate.matchedSkills.map(skill => (
-              <Chip key={skill} label={skill} sx={{ bgcolor: '#e0e7ff', color: '#4f46e5', fontWeight: 600 }} />
+              <Chip key={skill} label={skill} sx={{ bgcolor: '#eff6ff', color: '#2563EB', fontWeight: 600, border: '1px solid #dbeafe' }} />
             ))}
           </Box>
         </Grid>
         <Grid item xs={12} md={6}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-            Missing Skills <Chip label={candidate.missingSkills.length} size="small" sx={{ bgcolor: '#fee2e2', color: '#ef4444', fontWeight: 700 }} />
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 2, color: '#111827', display: 'flex', alignItems: 'center', gap: 1 }}>
+            Gap Analysis <Chip label={candidate.missingSkills.length} size="small" sx={{ bgcolor: '#fef2f2', color: '#ef4444', fontWeight: 800, height: 20 }} />
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {candidate.missingSkills.map(skill => (
-              <Chip key={skill} label={skill} sx={{ bgcolor: '#f1f5f9', color: '#64748b', fontWeight: 600 }} />
+              <Chip key={skill} label={skill} sx={{ bgcolor: '#F8FAFC', color: '#6B7280', fontWeight: 600, border: '1px solid #E5E7EB' }} />
             ))}
           </Box>
         </Grid>
       </Grid>
 
-      <Box sx={{ mt: 6, pt: 4, borderTop: '1px solid #e2e8f0' }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-          <Button 
-            variant="contained" 
-            fullWidth 
-            onClick={() => navigate(`/candidate-profile/${candidate.id}`, { state: { applicant: candidate, jobId, jobTitle } })}
-            sx={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', py: 1.5, fontWeight: 700 }}
-          >
-            View Full Profile
-          </Button>
-          <Button 
-            variant="outlined" 
-            fullWidth 
-            sx={{ py: 1.5, fontWeight: 700, borderColor: '#e2e8f0', color: '#475569' }}
-          >
-            Contact Candidate
-          </Button>
-          <Button 
-            variant="outlined" 
-            sx={{ 
-              py: 1.5, px: 3, fontWeight: 700, 
-              color: savedCandidates.has(candidate.id) ? '#ef4444' : '#64748b', 
-              borderColor: savedCandidates.has(candidate.id) ? '#ef4444' : '#e2e8f0',
-              minWidth: 'fit-content'
-            }}
-            onClick={() => toggleSave(candidate.id)}
-            startIcon={savedCandidates.has(candidate.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-          >
-            {savedCandidates.has(candidate.id) ? "Saved" : "Save"}
-          </Button>
-        </Stack>
+      <Box sx={{ mt: 6, pt: 4, borderTop: '1px solid #E5E7EB' }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <Button 
+              variant="contained" 
+              fullWidth 
+              onClick={() => navigate(`/candidate-profile/${candidate.id}`, { state: { applicant: candidate, jobId, jobTitle } })}
+              sx={{ bgcolor: '#2563EB', py: 1.8, fontWeight: 800, fontSize: '0.95rem' }}
+            >
+              View Full Profile
+            </Button>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Button 
+              variant="outlined" 
+              fullWidth 
+              onClick={() => toggleSave(candidate.id)}
+              startIcon={savedCandidates.has(candidate.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+              sx={{ 
+                py: 1.8, fontWeight: 800, fontSize: '0.95rem',
+                color: savedCandidates.has(candidate.id) ? '#ef4444' : '#111827',
+                borderColor: savedCandidates.has(candidate.id) ? '#ef4444' : '#E5E7EB',
+                '&:hover': { borderColor: '#ef4444', bgcolor: '#fef2f2' }
+              }}
+            >
+              {savedCandidates.has(candidate.id) ? "Saved" : "Save Candidate"}
+            </Button>
+          </Grid>
+        </Grid>
       </Box>
-
     </Box>
   );
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', bgcolor: '#f8fafc' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F8FAFC' }}>
       {/* Header */}
-      <Box sx={{ p: 2, bgcolor: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton onClick={() => navigate(-1)} size="small"><ArrowBackIcon /></IconButton>
+      <Box sx={{ py: 1.5, px: 3, bgcolor: '#FFFFFF', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 1000 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <IconButton onClick={() => navigate(-1)} size="small" sx={{ color: '#6B7280' }}><ArrowBackIcon /></IconButton>
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: 1.5, letterSpacing: '-0.02em' }}>
               {isMatchingMode ? (
                 <>
-                  <AutoAwesomeIcon sx={{ color: '#6366f1', fontSize: 20 }} /> AI Candidate Match
+                  <AutoAwesomeIcon sx={{ color: '#2563EB' }} /> AI Matching
                 </>
               ) : (
                 <>
-                  <PeopleIcon sx={{ color: '#6366f1', fontSize: 20 }} /> Job Applicants
+                  <PeopleIcon sx={{ color: '#2563EB' }} /> Job Applicants
                 </>
               )}
             </Typography>
-            <Typography variant="caption" sx={{ color: '#64748b' }}>{toTitleCase(jobTitle)}</Typography>
+            <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 600 }}>{toTitleCase(jobTitle)}</Typography>
           </Box>
         </Box>
-        {!isDesktop && (
-          <Typography sx={{ fontWeight: 700, color: '#6366f1' }}>{currentIndex + 1} / {candidates.length}</Typography>
-        )}
+        
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#6B7280' }}>
+            {currentIndex + 1} of {candidates.length} candidates
+          </Typography>
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1 }}>
+            <Button size="small" sx={{ fontWeight: 700, color: '#6B7280' }}>Export List</Button>
+            <IconButton 
+              size="small" 
+              sx={{ border: '1px solid #E5E7EB', borderRadius: '10px' }}
+              onClick={handleMenuOpen}
+            >
+              <MoreVertIcon />
+            </IconButton>
+          </Box>
+        </Stack>
       </Box>
+
+      {/* Global Actions Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        PaperProps={{
+          elevation: 0,
+          sx: { mt: 1, border: '1px solid #E5E7EB', borderRadius: '12px', minWidth: 160 }
+        }}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+      >
+        <MenuItem onClick={handleMenuClose} sx={{ fontWeight: 600, py: 1.5 }}>Share List</MenuItem>
+        <MenuItem onClick={handleMenuClose} sx={{ fontWeight: 600, py: 1.5 }}>Email All</MenuItem>
+        <Divider />
+        <MenuItem onClick={handleMenuClose} sx={{ fontWeight: 600, py: 1.5, color: '#ef4444' }}>Clear List</MenuItem>
+      </Menu>
 
       {isDesktop ? (
         <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
           {/* Sidebar */}
-          <Box sx={{ width: 340, borderRight: '1px solid #e2e8f0', bgcolor: '#fff', overflowY: 'auto' }}>
-            {candidates.map((c, idx) => (
-              <Box 
-                key={c.id} 
-                onClick={() => { setCurrentIndex(idx); setSelectedCandidate(c); }}
-                sx={{ 
-                  p: 2, cursor: 'pointer', borderBottom: '1px solid #f1f5f9',
-                  bgcolor: currentIndex === idx ? '#f5f3ff' : 'transparent',
-                  borderLeft: currentIndex === idx ? '4px solid #6366f1' : '4px solid transparent',
-                  '&:hover': { bgcolor: '#f8fafc' }
-                }}
-              >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography sx={{ fontWeight: 700, color: '#0f172a' }}>{c.name}</Typography>
-                  <Typography sx={{ fontWeight: 700, color: getMatchColor(c.matchScore).main, fontSize: '0.8rem' }}>{c.matchScore}%</Typography>
+          <Box sx={{ width: 360, borderRight: '1px solid #E5E7EB', bgcolor: '#FFFFFF', overflowY: 'auto', p: 2 }}>
+            <Stack spacing={1}>
+              {candidates.map((c, idx) => (
+                <Box 
+                  key={c.id} 
+                  onClick={() => { setCurrentIndex(idx); setSelectedCandidate(c); }}
+                  sx={{ 
+                    p: 2.5, cursor: 'pointer', borderRadius: '12px',
+                    bgcolor: currentIndex === idx ? '#eff6ff' : 'transparent',
+                    border: currentIndex === idx ? '1px solid #bfdbfe' : '1px solid transparent',
+                    transition: '0.2s',
+                    '&:hover': { bgcolor: currentIndex === idx ? '#eff6ff' : '#F8FAFC' }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography sx={{ fontWeight: 800, color: '#111827', fontSize: '0.95rem' }}>{c.name}</Typography>
+                    <Typography sx={{ fontWeight: 800, color: '#2563EB', fontSize: '0.85rem' }}>{c.matchScore}%</Typography>
+                  </Box>
+                  <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 600, display: 'block' }}>{c.jobTitle}</Typography>
                 </Box>
-                <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>{c.jobTitle}</Typography>
-              </Box>
-            ))}
+              ))}
+            </Stack>
           </Box>
           {/* Detail */}
-          <Box sx={{ flex: 1, overflowY: 'auto', bgcolor: '#fff' }}>
+          <Box sx={{ flex: 1, overflowY: 'auto', bgcolor: '#FFFFFF' }}>
             <CandidateDetail candidate={currentCandidate} />
           </Box>
         </Box>
@@ -328,17 +363,17 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
             transform: animating ? (animDir === 'right' ? 'translateX(-100%)' : 'translateX(100%)') : 'translateX(0)'
           }}
         >
-          <Paper elevation={0} sx={{ flex: 1, borderRadius: 4, border: '1px solid #e2e8f0', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+          <Paper elevation={0} sx={{ flex: 1, borderRadius: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', border: '1px solid #E5E7EB' }}>
             <CandidateDetail candidate={currentCandidate} />
           </Paper>
           
-          <Box sx={{ mt: 2, textAlign: 'center' }}>
-            <Typography variant="caption" sx={{ color: '#94a3b8', fontStyle: 'italic' }}>
-              💡 Swipe left or right to browse {isMatchingMode ? 'candidates' : 'applicants'}
-            </Typography>
-            <Box sx={{ height: 4, bgcolor: '#e2e8f0', borderRadius: 2, mt: 1, overflow: 'hidden' }}>
-              <Box sx={{ height: '100%', width: `${((currentIndex + 1) / candidates.length) * 100}%`, bgcolor: '#6366f1', transition: 'width 0.3s' }} />
+          <Box sx={{ mt: 2, px: 2 }}>
+            <Box sx={{ height: 6, bgcolor: '#E5E7EB', borderRadius: 3, overflow: 'hidden' }}>
+              <Box sx={{ height: '100%', width: `${((currentIndex + 1) / candidates.length) * 100}%`, bgcolor: '#2563EB', transition: 'width 0.3s' }} />
             </Box>
+            <Typography variant="caption" align="center" sx={{ display: 'block', mt: 1, color: '#6B7280', fontWeight: 600 }}>
+              Swipe to browse candidates
+            </Typography>
           </Box>
         </Box>
       )}

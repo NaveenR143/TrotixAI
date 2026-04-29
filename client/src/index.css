@@ -1,26 +1,33 @@
-/* Google Fonts Import - Open Sans */
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap');
+/* Google Fonts Import - Plus Jakarta Sans */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
-@import "https://js.arcgis.com/4.31/@arcgis/core/assets/esri/themes/dark/main.css";
+:root {
+  --primary-blue: #2563EB;
+  --primary-purple: #7C3AED;
+  --accent-cyan: #22D3EE;
+  --bg-light: #F8FAFC;
+  --card-bg: #FFFFFF;
+  --text-dark: #111827;
+  --text-secondary: #6B7280;
+  --text-muted: #475569;
+  --border-light: #E5E7EB;
+  --shadow-subtle: 0 4px 20px rgba(0,0,0,0.04);
+}
 
 #root,
 html {
   margin: 0;
-}
-
-arcgis-map {
-  display: block;
-  height: 100vh;
+  background-color: var(--bg-light);
 }
 
 body {
   margin: 0;
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: var(--text-dark);
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }

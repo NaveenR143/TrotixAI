@@ -18,6 +18,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import EmailIcon from "@mui/icons-material/Email";
 import DescriptionIcon from "@mui/icons-material/Description";
+import SchoolIcon from "@mui/icons-material/School";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -196,345 +197,228 @@ const PostJobScreen = () => {
   };
 
 
+  // Helper for section titles
+  const SectionTitle = ({ icon: Icon, title }) => (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+      <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Icon sx={{ color: '#2563EB', fontSize: 20 }} />
+      </Box>
+      <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: '#111827' }}>
+        {title}
+      </Typography>
+    </Box>
+  );
+
   return (
-    <Box sx={{ bgcolor: '#f8fafc', minHeight: 'calc(100vh - 64px)', py: { xs: 3, md: 5 } }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 8 }}>
+      <Box sx={{ bgcolor: '#FFFFFF', borderBottom: '1px solid #E5E7EB', py: 2, mb: 4, position: 'sticky', top: 0, zIndex: 1000 }}>
+        <Container maxWidth="lg">
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <IconButton onClick={() => navigate(-1)} size="small" sx={{ color: '#6B7280' }}>
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827', letterSpacing: '-0.02em' }}>
+              Post New Job
+            </Typography>
+          </Stack>
+        </Container>
+      </Box>
+
       <Container maxWidth="md">
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(-1)}
-          sx={{ mb: 2, color: '#64748b', fontWeight: 600, textTransform: 'none', '&:hover': { bgcolor: 'transparent', color: '#0f172a' } }}
-        >
-          Back
-        </Button>
+        {!(mobile) ? (
+          <Paper elevation={0} sx={{ p: 6, borderRadius: '24px', border: '1px solid #E5E7EB', textAlign: 'center' }}>
+            <AuthComponent invokedFrom="JobPost" userType="Recruiter" />
+          </Paper>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <Stack spacing={4}>
+              {/* Basic Information */}
+              <Paper elevation={0} sx={{ p: 4, borderRadius: '20px', border: '1px solid #E5E7EB' }}>
+                <SectionTitle icon={WorkOutlineIcon} title="Basic Information" />
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      id="title" fullWidth label="Job Title *" name="title" value={formData.title} onChange={handleChange}
+                      error={!!errors.title} helperText={errors.title}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      id="company" fullWidth label="Company Name *" name="company" value={formData.company} onChange={handleChange}
+                      error={!!errors.company} helperText={errors.company}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      id="location" fullWidth label="Location *" name="location" value={formData.location} onChange={handleChange}
+                      error={!!errors.location} helperText={errors.location}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Autocomplete
+                      id="type" options={metadata.job_types || []}
+                      getOptionLabel={(option) => option.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      value={formData.type || null}
+                      onChange={(e, v) => setFormData(prev => ({ ...prev, type: v || '' }))}
+                      renderInput={(params) => <TextField {...params} label="Job Type *" error={!!errors.type} helperText={errors.type} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Autocomplete
+                      id="workMode" options={metadata.work_modes || []}
+                      getOptionLabel={(option) => option.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      value={formData.workMode || null}
+                      onChange={(e, v) => setFormData(prev => ({ ...prev, workMode: v || '' }))}
+                      renderInput={(params) => <TextField {...params} label="Work Mode *" error={!!errors.workMode} helperText={errors.workMode} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth label="No. of Openings *" name="openings" type="number" value={formData.openings} onChange={handleChange}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                </Grid>
+              </Paper>
 
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 3, md: 6 },
-            borderRadius: 4,
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 10px 40px rgba(15,23,42,0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-            animation: `${fadeSlideUp} 0.5s both`
-          }}
-        >
-          <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }} />
+              {/* Requirements & Experience */}
+              <Paper elevation={0} sx={{ p: 4, borderRadius: '20px', border: '1px solid #E5E7EB' }}>
+                <SectionTitle icon={SchoolIcon} title="Requirements & Experience" />
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Autocomplete
+                      id="industry_id" options={metadata.industries || []}
+                      getOptionLabel={(option) => option.name || ""}
+                      value={metadata.industries.find(item => item.id === formData.industry_id) || null}
+                      onChange={(e, v) => setFormData(prev => ({ ...prev, industry_id: v ? v.id : '' }))}
+                      renderInput={(params) => <TextField {...params} label="Industry Type *" error={!!errors.industry_id} helperText={errors.industry_id} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Autocomplete
+                      id="education_requirement" options={metadata.education_levels || []}
+                      getOptionLabel={(option) => option.name || ""}
+                      value={metadata.education_levels.find(item => item.name === formData.education_requirement) || null}
+                      onChange={(e, v) => setFormData(prev => ({ ...prev, education_requirement: v ? v.name : '' }))}
+                      renderInput={(params) => <TextField {...params} label="Education Level *" error={!!errors.education_requirement} helperText={errors.education_requirement} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 3 }}>
+                    <TextField
+                      id="expMin" fullWidth label="Min Exp (Yrs) *" name="expMin" type="number" value={formData.expMin} onChange={handleChange}
+                      error={!!errors.expMin} helperText={errors.expMin} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 3 }}>
+                    <TextField
+                      id="expMax" fullWidth label="Max Exp (Yrs) *" name="expMax" type="number" value={formData.expMax} onChange={handleChange}
+                      error={!!errors.expMax} helperText={errors.expMax} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Autocomplete
+                      id="experienceLevel" options={metadata.experience_levels || []}
+                      getOptionLabel={(option) => option.charAt(0).toUpperCase() + option.slice(1)}
+                      value={formData.experienceLevel || null}
+                      onChange={(e, v) => setFormData(prev => ({ ...prev, experienceLevel: v || '' }))}
+                      renderInput={(params) => <TextField {...params} label="Exp Level (Optional)" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />}
+                    />
+                  </Grid>
+                </Grid>
+              </Paper>
 
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', mb: 1 }}>
-              Post a Free Job
-            </Typography>
-            <Typography variant="subtitle1" sx={{ color: '#64748b' }}>
-              Find your ideal candidate 10× faster.
-            </Typography>
-          </Box>
+              {/* Compensation & Skills */}
+              <Paper elevation={0} sx={{ p: 4, borderRadius: '20px', border: '1px solid #E5E7EB' }}>
+                <SectionTitle icon={AttachMoneyIcon} title="Compensation & Skills" />
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth label="Salary Min (Optional)" name="salaryMin" type="number" value={formData.salaryMin} onChange={handleChange}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon sx={{ fontSize: 20, color: '#94A3B8' }} /></InputAdornment> }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth label="Salary Max (Optional)" name="salaryMax" type="number" value={formData.salaryMax} onChange={handleChange}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon sx={{ fontSize: 20, color: '#94A3B8' }} /></InputAdornment> }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <Autocomplete
+                      multiple freeSolo options={predefinedSkills} value={formData.skills} onChange={handleSkillsChange}
+                      renderTags={(value, getTagProps) => value.map((option, index) => (
+                        <Chip variant="filled" label={option} size="small" sx={{ borderRadius: '8px', bgcolor: '#eff6ff', color: '#2563EB', fontWeight: 700 }} {...getTagProps({ index })} />
+                      ))}
+                      renderInput={(params) => (
+                        <TextField {...params} label="Required Skills" placeholder="Type and press enter" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </Paper>
 
-          {!(mobile) ? (
-            <Box sx={{ py: 4 }}>
-              <AuthComponent invokedFrom="JobPost" userType="Recruiter" />
-            </Box>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    id="title"
-                    fullWidth label="Job Title *" name="title" value={formData.title} onChange={handleChange}
-                    error={!!errors.title} helperText={errors.title}
-                    InputProps={{ startAdornment: <InputAdornment position="start"><WorkOutlineIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
+              {/* Detailed Description */}
+              <Paper elevation={0} sx={{ p: 4, borderRadius: '20px', border: '1px solid #E5E7EB' }}>
+                <SectionTitle icon={DescriptionIcon} title="Detailed Description" />
+                <Box id="description" sx={{
+                  '& .ql-container': {
+                    borderRadius: '0 0 12px 12px',
+                    minHeight: '300px',
+                    fontSize: '1rem',
+                    border: errors.description ? '1px solid #ef4444' : '1px solid #E5E7EB',
+                    bgcolor: 'white'
+                  },
+                  '& .ql-toolbar': {
+                    borderRadius: '12px 12px 0 0',
+                    border: errors.description ? '1px solid #ef4444' : '1px solid #E5E7EB',
+                    borderBottom: 'none',
+                    bgcolor: '#F8FAFC'
+                  },
+                  '& .ql-editor': {
+                    minHeight: '300px',
+                    fontFamily: 'inherit',
+                    color: '#111827',
+                    wordBreak: 'break-word'
+                  }
+                }}>
+                  <ReactQuill
+                    theme="snow" value={formData.description} onChange={handleDescriptionChange}
+                    modules={quillModules} formats={quillFormats}
+                    placeholder="Describe the role, responsibilities, and ideal candidate profile..."
                   />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    id="company"
-                    fullWidth label="Company Name *" name="company" value={formData.company} onChange={handleChange}
-                    error={!!errors.company} helperText={errors.company}
-                    InputProps={{ startAdornment: <InputAdornment position="start"><BusinessIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    id="location"
-                    fullWidth label="Location *" name="location" value={formData.location} onChange={handleChange}
-                    error={!!errors.location} helperText={errors.location}
-                    InputProps={{ startAdornment: <InputAdornment position="start"><LocationOnIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Autocomplete
-                    id="type"
-                    options={metadata.job_types || []}
-                    getOptionLabel={(option) => option.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                    value={formData.type || null}
-                    onChange={(event, newValue) => {
-                      setFormData(prev => ({ ...prev, type: newValue || '' }));
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Job Type *"
-                        error={!!errors.type}
-                        helperText={errors.type}
-                        fullWidth
-                      />
-                    )}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Autocomplete
-                    id="workMode"
-                    options={metadata.work_modes || []}
-                    getOptionLabel={(option) => option.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                    value={formData.workMode || null}
-                    onChange={(event, newValue) => {
-                      setFormData(prev => ({ ...prev, workMode: newValue || '' }));
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Work Mode *"
-                        error={!!errors.workMode}
-                        helperText={errors.workMode}
-                        fullWidth
-                      />
-                    )}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 3 }}>
-                  <TextField
-                    id="expMin"
-                    fullWidth label="Experience Min (Yrs) *" name="expMin" type="number"
-                    value={formData.expMin} onChange={handleChange}
-                    error={!!errors.expMin} helperText={errors.expMin}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 3 }}>
-                  <TextField
-                    id="expMax"
-                    fullWidth label="Experience Max (Yrs) *" name="expMax" type="number"
-                    value={formData.expMax} onChange={handleChange}
-                    error={!!errors.expMax} helperText={errors.expMax}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth label="No. of Openings *" name="openings" type="number"
-                    value={formData.openings} onChange={handleChange}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Autocomplete
-                    id="industry_id"
-                    options={metadata.industries || []}
-                    getOptionLabel={(option) => option.name || ""}
-                    value={metadata.industries.find(item => item.id === formData.industry_id) || null}
-                    isOptionEqualToValue={(option, value) => option.id === value?.id}
-                    onChange={(event, newValue) => {
-                      setFormData(prev => ({ ...prev, industry_id: newValue ? newValue.id : '' }));
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Industry Type *"
-                        error={!!errors.industry_id}
-                        helperText={errors.industry_id}
-                        fullWidth
-                      />
-                    )}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Autocomplete
-                    options={metadata.departments || []}
-                    getOptionLabel={(option) => option.name || ""}
-                    value={metadata.departments.find(item => item.id === formData.department_id) || null}
-                    isOptionEqualToValue={(option, value) => option.id === value?.id}
-                    onChange={(event, newValue) => {
-                      setFormData(prev => ({ ...prev, department_id: newValue ? newValue.id : '' }));
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Department"
-                        fullWidth
-                      />
-                    )}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Autocomplete
-                    id="education_requirement"
-                    options={metadata.education_levels || []}
-                    getOptionLabel={(option) => option.name || ""}
-                    value={metadata.education_levels.find(item => item.name === formData.education_requirement) || null}
-                    isOptionEqualToValue={(option, value) => option.name === value?.name}
-                    onChange={(event, newValue) => {
-                      setFormData(prev => ({ ...prev, education_requirement: newValue ? newValue.name : '' }));
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Education Level *"
-                        error={!!errors.education_requirement}
-                        helperText={errors.education_requirement}
-                        fullWidth
-                      />
-                    )}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Autocomplete
-                    id="experienceLevel"
-                    options={metadata.experience_levels || []}
-                    getOptionLabel={(option) => option.charAt(0).toUpperCase() + option.slice(1)}
-                    value={formData.experienceLevel || null}
-                    onChange={(event, newValue) => {
-                      setFormData(prev => ({ ...prev, experienceLevel: newValue || '' }));
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Experience Level (Optional)"
-                        fullWidth
-                      />
-                    )}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 3 }}>
-                  <TextField
-                    fullWidth label="Salary Min (Optional)" name="salaryMin" type="number"
-                    value={formData.salaryMin} onChange={handleChange}
-                    inputProps={{ min: 0 }}
-                    InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 3 }}>
-                  <TextField
-                    fullWidth label="Salary Max (Optional)" name="salaryMax" type="number"
-                    value={formData.salaryMax} onChange={handleChange}
-                    inputProps={{ min: 0 }}
-                    InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                  {isSkillsFocused && (
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
-                        color: '#4f46e5', 
-                        display: 'block', 
-                        mb: 0.5, 
-                        fontWeight: 500,
-                        animation: 'fadeIn 0.3s ease-in-out',
-                        '@keyframes fadeIn': {
-                          from: { opacity: 0, transform: 'translateY(-5px)' },
-                          to: { opacity: 1, transform: 'translateY(0)' }
-                        }
-                      }}
-                    >
-                      If the skill you’re looking for isn’t available in the dropdown, simply type it in and press Enter.
+                  {errors.description && (
+                    <Typography variant="caption" sx={{ color: '#ef4444', mt: 1, ml: 1, display: 'block', fontWeight: 600 }}>
+                      {errors.description}
                     </Typography>
                   )}
-                  <Autocomplete
-                    multiple freeSolo options={predefinedSkills} value={formData.skills} onChange={handleSkillsChange}
-                    renderTags={(value, getTagProps) => value.map((option, index) => (
-                      <Chip variant="outlined" label={option} size="small" sx={{ borderColor: '#c7d2fe', color: '#4f46e5', bgcolor: '#e0e7ff' }} {...getTagProps({ index })} />
-                    ))}
-                    renderInput={(params) => (
-                      <TextField 
-                        {...params} 
-                        variant="outlined" 
-                        label="Required Skills" 
-                        placeholder="Add skills" 
-                        onFocus={() => setIsSkillsFocused(true)}
-                        onBlur={() => setIsSkillsFocused(false)}
-                      />
-                    )}
-                  />
-                </Grid>
+                </Box>
+              </Paper>
 
-                <Grid size={{ xs: 12 }}>
-                  <Box id="description" sx={{
-                    '& .ql-container': {
-                      borderRadius: '0 0 12px 12px',
-                      minHeight: '250px',
-                      fontSize: '1rem',
-                      border: errors.description ? '1px solid #ef4444' : '1px solid #e2e8f0',
-                      bgcolor: 'white'
-                    },
-                    '& .ql-toolbar': {
-                      borderRadius: '12px 12px 0 0',
-                      border: errors.description ? '1px solid #ef4444' : '1px solid #e2e8f0',
-                      borderBottom: 'none',
-                      bgcolor: '#f8fafc',
-                      fontFamily: 'inherit'
-                    },
-                    '& .ql-editor': {
-                      minHeight: '250px',
-                      fontFamily: '"Inter", "Roboto", sans-serif',
-                      color: '#1e293b'
-                    },
-                    '& .ql-editor.ql-blank::before': {
-                      color: '#94a3b8',
-                      fontStyle: 'normal'
-                    }
-                  }}>
-                    <Typography variant="subtitle2" sx={{ mb: 1, color: errors.description ? '#ef4444' : '#64748b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <DescriptionIcon sx={{ fontSize: 18 }} /> Job Description *
-                    </Typography>
-                    <ReactQuill
-                      theme="snow"
-                      value={formData.description}
-                      onChange={handleDescriptionChange}
-                      modules={quillModules}
-                      formats={quillFormats}
-                      placeholder="Enter detailed job description, responsibilities, and requirements..."
-                    />
-                    {errors.description && (
-                      <Typography variant="caption" sx={{ color: '#ef4444', mt: 0.5, ml: 1, fontWeight: 500 }}>
-                        {errors.description}
-                      </Typography>
-                    )}
-                  </Box>
-                </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                    <Button
-                      type="submit" variant="contained" size="large"
-                      disabled={isSubmitting}
-                      sx={{
-                        px: 5, py: 1.5, fontSize: '1rem', fontWeight: 700, borderRadius: 2.5, textTransform: 'none',
-                        background: '#0f172a', color: 'white',
-                        boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
-                        '&:hover': { background: '#333333', transform: 'translateY(-1px)' },
-                        '&.Mui-disabled': { background: 'rgba(15, 23, 42, 0.6)', color: 'rgba(255, 255, 255, 0.5)' }
-                      }}
-                    >
-                      {isSubmitting ? "Posting Job..." : "Submit Job"}
-                    </Button>
-                  </Box>
-                </Grid>
-              </Grid>
-            </form>
-          )}
-        </Paper>
+              {/* Submit Action */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
+                <Button
+                  type="submit" variant="contained" size="large" disabled={isSubmitting}
+                  sx={{
+                    px: 6, py: 2, borderRadius: '16px', fontWeight: 800, textTransform: 'none', fontSize: '1.1rem',
+                    bgcolor: '#2563EB', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.2)',
+                    '&:hover': { bgcolor: '#1e40af', boxShadow: '0 12px 30px rgba(37, 99, 235, 0.3)' }
+                  }}
+                >
+                  {isSubmitting ? "Processing..." : "Publish Job Post"}
+                </Button>
+              </Box>
+            </Stack>
+          </form>
+        )}
       </Container>
 
-
-      {/* Success Snackbar */}
       <Snackbar open={!!successMsg} autoHideDuration={3000} onClose={() => setSuccessMsg('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert severity="success" variant="filled" sx={{ width: '100%', borderRadius: 2, fontWeight: 600 }}>
+        <Alert severity="success" variant="filled" sx={{ borderRadius: '12px', fontWeight: 600 }}>
           {successMsg}
         </Alert>
       </Snackbar>

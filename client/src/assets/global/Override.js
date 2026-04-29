@@ -59,11 +59,12 @@ const components = {
       root: {
         textTransform: 'none',
         boxShadow: 'none',
-        fontSize: '12px',
+        borderRadius: '12px',
+        fontWeight: 700,
+        padding: '10px 24px',
         '&:hover': {
           boxShadow: 'none',
         },
-        lineHeight: '1.5'
       },
     },
   },
@@ -71,7 +72,7 @@ const components = {
   MuiListItem: {
     styleOverrides: {
       root: {
-        borderRadius: '8px',
+        borderRadius: '12px',
       },
     },
   },
@@ -79,70 +80,28 @@ const components = {
   MuiCard: {
     styleOverrides: {
       root: {
-        borderRadius: '12px',
-        padding: '14px',
-        margin: '15px',
-        boxShadow: '0px 7px 30px 0px rgba(90, 114, 123, 0.11)',
-      },
-    },
-  },
-  MuiIcon: {
-    styleOverrides: {
-      root: {
-        fontSize: '1.3rem'
-      },
-    },
-  },
-  MuiListItemIcon: {
-    styleOverrides: {
-      root: {
-        minWidth: '40px',
-        fontSize: '1.3rem'
-      },
-    },
-  },
-  MuiListItemText: {
-    styleOverrides: {
-      secondary: {
-        fontSize: '0.775rem'
-      },
-    },
-  },
-  MuiGridItem: {
-    styleOverrides: {
-      root: {
-        paddingTop: '30px',
-        paddingLeft: '30px !important',
-      },
-    },
-  },
-  MuiLinearProgress: {
-    styleOverrides: {
-      root: {
-        backgroundColor: '#ecf0f2',
-        borderRadius: '8px',
-      },
-    },
-  },
-  MuiMenuItem: {
-    styleOverrides: {
-      root: {
-        borderRadius: '0',
+        borderRadius: '16px',
+        padding: '24px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
+        border: '1px solid #E5E7EB',
       },
     },
   },
   MuiChip: {
     styleOverrides: {
       root: {
-        fontWeight: '500',
-        fontSize: '0.55rem',
+        fontWeight: '600',
+        borderRadius: '10px',
+        fontSize: '0.8125rem',
       },
     },
   },
   MuiDialogTitle: {
     styleOverrides: {
       root: {
-        backgroundColor: '#f1f1f1'
+        backgroundColor: '#FFFFFF',
+        fontWeight: 800,
+        color: '#111827',
       },
     },
   },
