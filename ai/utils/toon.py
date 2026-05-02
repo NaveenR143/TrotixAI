@@ -273,7 +273,7 @@ class TOONFormatter:
             "Identify 8-10 key skills the user should develop to stay competitive based on market trends.\n"
             "Categorize each skill as 'technical', 'soft', or 'domain-specific'.\n"
             "Provide a clear rationale for why each skill is important.\n"
-            "Suggest practical ways to learn each skill (projects, courses, certifications).\n"
+            "Suggest practical ways to learn each skill (projects, practice, courses, certifications).\n"
             "Additionally, include concrete learning resources such as URLs, course names, certifications, and institutions.\n"
             "Ensure resources include a mix of free and paid options where possible.\n"
             "Recommend a priority for the learning roadmap (short-term vs long-term).\n\n"
@@ -297,6 +297,19 @@ class TOONFormatter:
             '      roadmap_priority: "short-term|long-term"\n'
             "    )\n"
             "  ]\n"
+            ")\n"
+        )
+
+    @staticmethod
+    def build_application_email_instructions() -> str:
+        return (
+            "Return ONLY this TOON object and nothing else.\n"
+            "Generate a highly personalized application email based on the user's profile and the job description.\n"
+            "The subject line should be professional and catchy.\n"
+            "The body should highlight the user's most relevant skills and experiences that match the job requirements.\n\n"
+            "ApplicationEmailTOON(\n"
+            '  subject: "str",\n'
+            '  body: "str"\n'
             ")\n"
         )
 

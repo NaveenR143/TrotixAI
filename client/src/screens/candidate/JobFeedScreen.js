@@ -1,7 +1,7 @@
 // screens/candidate/JobFeedScreen.js
 import React, { useState, useMemo, useEffect } from "react";
 import {
-  Box, Typography, Button, Stack, useMediaQuery, useTheme, Tooltip, IconButton, Chip, Drawer, Badge, CircularProgress,
+  Box, Typography, Button, Stack, useMediaQuery, TextField, useTheme, Tooltip, IconButton, Chip, Drawer, Badge, CircularProgress,
 } from "@mui/material";
 import TuneIcon from "@mui/icons-material/Tune";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";

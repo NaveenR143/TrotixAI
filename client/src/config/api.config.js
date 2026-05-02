@@ -34,6 +34,7 @@ const API_ENDPOINTS = {
   JOB_MATCHING_CANDIDATES: '/jobs/fetch-job-matching-candidates',
   JOB_APPLICANTS: '/jobs/fetch-job-applicants',
   APPLY_JOB: '/jobs/apply-job',
+  TAILORING_JOB_EMAIL: '/jobs/tailoring-job-email',
 };
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────

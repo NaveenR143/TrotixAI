@@ -220,7 +220,67 @@ class AzureOpenAIResumeRefiner:
             analysis_json = self._formatter.career_toon_to_json(content)
 
             return analysis_json
-
         except Exception as exc:
             logger.error(f"Skill development analysis failed: {exc}", exc_info=True)
             raise CareerAdvisorError(f"LLM skill analysis failed: {exc}") from exc
+
+    async def generate_application_email(
+        self,
+        user_profile: Dict[str, Any],
+        job_details: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Generate a personalized application email using Azure OpenAI
+        """
+        schema_instruction = self._formatter.build_application_email_instructions()
+
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are a professional career coach and resume writer.\n"
+                    "Your task is to write a highly personalized application email that connects a user's skills and experience to a specific job description.\n"
+                    "Output MUST follow EXACT TOON syntax.\n"
+                    "STRICT RULES:\n"
+                    '1. Use only double quotes (") for all strings.\n'
+                    '2. Escape all internal quotes using \\".\n'
+                    "3. Parentheses () are for objects.\n"
+                    "4. Separate all fields with commas.\n"
+                    "5. Do NOT add any extra text outside the TOON object.\n"
+                    "6. The body MUST use \\n for newlines and be well-formatted.\n"
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"{schema_instruction}\n\n"
+                    "User Profile:\n"
+                    f"{json.dumps(clean_dict(user_profile), ensure_ascii=False)}\n\n"
+                    "Job Details:\n"
+                    f"{json.dumps(clean_dict(job_details), ensure_ascii=False)}\n"
+                ),
+            },
+        ]
+
+        try:
+            response = self._client.chat.completions.create(
+                model=self._deployment,
+                messages=messages,
+                temperature=0.7,  # moderate creativity for email writing
+            )
+
+            content = (response.choices[0].message.content or "").strip()
+
+            if not content.startswith("ApplicationEmailTOON("):
+                raise CareerAdvisorError(
+                    "Invalid TOON format for application email"
+                )
+
+            # Convert TOON → JSON
+            email_json = self._formatter.career_toon_to_json(content)
+
+            return email_json
+
+        except Exception as exc:
+            logger.error(f"Application email generation failed: {exc}", exc_info=True)
+            raise CareerAdvisorError(f"LLM application email failed: {exc}") from exc

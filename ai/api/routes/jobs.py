@@ -32,6 +32,8 @@ from ai.models.job_models import (
     JobCreateResponse,
     JobApplicationRequest,
 )
+from ai.services.profile_service import ProfileService
+from ai.services.ai_refiner_service import AzureOpenAIResumeRefiner
 
 router = APIRouter()
 
@@ -353,4 +355,63 @@ async def apply_job(request: JobApplicationRequest, db: AsyncSession = Depends(g
         await db.rollback()
         raise HTTPException(
             status_code=500, detail=f"Database insertion failure: {str(e)}"
+        )
+
+
+@router.get("/tailoring-job-email")
+async def tailoring_job_email(
+    job_id: str, user_id: str, db: AsyncSession = Depends(get_db)
+):
+    try:
+        # 1. Retrieve job details
+        job_result = await db.execute(
+            select(JobPosting)
+            .options(
+                joinedload(JobPosting.company),
+                joinedload(JobPosting.industry),
+                joinedload(JobPosting.dept),
+            )
+            .where(JobPosting.id == int(job_id))
+        )
+        job = job_result.scalar_one_or_none()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+
+        job_data = {
+            "title": job.title,
+            "description": job.description,
+            "summary": job.summary,
+            "company": job.company.name if job.company else None,
+            "location": job.location,
+            "industry": job.industry.name if job.industry else None,
+            "department": job.dept.name if job.dept else None,
+        }
+
+        # 2. Fetch user profile
+        try:
+            user_uuid = uuid.UUID(user_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid user_id format")
+
+        profile_data = await ProfileService.fetch_user_profile(
+            user_id=user_uuid, session=db
+        )
+
+        # 3. Generate email content using Azure OpenAI
+        refiner = AzureOpenAIResumeRefiner()
+        email_content = await refiner.generate_application_email(
+            user_profile=profile_data, job_details=job_data
+        )
+
+        return {
+            "status": "success",
+            "subject": email_content.get("subject"),
+            "body": email_content.get("body"),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error generating application email: {str(e)}"
         )

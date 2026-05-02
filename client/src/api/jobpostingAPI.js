@@ -256,3 +256,31 @@ export const fetchJobApplicants = async (jobId) => {
         return handleError(error);
     }
 };
+
+/**
+ * Generate tailored job email
+ */
+export const generateTailoredJobEmail = async (jobId, userId) => {
+    try {
+        const response = await axios.get(
+            `${API_BASE_URL}${API_ENDPOINTS.TAILORING_JOB_EMAIL}`,
+            {
+                params: {
+                    job_id: jobId,
+                    user_id: userId
+                },
+                headers: getHeaders(),
+            }
+        );
+
+        return {
+            error: false,
+            data: response.data?.data || response.data,
+            message: "Tailored job email generated successfully",
+        };
+    } catch (error) {
+        console.error("Error generating tailored job email:", error);
+        return handleError(error);
+    }
+};
+
