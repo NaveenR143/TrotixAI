@@ -3,15 +3,16 @@
     min-height: 297mm;
     margin: 0 auto;
     background: #e5e7eb;
-    padding: 20px;
+    /* padding: 20px; */
     box-sizing: border-box;
 }
 
 .t5-resume {
     max-width: 800px;
+    min-height: 297mm;
     margin: 0 auto;
     background: #ffffff;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     color: #334155;
@@ -20,7 +21,8 @@
 
 /* ===== DARK CORPORATE HEADER ===== */
 .t5-header {
-    background-color: #0f172a; /* Dark Slate */
+    background-color: #0f172a;
+    /* Dark Slate */
     color: #ffffff;
     padding: 40px 50px;
     display: flex;
@@ -39,7 +41,8 @@
 .t5-header-left .t5-job-title {
     font-size: 14px;
     font-weight: 500;
-    color: #38bdf8; /* Light Blue Accent */
+    color: #38bdf8;
+    /* Light Blue Accent */
     text-transform: uppercase;
     letter-spacing: 2px;
 }
@@ -146,7 +149,8 @@
     text-transform: uppercase;
 }
 
-.t5-edu-school, .t5-edu-degree {
+.t5-edu-school,
+.t5-edu-degree {
     text-transform: uppercase;
 }
 
@@ -256,6 +260,7 @@
         background: none;
         width: 100%;
     }
+
     .t5-resume {
         box-shadow: none;
         margin: 0;

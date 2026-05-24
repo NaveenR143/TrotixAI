@@ -3,15 +3,16 @@
     min-height: 297mm;
     margin: 0 auto;
     background: #e8e8e8;
-    padding: 20px;
+    /* padding: 20px; */
     box-sizing: border-box;
 }
 
 .t3-resume {
     max-width: 800px;
+    min-height: 297mm;
     margin: 0 auto;
     background: #ffffff;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     font-family: 'Calibri', 'Arial', sans-serif;
     color: #333333;
@@ -20,7 +21,8 @@
 
 /* ===== HEADER WITH LIGHT BACKGROUND ===== */
 .t3-header {
-    background-color: #eaf2f8; /* Soft light blue */
+    background-color: #eaf2f8;
+    /* Soft light blue */
     padding: 40px 50px 30px;
     border-bottom: 3px solid #2c3e50;
 }
@@ -135,7 +137,8 @@
     text-transform: uppercase;
 }
 
-.t3-edu-school, .t3-edu-degree {
+.t3-edu-school,
+.t3-edu-degree {
     text-transform: uppercase;
 }
 
@@ -240,6 +243,7 @@
         background: none;
         width: 100%;
     }
+
     .t3-resume {
         box-shadow: none;
         margin: 0;

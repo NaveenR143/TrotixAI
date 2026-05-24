@@ -148,7 +148,7 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
         setRecordErrors((prev) => ({ ...prev, [index]: result.message }));
       } else {
         if (onSuccess) onSuccess(isNewRecord ? "Project created!" : "Project updated!");
-        
+
         setChangedProjects((prev) => {
           const s = new Set(prev);
           s.delete(index);
@@ -235,9 +235,9 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
         </Alert>
       )}
 
-      {showReviewBanner && (
-        <Alert 
-          severity="info" 
+      {showReviewBanner && projects.length > 0 && (
+        <Alert
+          severity="info"
           sx={{ mb: 2, bgcolor: "#f5f3ff", border: "1px solid #c4b5fd", "& .MuiAlert-icon": { color: "#6366f1" } }}
           onClose={() => setShowReviewBanner(false)}
         >
@@ -330,21 +330,21 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
                   <TextField fullWidth label="Repo URL" value={proj.repoUrl || ""} onChange={(e) => updateProjectField(idx, "repoUrl", e.target.value)} size="small" />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <DatePicker 
-                    label="Start Date" 
-                    value={proj.startDate ? dayjs(proj.startDate) : null} 
-                    onChange={(val) => updateProjectField(idx, "startDate", val ? val.format("YYYY-MM-DD") : "")} 
-                    format="DD/MM/YYYY" 
-                    slotProps={{ textField: { fullWidth: true, size: "small", InputLabelProps: { shrink: true } } }} 
+                  <DatePicker
+                    label="Start Date"
+                    value={proj.startDate ? dayjs(proj.startDate) : null}
+                    onChange={(val) => updateProjectField(idx, "startDate", val ? val.format("YYYY-MM-DD") : "")}
+                    format="DD/MM/YYYY"
+                    slotProps={{ textField: { fullWidth: true, size: "small", InputLabelProps: { shrink: true } } }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <DatePicker 
-                    label="End Date" 
-                    value={proj.endDate ? dayjs(proj.endDate) : null} 
-                    onChange={(val) => updateProjectField(idx, "endDate", val ? val.format("YYYY-MM-DD") : "")} 
-                    format="DD/MM/YYYY" 
-                    slotProps={{ textField: { fullWidth: true, size: "small", InputLabelProps: { shrink: true } } }} 
+                  <DatePicker
+                    label="End Date"
+                    value={proj.endDate ? dayjs(proj.endDate) : null}
+                    onChange={(val) => updateProjectField(idx, "endDate", val ? val.format("YYYY-MM-DD") : "")}
+                    format="DD/MM/YYYY"
+                    slotProps={{ textField: { fullWidth: true, size: "small", InputLabelProps: { shrink: true } } }}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -353,10 +353,10 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
                 <Grid item xs={12}>
                   <TextField fullWidth label="Technologies (comma separated)" value={Array.isArray(proj.skills) ? proj.skills.join(", ") : ""} onChange={(e) => updateProjectField(idx, "skills", e.target.value.split(",").map(s => s.trim()))} size="small" />
                 </Grid>
-                
+
                 {recordErrors?.[idx] && <Grid item xs={12}><Alert severity="error" sx={{ fontSize: "0.85rem" }}>{recordErrors[idx]}</Alert></Grid>}
                 {changedProjects.has(idx) && !recordErrors?.[idx] && <Grid item xs={12}><Typography sx={{ fontSize: "0.85rem", color: "#f59e0b" }}>⚠️ Unsaved changes</Typography></Grid>}
-                
+
                 <Grid item xs={12}>
                   <Button
                     variant="contained" size="small" onClick={() => saveIndividualProject(idx)}

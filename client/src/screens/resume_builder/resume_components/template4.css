@@ -3,15 +3,16 @@
     min-height: 297mm;
     margin: 0 auto;
     background: #dcdcdc;
-    padding: 20px;
+    /* padding: 20px; */
     box-sizing: border-box;
 }
 
 .t4-resume {
     max-width: 800px;
+    min-height: 297mm;
     margin: 0 auto;
     background: #ffffff;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
     overflow: hidden;
     font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
     color: #2d3436;
@@ -165,7 +166,8 @@
     text-transform: uppercase;
 }
 
-.t4-edu-school, .t4-edu-degree {
+.t4-edu-school,
+.t4-edu-degree {
     text-transform: uppercase;
 }
 
@@ -277,6 +279,7 @@
         background: none;
         width: 100%;
     }
+
     .t4-resume {
         box-shadow: none;
         margin: 0;

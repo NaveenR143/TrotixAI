@@ -3,16 +3,18 @@
     min-height: 297mm;
     margin: 0 auto;
     background: #e5e5e5;
-    padding: 20px;
+    /* padding: 20px; */
     box-sizing: border-box;
 }
 
 .t6-resume {
     max-width: 800px;
+    min-height: 297mm;
     margin: 0 auto;
     background: #ffffff;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    border-left: 6px solid #1e3a5f; /* Elegant Navy Left Border */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-left: 6px solid #1e3a5f;
+    /* Elegant Navy Left Border */
     overflow: hidden;
     font-family: 'Lato', 'Segoe UI', Arial, sans-serif;
     color: #333333;
@@ -39,7 +41,8 @@
 .t6-header .t6-job-title {
     font-size: 14px;
     font-weight: 400;
-    color: #b8860b; /* Classic Gold/Bronze */
+    color: #b8860b;
+    /* Classic Gold/Bronze */
     text-transform: uppercase;
     letter-spacing: 3px;
     margin-bottom: 20px;
@@ -75,7 +78,8 @@
     text-transform: uppercase;
     letter-spacing: 1.5px;
     color: #1e3a5f;
-    border-bottom: 2px solid #b8860b; /* Gold underline */
+    border-bottom: 2px solid #b8860b;
+    /* Gold underline */
     padding-bottom: 5px;
     margin-bottom: 18px;
 }
@@ -149,7 +153,8 @@
     text-transform: uppercase;
 }
 
-.t6-edu-school, .t6-edu-degree {
+.t6-edu-school,
+.t6-edu-degree {
     text-transform: uppercase;
 }
 
@@ -263,6 +268,7 @@
         background: none;
         width: 100%;
     }
+
     .t6-resume {
         box-shadow: none;
         margin: 0;

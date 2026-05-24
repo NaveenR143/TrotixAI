@@ -3,15 +3,16 @@
     min-height: 297mm;
     margin: 0 auto;
     background: #dce4e8;
-    padding: 20px;
+    /* padding: 20px; */
     box-sizing: border-box;
 }
 
 .t8-resume {
     max-width: 800px;
+    min-height: 297mm;
     margin: 0 auto;
     background: #ffffff;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -54,7 +55,8 @@
 .t8-header-left .t8-job-title {
     font-size: 14px;
     font-weight: 500;
-    color: #e0f2f1; /* Light teal tint */
+    color: #e0f2f1;
+    /* Light teal tint */
     text-transform: uppercase;
     letter-spacing: 2.5px;
 }
@@ -173,7 +175,8 @@
     text-transform: uppercase;
 }
 
-.t8-edu-school, .t8-edu-degree {
+.t8-edu-school,
+.t8-edu-degree {
     text-transform: uppercase;
 }
 
@@ -284,6 +287,7 @@
         background: none;
         width: 100%;
     }
+
     .t8-resume {
         box-shadow: none;
         margin: 0;
