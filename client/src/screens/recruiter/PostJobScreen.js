@@ -3,7 +3,7 @@ import {
   Box, Typography, Button, TextField, Paper, Container, Stack,
   Autocomplete, Chip, FormControl, InputLabel, Select, MenuItem,
   FormHelperText, InputAdornment, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-  Snackbar, Alert, Fade, IconButton
+  Snackbar, Alert, Fade, IconButton, CircularProgress
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -18,17 +18,45 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import EmailIcon from "@mui/icons-material/Email";
 import DescriptionIcon from "@mui/icons-material/Description";
+import SchoolIcon from "@mui/icons-material/School";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchJobMetadata,
+  createJob
+} from "../../api/jobpostingAPI";
+import { fetchSkillsDropdown } from "../../api/profileAPI";
+import AuthComponent from "../../components/common/AuthComponent";
 import { UPDATE_USER_PROFILE } from "../../redux/constants";
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import { fadeSlideUp } from "../../utils/themeUtils";
+import { toTitleCase } from "../../utils/formUtils";
 
-const predefinedSkills = ["React", "Node.js", "Python", "Java", "Docker", "AWS", "UI/UX", "JavaScript", "TypeScript", "SQL"];
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ['link', 'clean'],
+  ],
+};
+
+const quillFormats = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'list',
+  'link'
+];
+
+// Removed hardcoded predefinedSkills
 
 const PostJobScreen = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { mobile: savedMobile } = useSelector(state => state.UserReducer || {});
+  const {
+    userid, email, mobile
+  } = useSelector((state) => state.UserReducer);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -36,42 +64,77 @@ const PostJobScreen = () => {
     company: '',
     location: '',
     type: '',
-    salary: '',
+    salaryMin: '',
+    salaryMax: '',
+    experienceLevel: '',
     description: '',
     skills: [],
-    email: '',
-    mobile: ''
+    expMin: '',
+    expMax: '',
+    workMode: '',
+    openings: 1,
+    industry_id: '',
+    department_id: '',
+    education_requirement: ''
   });
+
+  const [metadata, setMetadata] = useState({
+    industries: [],
+    education_levels: [],
+    departments: [],
+    work_modes: [],
+    job_types: [],
+    experience_levels: []
+  });
+
+  const [skillsOptions, setSkillsOptions] = useState([]);
+  const [skillsLoading, setSkillsLoading] = useState(false);
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [isSkillsFocused, setIsSkillsFocused] = useState(false);
 
-  // Draft persistence
+
+  // Fetch Metadata
   useEffect(() => {
-    const draft = localStorage.getItem('postJobDraft');
-    if (draft) {
-      try {
-        setFormData(JSON.parse(draft));
-      } catch (e) {
-        console.error("Error loading draft", e);
+    const loadMetadata = async () => {
+      const response = await fetchJobMetadata();
+      if (!response.error) {
+        setMetadata(response.data);
+      } else {
+        console.error("Error loading job metadata:", response.message);
       }
-    }
+    };
+    loadMetadata();
+
+    // Initial popular skills
+    const loadInitialSkills = async () => {
+      setSkillsLoading(true);
+      const res = await fetchSkillsDropdown("");
+      if (!res.error) {
+        setSkillsOptions(res.data.map(s => toTitleCase(typeof s === 'string' ? s : s.name)));
+      }
+      setSkillsLoading(false);
+    };
+    loadInitialSkills();
   }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      localStorage.setItem('postJobDraft', JSON.stringify(formData));
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [formData]);
+  const handleSkillsSearch = async (query) => {
+    setSkillsLoading(true);
+    try {
+      const res = await fetchSkillsDropdown(query);
+      if (!res.error) {
+        setSkillsOptions(res.data.map(s => toTitleCase(typeof s === 'string' ? s : s.name)));
+      }
+    } catch (err) {
+      console.error("Skills search error:", err);
+    } finally {
+      setSkillsLoading(false);
+    }
+  };
 
-  // Login Modal State
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [loginStep, setLoginStep] = useState(1);
-  const [loginForm, setLoginForm] = useState({ name: '', mobile: '', otp: '' });
-  const [loginLoading, setLoginLoading] = useState(false);
-  const [loginError, setLoginError] = useState('');
+
 
   // Validation
   const validate = () => {
@@ -80,23 +143,15 @@ const PostJobScreen = () => {
     if (!formData.company.trim()) temp.company = "Company Name is required";
     if (!formData.location.trim()) temp.location = "Location is required";
     if (!formData.type) temp.type = "Job Type is required";
-    if (!formData.description.trim()) temp.description = "Job Description is required";
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim()) {
-      temp.email = "Email is required";
-    } else if (!emailRegex.test(formData.email)) {
-      temp.email = "Invalid email format";
-    }
-
-    if (!formData.mobile.trim()) {
-      temp.mobile = "Mobile Number is required";
-    } else if (!/^\d{10}$/.test(formData.mobile)) {
-      temp.mobile = "Must be 10 digits";
-    }
+    if (!formData.workMode) temp.workMode = "Work Mode is required";
+    if (!formData.expMin) temp.expMin = "Min Experience is required";
+    if (!formData.expMax) temp.expMax = "Max Experience is required";
+    if (!formData.industry_id) temp.industry_id = "Industry is required";
+    if (!formData.education_requirement) temp.education_requirement = "Education is required";
+    if (!formData.description || !formData.description.trim() || formData.description === '<p><br></p>') temp.description = "Job Description is required";
 
     setErrors(temp);
-    return Object.keys(temp).length === 0;
+    return temp;
   };
 
   const handleChange = (e) => {
@@ -105,261 +160,320 @@ const PostJobScreen = () => {
   };
 
   const handleSkillsChange = (event, newValue) => {
-    setFormData(prev => ({ ...prev, skills: newValue }));
+    const titleCasedSkills = newValue.map(s => toTitleCase(s));
+    setFormData(prev => ({ ...prev, skills: titleCasedSkills }));
   };
 
-  const performJobSubmit = () => {
+  const handleDescriptionChange = (content) => {
+    setFormData(prev => ({ ...prev, description: content }));
+  };
+
+  const performJobSubmit = async () => {
     setIsSubmitting(true);
-    // Mock API Call
-    setTimeout(() => {
+    try {
+      const payload = {
+        userid: userid,
+        title: formData.title,
+        company: formData.company,
+        location: formData.location,
+        work_mode: formData.workMode,
+        openings: parseInt(formData.openings),
+        industry_id: parseInt(formData.industry_id),
+        department_id: formData.department_id ? parseInt(formData.department_id) : null,
+        education_requirement: formData.education_requirement,
+        experience_min: parseInt(formData.expMin),
+        experience_max: parseInt(formData.expMax),
+        experience_level: formData.experienceLevel,
+        salary_min: formData.salaryMin ? parseFloat(formData.salaryMin) : null,
+        salary_max: formData.salaryMax ? parseFloat(formData.salaryMax) : null,
+        description: formData.description,
+        skills: formData.skills,
+        email: email || '',
+        mobile: mobile || ''
+      };
+
+
+
+      const response = await createJob(payload);
+
+      if (!response.error) {
+        setSuccessMsg("Job posted successfully!");
+        setTimeout(() => navigate('/posted-jobs'), 1500);
+      } else {
+        setErrors({ submit: response.message });
+      }
+    } catch (error) {
+      console.error("Error posting job:", error);
+      setErrors({ submit: "An unexpected error occurred." });
+    } finally {
       setIsSubmitting(false);
-      setSuccessMsg("Job posted successfully!");
-      localStorage.removeItem('postJobDraft');
-      setTimeout(() => navigate('/posted-jobs'), 1500);
-    }, 1200);
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validate()) return;
-    
-    if (!savedMobile) {
-      setLoginModalOpen(true);
-    } else {
-      performJobSubmit();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      const firstErrorKey = Object.keys(validationErrors)[0];
+      const element = document.getElementById(firstErrorKey);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Optionally focus the input if it's a TextField
+        const input = element.querySelector('input');
+        if (input) input.focus();
+      }
+      return;
     }
+    performJobSubmit();
   };
 
-  // Login Modal Handlers
-  const handleLoginNext = () => {
-    if (!loginForm.name.trim()) {
-      setLoginError("Name is required");
-      return;
-    }
-    if (!/^\d{10}$/.test(loginForm.mobile)) {
-      setLoginError("Valid 10-digit mobile number is required");
-      return;
-    }
-    setLoginError("");
-    setLoginLoading(true);
-    setTimeout(() => {
-      setLoginLoading(false);
-      setLoginStep(2);
-    }, 800);
-  };
 
-  const handleLoginVerify = () => {
-    if (loginForm.otp !== "123456") {
-      setLoginError("Invalid OTP. Use 123456");
-      return;
-    }
-    setLoginError("");
-    setLoginLoading(true);
-    
-    setTimeout(() => {
-      dispatch({ 
-        type: UPDATE_USER_PROFILE, 
-        payload: { mobile: loginForm.mobile, displayname: loginForm.name } 
-      });
-      setLoginLoading(false);
-      setLoginModalOpen(false);
-      // Automatically post job after authentication
-      performJobSubmit();
-    }, 800);
-  };
+  // Helper for section titles
+  const SectionTitle = ({ icon: Icon, title }) => (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+      <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Icon sx={{ color: '#2563EB', fontSize: 20 }} />
+      </Box>
+      <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: '#111827' }}>
+        {title}
+      </Typography>
+    </Box>
+  );
 
   return (
-    <Box sx={{ bgcolor: '#f8fafc', minHeight: 'calc(100vh - 64px)', py: { xs: 3, md: 5 } }}>
+    <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 8 }}>
+      <Box sx={{ bgcolor: '#FFFFFF', borderBottom: '1px solid #E5E7EB', py: 2, mb: 4, position: 'sticky', top: 0, zIndex: 1000 }}>
+        <Container maxWidth="lg">
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <IconButton onClick={() => navigate(-1)} size="small" sx={{ color: '#6B7280' }}>
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827', letterSpacing: '-0.02em' }}>
+              Post New Job
+            </Typography>
+          </Stack>
+        </Container>
+      </Box>
+
       <Container maxWidth="md">
-        <Button 
-          startIcon={<ArrowBackIcon />} 
-          onClick={() => navigate(-1)} 
-          sx={{ mb: 2, color: '#64748b', fontWeight: 600, textTransform: 'none', '&:hover': { bgcolor: 'transparent', color: '#0f172a' } }}
-        >
-          Back
-        </Button>
-
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            p: { xs: 3, md: 6 }, 
-            borderRadius: 4, 
-            border: '1px solid #e2e8f0', 
-            boxShadow: '0 10px 40px rgba(15,23,42,0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-            animation: `${fadeSlideUp} 0.5s both`
-          }}
-        >
-          <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }} />
-          
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', mb: 1 }}>
-              Post a Free Job
-            </Typography>
-            <Typography variant="subtitle1" sx={{ color: '#64748b' }}>
-              Find your ideal candidate 10× faster.
-            </Typography>
-          </Box>
-
+        {!(mobile) ? (
+          <Paper elevation={0} sx={{ p: 6, borderRadius: '24px', border: '1px solid #E5E7EB', textAlign: 'center' }}>
+            <AuthComponent invokedFrom="JobPost" userType="Recruiter" />
+          </Paper>
+        ) : (
           <form onSubmit={handleSubmit}>
-            <Grid container spacing={3}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField 
-                  fullWidth label="Job Title *" name="title" value={formData.title} onChange={handleChange}
-                  error={!!errors.title} helperText={errors.title}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><WorkOutlineIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField 
-                  fullWidth label="Company Name *" name="company" value={formData.company} onChange={handleChange}
-                  error={!!errors.company} helperText={errors.company}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><BusinessIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                />
-              </Grid>
-              
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField 
-                  fullWidth label="Location *" name="location" value={formData.location} onChange={handleChange} placeholder="e.g. San Francisco or Remote"
-                  error={!!errors.location} helperText={errors.location}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><LocationOnIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <FormControl fullWidth error={!!errors.type}>
-                  <InputLabel>Job Type *</InputLabel>
-                  <Select name="type" value={formData.type} onChange={handleChange} label="Job Type *">
-                    <MenuItem value="Full-time">Full-time</MenuItem>
-                    <MenuItem value="Part-time">Part-time</MenuItem>
-                    <MenuItem value="Contract">Contract</MenuItem>
-                    <MenuItem value="Freelance">Freelance</MenuItem>
-                    <MenuItem value="Internship">Internship</MenuItem>
-                  </Select>
-                  {errors.type && <FormHelperText>{errors.type}</FormHelperText>}
-                </FormControl>
-              </Grid>
+            <Stack spacing={4}>
+              {/* Basic Information */}
+              <Paper elevation={0} sx={{ p: 4, borderRadius: '20px', border: '1px solid #E5E7EB' }}>
+                <SectionTitle icon={WorkOutlineIcon} title="Basic Information" />
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      id="title" fullWidth label="Job Title *" name="title" value={formData.title} onChange={handleChange}
+                      error={!!errors.title} helperText={errors.title}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      id="company" fullWidth label="Company Name *" name="company" value={formData.company} onChange={handleChange}
+                      error={!!errors.company} helperText={errors.company}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      id="location" fullWidth label="Location *" name="location" value={formData.location} onChange={handleChange}
+                      error={!!errors.location} helperText={errors.location}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Autocomplete
+                      id="type" options={metadata.job_types || []}
+                      getOptionLabel={(option) => toTitleCase(option.replace(/_/g, ' '))}
+                      value={formData.type || null}
+                      onChange={(e, v) => setFormData(prev => ({ ...prev, type: v || '' }))}
+                      renderInput={(params) => <TextField {...params} label="Job Type *" error={!!errors.type} helperText={errors.type} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Autocomplete
+                      id="workMode" options={metadata.work_modes || []}
+                      getOptionLabel={(option) => toTitleCase(option.replace(/_/g, ' '))}
+                      value={formData.workMode || null}
+                      onChange={(e, v) => setFormData(prev => ({ ...prev, workMode: v || '' }))}
+                      renderInput={(params) => <TextField {...params} label="Work Mode *" error={!!errors.workMode} helperText={errors.workMode} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth label="No. of Openings *" name="openings" type="number" value={formData.openings} onChange={handleChange}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                </Grid>
+              </Paper>
 
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField 
-                  fullWidth label="Salary Range (Optional)" name="salary" value={formData.salary} onChange={handleChange} placeholder="e.g. $80k - $120k"
-                  InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Autocomplete
-                  multiple freeSolo options={predefinedSkills} value={formData.skills} onChange={handleSkillsChange}
-                  renderTags={(value, getTagProps) => value.map((option, index) => (
-                    <Chip variant="outlined" label={option} size="small" sx={{ borderColor: '#c7d2fe', color: '#4f46e5', bgcolor: '#e0e7ff' }} {...getTagProps({ index })} />
-                  ))}
-                  renderInput={(params) => <TextField {...params} variant="outlined" label="Required Skills (Optional)" placeholder="Add skills" />}
-                />
-              </Grid>
+              {/* Requirements & Experience */}
+              <Paper elevation={0} sx={{ p: 4, borderRadius: '20px', border: '1px solid #E5E7EB' }}>
+                <SectionTitle icon={SchoolIcon} title="Requirements & Experience" />
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Autocomplete
+                      id="industry_id" options={metadata.industries || []}
+                      getOptionLabel={(option) => toTitleCase(option.name || "")}
+                      value={metadata.industries.find(item => item.id === formData.industry_id) || null}
+                      onChange={(e, v) => setFormData(prev => ({ ...prev, industry_id: v ? v.id : '' }))}
+                      renderInput={(params) => <TextField {...params} label="Industry Type *" error={!!errors.industry_id} helperText={errors.industry_id} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Autocomplete
+                      id="education_requirement" options={metadata.education_levels || []}
+                      getOptionLabel={(option) => toTitleCase(option.name || "")}
+                      value={metadata.education_levels.find(item => item.name === formData.education_requirement) || null}
+                      onChange={(e, v) => setFormData(prev => ({ ...prev, education_requirement: v ? v.name : '' }))}
+                      renderInput={(params) => <TextField {...params} label="Education Level *" error={!!errors.education_requirement} helperText={errors.education_requirement} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 3 }}>
+                    <TextField
+                      id="expMin" fullWidth label="Min Exp (Yrs) *" name="expMin" type="number" value={formData.expMin} onChange={handleChange}
+                      error={!!errors.expMin} helperText={errors.expMin} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 3 }}>
+                    <TextField
+                      id="expMax" fullWidth label="Max Exp (Yrs) *" name="expMax" type="number" value={formData.expMax} onChange={handleChange}
+                      error={!!errors.expMax} helperText={errors.expMax} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Autocomplete
+                      id="experienceLevel" options={metadata.experience_levels || []}
+                      getOptionLabel={(option) => toTitleCase(option)}
+                      value={formData.experienceLevel || null}
+                      onChange={(e, v) => setFormData(prev => ({ ...prev, experienceLevel: v || '' }))}
+                      renderInput={(params) => <TextField {...params} label="Exp Level (Optional)" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />}
+                    />
+                  </Grid>
+                </Grid>
+              </Paper>
 
-              <Grid size={{ xs: 12 }}>
-                <TextField 
-                  fullWidth multiline rows={4} label="Job Description *" name="description" value={formData.description} onChange={handleChange}
-                  error={!!errors.description} helperText={errors.description}
-                  InputProps={{ startAdornment: <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1 }}><DescriptionIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                />
-              </Grid>
+              {/* Compensation & Skills */}
+              <Paper elevation={0} sx={{ p: 4, borderRadius: '20px', border: '1px solid #E5E7EB' }}>
+                <SectionTitle icon={AttachMoneyIcon} title="Compensation & Skills" />
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth label="Salary Min (Optional)" name="salaryMin" type="number" value={formData.salaryMin} onChange={handleChange}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon sx={{ fontSize: 20, color: '#94A3B8' }} /></InputAdornment> }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth label="Salary Max (Optional)" name="salaryMax" type="number" value={formData.salaryMax} onChange={handleChange}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon sx={{ fontSize: 20, color: '#94A3B8' }} /></InputAdornment> }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <Autocomplete
+                      multiple
+                      freeSolo
+                      options={skillsOptions}
+                      loading={skillsLoading}
+                      onInputChange={(e, v) => handleSkillsSearch(v)}
+                      value={formData.skills}
+                      onChange={handleSkillsChange}
+                      renderTags={(value, getTagProps) => value.map((option, index) => (
+                        <Chip variant="filled" label={toTitleCase(option)} size="small" sx={{ borderRadius: '8px', bgcolor: '#eff6ff', color: '#2563EB', fontWeight: 700 }} {...getTagProps({ index })} />
+                      ))}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Required Skills"
+                          placeholder="Type to search skills..."
+                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                          InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                              <React.Fragment>
+                                {skillsLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                {params.InputProps.endAdornment}
+                              </React.Fragment>
+                            ),
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </Paper>
 
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField 
-                  fullWidth label="Contact Email *" name="email" value={formData.email} onChange={handleChange}
-                  error={!!errors.email} helperText={errors.email}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment> }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField 
-                  fullWidth label="Contact Mobile *" name="mobile" value={formData.mobile} 
-                  onChange={(e) => setFormData(prev => ({ ...prev, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
-                  error={!!errors.mobile} helperText={errors.mobile}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><Typography sx={{ color: '#94a3b8', fontWeight: 600, fontSize: '0.9rem', mr: 0.5 }}>+91</Typography></InputAdornment> }}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                  <Button 
-                    type="submit" variant="contained" size="large"
-                    disabled={isSubmitting}
-                    sx={{
-                      px: 5, py: 1.5, fontSize: '1rem', fontWeight: 700, borderRadius: 2.5, textTransform: 'none',
-                      background: '#0f172a', color: 'white',
-                      boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
-                      '&:hover': { background: '#333333', transform: 'translateY(-1px)' },
-                      '&.Mui-disabled': { background: 'rgba(15, 23, 42, 0.6)', color: 'rgba(255, 255, 255, 0.5)' }
-                    }}
-                  >
-                    {isSubmitting ? "Posting Job..." : "Submit Job"}
-                  </Button>
+              {/* Detailed Description */}
+              <Paper elevation={0} sx={{ p: 4, borderRadius: '20px', border: '1px solid #E5E7EB' }}>
+                <SectionTitle icon={DescriptionIcon} title="Detailed Description" />
+                <Box id="description" sx={{
+                  '& .ql-container': {
+                    borderRadius: '0 0 12px 12px',
+                    minHeight: '300px',
+                    fontSize: '1rem',
+                    border: errors.description ? '1px solid #ef4444' : '1px solid #E5E7EB',
+                    bgcolor: 'white'
+                  },
+                  '& .ql-toolbar': {
+                    borderRadius: '12px 12px 0 0',
+                    border: errors.description ? '1px solid #ef4444' : '1px solid #E5E7EB',
+                    borderBottom: 'none',
+                    bgcolor: '#F8FAFC'
+                  },
+                  '& .ql-editor': {
+                    minHeight: '300px',
+                    fontFamily: 'inherit',
+                    color: '#111827',
+                    wordBreak: 'break-word'
+                  }
+                }}>
+                  <ReactQuill
+                    theme="snow" value={formData.description} onChange={handleDescriptionChange}
+                    modules={quillModules} formats={quillFormats}
+                    placeholder="Describe the role, responsibilities, and ideal candidate profile..."
+                  />
+                  {errors.description && (
+                    <Typography variant="caption" sx={{ color: '#ef4444', mt: 1, ml: 1, display: 'block', fontWeight: 600 }}>
+                      {errors.description}
+                    </Typography>
+                  )}
                 </Box>
-              </Grid>
-            </Grid>
+              </Paper>
+
+              {/* Submit Action */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
+                <Button
+                  type="submit" variant="contained" size="large" disabled={isSubmitting}
+                  sx={{
+                    px: 6, py: 2, borderRadius: '16px', fontWeight: 800, textTransform: 'none', fontSize: '1.1rem',
+                    bgcolor: '#2563EB', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.2)',
+                    '&:hover': { bgcolor: '#1e40af', boxShadow: '0 12px 30px rgba(37, 99, 235, 0.3)' },
+                    "&.Mui-disabled": {
+                      background: "#E2E8F0",
+                      color: "#475569"
+                    }
+                  }}
+                >
+                  {isSubmitting ? "Processing..." : "Publish Job Post"}
+                </Button>
+              </Box>
+            </Stack>
           </form>
-        </Paper>
+        )}
       </Container>
 
-      {/* Login Modal */}
-      <Dialog open={loginModalOpen} onClose={() => { if(!loginLoading) setLoginModalOpen(false); }} PaperProps={{ sx: { borderRadius: 4, width: '100%', maxWidth: 400, p: 2 } }}>
-        <DialogTitle sx={{ textAlign: 'center', pb: 1, fontWeight: 800 }}>
-          {loginStep === 1 ? "Sign In to Continue" : "Verify OTP"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ textAlign: 'center', mb: 3, pt: 1 }}>
-            {loginStep === 1 ? "Please verify your mobile number to post this job." : `Enter the OTP sent to +91 ${loginForm.mobile}`}
-          </DialogContentText>
-          
-          {loginError && <Alert severity="error" sx={{ mb: 2 }}>{loginError}</Alert>}
-
-          {loginStep === 1 ? (
-            <Stack spacing={3} sx={{ mt: 1 }}>
-              <TextField 
-                fullWidth label="Your Name *" placeholder="John Doe" 
-                value={loginForm.name} onChange={(e) => setLoginForm(prev => ({ ...prev, name: e.target.value }))}
-                InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon sx={{ color: '#94a3b8' }} /></InputAdornment> }}
-              />
-              <TextField 
-                fullWidth label="Mobile Number *" placeholder="Enter 10 digit number" 
-                value={loginForm.mobile} onChange={(e) => setLoginForm(prev => ({ ...prev, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
-                InputProps={{ startAdornment: <InputAdornment position="start"><Typography sx={{ color: '#94a3b8', fontWeight: 600 }}>+91</Typography></InputAdornment> }}
-              />
-              <Button 
-                variant="contained" size="large" onClick={handleLoginNext} disabled={loginLoading}
-                sx={{ py: 1.5, background: '#0f172a', '&:hover': { background: '#333333' }, borderRadius: 2, fontWeight: 700 }}
-              >
-                {loginLoading ? "Sending..." : "Get OTP"}
-              </Button>
-            </Stack>
-          ) : (
-            <Stack spacing={3} sx={{ mt: 1 }}>
-              <TextField 
-                fullWidth label="OTP" placeholder="Enter 6-digit OTP" autoFocus
-                value={loginForm.otp} onChange={(e) => setLoginForm(prev => ({ ...prev, otp: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                InputProps={{ startAdornment: <InputAdornment position="start"><LockOutlinedIcon sx={{ color: '#94a3b8' }} /></InputAdornment> }}
-              />
-              <Typography variant="caption" sx={{ color: '#94a3b8', textAlign: 'center', mt: -2 }}>
-                For testing purposes use OTP: <b>123456</b>
-              </Typography>
-              <Button 
-                variant="contained" size="large" onClick={handleLoginVerify} disabled={loginLoading}
-                sx={{ py: 1.5, background: '#0f172a', '&:hover': { background: '#333333' }, borderRadius: 2, fontWeight: 700 }}
-              >
-                {loginLoading ? "Verifying..." : "Verify & Submit Job"}
-              </Button>
-              <Button variant="text" size="small" onClick={() => { setLoginStep(1); setLoginError(""); }} disabled={loginLoading} sx={{ mt: -1, color: '#64748b' }}>
-                Change Mobile Number
-              </Button>
-            </Stack>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Success Snackbar */}
       <Snackbar open={!!successMsg} autoHideDuration={3000} onClose={() => setSuccessMsg('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert severity="success" variant="filled" sx={{ width: '100%', borderRadius: 2, fontWeight: 600 }}>
+        <Alert severity="success" variant="filled" sx={{ borderRadius: '12px', fontWeight: 600 }}>
           {successMsg}
         </Alert>
       </Snackbar>

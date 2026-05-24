@@ -15,7 +15,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { HeaderComp } from "../common/HeaderComp";
 import { useAuth } from "../../authContext";
-import HeaderContainerComp from "../common/HeaderContainerComp";
+import HeaderComp from "../common/HeaderComp";
 import TermsOfUseComp from "./TermsOfUseComp";
 
 const TermsOfUseLayoutComp = (props) => {
@@ -30,9 +30,9 @@ const TermsOfUseLayoutComp = (props) => {
 
     return (
         <>
-            <HeaderContainerComp
+            <HeaderComp
                 children={<TermsOfUseComp />}
-            ></HeaderContainerComp>
+            ></HeaderComp>
         </>
     );
 };

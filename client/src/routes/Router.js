@@ -1,10 +1,13 @@
 // routes/Router.js
 import React, { lazy } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams, Outlet } from "react-router-dom";
+import { useSelector } from "react-redux";
+import ProtectedRoute from "../components/common/ProtectedRoute";
 import Loadable from "../layouts/full-layout/loadable/Loadable";
 import { jobService } from "../services/jobService";
 import { profileService } from "../services/profileService";
 import { mockJobs, mockProfileData } from "../services/mockData";
+import { CANDIDATE, RECRUITER } from "../redux/constants";
 
 const MainLayout = Loadable(lazy(() => import("../components/layout/MainLayout")));
 
@@ -14,13 +17,25 @@ const UserProfileScreen = Loadable(lazy(() => import("../screens/candidate/UserP
 const ManualProfileScreen = Loadable(lazy(() => import("../screens/candidate/ManualProfileScreen")));
 const JobFeedScreen = Loadable(lazy(() => import("../screens/candidate/JobFeedScreen")));
 const JobDetailScreen = Loadable(lazy(() => import("../screens/candidate/JobDetailScreen")));
-const AddCreditsScreen = Loadable(lazy(() => import("../screens/candidate/AddCreditsScreen")));
-const LoginScreen = Loadable(lazy(() => import("../screens/candidate/LoginScreen")));
+const PublicJobDetailScreen = Loadable(lazy(() => import("../screens/candidate/PublicJobDetailScreen")));
+const MembershipScreen = Loadable(lazy(() => import("../screens/candidate/MembershipScreen")));
+const LoginScreen = Loadable(lazy(() => import("../screens/candidate/LoginWrapper")));
 const DashboardScreen = Loadable(lazy(() => import("../screens/candidate/DashboardScreen")));
+const RecruiterDashboardScreen = Loadable(lazy(() => import("../screens/recruiter/DashboardScreen")));
 const RecruitersScreen = Loadable(lazy(() => import("../screens/candidate/RecruitersScreen")));
+const GovtJobsScreen = Loadable(lazy(() => import("../screens/candidate/GovtJobsScreen")));
+const GovtJobDetailScreen = Loadable(lazy(() => import("../screens/candidate/GovtJobDetailScreen")));
 const ConsultantsScreen = Loadable(lazy(() => import("../screens/consultants/ConsultantsScreen")));
 const PostJobScreen = Loadable(lazy(() => import("../screens/recruiter/PostJobScreen")));
 const PostedJobsScreen = Loadable(lazy(() => import("../screens/recruiter/PostedJobsScreen")));
+const TemplateSelectorScreen = Loadable(lazy(() => import("../screens/resume_builder/TemplateSelectorScreen")));
+const ResumeBuilderScreen = Loadable(lazy(() => import("../screens/resume_builder/ResumeBuilderScreen")));
+const CareerAdvisorScreen = Loadable(lazy(() => import("../screens/career_advisor/CareerAdvisorScreen")));
+const SkillDevelopmentScreen = Loadable(lazy(() => import("../screens/skill_development/SkillDevelopmentScreen")));
+const CandidateFeedScreen = Loadable(lazy(() => import("../screens/recruiter/CandidateFeedScreen")));
+const CandidateProfileScreen = Loadable(lazy(() => import("../screens/recruiter/CandidateProfileScreen")));
+
+
 
 /* ***Layouts**** */
 const BlankLayout = Loadable(lazy(() => import("../layouts/blank-layout/BlankLayout")));
@@ -28,15 +43,30 @@ const BlankLayout = Loadable(lazy(() => import("../layouts/blank-layout/BlankLay
 /* ***Route Wrappers*** */
 const EntryRoute = () => {
   const navigate = useNavigate();
+  const user = useSelector((state) => state.UserReducer);
+
+  if (user?.mobile && user?.role) {
+    if (user.role === CANDIDATE) {
+      return <Navigate to="/dashboard" replace />;
+    } else if (user.role === RECRUITER) {
+      return <Navigate to="/recruiter-dashboard" replace />;
+    }
+  }
+
   return <EntryScreen onUpload={(data) => {
     // Navigate to processing and pass resume data
     navigate('/processing', { state: data });
-  }} onDirectSearch={() => navigate('/feed')} onManualEntry={() => navigate('/manual-profile')} onPostJob={() => navigate('/post-job')} />;
+  }} onDirectSearch={() => navigate('/dashboard')} onManualEntry={() => navigate('/manual-profile')} onPostJob={() => navigate('/post-job')} />;
 };
 
 const ManualProfileRoute = () => {
   const navigate = useNavigate();
-  return <ManualProfileScreen onSave={() => navigate('/feed')} onBack={() => navigate('/')} />;
+  return <ManualProfileScreen onSave={() => navigate('/dashboard')} onBack={() => navigate('/')} />;
+};
+
+const RecruiterDashboardRoute = () => {
+  const navigate = useNavigate();
+  return <RecruiterDashboardScreen onSave={() => navigate('/recruiter-dashboard')} onBack={() => navigate('/')} />;
 };
 
 const ProcessingRoute = () => {
@@ -55,8 +85,10 @@ const ProfileRoute = () => {
 
 const FeedRoute = () => {
   const navigate = useNavigate();
-  // Using mockJobs directly for now, can be fetched in useEffect
-  return <JobFeedScreen jobs={mockJobs} onOpenDetail={(job) => navigate('/detail/' + job.id)} onGoBack={() => navigate('/')} />;
+  const profile = useSelector((state) => state.UserReducer);
+  const userId = profile?.id || '4bfcd973-7f38-4fd9-80f2-b8c133075fcb';
+
+  return <JobFeedScreen userId={userId} onOpenDetail={(job) => navigate('/detail/' + job.id)} onGoBack={() => navigate('/')} onViewProfile={() => navigate('/profile')} />;
 };
 
 const DetailRoute = () => {
@@ -67,14 +99,18 @@ const DetailRoute = () => {
   return <JobDetailScreen job={job} onBack={() => navigate('/feed')} />;
 };
 
-const CreditsRoute = () => {
-  return <AddCreditsScreen />;
+const MembershipRoute = () => {
+  return <MembershipScreen />;
 };
 
 const DashboardRoute = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   return <DashboardScreen />;
 };
+
+const JobApplicantsScreen = Loadable(lazy(() => import("../screens/recruiter/JobApplicantsScreen")));
+
+const NotFound = Loadable(lazy(() => import("../screens/error/NotFound")));
 
 /* ****Routes***** */
 const Router = [
@@ -87,20 +123,36 @@ const Router = [
         element: <MainLayout />,
         children: [
           { index: true, element: <EntryRoute /> },
-          { path: "dashboard", element: <DashboardRoute /> },
-          { path: "manual-profile", element: <ManualProfileRoute /> },
-          { path: "processing", element: <ProcessingRoute /> },
-          { path: "profile", element: <ProfileRoute /> },
-          { path: "feed", element: <FeedRoute /> },
-          { path: "detail/:id", element: <DetailRoute /> },
-          { path: "credits", element: <CreditsRoute /> },
+          { path: "jobs/:id", element: <PublicJobDetailScreen /> },
+          { path: "govt-jobs", element: <GovtJobsScreen /> },
           { path: "login", element: <LoginScreen /> },
-          { path: "post-job", element: <PostJobScreen /> },
-          { path: "posted-jobs", element: <PostedJobsScreen /> },
-          { path: "recruiters", element: <RecruitersScreen /> },
-          { path: "consultants", element: <ConsultantsScreen /> },
-          { path: "resume-builder", element: <div>Resume Builder Screen (Coming Soon)</div> },
-          { path: "learning", element: <div>Learning Screen (Coming Soon)</div> },
+          
+          {
+            element: <ProtectedRoute><Outlet /></ProtectedRoute>,
+            children: [
+              { path: "dashboard", element: <DashboardRoute /> },
+              { path: "manual-profile", element: <ManualProfileRoute /> },
+              { path: "processing", element: <ProcessingRoute /> },
+              { path: "profile", element: <ProfileRoute /> },
+              { path: "feed", element: <FeedRoute /> },
+              { path: "detail/:id", element: <DetailRoute /> },
+              { path: "membership", element: <MembershipRoute /> },
+              { path: "post-job", element: <PostJobScreen /> },
+              { path: "posted-jobs", element: <PostedJobsScreen /> },
+              { path: "recruiters", element: <RecruitersScreen /> },
+              { path: "consultants", element: <ConsultantsScreen /> },
+              { path: "resume-builder", element: <TemplateSelectorScreen /> },
+              { path: "resume-builder/create", element: <ResumeBuilderScreen /> },
+              { path: "career-advice", element: <CareerAdvisorScreen /> },
+              { path: "skill-development", element: <SkillDevelopmentScreen /> },
+              { path: "learning", element: <div>Learning Screen (Coming Soon)</div> },
+              { path: "candidate-feed/:jobId", element: <CandidateFeedScreen /> },
+              { path: "job-applicants/:jobId", element: <JobApplicantsScreen /> },
+              { path: "candidate-profile/:userId", element: <CandidateProfileScreen /> },
+              { path: "govt-job-detail/:id", element: <GovtJobDetailScreen /> },
+              { path: "recruiter-dashboard", element: <RecruiterDashboardRoute /> },
+            ]
+          },
         ]
       },
       { path: "*", element: <Navigate to="/error/404" /> },
@@ -109,7 +161,7 @@ const Router = [
   {
     path: "error",
     children: [
-      { path: "404", element: <div>404 Not Found</div> },
+      { path: "404", element: <NotFound /> },
       { path: "*", element: <Navigate to="/error/404" /> },
     ],
   },

@@ -3,11 +3,14 @@
 *.pdf
 *.docx
 test*
-profile*
 *.pyc
 **/__pycache__/
 *.txt
 *.log
+*.md
+*.json
 keys
 token.json
 .venv_old
+inspect*
+ReferenceFiles*

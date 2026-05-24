@@ -1,5 +1,4 @@
-// screens/recruiter/CandidateProfileScreen.js
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -21,24 +20,26 @@ import {
   TextField,
   Menu,
   MenuItem,
+  CircularProgress,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import EmailIcon from "@mui/icons-material/Email";
-import PhoneIcon from "@mui/icons-material/Phone";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import BusinessIcon from "@mui/icons-material/Business";
 import SchoolIcon from "@mui/icons-material/School";
 import WorkHistoryIcon from "@mui/icons-material/WorkHistory";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import StarIcon from "@mui/icons-material/Star";
 import MessageIcon from "@mui/icons-material/Message";
 import VideoCallIcon from "@mui/icons-material/VideoCall";
 import DownloadIcon from "@mui/icons-material/Download";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import { useNavigate, useLocation } from "react-router-dom";
 import { fadeSlideUp } from "../../utils/themeUtils";
+import { fetchProfile } from "../../api/profileAPI";
+import { toTitleCase, toAllCapitals } from "../../screens/candidate/utils/profileUtils";
+
 
 const CandidateProfileScreen = () => {
   const navigate = useNavigate();
@@ -46,574 +47,480 @@ const CandidateProfileScreen = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  const { applicant, jobId, jobTitle } = location.state || {};
+  // Get initial data from location state
+  const { applicant: rawApplicant, jobId, jobTitle } = location.state || {};
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [profileData, setProfileData] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
 
-  if (!applicant) {
+  const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const phoneToUse = rawApplicant?.phone;
+
+      if (!phoneToUse) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+
+
+        const response = await fetchProfile(phoneToUse);
+        if (!response.error && response.data) {
+
+          
+          setProfileData(response.data);
+        } else {
+          setError(response.message || "Failed to load candidate profile");
+        }
+      } catch (err) {
+        console.error("Error loading profile:", err);
+        setError("An unexpected error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [rawApplicant]);
+
+  // Normalize applicant data with API data and fallbacks
+  const applicant = useMemo(() => {
+    if (!rawApplicant) return null;
+
+    const apiData = profileData || {};
+    const apiExperience = apiData.experience || [];
+    const apiEducation = apiData.education || [];
+    const apiProjects = apiData.projects || [];
+    const apiSkills = apiData.skills?.map(s => s.name).filter(Boolean) || [];
+
+    
+
+    return {
+      ...rawApplicant,
+      name: toTitleCase(apiData.full_name || rawApplicant.name),
+      jobTitle: toTitleCase(apiData.headline || rawApplicant.jobTitle),
+      location: toTitleCase(apiData.current_location || rawApplicant.location),
+      experience: apiData.years_of_experience ? `${apiData.years_of_experience} yrs` : toTitleCase(rawApplicant.experience),
+      about: apiData.summary || rawApplicant.summary || "No summary provided.",
+      keySkills: apiSkills.length > 0 ? apiSkills.map(toTitleCase) : (rawApplicant.allSkills || rawApplicant.keySkills || rawApplicant.matchedSkills || []).map(toTitleCase),
+      company: toTitleCase(apiData.company_name || rawApplicant.company || "Company"),
+      phone: apiData.phone || rawApplicant.phone,
+      email: apiData.email || `${(apiData.full_name || rawApplicant.name).toLowerCase().replace(/ /g, ".")}@email.com`,
+      profileImage: apiData.avatar_url || rawApplicant.profileImage,
+
+      workHistory: apiExperience.length > 0 ? apiExperience.map(exp => ({
+        title: toTitleCase(exp.title),
+        company_name: toTitleCase(exp.company_name || "Company"),
+        duration: exp.start_date ? `${exp.start_date} - ${exp.is_current ? 'Present' : (exp.end_date || '')}` : exp.duration,
+        description: exp.description
+      })) : [
+        {
+          title: toTitleCase(rawApplicant.jobTitle || "Senior Developer"),
+          company_name: "Previous Tech Corp",
+          duration: rawApplicant.experience || "3 years",
+          description: "Leading development teams and architecting scalable solutions using modern web technologies."
+        }
+      ],
+
+      education: apiEducation.length > 0 ? apiEducation.map(edu => ({
+        degree: toAllCapitals(edu.degree),
+        school: toAllCapitals(edu.institution),
+        year: edu.end_year ? edu.end_year.toString() : (edu.start_year ? `${edu.start_year} - Present` : "")
+      })) : [],
+
+      projects: apiProjects.length > 0 ? apiProjects.map(proj => {
+        const formatProjDate = (dateStr) => {
+          if (!dateStr) return null;
+          try {
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+          } catch (e) {
+            return dateStr;
+          }
+        };
+
+        const start = formatProjDate(proj.start_date);
+        const end = proj.end_date ? formatProjDate(proj.end_date) : (proj.start_date ? 'Present' : null);
+
+        return {
+          title: toTitleCase(proj.title),
+          description: proj.description,
+          duration: start ? `${start} - ${end}` : "",
+          url: proj.url,
+          repo_url: proj.repo_url,
+          skills: (proj.skills_used || []).map(toTitleCase)
+        };
+      }) : []
+    };
+  }, [rawApplicant, profileData]);
+
+
+  if (loading) {
     return (
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-        <Typography>Candidate not found</Typography>
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", gap: 3, bgcolor: '#F8FAFC' }}>
+        <CircularProgress size={40} thickness={5} sx={{ color: '#2563EB' }} />
+        <Typography sx={{ color: '#6B7280', fontWeight: 600 }}>Fetching profile...</Typography>
       </Box>
     );
   }
 
-  const getMatchColor = (score) => {
-    if (score >= 90) return { main: "#10b981", bg: "#ecfdf5", border: "#a7f3d0" };
-    if (score >= 80) return { main: "#f59e0b", bg: "#fffbeb", border: "#fde68a" };
-    if (score >= 70) return { main: "#3b82f6", bg: "#eff6ff", border: "#bfdbfe" };
-    return { main: "#94a3b8", bg: "#f8fafc", border: "#e2e8f0" };
-  };
-
-  const matchColor = getMatchColor(applicant.matchScore);
-
-  const SectionHeader = ({ icon: Icon, title }) => (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2.5 }}>
-      <Box
-        sx={{
-          width: 44,
-          height: 44,
-          borderRadius: "12px",
-          background: "linear-gradient(135deg, #6366f1, #4f46e5)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
-        <Icon sx={{ color: "#fff", fontSize: 22 }} />
+  if (error || !applicant) {
+    return (
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", gap: 2, bgcolor: '#F8FAFC' }}>
+        <Typography variant="h5" color="error" sx={{ fontWeight: 800 }}>Profile not found</Typography>
+        <Button variant="contained" onClick={() => navigate(-1)} sx={{ borderRadius: '12px' }}>Go Back</Button>
       </Box>
-      <Typography
-        sx={{
-          fontWeight: 800,
-          fontSize: "1.1rem",
-          color: "#0f172a",
-          letterSpacing: "-0.02em",
-        }}
-      >
-        {title}
-      </Typography>
+    );
+  }
+
+  const SectionHeader = ({ icon: Icon, title, accent }) => (
+    <Box sx={{ mb: 3 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5 }}>
+        <Icon sx={{ color: '#111827', fontSize: 22 }} />
+        <Typography sx={{ fontWeight: 700, fontSize: "1.125rem", color: "#111827" }}>
+          {title}
+        </Typography>
+      </Box>
+      <Box sx={{ width: 40, height: 3, bgcolor: accent || '#2563EB', borderRadius: 1 }} />
     </Box>
   );
 
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleSendMessage = () => {
-    setMessageDialogOpen(true);
-  };
-
-  const handleSendMessageConfirm = () => {
-    setMessageDialogOpen(false);
-    setMessage("");
+  const MatchScoreRing = ({ score }) => {
+    const color = score >= 80 ? '#2563EB' : score >= 60 ? '#7C3AED' : '#6B7280';
+    return (
+      <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+        <CircularProgress
+          variant="determinate"
+          value={100}
+          size={80}
+          thickness={4}
+          sx={{ color: '#E5E7EB' }}
+        />
+        <CircularProgress
+          variant="determinate"
+          value={score}
+          size={80}
+          thickness={4}
+          sx={{
+            color: color,
+            position: 'absolute',
+            left: 0,
+            strokeLinecap: 'round',
+          }}
+        />
+        <Box
+          sx={{
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+            position: 'absolute',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Typography variant="h6" component="div" sx={{ fontWeight: 800, color: color }}>
+            {score}
+          </Typography>
+        </Box>
+      </Box>
+    );
   };
 
   return (
-    <Box sx={{ bgcolor: "#f8fafc", minHeight: "100vh", pb: 4 }}>
-      {/* Header */}
-      <Box sx={{ bgcolor: "#fff", borderBottom: "1px solid #e2e8f0" }}>
+    <Box sx={{ bgcolor: "#F8FAFC", minHeight: "100vh", pb: 6 }}>
+      {/* Header - Naukri Style */}
+      <Box sx={{ bgcolor: "#FFFFFF", borderBottom: "1px solid #E5E7EB", position: 'sticky', top: 0, zIndex: 1000 }}>
         <Container maxWidth="lg">
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              py: 2,
-            }}
-          >
-            <Button
-              startIcon={<ArrowBackIcon />}
-              onClick={() => navigate(-1)}
-              sx={{
-                color: "#64748b",
-                fontWeight: 600,
-                textTransform: "none",
-                "&:hover": { color: "#0f172a", bgcolor: "transparent" },
-              }}
-            >
-              Back
-            </Button>
-            <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
-              Candidate Profile
-            </Typography>
-            <IconButton
-              onClick={handleMenuOpen}
-              size="small"
-              sx={{
-                border: "1px solid #e2e8f0",
-                borderRadius: 1.5,
-              }}
-            >
-              <MoreVertIcon fontSize="small" />
-            </IconButton>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", py: 1.5 }}>
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <IconButton onClick={() => navigate(-1)} size="small" sx={{ color: '#6B7280' }}>
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827', letterSpacing: '-0.02em' }}>
+                RightNxt AI
+              </Typography>
+            </Stack>
+
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              <Typography variant="subtitle2" sx={{ color: '#6B7280', fontWeight: 600 }}>
+                Candidate Profile • <span style={{ color: '#2563EB' }}>Matching for {toTitleCase(jobTitle || "Role")}</span>
+              </Typography>
+            </Box>
+
+            <Stack direction="row" spacing={1}>
+              <Button size="small" sx={{ color: '#6B7280', fontWeight: 600 }}>Home</Button>
+              <Button size="small" sx={{ color: '#6B7280', fontWeight: 600 }} onClick={() => navigate('/membership')}>Credits</Button>
+              <IconButton
+                size="small"
+                sx={{ border: '1px solid #E5E7EB', borderRadius: '10px' }}
+                onClick={handleMenuClick}
+              >
+                <MoreVertIcon fontSize="small" />
+              </IconButton>
+            </Stack>
           </Box>
         </Container>
       </Box>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
-        <Grid container spacing={3}>
-          {/* Main Content */}
+      <Container maxWidth="lg" sx={{ pt: 4 }}>
+        <Grid container spacing={4}>
+          {/* Main Left Content */}
           <Grid item xs={12} md={8}>
-            {/* Profile Header */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: { xs: 3, md: 4 },
-                bgcolor: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 3,
-                mb: 3,
-                animation: `${fadeSlideUp} 0.5s ease-out`,
-                position: "relative",
-              }}
-            >
-              {/* Match Badge */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 20,
-                  right: 20,
-                  bgcolor: matchColor.bg,
-                  border: `2px solid ${matchColor.main}`,
-                  borderRadius: 2,
-                  px: 2,
-                  py: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.5,
-                }}
-              >
-                <StarIcon sx={{ fontSize: 20, color: matchColor.main }} />
-                <Typography
-                  sx={{
-                    fontSize: "0.9rem",
-                    fontWeight: 700,
-                    color: matchColor.main,
-                  }}
-                >
-                  {applicant.matchScore}% Match
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: "flex", gap: 3, mb: 3 }}>
-                <Avatar
-                  src={applicant.profileImage}
-                  sx={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: 2,
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    flexShrink: 0,
-                  }}
-                />
-                <Box sx={{ flex: 1 }}>
-                  <Typography
+            {/* Top Profile Card */}
+            <Paper elevation={0} sx={{ p: 4, mb: 4, position: 'relative', overflow: 'hidden' }}>
+              <Grid container spacing={3} alignItems="center">
+                <Grid item>
+                  <Avatar
+                    src={applicant.profileImage}
                     sx={{
-                      fontWeight: 900,
-                      fontSize: { xs: "1.6rem", md: "2rem" },
-                      color: "#0f172a",
-                      mb: 0.5,
-                      letterSpacing: "-0.02em",
+                      width: 100,
+                      height: 100,
+                      borderRadius: '20px',
+                      boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
+                      border: '4px solid #FFFFFF'
                     }}
-                  >
-                    {applicant.name}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "1.1rem",
-                      color: "#6366f1",
-                      fontWeight: 700,
-                      mb: 0.5,
-                    }}
-                  >
+                  />
+                </Grid>
+                <Grid item xs>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                    <Typography variant="h4" sx={{ fontWeight: 800, color: '#111827' }}>
+                      {applicant.name}
+                    </Typography>
+                    <Box sx={{ bgcolor: '#eff6ff', color: '#2563EB', px: 1, py: 0.2, borderRadius: '6px', display: 'flex', alignItems: 'center' }}>
+                      <StarIcon sx={{ fontSize: 14, mr: 0.5 }} />
+                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 700 }}>Verified</Typography>
+                    </Box>
+                  </Stack>
+                  <Typography variant="h6" sx={{ color: '#2563EB', fontWeight: 700, mb: 1 }}>
                     {applicant.jobTitle}
                   </Typography>
-                  <Typography
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 0.5,
-                      color: "#64748b",
-                      fontSize: "0.95rem",
-                      mb: 1,
-                    }}
-                  >
-                    <LocationOnIcon sx={{ fontSize: 18 }} />
-                    {applicant.location}
-                  </Typography>
-                  <Stack direction="row" spacing={2} sx={{ mt: 1.5 }}>
-                    <Chip
-                      icon={<WorkHistoryIcon />}
-                      label={applicant.experience}
-                      variant="outlined"
-                      sx={{
-                        borderColor: "#e2e8f0",
-                        color: "#475569",
-                        fontWeight: 600,
-                      }}
-                    />
-                    <Chip
-                      icon={<BusinessIcon />}
-                      label={applicant.company}
-                      variant="outlined"
-                      sx={{
-                        borderColor: "#e2e8f0",
-                        color: "#475569",
-                        fontWeight: 600,
-                      }}
-                    />
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <LocationOnIcon sx={{ fontSize: 16, color: '#6B7280' }} />
+                      <Typography variant="body2">{applicant.location}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <WorkHistoryIcon sx={{ fontSize: 16, color: '#6B7280' }} />
+                      <Typography variant="body2">{applicant.experience}</Typography>
+                    </Box>
                   </Stack>
-                </Box>
-              </Box>
+                </Grid>
+                <Grid item>
+                  <Stack alignItems="center" spacing={1}>
+                    <MatchScoreRing score={applicant.matchScore} />
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>
+                      Match Score
+                    </Typography>
+                  </Stack>
+                </Grid>
+              </Grid>
             </Paper>
 
-            {/* About */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: { xs: 3, md: 4 },
-                bgcolor: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 3,
-                mb: 3,
-              }}
-            >
-              <SectionHeader icon={MessageIcon} title="About" />
+            {/* Professional Summary */}
+            <Paper elevation={0} sx={{ p: 4, mb: 4 }}>
+              <SectionHeader icon={MessageIcon} title="Professional Summary" accent="#22D3EE" />
               <Typography
+                variant="body1"
                 sx={{
-                  color: "#475569",
+                  color: '#475569',
                   lineHeight: 1.8,
-                  fontSize: "0.95rem",
+                  wordBreak: 'break-word',
+                  overflowWrap: 'anywhere'
                 }}
               >
                 {applicant.about}
               </Typography>
             </Paper>
 
-            {/* Skills */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: { xs: 3, md: 4 },
-                bgcolor: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 3,
-                mb: 3,
-              }}
-            >
-              <SectionHeader icon={StarIcon} title="Key Skills" />
-              <Stack direction="row" spacing={1.5} flexWrap="wrap" sx={{ gap: 1.5 }}>
-                {applicant.keySkills.map((skill, idx) => (
-                  <Chip
-                    key={idx}
-                    label={skill}
-                    sx={{
-                      bgcolor: "#e0e7ff",
-                      color: "#4f46e5",
-                      fontWeight: 600,
-                      fontSize: "0.9rem",
-                      borderRadius: 2,
-                      py: 2.5,
-                    }}
-                  />
-                ))}
-              </Stack>
-            </Paper>
-
-            {/* Experience */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: { xs: 3, md: 4 },
-                bgcolor: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 3,
-                mb: 3,
-              }}
-            >
+            {/* Experience Section */}
+            <Paper elevation={0} sx={{ p: 4, mb: 4 }}>
               <SectionHeader icon={WorkHistoryIcon} title="Work Experience" />
-              <Stack spacing={2.5}>
+              <Stack spacing={4}>
                 {applicant.workHistory.map((exp, idx) => (
-                  <Box key={idx}>
-                    {idx > 0 && <Divider sx={{ mb: 2.5 }} />}
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 2,
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: 12,
-                          height: 12,
-                          bgcolor: "#6366f1",
-                          borderRadius: "50%",
-                          mt: 1,
-                          flexShrink: 0,
-                        }}
-                      />
-                      <Box sx={{ flex: 1 }}>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                            mb: 0.5,
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              fontWeight: 700,
-                              color: "#0f172a",
-                              fontSize: "0.95rem",
-                            }}
-                          >
-                            {exp.title}
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontSize: "0.85rem",
-                              color: "#64748b",
-                              fontWeight: 600,
-                            }}
-                          >
-                            {exp.duration}
-                          </Typography>
-                        </Box>
-                        <Typography
-                          sx={{
-                            color: "#6366f1",
-                            fontWeight: 600,
-                            fontSize: "0.9rem",
-                            mb: 1,
-                          }}
-                        >
-                          {exp.company}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            color: "#475569",
-                            fontSize: "0.9rem",
-                            lineHeight: 1.6,
-                          }}
-                        >
-                          {exp.description}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                ))}
-              </Stack>
-            </Paper>
+                  <Box key={idx} sx={{ position: 'relative', pl: 3 }}>
+                    <Box sx={{
+                      position: 'absolute', left: 0, top: 8, bottom: -32, width: '2px',
+                      bgcolor: '#E5E7EB', display: idx === applicant.workHistory.length - 1 ? 'none' : 'block'
+                    }} />
+                    <Box sx={{
+                      position: 'absolute', left: -4, top: 8, width: 10, height: 10,
+                      borderRadius: '50%', bgcolor: '#2563EB', border: '2px solid #FFFFFF'
+                    }} />
 
-            {/* Education */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: { xs: 3, md: 4 },
-                bgcolor: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 3,
-              }}
-            >
-              <SectionHeader icon={SchoolIcon} title="Education" />
-              <Stack spacing={2}>
-                {applicant.education.map((edu, idx) => (
-                  <Box
-                    key={idx}
-                    sx={{
-                      p: 2,
-                      bgcolor: "#f8fafc",
-                      borderRadius: 2,
-                      border: "1px solid #e2e8f0",
-                    }}
-                  >
-                    <Box
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
+                      <Box>
+                        <Typography variant="h6" sx={{ fontWeight: 800, mb: 0.2 }}>{exp.title}</Typography>
+                        <Typography sx={{ color: '#2563EB', fontWeight: 700, fontSize: '0.95rem', textTransform: "uppercase", letterSpacing: "0.5px" }}>{exp.company_name}</Typography>
+                      </Box>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#6B7280', bgcolor: '#F1F5F9', px: 1.5, py: 0.5, borderRadius: '8px' }}>
+                        {exp.duration}
+                      </Typography>
+                    </Stack>
+                    <Typography
+                      variant="body2"
                       sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        mb: 0.5,
+                        color: '#475569',
+                        lineHeight: 1.7,
+                        wordBreak: 'break-word',
+                        overflowWrap: 'anywhere'
                       }}
                     >
-                      <Typography
-                        sx={{
-                          fontWeight: 700,
-                          color: "#0f172a",
-                          fontSize: "0.95rem",
-                        }}
-                      >
-                        {edu.degree}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: "0.8rem",
-                          color: "#64748b",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {edu.year}
-                      </Typography>
-                    </Box>
-                    <Typography sx={{ color: "#6366f1", fontWeight: 600, fontSize: "0.9rem" }}>
-                      {edu.school}
+                      {exp.description}
                     </Typography>
                   </Box>
                 ))}
               </Stack>
             </Paper>
+
+            {/* Projects Section */}
+            {applicant.projects && applicant.projects.length > 0 && (
+              <Paper elevation={0} sx={{ p: 4, mb: 4 }}>
+                <SectionHeader icon={AccountTreeIcon} title="Key Projects" accent="#7C3AED" />
+                <Stack spacing={4}>
+                  {applicant.projects.map((proj, idx) => (
+                    <Box key={idx} sx={{ p: 3, borderRadius: '12px', border: '1px solid #F1F5F9', '&:hover': { bgcolor: '#F8FAFC' }, transition: '0.2s' }}>
+                      <Stack direction="row" justifyContent="space-between" sx={{ mb: 2 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 800 }}>{proj.title}</Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#6B7280' }}>{proj.duration}</Typography>
+                      </Stack>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: '#475569',
+                          mb: 2.5,
+                          lineHeight: 1.7,
+                          wordBreak: 'break-word',
+                          overflowWrap: 'anywhere'
+                        }}
+                      >
+                        {proj.description}
+                      </Typography>
+
+                      <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
+                        {proj.skills.map((skill, sIdx) => (
+                          <Chip key={sIdx} label={skill} size="small" sx={{ bgcolor: '#F1F5F9', color: '#475569', fontWeight: 600 }} />
+                        ))}
+                      </Stack>
+
+                      <Stack direction="row" spacing={2}>
+                        {proj.url && (
+                          <Button size="small" variant="text" sx={{ p: 0, minWidth: 0, fontWeight: 700, color: '#2563EB' }}>Live Demo</Button>
+                        )}
+                        {proj.repo_url && (
+                          <Button size="small" variant="text" sx={{ p: 0, minWidth: 0, fontWeight: 700, color: '#2563EB' }}>View Code</Button>
+                        )}
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              </Paper>
+            )}
           </Grid>
 
-          {/* Sidebar */}
+          {/* Right Sidebar */}
           <Grid item xs={12} md={4}>
-            {/* Action Buttons */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                bgcolor: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 3,
-                mb: 3,
-                position: { xs: "fixed", md: "relative" },
-                bottom: { xs: 0, md: "auto" },
-                left: { xs: 0, md: "auto" },
-                right: { xs: 0, md: "auto" },
-                width: { xs: "100%", md: "auto" },
-                borderRadius: { xs: "24px 24px 0 0", md: 3 },
-                zIndex: 20,
-              }}
-            >
-              <Stack spacing={2.5}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  startIcon={<VideoCallIcon />}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    py: isMobile ? 1.5 : 1,
-                    background: "linear-gradient(135deg, #6366f1, #4f46e5)",
-                    "&:hover": {
-                      background: "linear-gradient(135deg, #4f46e5, #4338ca)",
-                    },
-                  }}
-                >
-                  Schedule Interview
-                </Button>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<MessageIcon />}
-                  onClick={handleSendMessage}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    py: isMobile ? 1.5 : 1,
-                    borderColor: "#e2e8f0",
-                    color: "#475569",
-                    "&:hover": {
-                      borderColor: "#6366f1",
-                      color: "#6366f1",
-                    },
-                  }}
-                >
-                  Send Message
-                </Button>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={
-                    isSaved ? <FavoriteIcon /> : <FavoriteBorderIcon />
-                  }
-                  onClick={() => setIsSaved(!isSaved)}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    py: isMobile ? 1.5 : 1,
-                    color: isSaved ? "#ef4444" : "#475569",
-                    borderColor: isSaved ? "#ef4444" : "#e2e8f0",
-                    "&:hover": {
-                      borderColor: "#ef4444",
-                      color: "#ef4444",
-                    },
-                  }}
-                >
-                  {isSaved ? "Saved" : "Save Candidate"}
-                </Button>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<DownloadIcon />}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    py: isMobile ? 1.5 : 1,
-                    borderColor: "#e2e8f0",
-                    color: "#475569",
-                    "&:hover": {
-                      borderColor: "#6366f1",
-                      color: "#6366f1",
-                    },
-                  }}
-                >
-                  Download Resume
-                </Button>
-              </Stack>
-            </Paper>
+            <Stack spacing={4} sx={{ position: { md: 'sticky' }, top: 100 }}>
+              {/* CTA Card */}
+              <Paper elevation={0} sx={{ p: 4 }}>
+                <Stack spacing={2}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<DownloadIcon />}
+                    sx={{
+                      py: 1.5,
+                      bgcolor: '#2563EB',
+                      '&:hover': { bgcolor: '#1e40af' }
+                    }}
+                  >
+                    Download Resume
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={isSaved ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                    onClick={() => setIsSaved(!isSaved)}
+                    sx={{
+                      py: 1.5,
+                      borderColor: isSaved ? '#ef4444' : '#E5E7EB',
+                      color: isSaved ? '#ef4444' : '#111827',
+                      '&:hover': { borderColor: '#ef4444', bgcolor: '#fef2f2' }
+                    }}
+                  >
+                    {isSaved ? "Saved" : "Save Candidate"}
+                  </Button>
+                  <Typography variant="caption" align="center" sx={{ display: 'block', color: '#6B7280' }}>
+                    Saved candidates are private to your account
+                  </Typography>
+                </Stack>
+              </Paper>
 
-            {/* Contact Info */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                bgcolor: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 3,
-                mb: { xs: 0, md: 3 },
-              }}
-            >
-              <Typography sx={{ fontWeight: 800, color: "#0f172a", mb: 2 }}>
-                Contact Information
-              </Typography>
-              <Stack spacing={2}>
-                <Box>
-                  <Typography sx={{ fontSize: "0.75rem", color: "#64748b", mb: 0.5 }}>
-                    Email
-                  </Typography>
-                  <Typography sx={{ fontWeight: 600, color: "#0f172a" }}>
-                    {applicant.name.toLowerCase().replace(" ", ".")}@email.com
-                  </Typography>
-                </Box>
-                <Divider />
-                <Box>
-                  <Typography sx={{ fontSize: "0.75rem", color: "#64748b", mb: 0.5 }}>
-                    Phone
-                  </Typography>
-                  <Typography sx={{ fontWeight: 600, color: "#0f172a" }}>
-                    +1 (555) 123-4567
-                  </Typography>
-                </Box>
-                <Divider />
-                <Box>
-                  <Typography sx={{ fontSize: "0.75rem", color: "#64748b", mb: 0.5 }}>
-                    Location
-                  </Typography>
-                  <Typography sx={{ fontWeight: 600, color: "#0f172a" }}>
-                    {applicant.location}
-                  </Typography>
-                </Box>
-              </Stack>
-            </Paper>
+              {/* Skills Card */}
+              <Paper elevation={0} sx={{ p: 4 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Technical Skills</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  {applicant.keySkills.map((skill, idx) => (
+                    <Chip
+                      key={idx}
+                      label={skill}
+                      sx={{
+                        bgcolor: '#f5f3ff',
+                        color: '#7C3AED',
+                        fontWeight: 700,
+                        border: '1px solid #e5e0fa'
+                      }}
+                    />
+                  ))}
+                </Stack>
+              </Paper>
+
+              {/* Contact Information */}
+              <Paper elevation={0} sx={{ p: 4 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Contact Info</Typography>
+                <Stack spacing={3}>
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <Box sx={{ p: 1, bgcolor: '#F8FAFC', borderRadius: '10px' }}>
+                      <MessageIcon sx={{ fontSize: 20, color: '#6B7280' }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ display: 'block', color: '#6B7280' }}>Email</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>{applicant.email}</Typography>
+                    </Box>
+                  </Stack>
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <Box sx={{ p: 1, bgcolor: '#F8FAFC', borderRadius: '10px' }}>
+                      <VideoCallIcon sx={{ fontSize: 20, color: '#6B7280' }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ display: 'block', color: '#6B7280' }}>Phone</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>{applicant.phone || "Not provided"}</Typography>
+                    </Box>
+                  </Stack>
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <Box sx={{ p: 1, bgcolor: '#F8FAFC', borderRadius: '10px' }}>
+                      <LocationOnIcon sx={{ fontSize: 20, color: '#6B7280' }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ display: 'block', color: '#6B7280' }}>Location</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>{applicant.location}</Typography>
+                    </Box>
+                  </Stack>
+                </Stack>
+              </Paper>
+            </Stack>
           </Grid>
         </Grid>
       </Container>
@@ -640,7 +547,7 @@ const CandidateProfileScreen = () => {
             Cancel
           </Button>
           <Button
-            onClick={handleSendMessageConfirm}
+            onClick={() => { setMessageDialogOpen(false); setMessage(""); }}
             variant="contained"
             sx={{
               textTransform: "none",
@@ -680,3 +587,4 @@ const CandidateProfileScreen = () => {
 };
 
 export default CandidateProfileScreen;
+

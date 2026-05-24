@@ -12,12 +12,18 @@ import { useSelector, useDispatch } from "react-redux";
 import { withAITracking } from "@microsoft/applicationinsights-react-js";
 import { reactPlugin } from "./AppInsights"; // Import the initialized plugin
 
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+
 // import { ClearCacheProvider } from "react-clear-cache";
 
 import RTL from "./layouts/full-layout/customizer/RTL";
 import ThemeSettings from "./layouts/full-layout/customizer/ThemeSettings";
 import Router from "./routes/Router";
 import LoadingSpinnerComp from "./components/common/LoadingSpinnerComp";
+
+// Global Typography Styles - Open Sans font standardization
+import "./assets/css/typography-global.css";
 
 const AppRoutes = () => {
   return useRoutes(Router);
@@ -100,9 +106,11 @@ const App = () => {
       <BrowserRouter>
         <ThemeProvider theme={theme}>
           <RTL direction={customizer.activeDir}>
-            <CssBaseline />
-            <LoadingSpinnerComp />
-            <AppRoutes />
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <CssBaseline />
+              <LoadingSpinnerComp />
+              <AppRoutes />
+            </LocalizationProvider>
           </RTL>
         </ThemeProvider>
       </BrowserRouter>

@@ -1,4 +1,4 @@
-import { ADD_USERDETAILS, UPDATE_USER_PROFILE, DEBIT_POINTS } from '../constants';
+import { ADD_USERDETAILS, UPDATE_USER_PROFILE, DEBIT_POINTS, UPDATE_MEMBERSHIP } from '../constants';
 
 export const addUserDetails = (payload) => ({
   type: ADD_USERDETAILS,
@@ -20,3 +20,7 @@ export const debitPoints = (points) => ({
   payload: points,
 });
 
+export const updateMembership = (membership) => ({
+  type: UPDATE_MEMBERSHIP,
+  payload: membership,
+});

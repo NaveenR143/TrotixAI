@@ -1,20 +1,33 @@
 // screens/candidate/JobFeedScreen.js
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
-  Box, Typography, Button, Stack, useMediaQuery, useTheme, Tooltip, IconButton, Chip, Drawer, Badge,
+  Box, Typography, Button, Stack, useMediaQuery, TextField, useTheme, Tooltip, IconButton, Chip, Drawer, Badge, CircularProgress,
 } from "@mui/material";
 import TuneIcon from "@mui/icons-material/Tune";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import axios from "axios";
 import CareerCoach from "../../components/profile/CareerCoach";
 import JobDetailScreen from "./JobDetailScreen";
 import JobListItem from "../../components/jobs/JobListItem";
 import MobileJobCard from "../../components/jobs/MobileJobCard";
 import JobFilters from "../../components/jobs/JobFilters";
 import { useSelector } from "react-redux";
+import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
+import { recordJobView } from "../../api/profileAPI";
 
-const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
+// Utility function to convert strings to title case
+const titleCase = (str) => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfile, userId }) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
@@ -22,7 +35,11 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
   const [animating, setAnimating] = useState(false);
   const [animDir, setAnimDir] = useState('left');
   const [savedJobs, setSavedJobs] = useState(new Set());
+  const [jobs, setJobs] = useState(initialJobs || []);
+  const [loading, setLoading] = useState(!initialJobs || initialJobs.length === 0);
+  const [error, setError] = useState(null);
   const [selectedDesktopJob, setSelectedDesktopJob] = useState(jobs[0] || null);
+  const [showMobileDetailView, setShowMobileDetailView] = useState(false);
   const [filterMode, setFilterMode] = useState('all');
   const [showCoach, setShowCoach] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -34,8 +51,96 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
     departments: [],
     salaryRange: null,
     matchScore: 0,
+    hideViewed: false,
   });
   const profile = useSelector((state) => state.UserReducer);
+
+  // Touch handling for swipe
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.changedTouches[0].clientX;
+  };
+
+  const handleTouchEnd = (e) => {
+    touchEndX.current = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) handleSwipe('right');
+      else handlePrev();
+    }
+  };
+
+  // Fetch jobs from API on component mount
+  useEffect(() => {
+    const fetchJobsFromAPI = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Use provided userId or default userId
+        const userIdToUse = userId;
+        // const userIdToUse = '4bfcd973-7f38-4fd9-80f2-b8c133075fcb';
+        // const userIdToUse = 'e741ca0e-dcc5-4c7e-8688-90fd71f149dd';
+
+        // Make API request
+        const response = await axios.get(
+          `${API_BASE_URL}${API_ENDPOINTS.JOB_FEEDS}`,
+          { params: { user_id: userIdToUse } }
+        );
+
+        // Process the API response
+        if (response.data && response.data.jobs) {
+          const fetchedJobs = response.data.jobs.map((job) => ({
+            // Use existing fields from API response, with fallback to mock data structure
+            id: job.job_id || job.id,
+            title: titleCase(job.title || 'Untitled Position'),
+            company: titleCase(job.company_name),
+            location: titleCase(job.location),
+            workMode: titleCase(job.work_mode || 'Flexible'),
+            type: titleCase(job.job_type || 'Full-time'),
+            experience_level: titleCase(job.experience_level || '0+ Yrs'),
+            department: titleCase(job.department),
+            posted: job.posted_date ? job.posted_date.split('T')[0] : 'Recently',
+            matchScore: Math.round((job.final_score || 0) * 100),
+            keySkillsMatched: job.matched_skills || [],
+            keySkillsMissing: job.missing_skills || [],
+            description: job.description || '',
+            summary: job.summary || '',
+            logoColor: job.logoColor || '#6366f1',
+            about: job.about || '',
+            careers_url: job.careers_url || '',
+            hiring_email: job.hiring_email || '',
+            recruiter_id: job.recruiter_id || '',
+            experience_min_yrs: job.experience_min_yrs,
+            experience_max_yrs: job.experience_max_yrs,
+            experience: job.experience_min_yrs != null && job.experience_max_yrs != null 
+              ? `${job.experience_min_yrs}-${job.experience_max_yrs} Yrs` 
+              : (job.experience_min_yrs != null ? `${job.experience_min_yrs}+ Yrs` : 'Not specified'),
+            is_viewed: job.is_viewed || false,
+          }));
+
+          setJobs(fetchedJobs);
+          setSelectedDesktopJob(fetchedJobs[0] || null);
+        } else {
+          setError('No jobs found');
+        }
+      } catch (err) {
+        console.error('Error fetching jobs:', err);
+        setError('Failed to load jobs. Using sample data.');
+        // Fallback to initial jobs if API fails
+        setJobs(initialJobs || []);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Only fetch if no initial jobs provided or if explicitly needed
+    if (!initialJobs || initialJobs.length === 0) {
+      fetchJobsFromAPI();
+    }
+  }, [userId, initialJobs]);
 
   const handleSwipe = (dir) => {
     if (animating || currentIndex >= filteredJobs.length) return;
@@ -44,7 +149,7 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
     setTimeout(() => {
       setCurrentIndex(p => p + 1);
       setAnimating(false);
-    }, 350);
+    }, 300);
   };
 
   const handlePrev = () => {
@@ -54,7 +159,7 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
     setTimeout(() => {
       setCurrentIndex(p => p - 1);
       setAnimating(false);
-    }, 350);
+    }, 300);
   };
 
   const toggleSave = (id) =>
@@ -105,9 +210,32 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
     if (filters.matchScore > 0) {
       result = result.filter(job => job.matchScore >= filters.matchScore);
     }
+    
+    // Apply hide viewed filter
+    if (filters.hideViewed) {
+      result = result.filter(job => !job.is_viewed);
+    }
 
     return result;
   }, [jobs, filters]);
+
+  // Record Job View Effect
+  useEffect(() => {
+    const triggerRecordView = async (jobId) => {
+      if (!jobId || !userId) return;
+      // Trigger asynchronously in the background
+      recordJobView(jobId, userId);
+    };
+
+    if (isDesktop && selectedDesktopJob) {
+      triggerRecordView(selectedDesktopJob.id);
+    } else if (!isDesktop && showMobileDetailView) {
+      const currentJob = filteredJobs[currentIndex];
+      if (currentJob) {
+        triggerRecordView(currentJob.id);
+      }
+    }
+  }, [selectedDesktopJob, showMobileDetailView, currentIndex, isDesktop, userId, filteredJobs]);
 
   // Get active filter count
   const activeFilterCount =
@@ -117,43 +245,150 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
     filters.experiences.length +
     filters.departments.length +
     (filters.salaryRange ? 1 : 0) +
-    (filters.matchScore > 0 ? 1 : 0);
+    (filters.matchScore > 0 ? 1 : 0) +
+    (filters.hideViewed ? 1 : 0);
 
   if (jobs.length === 0 || (currentIndex >= filteredJobs.length && !isDesktop)) {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)', gap: 2 }}>
-        <Typography sx={{ fontSize: '2rem' }}>🎉</Typography>
-        <Typography sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#0f172a' }}>
-          {filteredJobs.length === 0 && activeFilterCount > 0 ? 'No jobs match your filters' : "You're all caught up!"}
-        </Typography>
-        <Typography sx={{ color: '#64748b', fontSize: '0.9rem' }}>
-          {filteredJobs.length === 0 && activeFilterCount > 0 ? 'Try adjusting your filters.' : 'No more jobs right now. Check back later.'}
-        </Typography>
-        {activeFilterCount > 0 && (
-          <Button variant="outlined" size="small" onClick={() => setFilters({
-            locations: [],
-            types: [],
-            workModes: [],
-            experiences: [],
-            departments: [],
-            salaryRange: null,
-            matchScore: 0,
-          })}
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 3 }}>
+          <CircularProgress size={50} sx={{ color: '#6366f1' }} />
+          <Typography sx={{ color: '#64748b', fontWeight: 500 }}>Loading personalized jobs for you...</Typography>
+        </Box>
+      );
+    }
+
+    if (error) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 2 }}>
+          <Typography sx={{ fontSize: '2rem' }}>⚠️</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#0f172a' }}>{error}</Typography>
+          <Button variant="outlined" onClick={onGoBack} startIcon={<ArrowBackIcon />}
             sx={{ mt: 1, borderColor: '#e2e8f0', color: '#0f172a', '&:hover': { borderColor: '#0f172a' } }}>
-            Clear Filters
+            Back to Search
           </Button>
-        )}
-        <Button variant="outlined" onClick={onGoBack} startIcon={<ArrowBackIcon />}
-          sx={{ mt: 1, borderColor: '#e2e8f0', color: '#0f172a', '&:hover': { borderColor: '#0f172a' } }}>
-          Back to Search
-        </Button>
+        </Box>
+      );
+    }
+
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 2, px: 4, textAlign: 'center' }}>
+        <Typography sx={{ fontSize: '3rem' }}>{filteredJobs.length === 0 && activeFilterCount > 0 ? '🔍' : '✨'}</Typography>
+        <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#0f172a', mb: 0.5 }}>
+          {filteredJobs.length === 0 && activeFilterCount > 0 ? 'No matches found' : "You're all caught up!"}
+        </Typography>
+        <Typography sx={{ color: '#64748b', fontSize: '1rem', maxWidth: 400, mb: 2, lineHeight: 1.6 }}>
+          {filteredJobs.length === 0 && activeFilterCount > 0
+            ? 'Try adjusting your filters or clearing them to see more opportunities.'
+            : 'We couldn\'t find any more jobs matching your current profile. Update your details to get better recommendations.'}
+        </Typography>
+
+        <Stack spacing={2} sx={{ width: '100%', maxWidth: 280 }}>
+          {activeFilterCount > 0 ? (
+            <Button
+              variant="contained"
+              onClick={() => setFilters({
+                locations: [],
+                types: [],
+                workModes: [],
+                experiences: [],
+                departments: [],
+                salaryRange: null,
+                matchScore: 0,
+                hideViewed: false,
+              })}
+              sx={{
+                py: 1.5,
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
+                textTransform: 'none',
+                fontWeight: 700,
+                '&:hover': { background: 'linear-gradient(135deg, #4f46e5, #4338ca)' }
+              }}
+            >
+              Clear All Filters
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={onViewProfile}
+              sx={{
+                py: 1.5,
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
+                textTransform: 'none',
+                fontWeight: 700,
+                '&:hover': { background: 'linear-gradient(135deg, #4f46e5, #4338ca)' }
+              }}
+            >
+              Update My Profile
+            </Button>
+          )}
+
+          <Button
+            variant="outlined"
+            onClick={onGoBack}
+            startIcon={<ArrowBackIcon />}
+            sx={{
+              py: 1.5,
+              borderRadius: '12px',
+              borderColor: '#e2e8f0',
+              color: '#475569',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': { borderColor: '#cbd5e1', bgcolor: '#f8fafc' }
+            }}
+          >
+            Back to Search
+          </Button>
+        </Stack>
       </Box>
     );
   }
 
   if (!isDesktop) {
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 3 }}>
+          <CircularProgress size={50} sx={{ color: '#6366f1' }} />
+          <Typography sx={{ color: '#64748b', fontWeight: 500 }}>Loading personalized jobs for you...</Typography>
+        </Box>
+      );
+    }
+
+    if (error) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 2 }}>
+          <Typography sx={{ fontSize: '2rem' }}>⚠️</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#0f172a' }}>{error}</Typography>
+          <Button variant="outlined" onClick={onGoBack} startIcon={<ArrowBackIcon />}
+            sx={{ mt: 1, borderColor: '#e2e8f0', color: '#0f172a', '&:hover': { borderColor: '#0f172a' } }}>
+            Back to Search
+          </Button>
+        </Box>
+      );
+    }
+
     const job = filteredJobs[currentIndex];
     if (!job) return null;
+
+    // Show detail screen if requested
+    if (showMobileDetailView) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)' }}>
+          <JobDetailScreen
+            job={job}
+            isEmbedded={false}
+            savedJobs={savedJobs}
+            onToggleSave={() => toggleSave(job.id)}
+            onBack={() => setShowMobileDetailView(false)}
+          />
+        </Box>
+      );
+    }
+
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)', position: 'relative', overflow: 'hidden' }}>
         {/* Mobile Filter Header */}
@@ -199,11 +434,35 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
           </Badge>
         </Box>
 
-        <MobileJobCard
-          job={job} jobNumber={currentIndex + 1} totalJobs={filteredJobs.length} animating={animating} animDir={animDir}
-          onNext={() => handleSwipe('right')} onPrev={() => handlePrev()} onSkip={() => handleSwipe('right')} onInterested={() => handlePrev()}
-          onToggleSave={() => toggleSave(job.id)} isSaved={savedJobs.has(job.id)} onExit={onGoBack} onDetail={() => onOpenDetail(job)}
-        />
+        <Box
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          sx={{
+            flex: 1, p: 2, display: 'flex', flexDirection: 'column',
+            position: 'relative', overflow: 'hidden',
+            transition: 'transform 0.3s ease-out',
+            transform: animating ? (animDir === 'right' ? 'translateX(-100%)' : 'translateX(100%)') : 'translateX(0)'
+          }}
+        >
+          <MobileJobCard
+            job={job}
+            onSkip={() => handleSwipe('right')}
+            onInterested={() => handlePrev()}
+            onToggleSave={() => toggleSave(job.id)}
+            isSaved={savedJobs.has(job.id)}
+            onExit={onGoBack}
+            onDetail={() => setShowMobileDetailView(true)}
+          />
+        </Box>
+
+        <Box sx={{ pb: 3, px: 4 }}>
+          <Box sx={{ height: 6, bgcolor: '#E5E7EB', borderRadius: 3, overflow: 'hidden' }}>
+            <Box sx={{ height: '100%', width: `${((currentIndex + 1) / filteredJobs.length) * 100}%`, bgcolor: '#6366f1', transition: 'width 0.3s' }} />
+          </Box>
+          <Typography variant="caption" align="center" sx={{ display: 'block', mt: 1, color: '#6B7280', fontWeight: 600 }}>
+            Swipe to browse jobs
+          </Typography>
+        </Box>
 
         {/* Mobile Filters Drawer */}
         <Drawer
@@ -237,6 +496,7 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
                 departments: [],
                 salaryRange: null,
                 matchScore: 0,
+                hideViewed: false,
               })}
               sx={{ textTransform: 'none' }}
             >
@@ -255,6 +515,32 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
             </Button>
           </Box>
         </Drawer>
+      </Box>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)', gap: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <CircularProgress size={50} sx={{ color: '#6366f1' }} />
+          <Typography sx={{ color: '#64748b', fontWeight: 500 }}>Loading personalized jobs for you...</Typography>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <Typography sx={{ fontSize: '2rem' }}>⚠️</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#0f172a' }}>{error}</Typography>
+          <Button variant="outlined" onClick={onGoBack} startIcon={<ArrowBackIcon />}
+            sx={{ mt: 1, borderColor: '#e2e8f0', color: '#0f172a', '&:hover': { borderColor: '#0f172a' } }}>
+            Back to Search
+          </Button>
+        </Box>
       </Box>
     );
   }
@@ -295,6 +581,7 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
                     departments: [],
                     salaryRange: null,
                     matchScore: 0,
+                    hideViewed: false,
                   });
                 } else if (f === 'remote') {
                   setFilters(prev => ({
@@ -310,6 +597,22 @@ const JobFeedScreen = ({ jobs, onOpenDetail, onGoBack }) => {
               }}
                 sx={{ cursor: 'pointer', flexShrink: 0, bgcolor: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#ede9fe' : '#f8fafc', color: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#4f46e5' : '#64748b', border: `1px solid ${(f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#c4b5fd' : '#e2e8f0'}`, fontWeight: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? 600 : 400, '&:hover': { bgcolor: '#ede9fe' } }} />
             ))}
+            {jobs.some(j => j.is_viewed) && (
+              <Chip
+                label="👁️ Hide Viewed"
+                size="small"
+                onClick={() => setFilters(prev => ({ ...prev, hideViewed: !prev.hideViewed }))}
+                sx={{
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  bgcolor: filters.hideViewed ? '#ede9fe' : '#f8fafc',
+                  color: filters.hideViewed ? '#4f46e5' : '#64748b',
+                  border: `1px solid ${filters.hideViewed ? '#c4b5fd' : '#e2e8f0'}`,
+                  fontWeight: filters.hideViewed ? 600 : 400,
+                  '&:hover': { bgcolor: '#ede9fe' }
+                }}
+              />
+            )}
           </Stack>
         </Box>
         <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5, display: 'flex', flexDirection: 'column', gap: 1, '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: 100 } }}>

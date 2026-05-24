@@ -76,7 +76,7 @@ const Customizer = () => {
         }}
       >
         <Box p={2}>
-          <Typography variant="h3">Settings</Typography>
+          <Typography variant="h4">Settings</Typography>
         </Box>
         <Divider />
         <Box p={2}>

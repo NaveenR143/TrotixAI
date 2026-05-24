@@ -14,7 +14,7 @@ set -e  # exit on first error
 DB_URL=${DATABASE_URL:-"postgresql://postgres:postgres@localhost:5432/trotixai"}
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  TrotixAI — PostgreSQL Migration Runner"
+echo "  RightNxt AI — PostgreSQL Migration Runner"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  Target: $DB_URL"
 echo ""

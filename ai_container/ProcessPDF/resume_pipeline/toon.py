@@ -67,6 +67,7 @@ class TOONFormatter:
             "  current_salary: number|empty,\n"
             "  expected_salary: number|empty,\n"
             '  salary_currency: "INR|USD|EUR|...",\n'
+            '  job_industry: "str|empty",\n'
             '  linkedin_url: "str|empty",\n'
             '  github_url: "str|empty",\n'
             '  portfolio_url: "str|empty",\n'
@@ -141,6 +142,7 @@ class TOONFormatter:
             '      achievements: ["str", ...],\n'
             '      keywords: ["str", ...],\n'
             '      project_type: "professional|academic|personal|unknown"\n'
+            '      url: "str|empty",\n'
             "    )\n"
             "  ],\n"
             '   resume_summary: "str|empty"\n'

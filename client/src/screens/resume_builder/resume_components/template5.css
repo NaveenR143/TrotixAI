@@ -1,0 +1,264 @@
+.t5-resume-container {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: #e5e7eb;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.t5-resume {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    color: #334155;
+    line-height: 1.5;
+}
+
+/* ===== DARK CORPORATE HEADER ===== */
+.t5-header {
+    background-color: #0f172a; /* Dark Slate */
+    color: #ffffff;
+    padding: 40px 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.t5-header-left h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin: 0 0 6px 0;
+}
+
+.t5-header-left .t5-job-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #38bdf8; /* Light Blue Accent */
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.t5-header-right {
+    text-align: right;
+    font-size: 12px;
+    font-weight: 400;
+    color: #cbd5e1;
+    line-height: 1.8;
+}
+
+.t5-header-right span {
+    display: block;
+}
+
+/* ===== MAIN CONTENT ===== */
+.t5-content {
+    padding: 35px 50px 40px;
+}
+
+/* ===== SECTIONS ===== */
+.t5-section {
+    margin-bottom: 26px;
+}
+
+.t5-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #0f172a;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-bottom: 16px;
+    position: relative;
+}
+
+/* Small accent line under the section title */
+.t5-section-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 50px;
+    height: 2px;
+    background-color: #38bdf8;
+}
+
+/* ===== SUMMARY ===== */
+.t5-summary-text {
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #475569;
+    text-align: justify;
+}
+
+/* ===== SKILLS (PILLS/TAGS) ===== */
+.t5-skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.t5-skill-tag {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+/* ===== EXPERIENCE ===== */
+.t5-exp-item {
+    margin-bottom: 20px;
+}
+
+.t5-exp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+}
+
+.t5-exp-role {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.t5-exp-date {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #38bdf8;
+}
+
+.t5-exp-company {
+    font-size: 12.5px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.t5-edu-school, .t5-edu-degree {
+    text-transform: uppercase;
+}
+
+.t5-exp-details {
+    padding-left: 18px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #475569;
+    margin: 8px 0;
+}
+
+.t5-exp-details li {
+    margin-bottom: 4px;
+}
+
+/* ===== EDUCATION ===== */
+.t5-edu-item {
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.t5-edu-left {
+    flex: 1;
+}
+
+.t5-edu-school {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    text-transform: uppercase;
+}
+
+.t5-edu-degree {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+    text-transform: uppercase;
+}
+
+.t5-edu-date {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #38bdf8;
+    white-space: nowrap;
+    margin-left: 20px;
+    padding-top: 2px;
+}
+
+/* ===== PROJECTS ===== */
+.t5-proj-item {
+    margin-bottom: 18px;
+}
+
+.t5-proj-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.t5-proj-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.t5-proj-year {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #38bdf8;
+}
+
+.t5-proj-link {
+    font-size: 11.5px;
+    color: #38bdf8;
+    text-decoration: none;
+    display: block;
+    margin: 2px 0;
+}
+
+.t5-proj-details {
+    padding-left: 18px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #475569;
+    margin: 5px 0;
+}
+
+/* ===== LANGUAGES ===== */
+.t5-languages {
+    font-size: 12.5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px 30px;
+    color: #475569;
+}
+
+.t5-lang-item strong {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+@media print {
+    .t5-resume-container {
+        padding: 0;
+        background: none;
+        width: 100%;
+    }
+    .t5-resume {
+        box-shadow: none;
+        margin: 0;
+        max-width: 100%;
+    }
+}

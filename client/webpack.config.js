@@ -14,6 +14,7 @@ module.exports = (env, argv) => {
     plugins: [
       new HtmlWebpackPlugin({
         template: path.join(__dirname, "public", "index.html"),
+        favicon: path.join(__dirname, "public", "favicon.ico"),
       }),
       ...(isProduction ? [
         new WorkboxWebpackPlugin.GenerateSW({
@@ -64,7 +65,7 @@ module.exports = (env, argv) => {
     devServer: {
       historyApiFallback: true, // ✅ This is the key!
       static: {
-        directory: path.join(__dirname, "dist"),
+        directory: path.join(__dirname, "public"),
       },
       compress: true,
       port: 3000,

@@ -8,16 +8,47 @@
  */
 
 // ─── Base URL Configuration ────────────────────────────────────────────────────
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = 'http://localhost:8000';
+// const API_BASE_URL = 'http://192.168.29.147:8000';
 
 // ─── API Endpoints ────────────────────────────────────────────────────────────
 const API_ENDPOINTS = {
   // Resume Upload & Parsing
-  UPLOAD_RESUME: '/resume-upload/upload-resume',
-  
-  // Add other endpoints as needed
-  // USER_PROFILE: '/user/profile',
-  // JOB_SEARCH: '/jobs/search',
+  UPLOAD_RESUME: '/resume-process/upload-resume',
+  RESUME_STATUS: '/resume-process/resume-status-wait',
+  VERIFY_OTP_UPDATE: '/otp/verify-otp-update',
+  VERIFY_OTP: '/otp/verify-otp',
+  USER_PROFILE: '/profile/fetch',
+  PROFILE: '/profile',
+  SEND_OTP: '/otp/send-otp',
+  NEW_RECRUITER_OTP: '/otp/new-recruiter-otp',
+  NEW_CANDIDATE_OTP: '/otp/new-candidate-otp',
+  JOB_FEEDS: '/jobs/fetch-jobs',
+  JOB_METADATA: '/jobs/metadata',
+  CREATE_JOB: '/jobs/create',
+  CAREER_ADVICE: '/profile/career-advice',
+  EXISTING_CAREER_ADVICE: '/profile/existing-career-advice',
+  SKILL_DEVELOPMENT_ANALYSIS: '/profile/skill-development-analysis',
+  EXISTING_SKILL_DEVELOPMENT_ANALYSIS: '/profile/existing-skill-analysis',
+  ENHANCE_RESUME: '/profile/enhance-resume',
+  AI_USAGE_STATUS: '/profile/ai-usage-status',
+  POSTED_JOBS: '/jobs/fetch-recruiter-posted-jobs',
+  JOB_MATCHING_CANDIDATES: '/jobs/fetch-job-matching-candidates',
+  JOB_APPLICANTS: '/jobs/fetch-job-applicants',
+  APPLY_JOB: '/jobs/apply-job',
+  TAILORING_JOB_EMAIL: '/jobs/tailoring-job-email',
+  MANUAL_SUBMISSION: '/profile/manual-submission',
+  GET_JOB: '/jobs/',
+  LOGOUT: '/otp/logout',
+  DEACTIVATE_JOB: '/jobs/deactivate-job',
+  GOVT_JOBS: '/jobs/govt-jobs',
+  GOVT_JOB_DETAILS: '/jobs/govt-jobs/',
+  UPDATE_PHOTO: '/profile/update-photo',
+  GET_PHOTO: '/profile/get-photo',
+  RECORD_VIEW: '/jobs/record-view',
+  CREDITS_USE_FEATURE: '/credits/use-feature',
+  CREDITS_WALLET: '/credits',
+  ADD_CREDITS: '/credits/add',
 };
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────

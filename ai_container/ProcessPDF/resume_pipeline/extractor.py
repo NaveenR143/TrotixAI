@@ -198,8 +198,7 @@ class DeterministicExtractor:
         "ahmedabad",
     )
 
-    EMAIL_RE = re.compile(
-        r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
+    EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
     PHONE_RE = re.compile(
         r"""
         (?<!\d)           # not preceded by a digit
@@ -211,8 +210,7 @@ class DeterministicExtractor:
         """,
         re.VERBOSE,
     )
-    EXPERIENCE_RE = re.compile(
-        r"(\d+(?:\.\d+)?)\+?\s*(years?|yrs?)", re.IGNORECASE)
+    EXPERIENCE_RE = re.compile(r"(\d+(?:\.\d+)?)\+?\s*(years?|yrs?)", re.IGNORECASE)
 
     def _extract_phone_numbers(self, text: str) -> list[str]:
         if not text:
@@ -233,7 +231,9 @@ class DeterministicExtractor:
 
         return cleaned_numbers
 
-    def extract(self, clean_text: str, first_five_lines: str) -> DeterministicResumeData:
+    def extract(
+        self, clean_text: str, first_five_lines: str
+    ) -> DeterministicResumeData:
         lowered = clean_text.lower()
         lines = first_five_lines.splitlines()
 
@@ -273,23 +273,78 @@ class DeterministicExtractor:
         return match.group(0).strip() if match else None
 
     NAME_RE = re.compile(r"^[A-Za-z][A-Za-z\s.'-]{1,49}$")
+    NAME_BLACKLIST = {
+        "CURRICULUM VITAE",
+        "CURRICULUM-VITAE",
+        "RESUME",
+        "BIO-DATA",
+        "BIODATA",
+        "PROFILE",
+        "MY PROFILE",
+        "PERSONAL PROFILE",
+        "CONTACT DETAILS",
+        "CONTACT INFORMATION",
+        "PROFESSIONAL PROFILE",
+        "SUMMARY",
+        "OBJECTIVE",
+        "CAREER OBJECTIVE",
+        "EXPERIENCE",
+        "EDUCATION",
+        "QUALIFICATIONS",
+        "SKILLS",
+        "LANGUAGES",
+        "PROJECTS",
+        "DECLARATION",
+        "PERSONAL DETAILS",
+        "WORK EXPERIENCE",
+    }
 
     def _extract_name(self, lines: Sequence[str], email: str | None) -> str | None:
+        email_tokens = set()
+
+        # -------- Extract tokens from email --------
+        if email:
+            prefix = email.split("@")[0].lower()
+
+            blacklist = {
+                "info",
+                "admin",
+                "support",
+                "contact",
+                "hello",
+                "sales",
+                "team",
+                "hr",
+                "noreply",
+                "no-reply",
+            }
+
+            parts = re.split(r"[._-]", prefix)
+
+            for p in parts:
+                p = re.sub(r"\d+", "", p)  # remove digits
+                if p and p not in blacklist:
+                    email_tokens.add(p.lower())
+
+        best_match = None
+        best_score = 0
+
+        # -------- Scan lines --------
         for line in lines[:8]:
             line = line.strip()
 
             if not line:
                 continue
 
-            # Skip if contains email
+            if line.upper() in self.NAME_BLACKLIST:
+                continue
+
             if email and email in line:
                 continue
 
-            # Skip structured lines (key-value pairs, tables)
             if "\t" in line or ":" in line:
                 continue
 
-            # Skip lines with digits or special chars
             if not self.NAME_RE.match(line):
                 continue
 
@@ -298,19 +353,49 @@ class DeterministicExtractor:
 
             words = line.split()
 
-            # 2–5 words: covers "John Smith", "Saran Kumar N M", "A. B. Kumar Das"
             if not (2 <= len(words) <= 5):
                 continue
 
-            # Each word must be a non-empty alpha token (allows initials like "N", "M")
             if not all(re.match(r"^[A-Za-z.'-]+$", w) for w in words):
                 continue
 
-            # All words must start uppercase (handles both Title Case and ALLCAPS)
             if not all(w[0].isupper() for w in words):
                 continue
 
-            return line
+            # -------- Score match with email tokens --------
+            score = 0
+            for w in words:
+                w_clean = w.lower().strip(".")
+                if w_clean in email_tokens:
+                    score += 1
+
+            # Prefer lines with higher overlap
+            if score > best_score:
+                best_score = score
+                best_match = line
+
+            # Perfect match → return immediately
+            if score >= 2:
+                return line
+
+            # If no email tokens, fallback to first valid line
+            if not email_tokens and best_match is None:
+                best_match = line
+
+        if best_match:
+            return best_match
+
+        # -------- Final fallback: derive from email --------
+        if email and email_tokens:
+            clean_parts = []
+            for p in email_tokens:
+                if len(p) == 1:
+                    clean_parts.append(p.upper())
+                else:
+                    clean_parts.append(p.capitalize())
+
+            if 1 <= len(clean_parts) <= 4:
+                return " ".join(clean_parts)
 
         return None
 
@@ -520,8 +605,7 @@ class DeterministicExtractor:
 
         # Extract lines after project section header (limit to next 15 lines)
         for i in range(
-            project_section_start +
-                1, min(project_section_start + 15, len(lines))
+            project_section_start + 1, min(project_section_start + 15, len(lines))
         ):
             line = lines[i].strip()
             if not line:
@@ -554,8 +638,7 @@ class DeterministicExtractor:
     def _extract_job_titles(self, lowered: str, lines: Sequence[str]) -> list[str]:
         found: set[str] = set()
         for pattern in self.TITLE_PATTERNS:
-            found.update(match.group(0)
-                         for match in re.finditer(pattern, lowered))
+            found.update(match.group(0) for match in re.finditer(pattern, lowered))
 
         # Generic fallback: infer from common role labels in resumes.
         label_patterns = (
@@ -563,8 +646,7 @@ class DeterministicExtractor:
                 r"^(current|target|desired)?\s*(role|position|title|designation)\s*[:\-]\s*(.+)$",
                 re.IGNORECASE,
             ),
-            re.compile(
-                r"^(professional\s+title)\s*[:\-]\s*(.+)$", re.IGNORECASE),
+            re.compile(r"^(professional\s+title)\s*[:\-]\s*(.+)$", re.IGNORECASE),
         )
         for line in lines[:80]:
             stripped = line.strip()
@@ -573,8 +655,7 @@ class DeterministicExtractor:
             for pattern in label_patterns:
                 match = pattern.match(stripped)
                 if match:
-                    candidate = match.group(
-                        match.lastindex or 1).strip().lower()
+                    candidate = match.group(match.lastindex or 1).strip().lower()
                     if candidate and len(candidate) <= 80:
                         found.add(candidate)
 
@@ -589,8 +670,7 @@ class DeterministicExtractor:
 
     @staticmethod
     def _extract_url(text: str, domain: str) -> str | None:
-        url_re = re.compile(
-            rf"https?://[^\s]*{re.escape(domain)}[^\s]*", re.IGNORECASE)
+        url_re = re.compile(rf"https?://[^\s]*{re.escape(domain)}[^\s]*", re.IGNORECASE)
         match = url_re.search(text)
         return match.group(0) if match else None
 

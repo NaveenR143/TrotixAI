@@ -1,0 +1,248 @@
+.t3-resume-container {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: #e8e8e8;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.t3-resume {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #ffffff;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+    font-family: 'Calibri', 'Arial', sans-serif;
+    color: #333333;
+    line-height: 1.5;
+}
+
+/* ===== HEADER WITH LIGHT BACKGROUND ===== */
+.t3-header {
+    background-color: #eaf2f8; /* Soft light blue */
+    padding: 40px 50px 30px;
+    border-bottom: 3px solid #2c3e50;
+}
+
+.t3-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a2633;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.t3-header .t3-job-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2980b9;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+}
+
+.t3-contact-info {
+    font-size: 12.5px;
+    color: #2c3e50;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+}
+
+.t3-contact-info span {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* ===== MAIN CONTENT ===== */
+.t3-content {
+    padding: 30px 50px 40px;
+}
+
+/* ===== SECTIONS ===== */
+.t3-section {
+    margin-bottom: 24px;
+}
+
+.t3-section-title {
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #1a2633;
+    border-bottom: 2px solid #2980b9;
+    padding-bottom: 4px;
+    margin-bottom: 14px;
+}
+
+/* ===== SUMMARY ===== */
+.t3-summary-text {
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: justify;
+    color: #444;
+}
+
+/* ===== SKILLS ===== */
+.t3-skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 30px;
+    font-size: 12px;
+}
+
+.t3-skill-category {
+    color: #444;
+}
+
+.t3-skill-category strong {
+    font-weight: 700;
+    color: #1a2633;
+}
+
+/* ===== EXPERIENCE ===== */
+.t3-exp-item {
+    margin-bottom: 18px;
+}
+
+.t3-exp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+}
+
+.t3-exp-role {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a2633;
+    text-transform: uppercase;
+}
+
+.t3-exp-date {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #2980b9;
+}
+
+.t3-exp-company {
+    font-size: 12px;
+    font-style: italic;
+    margin-bottom: 8px;
+    color: #555;
+    text-transform: uppercase;
+}
+
+.t3-edu-school, .t3-edu-degree {
+    text-transform: uppercase;
+}
+
+.t3-exp-details {
+    padding-left: 18px;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #444;
+    margin: 8px 0;
+}
+
+.t3-exp-details li {
+    margin-bottom: 4px;
+}
+
+/* ===== EDUCATION ===== */
+.t3-edu-item {
+    margin-bottom: 14px;
+}
+
+.t3-edu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+}
+
+.t3-edu-school {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a2633;
+    text-transform: uppercase;
+}
+
+.t3-edu-date {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #2980b9;
+}
+
+.t3-edu-degree {
+    font-size: 12px;
+    color: #555;
+    text-transform: uppercase;
+}
+
+/* ===== PROJECTS ===== */
+.t3-proj-item {
+    margin-bottom: 16px;
+}
+
+.t3-proj-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.t3-proj-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a2633;
+}
+
+.t3-proj-year {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #2980b9;
+}
+
+.t3-proj-link {
+    font-size: 11px;
+    color: #2980b9;
+    text-decoration: none;
+    display: block;
+    margin: 2px 0;
+}
+
+.t3-proj-details {
+    padding-left: 18px;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #444;
+    margin: 5px 0;
+}
+
+/* ===== LANGUAGES ===== */
+.t3-languages {
+    font-size: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px 30px;
+}
+
+.t3-lang-item strong {
+    font-weight: 700;
+    color: #1a2633;
+}
+
+@media print {
+    .t3-resume-container {
+        padding: 0;
+        background: none;
+        width: 100%;
+    }
+    .t3-resume {
+        box-shadow: none;
+        margin: 0;
+        max-width: 100%;
+    }
+}

@@ -4,19 +4,24 @@ import axios from "axios";
 import {
   Box,
   Button,
-  LinearProgress,
   Typography,
   Alert,
   AlertTitle,
   Collapse,
-  IconButton
+  styled,
+  keyframes
 } from "@mui/material";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
+
+// ─── Animations ───────────────────────────────────────────────────────────────
+const scanBar = keyframes`
+  0% { transform: translateY(0%); }
+  50% { transform: translateY(74%); }
+  100% { transform: translateY(0%); }
+`;
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const ACCEPTED_TYPES = {
@@ -52,7 +57,42 @@ const log = {
 
 const STATUS = { IDLE: "idle", UPLOADING: "uploading", SUCCESS: "success", ERROR: "error" };
 
-const DropZone = ({ file, onFileChange, disabled }) => {
+const StyledDropZone = styled(Box)(({ theme, dragging, disabled }) => ({
+  border: `1px dashed ${dragging ? '#2563EB' : '#93C5FD'}`,
+  borderRadius: '24px',
+  padding: '24px',
+  textAlign: "center",
+  cursor: disabled ? "not-allowed" : "pointer",
+  background: 'linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)',
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  outline: "none",
+  position: 'relative',
+  overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minHeight: '140px',
+  '&:hover': {
+    borderColor: '#2563EB',
+    transform: disabled ? 'none' : 'translateY(-2px)',
+    boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.1)',
+  },
+  opacity: disabled ? 0.7 : 1,
+}));
+
+const ScanningOverlay = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '2px',
+  background: 'linear-gradient(90deg, #2563EB, #7C3AED, #2563EB)',
+  animation: `${scanBar} 2.4s ease-in-out infinite`,
+  zIndex: 2,
+}));
+
+const DropZone = ({ file, onFileChange, disabled, status }) => {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const processFile = useCallback((rawFile) => {
@@ -60,46 +100,78 @@ const DropZone = ({ file, onFileChange, disabled }) => {
     log.info("File selected", { name: rawFile.name, type: rawFile.type, size: rawFile.size });
     onFileChange(rawFile);
   }, [onFileChange]);
+
   const handleDrop = (e) => {
     e.preventDefault();
     setDragging(false);
     if (disabled) return;
     processFile(e.dataTransfer.files[0] ?? null);
   };
-  const borderColor = dragging ? "#6366f1" : file ? "#10b981" : "#cbd5e1";
-  const bgColor = dragging ? "#f5f3ff" : file ? "#f0fdf4" : "#f8fafc";
+
   return (
-    <Box
+    <StyledDropZone
+      dragging={dragging}
+      disabled={disabled}
       onClick={() => !disabled && inputRef.current?.click()}
       onDragOver={(e) => { e.preventDefault(); if (!disabled) setDragging(true); }}
       onDragLeave={() => setDragging(false)}
       onDrop={handleDrop}
-      sx={{
-        border: `2px dashed ${borderColor}`, borderRadius: 3, p: 4, textAlign: "center",
-        cursor: disabled ? "not-allowed" : "pointer", bgcolor: bgColor, transition: "all 0.2s ease",
-        outline: "none", "&:hover:not([aria-disabled])": { borderColor: "#6366f1", bgcolor: "#f5f3ff" },
-        opacity: disabled ? 0.6 : 1,
-      }}
     >
       <input ref={inputRef} type="file" accept={ACCEPTED_EXTENSIONS.join(",")} hidden disabled={disabled} onChange={(e) => processFile(e.target.files?.[0] ?? null)} />
-      {file ? (
-        <Box>
-          <Box sx={{ width: 48, height: 48, borderRadius: "50%", bgcolor: "#dcfce7", display: "flex", alignItems: "center", justifyContent: "center", mx: "auto", mb: 1.5 }}>
-            <InsertDriveFileIcon sx={{ color: "#16a34a", fontSize: 24 }} />
-          </Box>
-          <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.9rem" }}>{file.name}</Typography>
-          <Typography sx={{ fontSize: "0.75rem", color: "#64748b", mt: 0.5 }}>{(file.size / 1024).toFixed(0)} KB · {disabled ? "Uploading…" : "Click to change"}</Typography>
+      
+      {status === STATUS.UPLOADING && <ScanningOverlay />}
+
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mb: file ? 2 : 0 }}>
+        <Box sx={{ textAlign: 'left' }}>
+          <Typography sx={{ fontWeight: 700, color: "#0F172A", fontSize: "0.95rem" }}>
+            {file ? file.name : "Drag & drop your resume"}
+          </Typography>
+          <Typography sx={{ fontSize: "0.75rem", color: "#64748B", mt: 0.5 }}>
+            {file ? `${(file.size / 1024).toFixed(0)} KB` : "PDF, DOCX, or CSV supported"}
+          </Typography>
         </Box>
-      ) : (
-        <Box>
-          <Box sx={{ width: 48, height: 48, borderRadius: "50%", bgcolor: "#ede9fe", display: "flex", alignItems: "center", justifyContent: "center", mx: "auto", mb: 1.5 }}>
-            <CloudUploadIcon sx={{ color: "#6366f1", fontSize: 24 }} />
+        <Box sx={{ 
+          width: 48, 
+          height: 48, 
+          borderRadius: "16px", 
+          bgcolor: "#FFFFFF", 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center",
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          color: '#2563EB'
+        }}>
+          {file ? <InsertDriveFileIcon /> : <UploadFileIcon />}
+        </Box>
+      </Box>
+
+      {file && (
+        <Box sx={{ width: '100%', mt: 'auto' }}>
+          <Box sx={{ bgcolor: 'rgba(255, 255, 255, 0.75)', p: 1.5, borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, color: '#64748B' }}>
+                {file.name}
+              </Typography>
+              <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: status === STATUS.UPLOADING ? '#2563EB' : '#10B981' }}>
+                {status === STATUS.UPLOADING ? "Scanning" : "Ready"}
+              </Typography>
+            </Box>
+            <Box sx={{ position: 'relative', height: 4, bgcolor: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
+              <Box sx={{ 
+                position: 'absolute', 
+                top: 0, 
+                left: 0, 
+                height: '100%', 
+                width: status === STATUS.UPLOADING ? '70%' : '100%',
+                background: 'linear-gradient(90deg, #2563EB, #7C3AED)',
+                borderRadius: 4,
+                transition: 'width 0.5s ease'
+              }} />
+            </Box>
           </Box>
-          <Typography sx={{ fontWeight: 600, color: "#0f172a", fontSize: "0.9rem" }}>Drop your resume here</Typography>
-          <Typography sx={{ fontSize: "0.75rem", color: "#94a3b8", mt: 0.5 }}>PDF or CSV · Max 5 MB</Typography>
         </Box>
       )}
-    </Box>
+    </StyledDropZone>
   );
 };
 
@@ -127,23 +199,15 @@ const ResumeUpload = ({ onSuccess, onError }) => {
     setStatus(STATUS.UPLOADING); setProgress(0); setErrorMsg("");
     try {
       log.info("Uploading resume", { fileName: file.name, fileSize: file.size, endpoint: API_ENDPOINT });
-      
+
       const response = await axios.post(API_ENDPOINT, formData, {
         headers: { "Accept": "application/json" },
         cancelToken: cancelSourceRef.current.token,
         onUploadProgress: (p) => setProgress(p.total ? Math.round((p.loaded / p.total) * 100) : 0),
       });
-      
-      // Log successful response
-      log.info("Resume upload successful", { 
-        status: response.status, 
-        data: response.data 
-      });
-      
-      // Display success message
-      console.log("✅ Upload Response:", JSON.stringify(response.data, null, 2));
-      
-      setStatus(STATUS.SUCCESS); 
+
+      log.info("Resume upload successful", { status: response.status, data: response.data });
+      setStatus(STATUS.SUCCESS);
       setProgress(100);
       if (onSuccess) onSuccess(response.data);
     } catch (err) {
@@ -151,64 +215,73 @@ const ResumeUpload = ({ onSuccess, onError }) => {
         log.warn("Upload cancelled");
         return;
       }
-      
       const msg = err.response?.data?.message || err.message || "Upload failed";
-      
-      // Log error details
-      log.error("Resume upload failed", { 
-        status: err.response?.status,
-        message: msg,
-        error: err
-      });
-      
-      // Display error details
-      console.error("❌ Upload Error:", {
-        status: err.response?.status,
-        message: msg,
-        data: err.response?.data
-      });
-      
-      setErrorMsg(msg); 
+      log.error("Resume upload failed", { status: err.response?.status, message: msg, error: err });
+      setErrorMsg(msg);
       setStatus(STATUS.ERROR);
       if (onError) onError(new Error(msg));
     }
   };
+
   const handleReset = () => {
     if (cancelSourceRef.current) cancelSourceRef.current.cancel();
     setFile(null); setStatus(STATUS.IDLE); setProgress(0); setErrorMsg("");
   };
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <DropZone file={file} onFileChange={handleFileChange} disabled={status === STATUS.UPLOADING} />
+      <DropZone file={file} onFileChange={handleFileChange} disabled={status === STATUS.UPLOADING} status={status} />
+      
       <Collapse in={status === STATUS.ERROR}>
-        <Alert severity="error" onClose={handleReset} sx={{ fontSize: "0.82rem" }}>
-          <AlertTitle sx={{ fontSize: "0.85rem", fontWeight: 700 }}>Upload Failed</AlertTitle>
+        <Alert severity="error" onClose={handleReset} sx={{ borderRadius: '16px', border: '1px solid #FECACA' }}>
+          <AlertTitle sx={{ fontWeight: 700 }}>Upload Failed</AlertTitle>
           {errorMsg}
         </Alert>
       </Collapse>
+      
       <Collapse in={status === STATUS.SUCCESS}>
-        <Alert severity="success" sx={{ fontSize: "0.82rem" }}>
-          <AlertTitle sx={{ fontSize: "0.85rem", fontWeight: 700 }}>Resume Parsed!</AlertTitle>
+        <Alert severity="success" sx={{ borderRadius: '16px', border: '1px solid #A7F3D0' }}>
+          <AlertTitle sx={{ fontWeight: 700 }}>Resume Parsed!</AlertTitle>
           Your resume was analyzed successfully.
         </Alert>
       </Collapse>
-      <Collapse in={status === STATUS.UPLOADING || status === STATUS.SUCCESS}>
-        <Box>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-            <Typography sx={{ fontSize: "0.75rem", color: "#64748b" }}>{status === STATUS.UPLOADING ? "Uploading…" : "Complete"}</Typography>
-            <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#0f172a" }}>{progress}%</Typography>
-          </Box>
-          <LinearProgress variant="determinate" value={progress} sx={{ borderRadius: 8, height: 6, bgcolor: "#e2e8f0", "& .MuiLinearProgress-bar": { background: "linear-gradient(90deg, #6366f1, #8b5cf6)", borderRadius: 8 } }} />
-        </Box>
-      </Collapse>
+
       {status !== STATUS.SUCCESS && (
-        <Button variant="contained" size="large" fullWidth disabled={!file || status === STATUS.UPLOADING} onClick={handleUpload} endIcon={<AutoAwesomeIcon />}
-          sx={{ py: 1.5, background: "black", color: "white", "&:hover": { background: "#333333", transform: "translateY(-1px)" }, "&.Mui-disabled": { background: "#e0e0e0", color: "#9e9e9e" }, boxShadow: "0 4px 14px rgba(0,0,0,0.15)" }}>
-          {status === STATUS.UPLOADING ? "Analysing…" : "Analyse with AI"}
+        <Button 
+          variant="contained" 
+          size="large" 
+          fullWidth 
+          disabled={!file || status === STATUS.UPLOADING} 
+          onClick={handleUpload} 
+          endIcon={<AutoAwesomeIcon />}
+          sx={{ 
+            py: 1.8, 
+            borderRadius: '16px',
+            background: 'linear-gradient(90deg, #2563EB, #7C3AED)', 
+            color: "white", 
+            fontWeight: 700,
+            textTransform: 'none',
+            fontSize: '1rem',
+            "&:hover": { 
+              background: 'linear-gradient(90deg, #1D4ED8, #6D28D9)', 
+              transform: "translateY(-2px)",
+              boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.3)'
+            }, 
+            "&.Mui-disabled": { 
+              background: "#E2E8F0", 
+              color: "#94A3B8" 
+            }, 
+            boxShadow: "0 4px 14px rgba(37, 99, 235, 0.2)" 
+          }}
+        >
+          {status === STATUS.UPLOADING ? "Analyzing Resume..." : "Start AI Job Matching"}
         </Button>
       )}
+
       {(status === STATUS.SUCCESS || status === STATUS.ERROR) && (
-        <Button variant="text" size="small" onClick={handleReset} sx={{ alignSelf: "center", color: "#94a3b8", fontSize: "0.78rem" }}>Upload another file</Button>
+        <Button variant="text" size="small" onClick={handleReset} sx={{ alignSelf: "center", color: "#64748B", fontWeight: 600 }}>
+          Upload another file
+        </Button>
       )}
     </Box>
   );

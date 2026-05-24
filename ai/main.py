@@ -1,4 +1,4 @@
-# api/main.py
+# api/main.py - updated for govt jobs
 # FastAPI — serves React PWA + resume parse + PostgreSQL job matching
 # Run: uvicorn api.main:app --reload --port 8000
 
@@ -50,11 +50,17 @@ SRC_DIR = BASE_DIR / "client" / "src"
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
-app = FastAPI(title="TrotixAI", version="1.0.0")
+app = FastAPI(title="RightNxt AI", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -66,12 +72,14 @@ icons_dir = PUBLIC_DIR / "icons"
 if icons_dir.exists():
     app.mount("/icons", StaticFiles(directory=icons_dir), name="icons")
 else:
-    LOGGER.warning("Skipping /icons static mount; directory missing: %s", icons_dir)
+    LOGGER.warning(
+        "Skipping /icons static mount; directory missing: %s", icons_dir)
 
 if SRC_DIR.exists():
     app.mount("/src", StaticFiles(directory=SRC_DIR), name="src")
 else:
-    LOGGER.warning("Skipping /src static mount; directory missing: %s", SRC_DIR)
+    LOGGER.warning(
+        "Skipping /src static mount; directory missing: %s", SRC_DIR)
 
 
 # ── API Routes ────────────────────────────────────────────────────────────────
@@ -83,7 +91,7 @@ async def test_get():
     return {
         "status": "success",
         "message": "GET /test working",
-        "timestamp": str(PROFILE_CACHE.get("_test", {}))
+        "timestamp": str(PROFILE_CACHE.get("_test", {})),
     }
 
 
@@ -93,7 +101,7 @@ async def test_post(data: dict = None):
     return {
         "status": "success",
         "message": "POST /test working",
-        "received_data": data or {}
+        "received_data": data or {},
     }
 
 
@@ -334,9 +342,9 @@ async def test_post(data: dict = None):
 
 # @app.post("/api/auth/generate-otp")
 # async def generate_otp(req: GenerateOTPRequest):
-#     """Generate a 6-digit OTP for a mobile number."""
+#     """Generate a 4-digit OTP for a mobile number."""
 #     # In a real app, integrate SMS provider (e.g., Twilio, AWS SNS) here
-#     otp = str(random.randint(100000, 999999))
+#     otp = str(random.randint(1000, 9999))
 #     OTP_CACHE[req.mobile_number] = otp
 #     LOGGER.info(f"Generated OTP {otp} for {req.mobile_number}")
 
@@ -385,4 +393,11 @@ async def service_worker():
 # SPA fallback — must be absolutely last
 @app.get("/{full_path:path}")
 async def spa_fallback(full_path: str):
+    # Exclude API routes from SPA fallback to avoid confusing HTML responses
+    api_prefixes = ["profile", "jobs", "otp", "resume-process"]
+    if any(full_path.startswith(prefix) for prefix in api_prefixes):
+        raise HTTPException(
+            status_code=404, detail=f"API route '/{full_path}' not found"
+        )
+
     return FileResponse(PUBLIC_DIR / "index.html")

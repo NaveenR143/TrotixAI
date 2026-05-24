@@ -14,6 +14,7 @@ const JobListItem = ({ job, isSelected, onClick }) => {
         border: `1px solid ${isSelected ? '#6366f1' : '#e2e8f0'}`,
         bgcolor: isSelected ? '#f5f3ff' : '#fff',
         transition: 'all 0.15s',
+        opacity: job.is_viewed ? 0.6 : 1,
         '&:hover': { borderColor: isSelected ? '#6366f1' : '#94a3b8', bgcolor: isSelected ? '#f5f3ff' : '#f8fafc' },
       }}
     >
@@ -22,28 +23,46 @@ const JobListItem = ({ job, isSelected, onClick }) => {
           {job.title}
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.4, flexShrink: 0 }}>
-          <MatchBadge score={job.matchScore} />
+          {/* <MatchBadge score={job.matchScore || 0} /> */}
           {job.posted && (
             <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>{job.posted}</Typography>
           )}
         </Box>
       </Box>
       <Typography sx={{ fontSize: '0.8rem', color: '#64748b', mb: 0.75 }}>{job.company}</Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1.25 }}>
-        <LocationOnIcon sx={{ fontSize: 12, color: '#94a3b8' }} />
-        <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8' }}>{job.location}</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <LocationOnIcon sx={{ fontSize: 12, color: '#94a3b8' }} />
+          <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8' }}>{job.location}</Typography>
+        </Box>
         <Typography sx={{ fontSize: '0.75rem', color: '#cbd5e1', mx: 0.25 }}>·</Typography>
         <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-          {getWorkModeIcon(job.workMode)} {job.workMode}
+          {getWorkModeIcon(job.workMode)} {job.workMode || 'Not Specified'}
         </Typography>
+        {job.expired_date && (
+          <>
+            <Typography sx={{ fontSize: '0.75rem', color: '#cbd5e1', mx: 0.25 }}>·</Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 600 }}>Ends: {job.expired_date}</Typography>
+          </>
+        )}
       </Box>
+      {job.qualification && (
+        <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mb: 1.25, fontStyle: 'italic' }} noWrap>
+          Graduation: {job.qualification}
+        </Typography>
+      )}
       <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-        {job.keySkillsMatched.slice(0, 3).map(s => (
+        {job.type && (
+          <Chip label={job.type} size="small"
+            sx={{ height: 18, fontSize: '0.68rem', bgcolor: '#f0fdf4', color: '#15803d', border: '1px solid #dcfce7', fontWeight: 600 }}
+          />
+        )}
+        {(job.keySkillsMatched || []).slice(0, 3).map(s => (
           <Chip key={s} label={s} size="small"
             sx={{ height: 18, fontSize: '0.68rem', bgcolor: isSelected ? '#ede9fe' : '#f8fafc', color: isSelected ? '#4f46e5' : '#64748b', border: `1px solid ${isSelected ? '#c4b5fd' : '#e2e8f0'}` }}
           />
         ))}
-        {job.keySkillsMatched.length > 3 && (
+        {job.keySkillsMatched?.length > 3 && (
           <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8', alignSelf: 'center' }}>+{job.keySkillsMatched.length - 3}</Typography>
         )}
       </Box>

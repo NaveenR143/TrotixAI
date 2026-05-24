@@ -146,7 +146,7 @@ class ProcessPDFHandler:
         except Exception as e:
             raise Exception(f"Failed to create file stream: {str(e)}")
 
-    def process_file(self):
+    async def process_file(self):
         """
         Main orchestrator method:
         Calls all steps in sequence and returns processed data
@@ -158,63 +158,19 @@ class ProcessPDFHandler:
             self.detect_mime_type()
             self.create_file_stream()
 
-            # Call additional internal processing if needed
-            # Run async processing from sync context
-            try:
-                # Close any existing closed event loops and get a fresh one
-                try:
-                    loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    # No event loop running, safe to create a new one
-                    try:
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                        loop.run_until_complete(self._run_async_processing())
-                    finally:
-                        # Don't close the loop here - let it be reused for the next iteration
-                        # Only close it if we created it and it's definitely done
-                        pass
-                else:
-                    # Event loop already running (shouldn't happen in sync context, but handle it)
-                    raise RuntimeError("Event loop already running")
-                
-                print("✅ Additional processing initiated successfully")
+            result = await self.additional_processing()
 
-            except RuntimeError as e:
-                if "Event loop is closed" in str(e):
-                    # Previous event loop was closed, this is expected
-                    print(f"⚠️ Warning: Event loop was previously closed. Attempting recovery...")
-                    # Try once more with a fresh loop
-                    try:
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                        loop.run_until_complete(self._run_async_processing())
-                    except Exception as retry_error:
-                        print(f"⚠️ Recovery failed: {str(retry_error)}")
-                    finally:
-                        # Don't close - reuse for next iteration
-                        pass
-                else:
-                    print(f"⚠️ Warning: Additional processing skipped: {str(e)}")
-            except Exception as e:
-                print(f"⚠️ Warning: Additional processing skipped: {str(e)}")
+            return result
 
-            return {
-                "file_name": self.file_name,
-                "mime_type": self.mime_type,
-                "file_stream": self.file_stream,
-            }
+            # return {
+            #     "file_name": self.file_name,
+            #     "mime_type": self.mime_type,
+            #     "file_stream": self.file_stream,
+            # }
         except FileValidationError as e:
             raise FileValidationError(f"File validation error: {str(e)}")
         except Exception as e:
             raise Exception(f"File processing failed: {str(e)}")
-
-    async def _run_async_processing(self):
-        """
-        Wrapper to run async processing within the event loop context.
-        Note: Database connection pool persists for the application lifetime.
-        """
-        await self.additional_processing()
 
     async def additional_processing(self):
         """
@@ -228,14 +184,14 @@ class ProcessPDFHandler:
                 try:
                     start_time = time.perf_counter()
 
-                    # Initialize processor with AI refiner
+                    # Initialize processor with AI refiner and session
                     processor = ResumeProcessor(
                         session=session,
                         ai_refiner=AzureOpenAIResumeRefiner(),
                     )
 
                     # Process resume
-                    await processor.process_resume(
+                    result = await processor.process_resume(
                         user_id=self.user_id,
                         file_name=self.file_name,
                         file_bytes=self.file_stream,
@@ -249,9 +205,12 @@ class ProcessPDFHandler:
                     print(f"✅ Resume processing completed successfully")
                     print(f"⏱️  Total processing time: {duration:.2f} seconds")
 
+                    return result
+
                 except Exception as e:
                     print(f"❌ Resume processing failed: {str(e)}")
                     raise
+                
 
         except Exception as e:
             print(f"⚠️  Additional processing error: {str(e)}")

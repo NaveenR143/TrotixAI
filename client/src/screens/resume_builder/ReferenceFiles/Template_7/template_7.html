@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nithin Aravind - Modern Corporate ATS Resume</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: A4; margin: 0; }
+
+  body {
+    font-family: 'Helvetica Neue', 'Arial', sans-serif;
+    background: #e5e5e5;
+    color: #333333;
+    line-height: 1.5;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .resume {
+    max-width: 800px;
+    margin: 30px auto;
+    background: #ffffff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+
+  /* ===== TOP ACCENT ===== */
+  .top-accent {
+    height: 6px;
+    background-color: #005f73; /* Deep Teal */
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    padding: 35px 50px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .header-left h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #005f73;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+  }
+
+  .header-left .job-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #94d2bd; /* Soft Teal */
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    margin-top: 6px;
+  }
+
+  .header-right {
+    text-align: right;
+    font-size: 11.5px;
+    color: #555;
+    line-height: 1.8;
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .content {
+    padding: 10px 50px 40px;
+  }
+
+  /* ===== SECTIONS ===== */
+  .section {
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #005f73;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 5px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  /* Accent dot for style */
+  .section-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 2px;
+    background: repeating-linear-gradient(
+      to right,
+      #005f73 0px,
+      #005f73 8px,
+      transparent 8px,
+      transparent 12px
+    );
+  }
+
+  /* ===== SUMMARY ===== */
+  .summary-text {
+    font-size: 12px;
+    line-height: 1.7;
+    color: #444;
+    text-align: justify;
+  }
+
+  /* ===== SKILLS (Table Style for ATS) ===== */
+  .skills-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .skills-table td {
+    padding: 8px 12px;
+    border: 1px solid #e9ecef;
+    vertical-align: top;
+  }
+
+  .skills-table .skill-cat {
+    background-color: #f0f7f4; /* Very light teal tint */
+    font-weight: 700;
+    color: #005f73;
+    width: 20%;
+    white-space: nowrap;
+  }
+
+  .skills-table .skill-list {
+    color: #444;
+  }
+
+  /* ===== EXPERIENCE ===== */
+  .exp-item {
+    margin-bottom: 18px;
+  }
+
+  .exp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+  }
+
+  .exp-role {
+    font-size: 13px;
+    font-weight: 700;
+    color: #005f73;
+  }
+
+  .exp-date {
+    font-size: 11px;
+    font-weight: 700;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .exp-company {
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #666;
+  }
+
+  .exp-details {
+    padding-left: 18px;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #444;
+  }
+
+  .exp-details li {
+    margin-bottom: 4px;
+  }
+
+  /* ===== EDUCATION ===== */
+  .edu-item {
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .edu-left {
+    flex: 1;
+  }
+
+  .edu-school {
+    font-size: 13px;
+    font-weight: 700;
+    color: #005f73;
+  }
+
+  .edu-degree {
+    font-size: 12px;
+    color: #555;
+    margin-top: 2px;
+  }
+
+  .edu-date {
+    font-size: 11px;
+    font-weight: 700;
+    color: #555;
+    text-transform: uppercase;
+    white-space: nowrap;
+    margin-left: 20px;
+    padding-top: 2px;
+  }
+
+  /* ===== LANGUAGES ===== */
+  .languages {
+    font-size: 12px;
+    display: flex;
+    gap: 30px;
+    color: #444;
+  }
+
+  .lang-item strong {
+    font-weight: 700;
+    color: #005f73;
+  }
+
+  /* ===== REFERENCES ===== */
+  .ref-grid {
+    display: flex;
+    gap: 25px;
+  }
+
+  .ref-item {
+    flex: 1;
+    font-size: 12px;
+    border-left: 3px solid #94d2bd; /* Soft Teal accent */
+    padding-left: 15px;
+  }
+
+  .ref-name {
+    font-weight: 700;
+    color: #005f73;
+    margin-bottom: 3px;
+  }
+
+  .ref-detail {
+    color: #555;
+    line-height: 1.5;
+  }
+
+  /* Print Button */
+  .print-btn {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    padding: 12px 28px; border: none; border-radius: 4px;
+    background: #005f73; color: #fff; font-family: 'Arial', sans-serif;
+    font-size: 12px; font-weight: 700; letter-spacing: 1px; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2); text-transform: uppercase;
+    transition: background 0.2s;
+  }
+  .print-btn:hover { background: #94d2bd; }
+
+  @media print {
+    body { background: none; }
+    .resume { box-shadow: none; margin: 0; max-width: 100%; }
+    .top-accent { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-btn { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="resume">
+
+  <!-- ===== TOP ACCENT BAR ===== -->
+  <div class="top-accent"></div>
+
+  <!-- ===== HEADER ===== -->
+  <header class="header">
+    <div class="header-left">
+      <h1>Nithin Aravind</h1>
+      <div class="job-title">Web Development Professional</div>
+    </div>
+    <div class="header-right">
+      <div>+91 98765 43210</div>
+      <div>nithin.aravind@email.com</div>
+      <div>nithinaravind.com</div>
+      <div>Koramangala, Bengaluru, Karnataka 560034</div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ===== SUMMARY ===== -->
+    <div class="section">
+      <div class="section-title">Professional Summary</div>
+      <p class="summary-text">
+        A self-motivated Web Developer with over 5 years of experience in designing and developing user-facing web applications. Proficient in HTML5, CSS3, JavaScript and PHP, with a strong eye for responsive design and seamless user experience. Skilled at collaborating with cross-functional teams to translate business requirements into technical solutions, with a proven track record of delivering projects on time and within budget.
+      </p>
+    </div>
+
+    <!-- ===== SKILLS ===== -->
+    <div class="section">
+      <div class="section-title">Core Competencies</div>
+      <table class="skills-table">
+        <tr>
+          <td class="skill-cat">Front-End</td>
+          <td class="skill-list">HTML5, CSS3, JavaScript, ReactJS, Responsive Design</td>
+        </tr>
+        <tr>
+          <td class="skill-cat">Back-End</td>
+          <td class="skill-list">PHP, MySQL, REST APIs, Payment Gateway Integration</td>
+        </tr>
+        <tr>
+          <td class="skill-cat">Design</td>
+          <td class="skill-list">Web Design, Graphic Design, UI/UX Principles, Figma</td>
+        </tr>
+        <tr>
+          <td class="skill-cat">CMS</td>
+          <td class="skill-list">WordPress, WooCommerce, Site Optimization</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ===== EXPERIENCE ===== -->
+    <div class="section">
+      <div class="section-title">Professional Experience</div>
+
+      <div class="exp-item">
+        <div class="exp-header">
+          <div class="exp-role">Applications Developer</div>
+          <div class="exp-date">2016 – Present</div>
+        </div>
+        <div class="exp-company">Tech Solutions Pvt. Ltd., Bengaluru</div>
+        <ul class="exp-details">
+          <li>Developed and maintained robust web applications using PHP, JavaScript, and MySQL, ensuring high performance and responsiveness.</li>
+          <li>Collaborated with UI/UX designers and product managers to translate business requirements into scalable technical solutions.</li>
+          <li>Implemented responsive design principles across all client-facing platforms, improving mobile user engagement by 40%.</li>
+        </ul>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-header">
+          <div class="exp-role">Web Content Manager</div>
+          <div class="exp-date">2014 – 2016</div>
+        </div>
+        <div class="exp-company">Digital Marketing India, Mumbai</div>
+        <ul class="exp-details">
+          <li>Managed and updated web content across multiple high-traffic WordPress sites, ensuring SEO optimization and brand consistency.</li>
+          <li>Coordinated with the marketing team to execute digital campaigns and landing pages, resulting in a 25% increase in lead generation.</li>
+          <li>Streamlined content approval workflows, reducing publication turnaround time by 30%.</li>
+        </ul>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-header">
+          <div class="exp-role">Web Developer</div>
+          <div class="exp-date">2013 – 2014</div>
+        </div>
+        <div class="exp-company">StartUp Hub, Hyderabad</div>
+        <ul class="exp-details">
+          <li>Designed and built interactive websites from scratch using HTML5, CSS3, and JavaScript for early-stage startups.</li>
+          <li>Integrated third-party APIs and payment gateways to enhance website functionality and user experience.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== EDUCATION ===== -->
+    <div class="section">
+      <div class="section-title">Education</div>
+
+      <div class="edu-item">
+        <div class="edu-left">
+          <div class="edu-school">Visvesvaraya Technological University (VTU)</div>
+          <div class="edu-degree">Bachelor of Technology (B.Tech), Information Technology</div>
+        </div>
+        <div class="edu-date">2014 – 2016</div>
+      </div>
+
+      <div class="edu-item">
+        <div class="edu-left">
+          <div class="edu-school">Anna University</div>
+          <div class="edu-degree">Diploma in Information Technology</div>
+        </div>
+        <div class="edu-date">2013 – 2014</div>
+      </div>
+
+      <div class="edu-item">
+        <div class="edu-left">
+          <div class="edu-school">National Institute of Design (NID)</div>
+          <div class="edu-degree">Advanced Diploma in Graphic Design</div>
+        </div>
+        <div class="edu-date">2012 – 2013</div>
+      </div>
+    </div>
+
+    <!-- ===== LANGUAGES ===== -->
+    <div class="section">
+      <div class="section-title">Languages</div>
+      <div class="languages">
+        <div class="lang-item"><strong>English:</strong> Professional Proficiency</div>
+        <div class="lang-item"><strong>Hindi:</strong> Native Proficiency</div>
+        <div class="lang-item"><strong>Kannada:</strong> Native Proficiency</div>
+        <div class="lang-item"><strong>Tamil:</strong> Conversational</div>
+      </div>
+    </div>
+
+    <!-- ===== REFERENCES ===== -->
+    <div class="section" style="margin-bottom: 0;">
+      <div class="section-title">References</div>
+      <div class="ref-grid">
+        <div class="ref-item">
+          <div class="ref-name">Harum Kobayashi</div>
+          <div class="ref-detail">Director, Tech Solutions Pvt. Ltd.<br>+91 94481 XXXXX</div>
+        </div>
+        <div class="ref-item">
+          <div class="ref-name">Baile Dupont</div>
+          <div class="ref-detail">Manager, Digital Marketing India<br>+91 98567 XXXXX</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Print button -->
+<button class="print-btn" onclick="window.print()">Save as PDF</button>
+
+</body>
+</html>

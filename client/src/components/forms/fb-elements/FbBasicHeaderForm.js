@@ -127,7 +127,7 @@ const FbBasicHeaderForm = () => {
                     </MenuItem>
                   ))}
                 </CustomSelect>
-                <CustomFormLabel>Membership</CustomFormLabel>
+                <CustomFormLabel>Credits</CustomFormLabel>
 
                 <FormControl
                   sx={{

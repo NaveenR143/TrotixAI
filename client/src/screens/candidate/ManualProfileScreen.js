@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box, Container, Paper, Stepper, Step, StepLabel, Typography, Button, TextField,
-  Stack, Grid, Divider, IconButton, Tooltip, Chip, Alert, Autocomplete, MenuItem
+  Stack, Grid, Divider, IconButton, Tooltip, Chip, Alert, Autocomplete, MenuItem,
+  InputAdornment, CircularProgress
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -21,26 +22,97 @@ import EmailIcon from "@mui/icons-material/Email";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CakeIcon from "@mui/icons-material/Cake";
 import FamilyRestroomIcon from "@mui/icons-material/FamilyRestroom";
-import { updateUserProfile, debitPoints } from "../../redux/user/Action";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import { updateUserProfile, debitPoints, addUserDetails } from "../../redux/user/Action";
+import { scrollToFirstError, toTitleCase } from "../../utils/formUtils";
+import { fetchSkillsDropdown, fetchLanguagesDropdown, submitManualProfile } from "../../api/profileAPI";
+import { sendRegistrationOTP, verifyOTP } from "../../api/jobpostingAPI";
 
 const STEPS = ["Identity", "Experience & Education", "Summary & Skills"];
-const SKILLS_OPTIONS = [
-  "React", "Node.js", "JavaScript", "TypeScript", "Python", "Java", "C++", "AWS", "Docker",
-  "Kubernetes", "Git", "SQL", "NoSQL", "MongoDB", "PostgreSQL", "SEO", "Digital Marketing",
-  "Project Management", "Agile", "UI/UX Design", "Figma", "Redux", "GraphQL"
-];
+// const SKILLS_OPTIONS = [
+//   "React", "Node.js", "JavaScript", "TypeScript", "Python", "Java", "C++", "AWS", "Docker",
+//   "Kubernetes", "Git", "SQL", "NoSQL", "MongoDB", "PostgreSQL", "SEO", "Digital Marketing",
+//   "Project Management", "Agile", "UI/UX Design", "Figma", "Redux", "GraphQL"
+// ];
 
-const LANGUAGES_OPTIONS = [
-  "English (Native)", "English (Professional)", "Hindi", "Spanish", "French", "German",
-  "Mandarin", "Japanese", "Bengali", "Portuguese", "Russian", "Arabic"
-];
+// const LANGUAGES_OPTIONS = [
+//   "English (Native)", "English (Professional)", "Hindi", "Spanish", "French", "German",
+//   "Mandarin", "Japanese", "Bengali", "Portuguese", "Russian", "Arabic"
+// ];
+
+//   "Mandarin", "Japanese", "Bengali", "Portuguese", "Russian", "Arabic"
+// ];
 
 const ManualProfileScreen = ({ onSave, onBack }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const membership = useSelector((state) => state.UserReducer.membership || 'Free');
   const userPoints = useSelector((state) => state.UserReducer.points ?? 100);
+  const userid = useSelector((state) => state.UserReducer.userid);
 
   const [activeStep, setActiveStep] = useState(0);
+  const [skillsOptions, setSkillsOptions] = useState([]);
+  const [languagesOptions, setLanguagesOptions] = useState([]);
+  const [skillsLoading, setSkillsLoading] = useState(false);
+  const [languagesLoading, setLanguagesLoading] = useState(false);
+
+  useEffect(() => {
+    // Initial fetch of popular/default skills and languages
+    const loadInitialOptions = async () => {
+      try {
+        setSkillsLoading(true);
+        const skillsRes = await fetchSkillsDropdown("");
+        if (!skillsRes.error) {
+          setSkillsOptions(skillsRes.data.map(s => toTitleCase(typeof s === 'string' ? s : s.name)));
+        }
+        setSkillsLoading(false);
+
+        setLanguagesLoading(true);
+        const languagesRes = await fetchLanguagesDropdown("");
+        if (!languagesRes.error) {
+          setLanguagesOptions(languagesRes.data.map(l => toTitleCase(typeof l === 'string' ? l : l.language)));
+        }
+        setLanguagesLoading(false);
+      } catch (err) {
+        console.error("Error loading initial dropdown data:", err);
+        setSkillsLoading(false);
+        setLanguagesLoading(false);
+      }
+    };
+
+    loadInitialOptions();
+  }, []);
+
+  // Handle skills search
+  const handleSkillsSearch = async (query) => {
+    setSkillsLoading(true);
+    try {
+      const res = await fetchSkillsDropdown(query);
+      if (!res.error) {
+        setSkillsOptions(res.data.map(s => toTitleCase(typeof s === 'string' ? s : s.name)));
+      }
+    } catch (err) {
+      console.error("Skills search error:", err);
+    } finally {
+      setSkillsLoading(false);
+    }
+  };
+
+  // Handle languages search
+  const handleLanguagesSearch = async (query) => {
+    setLanguagesLoading(true);
+    try {
+      const res = await fetchLanguagesDropdown(query);
+      if (!res.error) {
+        setLanguagesOptions(res.data.map(l => toTitleCase(typeof l === 'string' ? l : l.language)));
+      }
+    } catch (err) {
+      console.error("Languages search error:", err);
+    } finally {
+      setLanguagesLoading(false);
+    }
+  };
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -51,6 +123,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
     website: "",
     experience: [],
     education: [],
+    achievements: [],
     skills: [],
     languages: [],
     dob: "",
@@ -61,13 +134,27 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
   const [aiLoading, setAiLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // OTP Verification State
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationError, setVerificationError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const validateStep = (step) => {
     const newErrors = {};
     if (step === 0) {
       if (!formData.firstName.trim()) newErrors.firstName = "First Name is required";
       if (!formData.lastName.trim()) newErrors.lastName = "Last Name is required";
       if (!formData.email.trim()) newErrors.email = "Email is required";
-      if (!formData.phone.trim()) newErrors.phone = "Mobile Number is required";
+      if (!formData.phone.trim()) {
+        newErrors.phone = "Mobile Number is required";
+      } else if (formData.phone.replace(/\D/g, '').length !== 10) {
+        newErrors.phone = "Enter valid 10-digit number";
+      } else if (!isPhoneVerified) {
+        newErrors.phone = "Please verify your mobile number";
+      }
       if (!formData.preferredLocation.trim()) newErrors.preferredLocation = "Preferred Location is required";
     } else if (step === 1) {
       if (formData.education.length === 0) {
@@ -83,12 +170,18 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
       if (!formData.about.trim()) newErrors.about = "Summary is required";
     }
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleNext = () => {
-    if (validateStep(activeStep)) {
+    const stepErrors = validateStep(activeStep);
+    if (Object.keys(stepErrors).length === 0) {
       setActiveStep((prev) => prev + 1);
+    } else {
+      const fieldOrder = activeStep === 0
+        ? ['firstName', 'lastName', 'email', 'phone', 'preferredLocation']
+        : activeStep === 1 ? ['education'] : ['skills', 'languages', 'dob', 'about'];
+      scrollToFirstError(stepErrors, fieldOrder);
     }
   };
   const handleBack = () => {
@@ -99,11 +192,87 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Reset verification if phone changes
+    if (name === "phone") {
+      setIsPhoneVerified(false);
+      setOtpSent(false);
+      setOtp("");
+      setVerificationError("");
+    }
+  };
+
+  const handleSendOtp = async () => {
+    const cleanPhone = formData.phone.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      setErrors(prev => ({ ...prev, phone: "Enter valid 10-digit number" }));
+      return;
+    }
+
+    setVerificationLoading(true);
+    setVerificationError("");
+
+    const name = formData.firstName + " " + formData.lastName;
+
+
+    try {
+      const resp = await sendRegistrationOTP(name, cleanPhone, "Candidate");
+      if (!resp.error) {
+        setOtpSent(true);
+      } else {
+        setVerificationError(resp.message);
+      }
+    } catch (err) {
+      setVerificationError("Failed to send OTP. Please try again.");
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp.length !== 4) {
+      setVerificationError("Enter 4-digit OTP");
+      return;
+    }
+
+    setVerificationLoading(true);
+    setVerificationError("");
+    try {
+      const cleanPhone = formData.phone.replace(/\D/g, '');
+      const resp = await verifyOTP(cleanPhone, otp);
+      if (!resp.error) {
+        setIsPhoneVerified(true);
+        setOtpSent(false);
+
+        // Save user_id and user_type to Redux
+        dispatch(addUserDetails({
+          userid: resp.data.user_id,
+          role: resp.data.user_type,
+          userType: resp.data.user_type,
+          mobile: cleanPhone,
+          fullname: formData.firstName + " " + formData.lastName,
+          email: formData.email
+        }));
+
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.phone;
+          return newErrors;
+        });
+      } else {
+        setVerificationError(resp.message);
+      }
+    } catch (err) {
+      setVerificationError("Verification failed. Please try again.");
+    } finally {
+      setVerificationLoading(false);
+    }
   };
 
   const handleAiAssist = async (field) => {
-    if (userPoints < 10) {
-      alert("Not enough credits!");
+    if (membership === 'Free') {
+      alert("AI Improve requires Credits. Please purchase credits.");
+      navigate('/membership');
       return;
     }
     setAiLoading(true);
@@ -122,7 +291,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
   const addExperience = () => {
     setFormData(prev => ({
       ...prev,
-      experience: [...prev.experience, { company: "", role: "", duration: "", description: "" }]
+      experience: [...prev.experience, { company_name: "", role: "", duration: "", description: "" }]
     }));
   };
 
@@ -159,28 +328,90 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
     setFormData(prev => ({ ...prev, education: newEdu }));
   };
 
-  const handleFinalSave = () => {
-    if (!validateStep(activeStep)) return;
+  const addAchievement = () => {
+    setFormData(prev => ({
+      ...prev,
+      achievements: [...prev.achievements, { achievement: "" }]
+    }));
+  };
 
-    const profileToPersist = {
-      mobile: formData.phone,
-      skills: formData.skills.join(", "),
-      preferredLocation: formData.preferredLocation,
-      experience: formData.experience.length > 0 ? `${formData.experience[0].role} at ${formData.experience[0].company}` : "",
-      website: formData.website,
-      // Pass other fields if needed for the backend/Redux
-      firstName: formData.firstName,
-      lastName: formData.lastName,
+  const removeAchievement = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      achievements: prev.achievements.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateAchievement = (index, value) => {
+    const newAch = [...formData.achievements];
+    newAch[index].achievement = value;
+    setFormData(prev => ({ ...prev, achievements: newAch }));
+  };
+
+  const handleFinalSave = async () => {
+    const stepErrors = validateStep(activeStep);
+    if (Object.keys(stepErrors).length > 0) {
+      const fieldOrder = ['skills', 'languages', 'dob', 'about'];
+      scrollToFirstError(stepErrors, fieldOrder);
+      return;
+    }
+
+    if (!userid) {
+      setVerificationError("User session not found. Please verify your mobile number.");
+      setActiveStep(0);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Map frontend fields to backend models
+    const submissionData = {
+      user_id: userid,
+      full_name: `${formData.firstName} ${formData.lastName}`,
       email: formData.email,
+      phone: formData.phone.replace(/\D/g, ''),
+      current_location: formData.currentLocation || formData.preferredLocation,
+      preferred_locations: [formData.preferredLocation],
+      date_of_birth: formData.dob || null,
+      marital_status: formData.maritalStatus || null,
       about: formData.about,
-      education: formData.education,
-      languages: formData.languages.join(", "),
-      dob: formData.dob,
-      maritalStatus: formData.maritalStatus,
-      currentLocation: formData.currentLocation
+      website: formData.website,
+      skills: formData.skills,
+      languages: formData.languages,
+      experience: formData.experience.map(exp => ({
+        title: exp.role || "Role",
+        company_name: exp.company_name,
+        description: exp.description,
+        start_date: "2020-01-01", // Default as it's required by backend model
+        is_current: true
+      })),
+      achievements: formData.achievements.filter(a => a.achievement.trim()).map(a => ({
+        achievement: a.achievement
+      })),
+      education: formData.education.map(edu => ({
+        institution: edu.school,
+        degree: edu.degree,
+        end_year: parseInt(edu.year) || null
+      }))
     };
-    dispatch(updateUserProfile(profileToPersist));
-    if (onSave) onSave();
+
+    try {
+      const resp = await submitManualProfile(submissionData);
+      if (!resp.error) {
+        dispatch(updateUserProfile(submissionData));
+        if (onSave) onSave(); // Redirection to dashboard
+      } else {
+        setVerificationError(resp.message);
+        // If it's an auth error, maybe go back to step 0
+        if (resp.status === 403 || resp.status === 401) {
+          setActiveStep(0);
+        }
+      }
+    } catch (err) {
+      setVerificationError("An error occurred while saving your profile. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderStepContent = (step) => {
@@ -190,23 +421,103 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
           <Stack spacing={3}>
             <Grid container spacing={1}>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="First Name *" name="firstName" value={formData.firstName} onChange={handleInputChange} error={!!errors.firstName} helperText={errors.firstName} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+                <TextField id="firstName" fullWidth label="First Name *" name="firstName" value={formData.firstName} onChange={handleInputChange} error={!!errors.firstName} helperText={errors.firstName} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Last Name *" name="lastName" value={formData.lastName} onChange={handleInputChange} error={!!errors.lastName} helperText={errors.lastName} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+                <TextField id="lastName" fullWidth label="Last Name *" name="lastName" value={formData.lastName} onChange={handleInputChange} error={!!errors.lastName} helperText={errors.lastName} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
               </Grid>
             </Grid>
-            <TextField fullWidth label="Email Address *" name="email" value={formData.email} onChange={handleInputChange} error={!!errors.email} helperText={errors.email} size="small" InputProps={{ startAdornment: <EmailIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
-            <Grid container spacing={1}>
-              <Grid item xs={2} sm={2}>
+            <TextField id="email" fullWidth label="Email Address *" name="email" value={formData.email} onChange={handleInputChange} error={!!errors.email} helperText={errors.email} size="small" InputProps={{ startAdornment: <EmailIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+            <Grid container spacing={1} alignItems="flex-start">
+              <Grid item sx={{ width: '90px' }}>
                 <TextField fullWidth label="Code" value="+91" disabled size="small" InputProps={{ startAdornment: <WhatsAppIcon sx={{ mr: 0.5, fontSize: 18, color: '#25D366' }} /> }} />
               </Grid>
-              <Grid item xs={9} sm={9.5}>
-                <TextField fullWidth label="Mobile Number *" name="phone" value={formData.phone} onChange={handleInputChange} error={!!errors.phone} helperText={errors.phone} size="small" placeholder="10-digit number" />
+              <Grid item sx={{ width: '220px' }}>
+                <TextField
+                  id="phone"
+                  fullWidth
+                  label="Mobile Number *"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  error={!!errors.phone}
+                  helperText={errors.phone}
+                  size="small"
+                  placeholder="10-digit number"
+                  disabled={isPhoneVerified}
+                  InputProps={{
+                    endAdornment: isPhoneVerified && (
+                      <InputAdornment position="end">
+                        <CheckCircleIcon sx={{ color: '#10b981' }} />
+                      </InputAdornment>
+                    )
+                  }}
+                />
               </Grid>
+              {!isPhoneVerified && !otpSent && (
+                <Grid item sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleSendOtp}
+                    disabled={verificationLoading || formData.phone.replace(/\D/g, '').length !== 10}
+                    sx={{
+                      height: 40, width: { xs: '100%', sm: 'auto' }, whiteSpace: 'nowrap', textTransform: 'none', borderRadius: 1.5,
+                      "&.Mui-disabled": {
+                        background: "#E2E8F0",
+                        color: "#475569"
+                      }
+                    }}
+                  >
+                    {verificationLoading ? <CircularProgress size={20} /> : "Send OTP"}
+                  </Button>
+                </Grid>
+              )}
+
+              {otpSent && !isPhoneVerified && (
+                <Grid item xs={12}>
+                  <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                    <TextField
+                      placeholder="4-digit OTP"
+                      size="small"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      sx={{ width: 150 }}
+                      autoFocus
+                    />
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={handleVerifyOtp}
+                      disabled={verificationLoading || otp.length !== 4}
+                      sx={{
+                        background: 'black', color: 'white', textTransform: 'none', px: 3,
+                        "&.Mui-disabled": {
+                          background: "#E2E8F0",
+                          color: "#475569"
+                        }
+                      }}
+                    >
+                      {verificationLoading ? <CircularProgress size={20} color="inherit" /> : "Verify"}
+                    </Button>
+                  </Stack>
+                  {verificationError && (
+                    <Typography color="error" variant="caption" sx={{ mt: 0.5, display: 'block' }}>
+                      {verificationError}
+                    </Typography>
+                  )}
+                </Grid>
+              )}
+              {isPhoneVerified && (
+                <Grid item xs={12}>
+                  <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <CheckCircleIcon sx={{ fontSize: 14 }} /> Mobile number verified successfully
+                  </Typography>
+                </Grid>
+              )}
             </Grid>
             <TextField fullWidth label="Website / Portfolio" name="website" value={formData.website} onChange={handleInputChange} size="small" placeholder="https://..." InputProps={{ startAdornment: <PublicIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
-            <TextField fullWidth label="Job Preferred Location *" name="preferredLocation" value={formData.preferredLocation} onChange={handleInputChange} error={!!errors.preferredLocation} helperText={errors.preferredLocation} size="small" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+            <TextField id="preferredLocation" fullWidth label="Job Preferred Location *" name="preferredLocation" value={formData.preferredLocation} onChange={handleInputChange} error={!!errors.preferredLocation} helperText={errors.preferredLocation} size="small" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
           </Stack>
         );
       case 1:
@@ -222,7 +533,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                 <Paper key={idx} variant="outlined" sx={{ p: 2, mb: 2, position: 'relative', bgcolor: '#f8fafc', borderStyle: 'dashed' }}>
                   <IconButton size="small" onClick={() => removeExperience(idx)} sx={{ position: 'absolute', top: 8, right: 8, color: '#f43f5e' }}><DeleteIcon fontSize="inherit" /></IconButton>
                   <Grid container spacing={2}>
-                    <Grid item xs={6}><TextField fullWidth label="Company" value={exp.company} onChange={(e) => updateExperience(idx, 'company', e.target.value)} size="small" /></Grid>
+                    <Grid item xs={6}><TextField fullWidth label="Company" value={exp.company_name} onChange={(e) => updateExperience(idx, 'company_name', e.target.value)} size="small" /></Grid>
                     <Grid item xs={6}><TextField fullWidth label="Role" value={exp.role} onChange={(e) => updateExperience(idx, 'role', e.target.value)} size="small" /></Grid>
                     <Grid item xs={12}><TextField fullWidth multiline rows={2} label="Description" value={exp.description} onChange={(e) => updateExperience(idx, 'description', e.target.value)} size="small" /></Grid>
                   </Grid>
@@ -235,7 +546,9 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                 <Typography variant="h6" sx={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 1 }}><SchoolIcon color="primary" /> EDUCATION</Typography>
                 <Button size="small" startIcon={<AddIcon />} onClick={addEducation} sx={{ textTransform: 'none' }}>Add Entry</Button>
               </Box>
-              {errors.education && <Alert severity="error" sx={{ mb: 2 }}>{errors.education}</Alert>}
+              <Box id="education">
+                {errors.education && <Alert severity="error" sx={{ mb: 2 }}>{errors.education}</Alert>}
+              </Box>
               {formData.education.map((edu, idx) => (
                 <Paper key={idx} variant="outlined" sx={{ p: 2, mb: 2, position: 'relative', bgcolor: '#f8fafc', borderStyle: 'dashed' }}>
                   <IconButton size="small" onClick={() => removeEducation(idx)} sx={{ position: 'absolute', top: 8, right: 8, color: '#f43f5e' }}><DeleteIcon fontSize="inherit" /></IconButton>
@@ -247,79 +560,125 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                 </Paper>
               ))}
             </Box>
+            <Divider />
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h6" sx={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 1 }}><EmojiEventsIcon color="warning" /> ACHIEVEMENTS</Typography>
+                <Button size="small" startIcon={<AddIcon />} onClick={addAchievement} sx={{ textTransform: 'none' }}>Add Entry</Button>
+              </Box>
+              {formData.achievements.length === 0 && <Typography sx={{ fontSize: '0.85rem', color: '#94a3b8', fontStyle: 'italic' }}>No achievements added yet.</Typography>}
+              {formData.achievements.map((ach, idx) => (
+                <Paper key={idx} variant="outlined" sx={{ p: 2, mb: 2, position: 'relative', bgcolor: '#f8fafc', borderStyle: 'dashed' }}>
+                  <IconButton size="small" onClick={() => removeAchievement(idx)} sx={{ position: 'absolute', top: 8, right: 8, color: '#f43f5e' }}><DeleteIcon fontSize="inherit" /></IconButton>
+                  <TextField fullWidth multiline rows={2} label="Achievement" value={ach.achievement} onChange={(e) => updateAchievement(idx, e.target.value)} size="small" placeholder="E.g. Won Best Employee Award 2023" />
+                </Paper>
+              ))}
+            </Box>
           </Stack>
         );
       case 2:
         return (
           <Stack spacing={3}>
             <Box>
-              <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <AutoAwesomeIcon sx={{ fontSize: 18, color: '#6366f1' }} /> SKILLS *
-              </Typography>
-              <Autocomplete
-                multiple
-                freeSolo
-                options={SKILLS_OPTIONS}
-                filterSelectedOptions
-                value={formData.skills}
-                onChange={(event, newValue) => {
-                  setFormData(prev => ({ ...prev, skills: newValue }));
-                }}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip variant="filled" label={option} {...getTagProps({ index })} sx={{ borderRadius: 1.5, bgcolor: '#eef2ff', color: '#4f46e5', fontWeight: 600, '& .MuiChip-deleteIcon': { color: '#6366f1' } }} />
-                  ))
-                }
-                renderInput={(params) => (
-                  <TextField {...params} placeholder="Type or select skills..." error={!!errors.skills} helperText={errors.skills} />
-                )}
-              />
+              <Box id="skills">
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AutoAwesomeIcon sx={{ fontSize: 18, color: '#6366f1' }} /> SKILLS *
+                </Typography>
+                <Autocomplete
+                  multiple
+                  freeSolo
+                  options={skillsOptions}
+                  loading={skillsLoading}
+                  onInputChange={(event, newInputValue) => {
+                    handleSkillsSearch(newInputValue);
+                  }}
+                  filterSelectedOptions
+                  value={formData.skills}
+                  onChange={(event, newValue) => {
+                    const titleCasedValues = newValue.map(v => toTitleCase(v));
+                    setFormData(prev => ({ ...prev, skills: titleCasedValues }));
+                  }}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip variant="filled" label={toTitleCase(option)} {...getTagProps({ index })} sx={{ borderRadius: 1.5, bgcolor: '#eef2ff', color: '#4f46e5', fontWeight: 600, '& .MuiChip-deleteIcon': { color: '#6366f1' } }} />
+                    ))
+                  }
+                  renderInput={(params) => (
+                    <TextField {...params} placeholder="Type to search skills..." error={!!errors.skills} helperText={errors.skills || "Type and press Enter to add a new skill"}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {skillsLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }}
+                    />
+                  )}
+                />
+              </Box>
             </Box>
-            <Box>
+            <Box id="languages">
               <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LanguageIcon sx={{ fontSize: 18, color: '#0ea5e9' }} /> LANGUAGES *
               </Typography>
               <Autocomplete
                 multiple
                 freeSolo
-                options={LANGUAGES_OPTIONS}
+                options={languagesOptions}
+                loading={languagesLoading}
+                onInputChange={(event, newInputValue) => {
+                  handleLanguagesSearch(newInputValue);
+                }}
                 filterSelectedOptions
                 value={formData.languages}
                 onChange={(event, newValue) => {
-                  setFormData(prev => ({ ...prev, languages: newValue }));
+                  const titleCasedValues = newValue.map(v => toTitleCase(v));
+                  setFormData(prev => ({ ...prev, languages: titleCasedValues }));
                 }}
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
-                    <Chip variant="filled" label={option} {...getTagProps({ index })} sx={{ borderRadius: 1.5, bgcolor: '#f0f9ff', color: '#0369a1', fontWeight: 600, '& .MuiChip-deleteIcon': { color: '#0ea5e9' } }} />
+                    <Chip variant="filled" label={toTitleCase(option)} {...getTagProps({ index })} sx={{ borderRadius: 1.5, bgcolor: '#f0f9ff', color: '#0369a1', fontWeight: 600, '& .MuiChip-deleteIcon': { color: '#0ea5e9' } }} />
                   ))
                 }
                 renderInput={(params) => (
-                  <TextField {...params} placeholder="Type or select languages..." error={!!errors.languages} helperText={errors.languages} />
+                  <TextField {...params} placeholder="Type or select languages..." error={!!errors.languages} helperText={errors.languages}
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <React.Fragment>
+                          {languagesLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                          {params.InputProps.endAdornment}
+                        </React.Fragment>
+                      ),
+                    }}
+                  />
                 )}
               />
             </Box>
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                 <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>About / Professional Summary *</Typography>
-                <Tooltip title="AI Magic Improve (-10 Credits)">
+                <Tooltip title={membership === 'Free' ? "Purchase Credits for AI Improve" : "AI Magic Improve (Credit Benefit)"}>
                   <Button size="small" startIcon={<AutoAwesomeIcon />} onClick={() => handleAiAssist('about')} disabled={aiLoading}
                     sx={{ textTransform: 'none', color: '#6366f1', fontSize: '0.75rem', '&:hover': { bgcolor: '#f5f3ff' } }}>
                     AI Improve
                   </Button>
                 </Tooltip>
               </Box>
-              <TextField fullWidth multiline rows={4} name="about" value={formData.about} onChange={handleInputChange} placeholder="Tell us about yourself..." error={!!errors.about} helperText={errors.about} />
+              <TextField id="about" fullWidth multiline rows={4} name="about" value={formData.about} onChange={handleInputChange} placeholder="Tell us about yourself..." error={!!errors.about} helperText={errors.about} />
             </Box>
 
             <Divider sx={{ my: 1 }} />
-            
+
             <Box>
               <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <PersonIcon sx={{ fontSize: 18, color: '#64748b' }} /> PERSONAL DETAILS
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={4}>
-                  <TextField fullWidth label="Date of Birth *" name="dob" type="date" value={formData.dob} onChange={handleInputChange} error={!!errors.dob} helperText={errors.dob} size="small" InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <CakeIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+                  <TextField id="dob" fullWidth label="Date of Birth *" name="dob" type="date" value={formData.dob} onChange={handleInputChange} error={!!errors.dob} helperText={errors.dob} size="small" InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <CakeIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <TextField fullWidth select label="Marital Status" name="maritalStatus" value={formData.maritalStatus} onChange={handleInputChange} size="small" InputProps={{ startAdornment: <FamilyRestroomIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }}>
@@ -351,12 +710,12 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
           <Button startIcon={<ArrowBackIcon />} onClick={onBack} sx={{ color: '#64748b', textTransform: 'none' }}>Back</Button>
           <Box sx={{ flexGrow: 1 }} />
-          <Chip 
-            label={`💎 ${userPoints || 0} Credits`} 
-            color="primary" 
-            variant="outlined" 
-            onClick={() => navigate('/credits')}
-            sx={{ fontWeight: 700, border: '1px solid #c4b5fd', color: '#4f46e5', cursor: 'pointer', '&:hover': { bgcolor: '#f5f3ff' } }} 
+          <Chip
+            label={membership === 'Free' ? 'Free Tier' : 'Available Credits'}
+            color="primary"
+            variant="outlined"
+            onClick={() => navigate('/membership')}
+            sx={{ fontWeight: 700, border: '1px solid #c4b5fd', color: '#4f46e5', cursor: 'pointer', '&:hover': { bgcolor: '#f5f3ff' } }}
           />
         </Box>
 
@@ -375,9 +734,15 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 6 }}>
             <Button disabled={activeStep === 0} onClick={handleBack} sx={{ color: '#64748b' }}>Previous</Button>
             {activeStep === STEPS.length - 1 ? (
-              <Button variant="contained" endIcon={<CheckCircleIcon />} onClick={handleFinalSave}
-                sx={{ px: 4, py: 1.2, background: 'linear-gradient(135deg, #0f172a, #334155)', borderRadius: 2 }}>
-                Save & View Matches
+              <Button variant="contained" endIcon={!isSubmitting && <CheckCircleIcon />} onClick={handleFinalSave} disabled={isSubmitting}
+                sx={{
+                  px: 4, py: 1.2, background: 'linear-gradient(135deg, #0f172a, #334155)', borderRadius: 2,
+                  "&.Mui-disabled": {
+                    background: "#E2E8F0",
+                    color: "#475569"
+                  }
+                }}>
+                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : "Save & View Matches"}
               </Button>
             ) : (
               <Button variant="contained" endIcon={<ArrowForwardIcon />} onClick={handleNext}

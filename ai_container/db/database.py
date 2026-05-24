@@ -13,35 +13,43 @@ DATABASE_URL = os.getenv(
     "DATABASE_URL", "postgresql+asyncpg://postgres:sa123@localhost:5432/trotixai"
 )
 
+from sqlalchemy.pool import NullPool
+
 # ── Engine ─────────────────────────────────────────────────────────────────────
 engine = create_async_engine(
     DATABASE_URL,
-    echo=False,  # set True to log all SQL
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,  # reconnect on stale connections
-    pool_recycle=3600,  # recycle connections after 1 hour
+    echo=False,
+    # ✅ Stability across multiple event loops (Workers)
+    # Using NullPool prevents connections from being shared between different loops
+    poolclass=NullPool,
+    # ✅ Stability + Performance
+    future=True,
     connect_args={
         "timeout": 30,
         "command_timeout": 30,
         "server_settings": {"application_name": "trotixai_app"},
-    }
+    },
 )
 
 # ── Session factory ────────────────────────────────────────────────────────────
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
+    # ✅ IMPORTANT SETTINGS
     expire_on_commit=False,
+    autoflush=False,  # ✅ prevents unexpected flush
 )
 
+# ── Base class ────────────────────────────────────────────────────────────────
 
-# ── Base class for all ORM models ─────────────────────────────────────────────
+
 class Base(DeclarativeBase):
     pass
 
 
-# ── Dependency — use in FastAPI route with Depends(get_db) ───────────────────
+# ── FastAPI Dependency ────────────────────────────────────────────────────────
+
+
 async def get_db():
     async with AsyncSessionLocal() as session:
         try:
@@ -49,5 +57,3 @@ async def get_db():
         except Exception:
             await session.rollback()
             raise
-        finally:
-            await session.close()

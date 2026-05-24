@@ -1,18 +1,25 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { 
-  ThemeProvider, createTheme, CssBaseline, Box, Typography, Button, Chip, 
+
+import {
+  ThemeProvider, createTheme, CssBaseline, Box, Typography, Button, Chip,
   Tooltip, IconButton, useMediaQuery, Menu, MenuItem, ListItemIcon, Divider, Avatar
 } from "@mui/material";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import PersonIcon from "@mui/icons-material/Person";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
+import HomeIcon from "@mui/icons-material/Home";
 import { Helmet } from "react-helmet-async";
-import { useDispatch } from "react-redux";
-import { RESET_INITIAL_STATE } from "../../../redux/constants";
+
+import { useSelector, useDispatch } from "react-redux";
+import { RESET_INITIAL_STATE, RESET } from "../../../redux/constants";
+import { auth } from "../../../firebase";
+import logo from "./rightnxt.png";
+import { logout } from "../../../api/profileAPI";
+
 
 // ── Premium design system ──────────────────────────────────────────────────────
 const theme = createTheme({
@@ -29,7 +36,7 @@ const theme = createTheme({
     divider: '#e2e8f0',
   },
   typography: {
-    fontFamily: '"Plus Jakarta Sans", "DM Sans", system-ui, sans-serif',
+    fontFamily: "'Open Sans', Verdana, sans-serif",
     h1: { fontWeight: 800, letterSpacing: '-0.03em' },
     h2: { fontWeight: 800, letterSpacing: '-0.02em' },
     h3: { fontWeight: 800, letterSpacing: '-0.02em' },
@@ -102,10 +109,12 @@ const theme = createTheme({
 });
 
 // ── Top navigation bar ─────────────────────────────────────────────────────────
-const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
+const NavBar = ({ onLogoClick, membership, isLoggedIn, user, role, onLogout }) => {
   const isMobile = useMediaQuery('(max-width:600px)');
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+
+  const { points } = useSelector((state) => state.UserReducer);
 
   const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
@@ -121,9 +130,15 @@ const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
   };
 
   const handleLogoClickNav = () => {
-    // Navigate to dashboard if logged in, otherwise to entry screen
-    if (mobile) {
-      onLogoClick('/dashboard');
+    // Role-aware navigation
+    if (isLoggedIn && role) {
+      if (role === 'Candidate') {
+        onLogoClick('/dashboard');
+      } else if (role === 'Recruiter') {
+        onLogoClick('/recruiter-dashboard');
+      } else {
+        onLogoClick('/');
+      }
     } else {
       onLogoClick('/');
     }
@@ -153,86 +168,143 @@ const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
         sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, cursor: 'pointer', userSelect: 'none', minWidth: 0 }}
       >
         <Box
+          component="img"
+          src={logo}
+          alt="RightNext Logo"
           sx={{
-            width: { xs: 30, sm: 34 }, height: { xs: 30, sm: 34 }, borderRadius: '10px',
-            background: 'linear-gradient(135deg, #0f172a, #334155)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
+            height: { xs: 30, sm: 39 },
+            marginTop: '5px',
+            width: 'auto',
+            objectFit: 'contain',
+            display: 'block'
+          }}
+        />
+      </Box>
+
+      {/* Centered OM Symbol */}
+      <Box
+        sx={{
+          position: 'absolute',
+          left: '50%',
+          top: { xs: '8px', sm: '10px' },
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          userSelect: 'none',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }}
+      >
+        <Typography
+          component="span"
+          aria-label="Spiritual Symbol"
+          role="img"
+          sx={{
+            fontSize: { xs: '1rem', sm: '1.25rem' },
+            fontWeight: 500,
+            color: 'secondary.main',
+            opacity: 0.75,
+            lineHeight: 1,
+            textShadow: '0 0 15px rgba(99, 102, 241, 0.25)',
+            WebkitFontSmoothing: 'antialiased',
+            transition: 'all 0.3s ease',
           }}
         >
-          <Typography sx={{ color: '#fff', fontWeight: 900, fontSize: { xs: '0.76rem', sm: '0.85rem' }, letterSpacing: '-0.03em' }}>T</Typography>
-        </Box>
-        <Typography sx={{ fontWeight: 800, fontSize: { xs: '0.95rem', sm: '1.1rem' }, letterSpacing: '-0.03em', color: '#0f172a', whiteSpace: 'nowrap' }}>
-          Trotix<Box component="span" sx={{ color: '#6366f1' }}>AI</Box>
+          ॐ
         </Typography>
-        <Chip
-          label="BETA"
-          size="small"
-          sx={{ display: { xs: 'none', sm: 'inline-flex' }, height: 18, fontSize: '0.6rem', fontWeight: 700, bgcolor: '#f0f9ff', color: '#0ea5e9', border: '1px solid #bae6fd', letterSpacing: '0.05em' }}
-        />
       </Box>
 
       {/* Nav actions */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1.5 }, flexShrink: 0 }}>
-        <Tooltip title="Click to add credits" placement="top" arrow transitionDuration={300}>
-          {isMobile ? (
-            <IconButton 
-              color="secondary" 
-              onClick={() => onLogoClick('/credits')}
-              aria-label="Add credits"
-              sx={{ 
-                bgcolor: '#faf5ff', 
-                border: '1px solid #ddd6fe',
-                padding: '6px',
-                '&:hover': { bgcolor: '#f3e8ff' }
-              }}
-            >
-              <AccountBalanceWalletIcon sx={{ fontSize: 20 }} />
-            </IconButton>
-          ) : (
-            <Chip
-              icon={<AccountBalanceWalletIcon sx={{ fontSize: '18px !important', color: 'inherit !important' }} />}
-              label={`${points || 100} Credits`}
-              onClick={() => onLogoClick('/credits')}
-              aria-label="Add credits"
-              sx={{ 
-                bgcolor: '#faf5ff', 
-                color: '#6366f1', 
-                border: '1px solid #ddd6fe', 
-                fontWeight: 700, 
-                fontSize: '0.82rem',
-                cursor: 'pointer', 
-                px: 1,
-                py: 2,
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                '&:hover': { 
-                  bgcolor: '#f3e8ff', 
-                  borderColor: '#6366f1',
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.12)'
-                },
-                '& .MuiChip-label': { px: 1.5 }
-              }}
-            />
-          )}
+        <Tooltip title="Home" arrow>
+          <IconButton
+            onClick={handleLogoClickNav}
+            sx={{
+              color: '#0f172a',
+              bgcolor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              padding: { xs: '6px', sm: '8px' },
+              '&:hover': { bgcolor: '#f1f5f9', borderColor: '#cbd5e1' }
+            }}
+          >
+            <HomeIcon sx={{ fontSize: { xs: 20, sm: 22 } }} />
+          </IconButton>
         </Tooltip>
-        
-        {mobile ? (
+
+        {isLoggedIn && (
+          <Tooltip title="View available credits" placement="top" arrow transitionDuration={300}>
+            {isMobile ? (
+              <IconButton
+                color="secondary"
+                onClick={() => onLogoClick('/membership')}
+                aria-label="Available credits"
+                sx={{
+                  bgcolor: '#faf5ff',
+                  border: '1px solid #ddd6fe',
+                  padding: '6px',
+                  '&:hover': { bgcolor: '#f3e8ff' }
+                }}
+              >
+                <WorkspacePremiumIcon sx={{ fontSize: 20 }} />
+              </IconButton>
+            ) : (
+              <Chip
+                icon={<WorkspacePremiumIcon sx={{ fontSize: '18px !important', color: 'inherit !important' }} />}
+                label={points && points !== 0 ? `${points} Credits` : 'Free Tier'}
+                onClick={() => onLogoClick('/membership')}
+                aria-label="Available credits"
+                sx={{
+                  bgcolor: '#faf5ff',
+                  color: '#6366f1',
+                  border: '1px solid #ddd6fe',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  px: 1,
+                  py: 2,
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    bgcolor: '#f3e8ff',
+                    borderColor: '#6366f1',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.12)'
+                  },
+                  '& .MuiChip-label': { px: 1.5 }
+                }}
+              />
+            )}
+          </Tooltip>
+        )}
+
+        {isLoggedIn ? (
           <>
             <IconButton
               onClick={handleMenuClick}
               size="small"
-              sx={{ 
-                ml: 1, 
-                border: '1px solid #e2e8f0', 
+              sx={{
+                ml: 1,
+                p: 0.5,
+                border: '1px solid #e2e8f0',
                 bgcolor: '#fff',
-                '&:hover': { bgcolor: '#f8fafc' }
+                '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' }
               }}
               aria-controls={open ? 'account-menu' : undefined}
               aria-haspopup="true"
               aria-expanded={open ? 'true' : undefined}
             >
-              <MenuIcon sx={{ fontSize: 20, color: '#0f172a' }} />
+              <Avatar
+                sx={{
+                  width: { xs: 28, sm: 32 },
+                  height: { xs: 28, sm: 32 },
+                  fontSize: '0.875rem',
+                  fontWeight: 700,
+                  bgcolor: 'primary.main',
+                  color: '#fff'
+                }}
+              >
+                {(user?.fullname || user?.displayname || 'U').charAt(0).toUpperCase()}
+              </Avatar>
             </IconButton>
             <Menu
               anchorEl={anchorEl}
@@ -247,7 +319,7 @@ const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
                   filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
                   mt: 1.5,
                   borderRadius: 2,
-                  width: 180,
+                  width: 200,
                   '& .MuiAvatar-root': {
                     width: 32,
                     height: 32,
@@ -271,13 +343,18 @@ const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
+              <Box sx={{ px: 2, py: 1.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>
+                  {user?.fullname || user?.displayname || 'User'}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748b' }}>
+                  {role || 'Candidate'}
+                </Typography>
+              </Box>
+              <Divider sx={{ mb: 1 }} />
               <MenuItem onClick={() => handleAction('/profile')}>
                 <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon>
                 View Profile
-              </MenuItem>
-              <MenuItem onClick={() => handleAction('/')}>
-                <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
-                Settings
               </MenuItem>
               <Divider sx={{ my: 1 }} />
               <MenuItem onClick={handleSignOut} sx={{ color: 'error.main' }}>
@@ -288,9 +365,24 @@ const NavBar = ({ activeState, onLogoClick, points, mobile, onLogout }) => {
           </>
         ) : (
           <Button
-            size="small"
+            size={isMobile ? "small" : "medium"}
             onClick={() => onLogoClick('/login')}
-            sx={{ color: '#6366f1', fontWeight: 700, px: 2.5, py: 0.8, border: '1px solid #ddd6fe', borderRadius: 2, bgcolor: '#faf5ff', '&:hover': { bgcolor: '#f3e8ff', borderColor: '#6366f1' } }}
+            sx={{
+              color: '#fff',
+              fontWeight: 700,
+              px: { xs: 1.5, sm: 2.5 },
+              py: { xs: 0.5, sm: 0.8 },
+              border: '1px solid #0f172a',
+              borderRadius: 2,
+              bgcolor: '#0f172a',
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              '&:hover': {
+                bgcolor: '#1e293b',
+                borderColor: '#1e293b',
+                boxShadow: '0 4px 12px rgba(15,23,42,0.15)',
+                transform: 'translateY(-1px)'
+              }
+            }}
           >
             Sign In
           </Button>
@@ -309,35 +401,58 @@ const MainLayout = () => {
   // Compute active state for NavBar
   const currentPath = location.pathname.replace(/^\/|\/$/g, '').split('/')[0];
   const activeState = currentPath === '' ? 'entry' : currentPath;
-  const { points, mobile } = useSelector((state) => state.UserReducer);
+  const user = useSelector((state) => state.UserReducer);
+  const { points, membership, mobile, role } = user;
 
+  const isLoggedIn = !!(mobile || role);
   const handleLogoClick = (path = '/') => navigate(path);
-  const handleLogout = () => {
-    // Clear localStorage
-    localStorage.removeItem('user');
-    localStorage.removeItem('userType');
-    localStorage.removeItem('mobileNumber');
-    
+  const handleLogout = async () => {
+    // 1. Call backend logout to clear HttpOnly cookies
+    try {
+      await logout();
+    } catch (err) {
+      console.error("Backend logout failed:", err);
+    }
+
+    // 2. Clear all web storage (localStorage & sessionStorage)
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // 3. Clear all client-side cookies (best effort)
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+
+    // 4. Reset Redux store to initial state
     dispatch({ type: RESET_INITIAL_STATE });
-    navigate('/login');
+
+    // 5. Sign out from Firebase
+    await auth.signOut();
+
+    // 6. Hard redirect to home page
+    window.location.href = "/";
   };
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Helmet>
-        <title>TrotixAI — AI Job Matching</title>
+        <title>RightNxt AI — AI Job Career Engine</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </Helmet>
 
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
-        <NavBar 
-          activeState={activeState} 
-          onLogoClick={handleLogoClick} 
-          points={points} 
-          mobile={mobile}
+        <NavBar
+          activeState={activeState}
+          onLogoClick={handleLogoClick}
+          membership={membership}
+          isLoggedIn={isLoggedIn}
+          user={user}
+          role={role}
           onLogout={handleLogout}
         />
 

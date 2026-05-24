@@ -32,7 +32,7 @@ const Header = ({ sx, customClass, toggleSidebar, toggleMobileSidebar }) => {
   const mdUp = useMediaQuery((theme) => theme.breakpoints.up("md"));
   const dispatch = useDispatch();
 
-  const username = useSelector((state) => state.UserReducer.username);
+  const fullname = useSelector((state) => state.UserReducer.fullname);
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
 
@@ -63,22 +63,9 @@ const Header = ({ sx, customClass, toggleSidebar, toggleMobileSidebar }) => {
 
   const fnClearStorage = () => {
     dispatch(clearAllStoreData());
-    clear();
-
-    window.localStorage.clear();
-    localStorage.clear();
   };
 
   const fnDeleteAllDbs = () => {
-    const currentDatabases =
-      JSON.parse(localStorage.getItem("idb_databases")) || [];
-
-    if (currentDatabases.length > 0) {
-      currentDatabases.forEach((db) => {
-        window.indexedDB.deleteDatabase(db);
-      });
-    }
-
     fnClearStorage();
   };
 
@@ -207,7 +194,7 @@ const Header = ({ sx, customClass, toggleSidebar, toggleMobileSidebar }) => {
                   ml: 1,
                 }}
               >
-                {username}
+                {fullname}
               </Typography>
               <FeatherIcon icon="chevron-down" width="18" height="18" />
             </Box>
@@ -247,7 +234,7 @@ const Header = ({ sx, customClass, toggleSidebar, toggleMobileSidebar }) => {
             style={{
               textDecoration: "none",
             }}
-            // to="/"
+          // to="/"
           >
             <Button
               sx={{

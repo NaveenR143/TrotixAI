@@ -1,6 +1,8 @@
 // client/src/components/JobDetail.js
+import React, { useState } from 'react';
 
 const JobDetail = ({ job, onBack }) => {
+    const [expandedDescription, setExpandedDescription] = useState(false);
     const initials = (job.company || '??').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
     return (
@@ -47,7 +49,30 @@ const JobDetail = ({ job, onBack }) => {
                 {job.description && (
                     <div className="detail-section fade-up-2">
                         <div className="detail-section-title">About the Role</div>
-                        <p>{job.description}</p>
+                        <p style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: expandedDescription ? 'unset' : 3,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: expandedDescription ? 'visible' : 'hidden',
+                            maxHeight: expandedDescription ? 'none' : 'calc(1.5em * 3)',
+                            lineHeight: '1.5em',
+                            marginBottom: '0.75rem'
+                        }}>{job.description}</p>
+                        <button 
+                            onClick={() => setExpandedDescription(!expandedDescription)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--accent)',
+                                cursor: 'pointer',
+                                padding: '0.5rem 0',
+                                fontSize: '0.95rem',
+                                fontWeight: 600,
+                                textDecoration: 'underline'
+                            }}
+                        >
+                            {expandedDescription ? '↑ Show Less' : '↓ Show More'}
+                        </button>
                     </div>
                 )}
                 {job.responsibilities?.length > 0 && (

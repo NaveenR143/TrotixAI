@@ -25,7 +25,7 @@ function BreadcrumbRouterComp(props) {
     navhistory: state.NavigationReducer.history,
   }));
 
-  const username = useSelector((state) => state.UserReducer.username);
+  const fullname = useSelector((state) => state.UserReducer.fullname);
   const ip = useSelector((state) => state.UserReducer.ip);
   const token = useSelector((state) => state.UserReducer.token);
 
@@ -64,7 +64,7 @@ function BreadcrumbRouterComp(props) {
     dispatch(displaySpinner(true));
 
     const userdetails = {
-      username,
+      fullname,
       ip,
       path: url,
     };

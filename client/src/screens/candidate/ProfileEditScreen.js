@@ -8,6 +8,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { fadeSlideUp } from "../../utils/themeUtils";
+import { toTitleCase } from "../../utils/formUtils";
 import SkillTag from "../../components/profile/SkillTag";
 import CompletionBar from "../../components/profile/CompletionBar";
 
@@ -19,7 +20,7 @@ const ProfileEditScreen = ({ initialData, onSave }) => {
   const [newSkill, setNewSkill] = useState('');
 
   const addSkill = (skill) => {
-    const s = skill.trim();
+    const s = toTitleCase(skill.trim());
     if (s && !profile.skillList.includes(s)) {
       setProfile(p => ({ ...p, skillList: [...p.skillList, s] }));
     }
@@ -57,9 +58,9 @@ const ProfileEditScreen = ({ initialData, onSave }) => {
                 <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Skills</Typography>
                 <Chip icon={<AutoAwesomeIcon sx={{ fontSize: '0.8rem !important', color: '#6366f1 !important' }} />} label={`${profile.skillList.length} detected`} size="small" sx={{ bgcolor: '#ede9fe', color: '#4f46e5', border: '1px solid #c4b5fd', height: 20, fontSize: '0.7rem' }} />
               </Box>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, p: 2, borderRadius: 2, border: '1px solid #e2e8f0', bgcolor: '#f8fafc', minHeight: 60 }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, p: 2, borderRadius: 2, border: '1px solid #e2e8f0', bgcolor: '#f8fafc', minHeight: 60 }}>
                 {profile.skillList.map((skill, i) => (
-                  <SkillTag key={skill} label={skill} matched={i < 5} onDelete={() => removeSkill(skill)} />
+                  <SkillTag key={skill} label={toTitleCase(skill)} matched={i < 5} onDelete={() => removeSkill(skill)} />
                 ))}
               </Box>
               <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>

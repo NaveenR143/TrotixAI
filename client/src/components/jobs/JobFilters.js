@@ -76,6 +76,9 @@ const JobFilters = ({
     if (filters.matchScore !== undefined && filters.matchScore > 0) {
       count += 1;
     }
+    if (filters.hideViewed) {
+      count += 1;
+    }
     return count;
   }, [filters, filterOptions.salaryRange]);
 
@@ -107,6 +110,7 @@ const JobFilters = ({
       departments: [],
       salaryRange: filterOptions.salaryRange,
       matchScore: 0,
+      hideViewed: false,
     });
   };
 
@@ -212,6 +216,33 @@ const JobFilters = ({
           </Button>
         )}
       </Box>
+      
+      {/* Hide Viewed Jobs */}
+      <Box sx={{ mb: 3 }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={filters.hideViewed || false}
+              onChange={(e) => onFiltersChange({ ...filters, hideViewed: e.target.checked })}
+              size="small"
+              sx={{
+                color: "#cbd5e1",
+                "&.Mui-checked": { color: "#6366f1" },
+                "&:hover": { bgcolor: "transparent" },
+              }}
+            />
+          }
+          label={
+            <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 700 }}>
+              Hide Viewed Jobs
+            </Typography>
+          }
+          sx={{
+            m: 0,
+            "& .MuiFormControlLabel-label": { ml: 1 },
+          }}
+        />
+      </Box>
 
       {/* Work Mode */}
       <FilterSection title="Work Mode" options={filterOptions.workModes} filterType="workModes" />
@@ -237,7 +268,7 @@ const JobFilters = ({
       />
 
       {/* Salary Range */}
-      <Box sx={{ mb: 3 }}>
+      {/* <Box sx={{ mb: 3 }}>
         <Typography
           sx={{
             fontWeight: 700,
@@ -278,7 +309,7 @@ const JobFilters = ({
             </Typography>
           </Box>
         </Box>
-      </Box>
+      </Box> */}
 
       {/* Match Score */}
       <Box sx={{ mb: 3 }}>
@@ -429,6 +460,21 @@ const JobFilters = ({
                   fontWeight: 600,
                   fontSize: "0.8rem",
                   "& .MuiChip-deleteIcon": { color: "#047857" },
+                }}
+              />
+            )}
+            {filters.hideViewed && (
+              <Chip
+                icon={<ClearIcon sx={{ fontSize: 14 }} />}
+                label="Hidden Viewed"
+                size="small"
+                onDelete={() => onFiltersChange({ ...filters, hideViewed: false })}
+                sx={{
+                  bgcolor: "#f1f5f9",
+                  color: "#475569",
+                  fontWeight: 600,
+                  fontSize: "0.8rem",
+                  "& .MuiChip-deleteIcon": { color: "#475569" },
                 }}
               />
             )}

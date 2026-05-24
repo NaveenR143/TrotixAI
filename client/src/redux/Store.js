@@ -1,19 +1,22 @@
 import { applyMiddleware, createStore, compose } from 'redux';
-import { save, load } from 'redux-localstorage-simple';
+import { save, load } from "redux-localstorage-simple";
 import reduxReset from 'redux-reset';
+import { thunk } from 'redux-thunk';
 import RootReducers from './Rootreducers';
 
-const enHanceCreateStore = compose(
-	applyMiddleware(save()),
+const composeEnhancers = (typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) || compose;
+
+const PERSISTED_STATES = ["UserReducer", "CustomizerReducer", "RecentSearchesReducer", "ProfileReducer"];
+
+const enHanceCreateStore = composeEnhancers(
+	applyMiddleware(thunk, save({ states: PERSISTED_STATES })),
 	reduxReset() // Will use 'RESET' as default action.type to trigger reset
 )(createStore);
 
-const store = enHanceCreateStore(RootReducers, load());
-
-// const createStoreWithMiddleware = applyMiddleware(save())(createStore);
-
-// const store = createStoreWithMiddleware(reducer, load());
-
+const store = enHanceCreateStore(
+	RootReducers,
+	load({ states: PERSISTED_STATES })
+);
 
 export default store;
 

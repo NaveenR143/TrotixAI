@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nithin Aravind - Resume</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body {
+    font-family: 'Open Sans', sans-serif;
+    background: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .resume-page {
+    width: 210mm;
+    min-height: 297mm;
+    background: #fff;
+    display: flex;
+    overflow: hidden;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.15);
+  }
+
+  /* ===== LEFT SIDEBAR ===== */
+  .sidebar {
+    width: 35%;
+    background: #1b2a3d;
+    color: #fff;
+    padding: 40px 24px 30px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .photo-wrapper {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 3px solid #5ba4c9;
+    margin: 0 auto 20px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .photo-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .name {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    text-align: center;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .job-title {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #5ba4c9;
+    margin-bottom: 28px;
+  }
+
+  .sidebar-section {
+    margin-bottom: 26px;
+  }
+
+  .sidebar-heading {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #5ba4c9;
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  .contact-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    fill: #5ba4c9;
+  }
+
+  .skill-item {
+    margin-bottom: 12px;
+  }
+
+  .skill-label {
+    font-size: 11px;
+    font-weight: 400;
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+  }
+
+  .skill-bar-bg {
+    width: 100%;
+    height: 5px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .skill-bar-fill {
+    height: 100%;
+    background: #5ba4c9;
+    border-radius: 3px;
+  }
+
+  .language-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .language-name {
+    font-size: 11px;
+    font-weight: 400;
+  }
+
+  .language-dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .lang-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+  }
+
+  .lang-dot.filled {
+    background: #5ba4c9;
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .main {
+    width: 65%;
+    padding: 40px 32px 30px;
+  }
+
+  .main-section {
+    margin-bottom: 26px;
+  }
+
+  .main-heading {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #1b2a3d;
+    margin-bottom: 14px;
+    padding-bottom: 7px;
+    border-bottom: 2px solid #5ba4c9;
+    display: inline-block;
+  }
+
+  .profile-text {
+    font-size: 11.5px;
+    font-weight: 300;
+    line-height: 1.75;
+    color: #444;
+  }
+
+  .exp-block {
+    margin-bottom: 18px;
+    position: relative;
+    padding-left: 16px;
+  }
+
+  .exp-block::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 6px;
+    height: 6px;
+    background: #5ba4c9;
+    border-radius: 50%;
+  }
+
+  .exp-block::after {
+    content: '';
+    position: absolute;
+    left: 2.5px;
+    top: 14px;
+    bottom: -18px;
+    width: 1px;
+    background: #d0d8e0;
+  }
+
+  .exp-block:last-child::after {
+    display: none;
+  }
+
+  .exp-role {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 11.5px;
+    color: #1b2a3d;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .exp-date {
+    font-size: 10px;
+    font-weight: 600;
+    color: #5ba4c9;
+    letter-spacing: 1px;
+  }
+
+  .exp-desc {
+    font-size: 11px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: #555;
+    margin-top: 5px;
+  }
+
+  .edu-block {
+    margin-bottom: 16px;
+    position: relative;
+    padding-left: 16px;
+  }
+
+  .edu-block::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 6px;
+    height: 6px;
+    background: #5ba4c9;
+    border-radius: 50%;
+  }
+
+  .edu-school {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 11.5px;
+    color: #1b2a3d;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .edu-date {
+    font-size: 10px;
+    font-weight: 600;
+    color: #5ba4c9;
+    letter-spacing: 1px;
+  }
+
+  .edu-degree {
+    font-size: 11px;
+    font-weight: 300;
+    color: #555;
+    margin-top: 3px;
+  }
+
+  .refs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .ref-item {
+    background: #f4f7fa;
+    padding: 14px 16px;
+    border-left: 3px solid #5ba4c9;
+  }
+
+  .ref-name {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    color: #1b2a3d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .ref-phone {
+    font-size: 10.5px;
+    font-weight: 300;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  /* Print styles */
+  @media print {
+    body {
+      background: none;
+      padding: 0;
+    }
+    .resume-page {
+      box-shadow: none;
+      width: 100%;
+      min-height: auto;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="resume-page">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="photo-wrapper">
+      <img src="https://picsum.photos/seed/nithin-portrait/260/260.jpg" alt="Nithin Aravind">
+    </div>
+
+    <div class="name">Nithin Aravind</div>
+    <div class="job-title">Web Development</div>
+
+    <!-- Contact -->
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Contact</div>
+
+      <div class="contact-item">
+        <svg class="contact-icon" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/></svg>
+        <span>4399 Stokes Ferry Road,<br>San Francisco</span>
+      </div>
+
+      <div class="contact-item">
+        <svg class="contact-icon" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1.003 1.003 0 011.01-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.1.31.03.66-.25 1.02l-2.2 2.2z"/></svg>
+        <span>(415) 944-8989</span>
+      </div>
+
+      <div class="contact-item">
+        <svg class="contact-icon" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        <span>nithin.aravind@email.com</span>
+      </div>
+
+      <div class="contact-item">
+        <svg class="contact-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54a1.99 1.99 0 00-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41a7.997 7.997 0 013.9 12.8z"/></svg>
+        <span>nithinaravind.com</span>
+      </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Skills</div>
+
+      <div class="skill-item">
+        <div class="skill-label">Web Design</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width: 90%"></div></div>
+      </div>
+
+      <div class="skill-item">
+        <div class="skill-label">Graphic Design</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width: 75%"></div></div>
+      </div>
+
+      <div class="skill-item">
+        <div class="skill-label">HTML5 / CSS3</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width: 95%"></div></div>
+      </div>
+
+      <div class="skill-item">
+        <div class="skill-label">JavaScript</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width: 80%"></div></div>
+      </div>
+
+      <div class="skill-item">
+        <div class="skill-label">PHP</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width: 65%"></div></div>
+      </div>
+
+      <div class="skill-item">
+        <div class="skill-label">WordPress</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width: 85%"></div></div>
+      </div>
+    </div>
+
+    <!-- Languages -->
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Languages</div>
+
+      <div class="language-item">
+        <span class="language-name">English</span>
+        <div class="language-dots">
+          <div class="lang-dot filled"></div>
+          <div class="lang-dot filled"></div>
+          <div class="lang-dot filled"></div>
+          <div class="lang-dot filled"></div>
+          <div class="lang-dot filled"></div>
+        </div>
+      </div>
+
+      <div class="language-item">
+        <span class="language-name">Spanish</span>
+        <div class="language-dots">
+          <div class="lang-dot filled"></div>
+          <div class="lang-dot filled"></div>
+          <div class="lang-dot filled"></div>
+          <div class="lang-dot"></div>
+          <div class="lang-dot"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main">
+
+    <!-- Profile -->
+    <div class="main-section">
+      <div class="main-heading">Profile</div>
+      <p class="profile-text">
+        A self-motivated Web Developer with over 5 years of experience in designing and developing user-facing web applications. Proficient in HTML5, CSS3, JavaScript and PHP, with a strong eye for responsive design and seamless user experience. Skilled at collaborating with cross-functional teams to translate business requirements into technical solutions, with a proven track record of delivering projects on time and within budget.
+      </p>
+    </div>
+
+    <!-- Experience -->
+    <div class="main-section">
+      <div class="main-heading">Experience</div>
+
+      <div class="exp-block">
+        <div class="exp-role">Applications Developer</div>
+        <div class="exp-date">2016 – Present</div>
+        <p class="exp-desc">
+          Pellentesque dictum est sed libero. Donec vel mauris quam. Nullam blandit justo quis luctus fermentum. Vivamus vestibulum semper felis, eget blandit neque malesuada vel.
+        </p>
+      </div>
+
+      <div class="exp-block">
+        <div class="exp-role">Web Content Manager</div>
+        <div class="exp-date">2014 – 2016</div>
+        <p class="exp-desc">
+          Pellentesque dictum est sed libero. Donec vel mauris quam. Nullam blandit justo quis luctus fermentum. Vivamus vestibulum semper felis, eget blandit neque malesuada vel.
+        </p>
+      </div>
+
+      <div class="exp-block">
+        <div class="exp-role">Web Developer</div>
+        <div class="exp-date">2013 – 2014</div>
+        <p class="exp-desc">
+          Pellentesque dictum est sed libero. Donec vel mauris quam. Nullam blandit justo quis luctus fermentum. Vivamus vestibulum semper felis, eget blandit neque malesuada vel.
+        </p>
+      </div>
+    </div>
+
+    <!-- Education -->
+    <div class="main-section">
+      <div class="main-heading">Education</div>
+
+      <div class="edu-block">
+        <div class="edu-school">University of Really Great</div>
+        <div class="edu-date">2014 – 2016</div>
+        <div class="edu-degree">Bachelor of IT, Major in Technology</div>
+      </div>
+
+      <div class="edu-block">
+        <div class="edu-school">University of California</div>
+        <div class="edu-date">2013 – 2014</div>
+        <div class="edu-degree">Diploma in Information Technology</div>
+      </div>
+
+      <div class="edu-block">
+        <div class="edu-school">University of Design</div>
+        <div class="edu-date">2012 – 2013</div>
+        <div class="edu-degree">Advanced Diploma in Graphic Design</div>
+      </div>
+    </div>
+
+    <!-- References -->
+    <div class="main-section">
+      <div class="main-heading">References</div>
+      <div class="refs-grid">
+        <div class="ref-item">
+          <div class="ref-name">Harum Kobayashi</div>
+          <div class="ref-phone">(415) 944-8989</div>
+        </div>
+        <div class="ref-item">
+          <div class="ref-name">Baile Dupont</div>
+          <div class="ref-phone">(707) 555-0111</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // Add a subtle print helper button (won't appear in PDF)
+  const btn = document.createElement('button');
+  btn.textContent = '🖨️ Save as PDF';
+  btn.style.cssText = `
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    padding: 12px 24px; border: none; border-radius: 8px;
+    background: #1b2a3d; color: #fff; font-family: 'Montserrat', sans-serif;
+    font-size: 13px; font-weight: 600; letter-spacing: 1px;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    transition: transform 0.2s, box-shadow 0.2s;
+  `;
+  btn.onmouseenter = () => { btn.style.transform = 'translateY(-2px)'; btn.style.boxShadow = '0 6px 24px rgba(0,0,0,0.35)'; };
+  btn.onmouseleave = () => { btn.style.transform = 'translateY(0)'; btn.style.boxShadow = '0 4px 16px rgba(0,0,0,0.25)'; };
+  btn.onclick = () => window.print();
+
+  // Hide button in print
+  const style = document.createElement('style');
+  style.textContent = '@media print { button { display: none !important; } }';
+  document.head.appendChild(style);
+  document.body.appendChild(btn);
+</script>
+
+</body>
+</html>

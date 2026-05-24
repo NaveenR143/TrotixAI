@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume - Arjun Mehta</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --accent: #D97706;
+    --accent-dark: #B45309;
+    --accent-light: #FEF3C7;
+    --accent-bg: #FFFBEB;
+    --page-bg: #FFFFFF;
+    --header-bg: #F8FAFC;
+    --text-primary: #1E293B;
+    --text-secondary: #475569;
+    --text-muted: #94A3B8;
+    --border: #E2E8F0;
+    --border-light: #F1F5F9;
+  }
+
+  body {
+    font-family: 'DM Sans', 'Inter', sans-serif;
+    background: #CBD5E1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .download-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(255,255,255,0.95); backdrop-filter: blur(12px);
+    padding: 12px 24px; display: flex; justify-content: center; align-items: center; gap: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .download-btn {
+    background: var(--accent); color: #fff; border: none;
+    padding: 10px 28px; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.3s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .download-btn:hover { background: var(--accent-dark); transform: translateY(-1px); }
+  .download-btn svg { width: 16px; height: 16px; }
+
+  .resume-page {
+    width: 210mm; min-height: 297mm; background: var(--page-bg);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.12); margin-top: 60px; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--header-bg);
+    padding: 36px 40px 28px;
+    border-bottom: 3px solid var(--accent);
+  }
+  .header-top {
+    display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 18px;
+  }
+  .header-name {
+    font-size: 2rem; font-weight: 700; color: var(--text-primary);
+    letter-spacing: -0.03em; line-height: 1;
+  }
+  .header-title {
+    font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); margin-top: 6px;
+  }
+  .header-initials {
+    width: 56px; height: 56px; border-radius: 12px;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em;
+  }
+  .contact-row {
+    display: flex; flex-wrap: wrap; gap: 20px;
+  }
+  .contact-chip {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.72rem; color: var(--text-secondary); font-weight: 500;
+  }
+  .contact-chip svg { width: 14px; height: 14px; color: var(--accent); min-width: 14px; }
+
+  /* BODY GRID */
+  .body-grid {
+    flex: 1; display: grid; grid-template-columns: 1fr 240px;
+    padding: 28px 40px 32px; gap: 32px;
+  }
+
+  /* LEFT COLUMN */
+  .left-col { display: flex; flex-direction: column; gap: 26px; }
+
+  .section { display: flex; flex-direction: column; }
+  .section-title {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .profile-text {
+    font-size: 0.78rem; font-weight: 400; color: var(--text-secondary); line-height: 1.75;
+  }
+
+  /* EXPERIENCE - Side Date Style */
+  .exp-item {
+    display: grid; grid-template-columns: 110px 1fr; gap: 16px;
+    margin-bottom: 20px; padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .exp-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .exp-date-col {
+    padding-top: 3px;
+  }
+  .exp-date {
+    font-size: 0.65rem; font-weight: 600; color: var(--accent);
+    background: var(--accent-light); padding: 3px 8px; border-radius: 4px;
+    display: inline-block; letter-spacing: 0.02em;
+  }
+  .exp-content {}
+  .exp-role { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1px; }
+  .exp-company { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+  .exp-desc { font-size: 0.72rem; color: var(--text-secondary); line-height: 1.7; }
+  .exp-desc ul { list-style: none; padding: 0; }
+  .exp-desc li { position: relative; padding-left: 12px; margin-bottom: 4px; }
+  .exp-desc li::before { content: '•'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+
+  /* RIGHT COLUMN */
+  .right-col { display: flex; flex-direction: column; gap: 24px; }
+
+  .skill-group { margin-bottom: 12px; }
+  .skill-group-title {
+    font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 8px;
+  }
+  .skill-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .skill-pill {
+    font-size: 0.65rem; font-weight: 600; color: var(--accent-dark);
+    background: var(--accent-light); padding: 4px 10px; border-radius: 20px;
+    border: 1px solid transparent; transition: all 0.2s;
+  }
+
+  .edu-item { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-light); }
+  .edu-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .edu-degree { font-size: 0.78rem; font-weight: 700; color: var(--text-primary); line-height: 1.3; margin-bottom: 3px; }
+  .edu-school { font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 2px; }
+  .edu-year { font-size: 0.62rem; font-weight: 600; color: var(--accent); }
+
+  .lang-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid var(--border-light);
+    font-size: 0.72rem; color: var(--text-secondary);
+  }
+  .lang-row:last-child { border-bottom: none; }
+  .lang-level { font-weight: 600; color: var(--text-primary); font-size: 0.65rem; }
+
+  .ref-card {
+    background: var(--header-bg); border: 1px solid var(--border-light);
+    border-radius: 8px; padding: 12px 14px; margin-bottom: 10px;
+  }
+  .ref-card:last-child { margin-bottom: 0; }
+  .ref-name { font-size: 0.75rem; font-weight: 700; color: var(--text-primary); }
+  .ref-role { font-size: 0.62rem; color: var(--text-muted); margin-bottom: 4px; }
+  .ref-contact { font-size: 0.62rem; color: var(--text-secondary); }
+
+  .interest-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .interest-chip {
+    font-size: 0.6rem; font-weight: 500; color: var(--text-secondary);
+    background: var(--white); border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 4px;
+  }
+
+  /* PRINT */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .download-bar { display: none !important; }
+    .resume-page { margin: 0; box-shadow: none; width: 100%; min-height: 100vh; }
+    @page { size: A4; margin: 0; }
+  }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--text-primary); color: #fff;
+    padding: 12px 24px; border-radius: 10px;
+    font-size: 0.8rem; font-weight: 500; z-index: 200;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="download-bar">
+  <button class="download-btn" onclick="downloadPDF()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Download PDF
+  </button>
+  <span style="color:#64748B;font-size:0.75rem;">Use "Save as PDF" in the print dialog</span>
+</div>
+
+<div class="toast" id="toast">Opening print dialog…</div>
+
+<div class="resume-page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="header-name">ARJUN MEHTA</div>
+        <div class="header-title">Marketing Manager</div>
+      </div>
+      <div class="header-initials">AM</div>
+    </div>
+    <div class="contact-row">
+      <div class="contact-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        +91 98765 43210
+      </div>
+      <div class="contact-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        arjun.mehta@gmail.com
+      </div>
+      <div class="contact-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Koramangala, Bengaluru 560034
+      </div>
+      <div class="contact-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        linkedin.com/in/arjunmehta
+      </div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body-grid">
+
+    <!-- LEFT COLUMN -->
+    <div class="left-col">
+
+      <div class="section">
+        <div class="section-title">Profile</div>
+        <p class="profile-text">
+          Results-driven marketing professional with 6+ years of experience in crafting and executing high-impact digital marketing strategies across D2C, SaaS, and e-commerce verticals in the Indian market. Proven track record of scaling user acquisition by 3×, managing ₹5 Cr+ annual marketing budgets, and leading cross-functional teams of 15+ members. Passionate about leveraging data analytics and consumer behaviour insights to drive sustainable revenue growth and brand equity.
+        </p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Work Experience</div>
+
+        <div class="exp-item">
+          <div class="exp-date-col"><span class="exp-date">2023 — Present</span></div>
+          <div class="exp-content">
+            <div class="exp-role">Senior Marketing Manager</div>
+            <div class="exp-company">Zomato — Gurugram, Haryana</div>
+            <div class="exp-desc">
+              <ul>
+                <li>Spearheaded the "Zomato Gold" re-launch campaign across 40+ cities, driving a 45% increase in premium subscriptions within Q1 FY24.</li>
+                <li>Managed a ₹8 Cr quarterly digital ad budget across Google, Meta, and programmatic platforms, achieving a consistent 4.2× ROAS.</li>
+                <li>Led a 12-member performance marketing team, reducing CAC by 28% through funnel optimisation and lookalike audience strategies.</li>
+                <li>Partnered with the product team to launch hyper-local push notification engine, improving order conversion rates by 18%.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-date-col"><span class="exp-date">2021 — 2022</span></div>
+          <div class="exp-content">
+            <div class="exp-role">Marketing Manager</div>
+            <div class="exp-company">BoAt (Imagine Marketing Ltd.) — New Delhi</div>
+            <div class="exp-desc">
+              <ul>
+                <li>Orchestrated IPL 2022 co-branded campaign with 6 celebrity ambassadors, generating 120M+ impressions and a 32% spike in D2C site traffic.</li>
+                <li>Built the influencer marketing programme from scratch — onboarded 200+ micro-influencers contributing ₹3.5 Cr in attributed revenue.</li>
+                <li>Owned end-to-end SEO strategy, improving organic traffic by 65% and domain rating from 42 to 58 in 18 months.</li>
+                <li>Launched boAt's first WhatsApp Commerce pilot, achieving ₹1.2 Cr GMV in the first quarter.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-date-col"><span class="exp-date">2020 — 2021</span></div>
+          <div class="exp-content">
+            <div class="exp-role">Associate Marketing Manager</div>
+            <div class="exp-company">Flipkart — Bengaluru, Karnataka</div>
+            <div class="exp-desc">
+              <ul>
+                <li>Managed category marketing for the Electronics vertical during Big Billion Days 2020, contributing to ₹1,200 Cr category GMV.</li>
+                <li>Executed A/B testing on 50+ landing pages, improving conversion rate by 22% through data-driven creative iterations.</li>
+                <li>Co-ordinated with regional teams to localise campaigns in Hindi, Tamil, and Telugu, increasing Tier-2 engagement by 37%.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+
+      <div class="section">
+        <div class="section-title">Education</div>
+        <div class="edu-item">
+          <div class="edu-degree">MBA, Marketing</div>
+          <div class="edu-school">IIM Bangalore</div>
+          <div class="edu-year">2018 – 2020</div>
+        </div>
+        <div class="edu-item">
+          <div class="edu-degree">B.Tech, CSE</div>
+          <div class="edu-school">VIT Chennai</div>
+          <div class="edu-year">2014 – 2018</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Skills</div>
+        <div class="skill-group">
+          <div class="skill-group-title">Marketing</div>
+          <div class="skill-pills">
+            <span class="skill-pill">Digital Marketing</span>
+            <span class="skill-pill">SEO & SEM</span>
+            <span class="skill-pill">Content Strategy</span>
+            <span class="skill-pill">Growth Hacking</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <div class="skill-group-title">Management</div>
+          <div class="skill-pills">
+            <span class="skill-pill">Project Management</span>
+            <span class="skill-pill">Team Leadership</span>
+            <span class="skill-pill">Agile</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <div class="skill-group-title">Analytics</div>
+          <div class="skill-pills">
+            <span class="skill-pill">Data Analytics</span>
+            <span class="skill-pill">Google Analytics</span>
+            <span class="skill-pill">A/B Testing</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Languages</div>
+        <div class="lang-row"><span>Hindi</span><span class="lang-level">Native</span></div>
+        <div class="lang-row"><span>English</span><span class="lang-level">Fluent</span></div>
+        <div class="lang-row"><span>Kannada</span><span class="lang-level">Conversational</span></div>
+        <div class="lang-row"><span>Tamil</span><span class="lang-level">Basic</span></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Interests</div>
+        <div class="interest-chips">
+          <span class="interest-chip">Cricket</span>
+          <span class="interest-chip">Travel</span>
+          <span class="interest-chip">Photography</span>
+          <span class="interest-chip">Podcasts</span>
+          <span class="interest-chip">Startups</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">References</div>
+        <div class="ref-card">
+          <div class="ref-name">Priya Sharma</div>
+          <div class="ref-role">VP Marketing, Zomato</div>
+          <div class="ref-contact">priya.sharma@zomato.com</div>
+        </div>
+        <div class="ref-card">
+          <div class="ref-name">Vikram Reddy</div>
+          <div class="ref-role">Director, Brand Strategy — BoAt</div>
+          <div class="ref-contact">vikram.r@boat-lifestyle.com</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function downloadPDF() {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+      window.print();
+    }, 600);
+  }
+</script>
+
+</body>
+</html>

@@ -1,6 +1,6 @@
 // components/forms/MobileOTPValidation.js
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useFetcher, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
     Box,
@@ -13,12 +13,16 @@ import {
     Alert,
     AlertTitle,
     Fade,
-    CircularProgress
+    CircularProgress,
+    LinearProgress
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
 import { fadeSlideUp } from "../../utils/themeUtils";
+import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
+import { getStatusMessage, calculateRealisticProgress } from "../../utils/progressUtils";
 
 /**
  * MobileOTPValidation Component
@@ -36,23 +40,53 @@ import { fadeSlideUp } from "../../utils/themeUtils";
 const MobileOTPValidation = ({
     mobileNumber = "",
     onSuccess,
-    onError,
+    // onError,
     onChangeNumber,
     disabled = false,
     otpLength = 4,
     newUser = null,
-    resumeData = null
+    resumeData = null,
+
 }) => {
     const navigate = useNavigate();
     const [otp, setOtp] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [verificationSuccess, setVerificationSuccess] = useState(false);
+    const [resumeStatus, setResumeStatus] = useState("unknown");
+    const [processingProgress, setProcessingProgress] = useState(30);
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
     const handleOtpChange = (e) => {
         const val = e.target.value.replace(/\D/g, '').slice(0, otpLength);
         setOtp(val);
         setError(""); // Clear error when user starts typing
+
+        // // Auto-submit when OTP reaches desired length
+        // if (val.length === otpLength) {
+        //     setTimeout(() => {
+        //         // Auto-trigger verification
+        //         handleVerify({ preventDefault: () => { }, target: { form: e.target.form } });
+        //     }, 300);
+        // }
+    };
+
+    // Handle paste events for better UX
+    const handlePaste = (e) => {
+        e.preventDefault();
+        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+        const digits = pastedText.replace(/\D/g, '').slice(0, otpLength);
+        setOtp(digits);
+        setError("");
+
+        // Auto-submit if pasted value reaches desired length
+        if (digits.length === otpLength) {
+            setTimeout(() => {
+
+                
+                handleVerify({ preventDefault: () => { } });
+            }, 200);
+        }
     };
 
     const handleVerify = async (e) => {
@@ -63,6 +97,9 @@ const MobileOTPValidation = ({
             return;
         }
 
+    };
+
+    const verifyOTP = async () => {
         setLoading(true);
         setError("");
 
@@ -72,8 +109,8 @@ const MobileOTPValidation = ({
 
             // Determine which endpoint to call based on newUser flag
             const endpoint = newUser
-                ? "http://127.0.0.1:8000/otp/verify-otp-update"
-                : "http://127.0.0.1:8000/otp/verify-otp";
+                ? `${API_BASE_URL}${API_ENDPOINTS.VERIFY_OTP_UPDATE}`
+                : `${API_BASE_URL}${API_ENDPOINTS.VERIFY_OTP}`;
 
             const payload = {
                 phone: cleanPhone,
@@ -105,26 +142,28 @@ const MobileOTPValidation = ({
                         mobileNumber,
                         verificationData: verifyResult,
                         newUser,
-                        resumeData
+                        resumeData,
                     });
                 }
-
-                // Navigate based on user type
-                const route = newUser ? "/feed" : "/dashboard";
-                console.log(`🚀 Navigating to ${route} for ${newUser ? "new" : "existing"} user`);
-                navigate(route);
-            }, 800);
+            }, 200);
         } catch (err) {
             setLoading(false);
-            const errorMsg = err?.message || "Verification failed. Please try again.";
+            const errorMsg = err?.response?.data?.detail || err?.message || "Verification failed. Please try again.";
             console.error("✗ OTP Verification Error:", {
                 error: errorMsg,
                 details: err
             });
             setError(errorMsg);
-            if (onError) onError(errorMsg);
+            // if (onError) onError(errorMsg);
         }
     };
+
+    useEffect(() => {
+        if (otp.length === otpLength) {
+            verifyOTP();
+        }
+
+    }, [otp]);
 
     const handleRetry = () => {
         setOtp("");
@@ -205,7 +244,7 @@ const MobileOTPValidation = ({
                     </Typography>
                     <Typography variant="body2" sx={{ color: "#64748b" }}>
                         {verificationSuccess ? (
-                            "You're all set! Proceeding to your dashboard..."
+                            "You're all set! ..."
                         ) : (
                             <>
                                 Enter the code sent to{" "}
@@ -220,17 +259,21 @@ const MobileOTPValidation = ({
                     </Typography>
                 </Box>
 
-                {/* Error Alert */}
+                {/* Error Alert with Better Messaging */}
                 <Fade in={!!error && !verificationSuccess}>
                     <Alert
                         severity="error"
                         onClose={() => setError("")}
                         sx={{ mb: 3, borderRadius: 2, display: error ? "flex" : "none" }}
+                        icon={<ErrorOutlineIcon />}
                     >
                         <AlertTitle sx={{ fontSize: "0.85rem", fontWeight: 700 }}>
                             Verification Failed
                         </AlertTitle>
                         {error}
+                        <Typography sx={{ fontSize: "0.75rem", mt: 1, opacity: 0.8 }}>
+                            Please check your code and try again, or click "Resend OTP" for a new code.
+                        </Typography>
                     </Alert>
                 </Fade>
 
@@ -241,13 +284,16 @@ const MobileOTPValidation = ({
                         sx={{
                             mb: 3,
                             borderRadius: 2,
-                            display: verificationSuccess ? "flex" : "none"
+                            display: verificationSuccess ? "flex" : "none",
+                            background: "linear-gradient(135deg, #f0fdf4, #dcfce7)"
                         }}
                     >
-                        <AlertTitle sx={{ fontSize: "0.85rem", fontWeight: 700 }}>
-                            OTP Verified Successfully
+                        <AlertTitle sx={{ fontSize: "0.85rem", fontWeight: 700, color: "#166534" }}>
+                            ✓ Verification Successful!
                         </AlertTitle>
-                        Your mobile number has been verified.
+                        <Typography sx={{ fontSize: "0.82rem", color: "#4b5563" }}>
+                            Your mobile number has been verified. Your resume is now being finalized...
+                        </Typography>
                     </Alert>
                 </Fade>
 
@@ -255,15 +301,26 @@ const MobileOTPValidation = ({
                 {!verificationSuccess ? (
                     <form onSubmit={handleVerify}>
                         <Stack spacing={3}>
+                            {/* Helper Text Before OTP Entry */}
+                            <Typography sx={{
+                                fontSize: "0.85rem",
+                                color: "#64748b",
+                                textAlign: "center",
+                                lineHeight: 1.5
+                            }}>
+                                We've sent a {otpLength}-digit code to {formatDisplayNumber(mobileNumber)}
+                            </Typography>
+
                             <TextField
                                 fullWidth
                                 label="One-Time Password"
-                                placeholder={`Enter ${otpLength}-digit OTP`}
+                                placeholder={`Enter ${otpLength}-digit code`}
                                 variant="outlined"
                                 autoFocus
                                 disabled={disabled || loading}
                                 value={otp}
                                 onChange={handleOtpChange}
+                                onPaste={handlePaste}
                                 maxLength={otpLength}
                                 inputMode="numeric"
                                 InputProps={{
@@ -273,17 +330,25 @@ const MobileOTPValidation = ({
                                         </InputAdornment>
                                     )
                                 }}
+                                helperText={otp.length > 0 ? `${otp.length}/${otpLength}` : `Paste or type your code`}
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
                                         transition: "all 0.2s",
-                                        fontSize: { xs: "1rem", sm: "1.1rem" },
-                                        letterSpacing: "0.15em",
+                                        fontSize: { xs: "1.2rem", sm: "1.3rem" },
+                                        letterSpacing: "0.2em",
                                         "& input": {
                                             textAlign: "center",
-                                            fontWeight: 600,
-                                            fontFamily: "monospace"
+                                            fontWeight: 700,
+                                            fontFamily: "monospace",
+                                            padding: "16px 8px"
                                         },
-                                        "&:hover": { bgcolor: "#f8fafc" }
+                                        "&:hover": { bgcolor: "#f8fafc" },
+                                        "&.Mui-focused": {
+                                            "& fieldset": {
+                                                borderColor: "#6366f1",
+                                                borderWidth: 2
+                                            }
+                                        }
                                     }
                                 }}
                             />
@@ -312,12 +377,12 @@ const MobileOTPValidation = ({
                                         boxShadow: "0 6px 20px rgba(0,0,0,0.2)"
                                     },
                                     "&.Mui-disabled": {
-                                        background: "rgba(15, 23, 42, 0.6)",
-                                        color: "rgba(255, 255, 255, 0.5)"
+                                        background: "#E2E8F0",
+                                        color: "#475569"
                                     }
                                 }}
                             >
-                                {loading ? "Verifying..." : "Verify OTP"}
+                                {loading ? "Verifying..." : otp.length === otpLength ? "Verify Now" : "Verify OTP"}
                             </Button>
 
                             {onChangeNumber && (
@@ -331,15 +396,27 @@ const MobileOTPValidation = ({
                                         color: "#64748b",
                                         fontWeight: 600,
                                         textTransform: "none",
+                                        fontSize: "0.85rem",
                                         "&:hover": {
                                             bgcolor: "rgba(99, 102, 241, 0.05)",
                                             color: "#6366f1"
                                         }
                                     }}
                                 >
-                                    Resend OTP
+                                    Didn't receive the code? Resend OTP
                                 </Button>
                             )}
+
+                            {/* Helpful messaging during entry */}
+                            <Typography sx={{
+                                fontSize: "0.75rem",
+                                color: "#94a3b8",
+                                mt: 2,
+                                lineHeight: 1.4,
+                                textAlign: "center"
+                            }}>
+                                💡 Tip: You can paste your OTP directly from your messages
+                            </Typography>
                         </Stack>
                     </form>
                 ) : (
@@ -350,23 +427,113 @@ const MobileOTPValidation = ({
                                 bgcolor: "#f0fdf4",
                                 borderRadius: 2,
                                 border: "1px solid #86efac",
-                                textAlign: "center"
+                                textAlign: "center",
+                                animation: `${fadeSlideUp} 0.4s ease-in`
                             }}
                         >
-                            <Typography sx={{ color: "#166534", fontWeight: 700, fontSize: "0.95rem" }}>
-                                ✓ Mobile verification complete
-                            </Typography>
+                            <Box sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 1,
+                                mb: 1
+                            }}>
+                                <CheckCircleOutlineIcon sx={{ color: "#166534", fontSize: 20 }} />
+                                <Typography sx={{ color: "#166534", fontWeight: 700, fontSize: "0.95rem" }}>
+                                    Mobile Verification Complete
+                                </Typography>
+                            </Box>
                             <Typography
                                 sx={{
                                     color: "#4b5563",
                                     fontSize: "0.85rem",
-                                    mt: 1,
                                     lineHeight: 1.5
                                 }}
                             >
-                                You can now access all features. Redirecting shortly...
+                                ✓ Your mobile number has been verified successfully.
                             </Typography>
                         </Box>
+
+                        {/* Active Processing Indicator */}
+                        {/* <Box
+                            sx={{
+                                p: 3,
+                                bgcolor: "rgba(99, 102, 241, 0.05)",
+                                borderRadius: 2.5,
+                                border: "1px solid rgba(99, 102, 241, 0.2)",
+                                textAlign: "center"
+                            }}
+                        >
+                            <Typography sx={{
+                                fontSize: "0.75rem",
+                                fontWeight: 800,
+                                color: "#6366f1",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.1em",
+                                mb: 2
+                            }}>
+                                🔄 Processing Your Resume
+                            </Typography>
+
+                            
+                            <Box sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                mb: 2.5
+                            }}>
+                                <Typography sx={{ fontSize: "0.82rem", color: "#64748b", fontWeight: 600 }}>
+                                    {getStatusMessage(processingProgress, resumeStatus)}
+                                </Typography>
+                                <Typography sx={{
+                                    fontSize: "0.9rem",
+                                    fontWeight: 800,
+                                    background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                                    WebkitBackgroundClip: "text",
+                                    WebkitTextFillColor: "transparent",
+                                    backgroundClip: "text"
+                                }}>
+                                    {processingProgress}%
+                                </Typography>
+                            </Box>
+
+                            
+                            <LinearProgress
+                                variant="determinate"
+                                value={processingProgress}
+                                sx={{
+                                    borderRadius: 100,
+                                    height: 8,
+                                    bgcolor: "#e2e8f0",
+                                    mb: 2,
+                                    "& .MuiLinearProgress-bar": {
+                                        background: "linear-gradient(90deg, #6366f1, #8b5cf6)",
+                                        borderRadius: 100,
+                                        transition: "width 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
+                                    }
+                                }}
+                            />
+
+                            
+                            <Typography sx={{
+                                fontSize: "0.75rem",
+                                color: "#94a3b8",
+                                lineHeight: 1.6
+                            }}>
+                                Parsing • Extracting • Analyzing • Validating
+                            </Typography>
+                        </Box> */}
+
+
+                        {/* <Typography sx={{
+                            fontSize: "0.8rem",
+                            color: "#64748b",
+                            textAlign: "center",
+                            lineHeight: 1.5,
+                            fontStyle: "italic"
+                        }}>
+                            Our AI is analyzing your profile and finding the best opportunities for you. This typically takes 30-50 seconds.
+                        </Typography> */}
                     </Stack>
                 )}
             </Paper>

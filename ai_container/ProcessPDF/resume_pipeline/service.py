@@ -54,23 +54,27 @@ LOGGER = logging.getLogger("resume_processor")
 def load_model():
     # Check if model exists locally
     if os.path.exists(LOCAL_MODEL_PATH):
-        print("✅ Loading model from local path...")
+        print("Loading model from local path...")
         return SentenceTransformer(LOCAL_MODEL_PATH)
 
     # Otherwise download and save
-    print("⬇️ Downloading model from Hugging Face...")
+    print("Downloading model from Hugging Face...")
     model = SentenceTransformer(MODEL_NAME)
 
     # Save locally for future use
     os.makedirs(LOCAL_MODEL_PATH, exist_ok=True)
     model.save(LOCAL_MODEL_PATH)
 
-    print("💾 Model saved locally")
+    print("Model saved locally")
     return model
 
 
 # Load once (global)
 _model = load_model()
+
+# Industry Cache
+_INDUSTRIES_CACHE = []
+_INDUSTRY_EMBEDDINGS = None
 
 
 class ResumeProcessor:
@@ -78,13 +82,13 @@ class ResumeProcessor:
 
     def __init__(
         self,
-        session: AsyncSession,
-        ai_refiner: AzureOpenAIResumeRefiner,
+        session: AsyncSession | None = None,
+        ai_refiner: AzureOpenAIResumeRefiner | None = None,
         preprocessor: ResumePreprocessor | None = None,
         extractor: DeterministicExtractor | None = None,
         validator: FileValidator | None = None,
     ) -> None:
-        self._repository = ResumeRepository(session=session)
+        self._repository = ResumeRepository(session=session) if session else None
         self._ai_refiner = ai_refiner
         self._preprocessor = preprocessor or ResumePreprocessor()
         self._extractor = extractor or DeterministicExtractor()
@@ -120,6 +124,95 @@ class ResumeProcessor:
             print(f"Error generating embedding: {e}")
             return None
 
+    async def _load_industries(self) -> None:
+        """Fetch industries from DB and cache their embeddings."""
+        global _INDUSTRIES_CACHE, _INDUSTRY_EMBEDDINGS
+
+        if _INDUSTRIES_CACHE:
+            return
+
+        if not self._repository:
+            LOGGER.warning("No repository available to load industries")
+            return
+
+        try:
+            print("Loading industries from database...")
+            industries = await self._repository.get_industries()
+            if not industries:
+                LOGGER.warning("No industries found in database")
+                return
+
+            _INDUSTRIES_CACHE = industries
+            names = [ind["name"] for ind in industries]
+
+            # Pre-calculate embeddings for industry names
+            print(f"Generating embeddings for {len(names)} industries...")
+            _INDUSTRY_EMBEDDINGS = _model.encode(
+                names, convert_to_numpy=True, normalize_embeddings=True
+            )
+            print("Industry cache initialized")
+        except Exception as e:
+            LOGGER.error(f"Error loading industries: {e}")
+
+    async def determine_industries(
+        self, skills: list[str], education: list[dict], summary: str, top_k: int = 3
+    ) -> list[dict]:
+        """Determine most relevant industries using semantic similarity."""
+        if not _INDUSTRIES_CACHE:
+            await self._load_industries()
+
+        if not _INDUSTRIES_CACHE or _INDUSTRY_EMBEDDINGS is None:
+            return []
+
+        try:
+            # Combine profile data for context
+            # Skills are usually strong indicators
+            skills_text = ", ".join(skills) if skills else ""
+
+            # Education fields can also help
+            edu_text = " ".join(
+                [
+                    f"{e.get('degree', '')} {e.get('field_of_study', '')}"
+                    for e in education
+                ]
+            )
+
+            # Combine all into one context string
+            context = f"{summary} {skills_text} {edu_text}".strip()
+
+            if not context:
+                return []
+
+            # Generate embedding for the profile context
+            profile_embedding = _model.encode(
+                context, convert_to_numpy=True, normalize_embeddings=True
+            )
+
+            # Calculate cosine similarity manually (dot product since normalized)
+            import numpy as np
+
+            similarities = np.dot(_INDUSTRY_EMBEDDINGS, profile_embedding)
+
+            # Get top K indices
+            top_indices = np.argsort(similarities)[-top_k:][::-1]
+
+            results = []
+            for idx in top_indices:
+                score = float(similarities[idx])
+                if score > 0.2:  # Minimum similarity threshold
+                    results.append(
+                        {
+                            "id": _INDUSTRIES_CACHE[idx]["id"],
+                            "name": _INDUSTRIES_CACHE[idx]["name"],
+                            "score": score,
+                        }
+                    )
+
+            return results
+        except Exception as e:
+            LOGGER.error(f"Error determining industries: {e}")
+            return []
+
     async def process_resume(
         self,
         user_id: UUID,
@@ -129,6 +222,7 @@ class ResumeProcessor:
         mime_type: str,
     ) -> JobSeekerProfile:
         start_time = time.perf_counter()
+        print("Starting resume processing...")
         LOGGER.info(
             "Starting resume processing",
             extra={"user_id": str(user_id), "file_name": file_name},
@@ -149,7 +243,12 @@ class ResumeProcessor:
             #     with io.BytesIO(file_bytes) as f:
             #         main_text = extract_pdf_text(f)
 
+            # 1. Extract text from resume
+            print("Extracting text from resume...")
+            text_extract_start = time.perf_counter()
             main_text = parser.parse_plain_text(raw_bytes)
+            text_extract_time = time.perf_counter() - text_extract_start
+            print(f"   Text extraction took {text_extract_time:.2f}s")
 
             # Store first 5 lines from extracted PDF in a variable
             lines = main_text.split("\n")
@@ -160,8 +259,13 @@ class ResumeProcessor:
             #     print(f"{i}. {line}")
             # print("=" * 50)
 
+            # 2. Analyze document structure
+            print("Analyzing document structure...")
+            analysis_start = time.perf_counter()
             analyzer = DocumentAnalyzer(file_bytes)
             analysis_result = analyzer.analyze()
+            analysis_time = time.perf_counter() - analysis_start
+            print(f"   Document analysis took {analysis_time:.2f}s")
 
             # print(f"Analysis Result: {analysis_result}")
 
@@ -189,17 +293,21 @@ class ResumeProcessor:
             #     raise ParsingError("No text extracted from resume.")
             # clean_text = self._preprocessor.preprocess(raw_text)
 
-            token_count = self._preprocessor.count_tokens(raw_text)
-            print(f"Token count for user {user_id}: {token_count}")
+            # Token count for raw text (before preprocessing)
+            # token_count = self._preprocessor.count_tokens(raw_text)
+            # print(f"Token count for user {user_id}: {token_count}")
 
             # # Debug output
             # print(f"Cleaned text for user {user_id}:\n{clean_text[:500]}...")
 
-            # Extract deterministic data first (name, email, phone, skills, etc.)
+            # 3. Extract deterministic data first (name, email, phone, skills, etc.)
+            print("Extracting deterministic data...")
+            extract_start = time.perf_counter()
             deterministic = self._extractor.extract(raw_text, first_five_lines)
+            extract_time = time.perf_counter() - extract_start
+            print(f"   Deterministic extraction took {extract_time:.2f}s")
             # Debug output
-            print(
-                f"Deterministic data for user {user_id}:\n{asdict(deterministic)}")
+            print(f"Deterministic data for user {user_id}:\n{asdict(deterministic)}")
 
             # # Remove PII from clean text to reduce tokens sent to model
             # clean_text_without_pii = self._preprocessor.remove_pii(
@@ -209,12 +317,13 @@ class ResumeProcessor:
 
             profile = ""
 
-            # Pass complete clean_text (without PII) to AI refiner
-            profile = self._ai_refiner.refine(
-                user_id=user_id, clean_text=raw_text)
-
+            # 4. Pass complete clean_text (without PII) to AI refiner
+            print("Calling AI refiner...")
+            ai_start = time.perf_counter()
+            profile = self._ai_refiner.refine(user_id=user_id, clean_text=raw_text)
+            ai_time = time.perf_counter() - ai_start
             # print(f"AI refinement completed for user {user_id}:\n{profile}")
-
+            print(f"   AI refinement took {ai_time:.2f}s")
             print(f"AI refinement completed for user {user_id}")
 
             # Convert deterministic (dataclass) to dict
@@ -236,41 +345,94 @@ class ResumeProcessor:
             # merged_data = {"profile": merged_data, "uuids": {k.hex: v.hex for k, v in profile.items() if isinstance(k, UUID)}}
 
             # Save to JSON File
-            # file_path = Path.cwd() / f"profile_{user_id}.json"
-            # with open(file_path, "w", encoding="utf-8") as f:
-            #     json.dump(merged_data, f, ensure_ascii=False, indent=2)
+            file_path = Path.cwd() / f"profile_{user_id}.json"
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(merged_data, f, ensure_ascii=False, indent=2)
 
             # print(f"Profile saved for user {user_id}")
 
-            # Generate embedding from resume summary
+            # 5. Generate embedding from resume summary
+            print("Generating embedding...")
+            embed_start = time.perf_counter()
             resume_summary = merged_data.get("summary", "")
-            resume_embedding = self._generate_embedding(resume_summary)
+            profile_embedding = self._generate_embedding(resume_summary)
+            embed_time = time.perf_counter() - embed_start
+            print(f"   Embedding generation took {embed_time:.2f}s")
 
             # Extract education details if present
             education_details = merged_data.get("education", [])
             if not isinstance(education_details, list):
-                education_details = [
-                    education_details] if education_details else []
+                education_details = [education_details] if education_details else []
+
+            # Determine relevant industries
+            print("Identifying relevant industries...")
+            skills = merged_data.get("skills", [])
+            summary = merged_data.get("summary", "")
+            industry_matches = await self.determine_industries(
+                skills=skills, education=education_details, summary=summary
+            )
+
+            industry_ids = [m["id"] for m in industry_matches]
+            industry_names = [m["name"] for m in industry_matches]
+            print(f"Identified industries: {', '.join(industry_names)}")
+
+            # Persist user industries if repository is available
+            if self._repository and industry_ids:
+                try:
+                    print(f"Saving {len(industry_ids)} industries for user {user_id}...")
+                    await self._repository.save_user_industries(user_id, industry_ids)
+                except Exception as e:
+                    # Provide proper message and continue as requested
+                    error_msg = f"Failed to save industries for user {user_id}: {str(e)}"
+                    LOGGER.error(error_msg)
+                    print(f"⚠️ Warning: {error_msg}. Continuing processing...")
+
+            final_profile = {
+                "user_id": user_id,
+                "profile_data": merged_data,
+                "file_name": file_name,
+                "file_url": "https://example.com/resume.pdf",  # Placeholder URL
+                "file_size_bytes": len(raw_bytes),
+                "mime_type": mime_type,
+                "education_details": education_details,
+                "profile_embedding": profile_embedding,
+                "industries": industry_matches,
+                "industry_ids": industry_ids,
+            }
 
             # Save profile and resume with embedding
-            await self._repository.save_profile_and_resume(
-                user_id=user_id,
-                profile_data=merged_data,
-                file_name=file_name,
-                file_url="https://example.com/resume.pdf",  # Placeholder URL
-                file_size_bytes=len(raw_bytes),
-                mime_type=mime_type,
-                education_details=education_details,
-                resume_embedding=resume_embedding,
-            )
+            # if self._repository:
+            #     await self._repository.save_profile_and_resume(
+            #         user_id=user_id,
+            #         profile_data=merged_data,
+            #         file_name=file_name,
+            #         file_url="https://example.com/resume.pdf",  # Placeholder URL
+            #         file_size_bytes=len(raw_bytes),
+            #         mime_type=mime_type,
+            #         education_details=education_details,
+            #         resume_embedding=resume_embedding,
+            #     )
 
             end_time = time.perf_counter()
             duration = end_time - start_time
-            print(f"✅ Resume processing completed in {duration:.2f} seconds")
+            print("\n" + "=" * 60)
+            print("TIMING SUMMARY")
+            print("=" * 60)
+            print(f"  Text extraction:      {text_extract_time:.2f}s")
+            print(f"  Document analysis:    {analysis_time:.2f}s")
+            print(f"  Data extraction:      {extract_time:.2f}s")
+            print(f"  AI refinement:        {ai_time:.2f}s")
+            print(f"  Embedding generation: {embed_time:.2f}s")
+            print("-" * 60)
+            print(f"  TOTAL TIME:           {duration:.2f}s")
+            print("=" * 60 + "\n")
+            print(f"Resume processing completed successfully in {duration:.2f} seconds")
 
-            LOGGER.info("Resume processing completed",
-                        extra={"user_id": str(user_id)})
-            return profile
+            LOGGER.info(
+                "Resume processing completed",
+                extra={"user_id": str(user_id), "duration_seconds": duration},
+            )
+            return final_profile
         except UserNotFoundError as e:
             error_msg = f"User validation failed for {user_id}: {str(e)}"
             LOGGER.error(error_msg)
@@ -280,15 +442,13 @@ class ResumeProcessor:
             LOGGER.error(error_msg)
             raise ResumeProcessingError(error_msg) from e
         except ResumeProcessingError:
-            LOGGER.exception("Resume processing error",
-                             extra={"user_id": str(user_id)})
+            LOGGER.exception("Resume processing error", extra={"user_id": str(user_id)})
             raise
         except Exception as exc:
             LOGGER.exception(
                 "Unhandled resume processing error", extra={"user_id": str(user_id)}
             )
-            raise ResumeProcessingError(
-                f"Unhandled processing error: {exc}") from exc
+            raise ResumeProcessingError(f"Unhandled processing error: {exc}") from exc
 
 
 def configure_logging(level: int = logging.INFO) -> None:
