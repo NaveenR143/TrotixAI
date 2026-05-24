@@ -113,7 +113,7 @@ const DashboardScreen = () => {
     },
     {
       icon: TrendingUpIcon,
-      title: 'Career Insights',
+      title: 'Career Insights - 20 Credits',
       description: 'Get AI-driven advice on how to accelerate your career growth.',
       accent: '#0EA5E9',
       onClick: () => navigate('/career-advice'),
@@ -127,7 +127,7 @@ const DashboardScreen = () => {
     },
     {
       icon: SchoolIcon,
-      title: 'Skill Center',
+      title: 'Skill Center - 20 Credits',
       description: 'Upskill with curated courses and certifications in your field.',
       accent: '#EC4899',
       onClick: () => navigate('/skill-development'),
