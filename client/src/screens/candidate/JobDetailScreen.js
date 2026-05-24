@@ -500,6 +500,7 @@ const JobDetailScreen = ({
                         <Chip
                           key={s}
                           label={s
+                            .toLowerCase()
                             .replace(/[_-]/g, ' ')
                             .replace(/\b\w/g, char => char.toUpperCase())
                           }
@@ -512,6 +513,9 @@ const JobDetailScreen = ({
                           }}
                         />
                       ))}
+                    </Stack>
+                  </Box>
+                )}
               </Paper>
 
               {/* Job Summary */}

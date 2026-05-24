@@ -161,6 +161,7 @@ class AzureOpenAIResumeRefiner:
         Generate structured skill development analysis using Azure OpenAI
         """
         schema_instruction = self._formatter.build_skill_development_instructions()
+
         # Build missing skills context if available
         missing_skills_context = ""
         if missing_skills:
