@@ -201,6 +201,8 @@ const ResumeBuilderScreen = () => {
     }
   };
 
+
+
   const generateAndDownloadPDF = async () => {
     const element = document.getElementById("resume-export-content");
     if (!element) {
@@ -209,46 +211,122 @@ const ResumeBuilderScreen = () => {
     }
 
     try {
-      // Delay to ensure the loading state is visible and the hidden element is fully rendered
-      setTimeout(async () => {
-        try {
-          // Capture the hidden, desktop-sized element at 4x scale for maximum clarity
-          const canvas = await html2canvas(element, {
-            scale: 4, // Ultra-high DPI for professional quality
-            useCORS: true,
-            logging: false,
-            backgroundColor: "#ffffff",
-            width: element.offsetWidth,
-            height: element.offsetHeight,
-          });
+      // Yield to browser before heavy work
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
-          const imgData = canvas.toDataURL("image/png", 1.0);
-          const pdf = new jsPDF({
-            orientation: "portrait",
-            unit: "mm",
-            format: "a4"
-          });
+      const canvas = await html2canvas(element, {
+        scale: 3,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+      });
 
-          // Standard A4 is 210mm x 297mm
-          pdf.addImage(imgData, "PNG", 0, 0, 210, 297, undefined, 'FAST');
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
 
-          const fullName = profile?.personalDetails?.fullName || "Resume";
-          const fileName = `Resume - ${fullName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+      const PAGE_WIDTH_MM = 210;
+      const PAGE_HEIGHT_MM = 297;
 
-          pdf.save(fileName);
-        } catch (innerError) {
-          console.error("Inner PDF Generation error:", innerError);
-        } finally {
-          setDownloading(false);
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+
+      // How many canvas px equal one PDF page height
+      const pageHeightPx = Math.floor(
+        (canvasWidth * PAGE_HEIGHT_MM) / PAGE_WIDTH_MM
+      );
+
+      // Pre-read all pixel data ONCE — avoids repeated getImageData calls
+      const ctx = canvas.getContext("2d");
+      const imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+      const pixels = imageData.data; // Uint8ClampedArray: [r,g,b,a, r,g,b,a, ...]
+
+      /**
+       * Returns true if every sampled pixel in a horizontal row is near-white.
+       * Samples every 8px horizontally for speed.
+       */
+      const isRowEmpty = (y) => {
+        if (y < 0 || y >= canvasHeight) return true;
+        const step = 8;
+        for (let x = 0; x < canvasWidth; x += step) {
+          const idx = (y * canvasWidth + x) * 4;
+          const r = pixels[idx];
+          const g = pixels[idx + 1];
+          const b = pixels[idx + 2];
+          if (r < 245 || g < 245 || b < 245) return false;
         }
-      }, 300); // Slightly longer delay to ensure the off-screen render is ready
+        return true;
+      };
+
+      /**
+       * Find the nearest empty row scanning upward from `startY`.
+       * Searches up to `scanRange` px. Returns startY if none found.
+       */
+      const findSafeBreak = (startY, scanRange = 80) => {
+        for (let y = startY; y > startY - scanRange; y--) {
+          if (isRowEmpty(y)) return y;
+        }
+        return startY; // fallback: hard cut
+      };
+
+      let renderedHeight = 0;
+      let isFirstPage = true;
+
+      while (renderedHeight < canvasHeight) {
+        const remaining = canvasHeight - renderedHeight;
+        const rawSlice = Math.min(pageHeightPx, remaining);
+
+        // Find a clean break point (only if this isn't the last page)
+        const sliceHeight =
+          remaining > pageHeightPx
+            ? findSafeBreak(renderedHeight + rawSlice) - renderedHeight
+            : rawSlice;
+
+        // Draw the slice onto a temp canvas
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvasWidth;
+        pageCanvas.height = sliceHeight;
+
+        const pageCtx = pageCanvas.getContext("2d");
+        pageCtx.drawImage(
+          canvas,
+          0, renderedHeight,       // source x, y
+          canvasWidth, sliceHeight, // source w, h
+          0, 0,                    // dest x, y
+          canvasWidth, sliceHeight  // dest w, h
+        );
+
+        const pageImgHeightMM = (sliceHeight * PAGE_WIDTH_MM) / canvasWidth;
+        const pageData = pageCanvas.toDataURL("image/png", 1.0);
+
+        if (!isFirstPage) pdf.addPage();
+
+        pdf.addImage(pageData, "PNG", 0, 0, PAGE_WIDTH_MM, pageImgHeightMM, undefined, "FAST");
+
+        // NO overlap — advance exactly by the slice we consumed
+        renderedHeight += sliceHeight;
+        isFirstPage = false;
+
+        // Yield between pages to keep browser responsive
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+
+      const fullName = profile?.personalDetails?.fullName || "Resume";
+      const fileName = `Resume - ${fullName.replace(/[^a-z0-9]/gi, "_")}.pdf`;
+      pdf.save(fileName);
+
     } catch (error) {
-      console.error("PDF Download process failed:", error);
+      console.error("PDF generation failed:", error);
+    } finally {
       setDownloading(false);
     }
   };
-
-
 
 
   if (loading && (!profile || Object.keys(profile).length === 0)) {

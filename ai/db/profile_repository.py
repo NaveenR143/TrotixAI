@@ -218,6 +218,28 @@ class ProfileRepository:
                         "skills_used": exp.skills_used or [],
                     }
                 )
+
+        # Sort by most recent work experience:
+        #   1. is_current=True roles first
+        #   2. end_date descending (most recent completion)
+        #   3. Fallback to start_date descending when end_date is null/unavailable
+        from datetime import date as _date
+
+        _MIN_DATE = _date.min
+
+        def _experience_sort_key(exp: dict) -> tuple:
+            is_current = bool(exp.get("is_current"))
+            end_date = exp.get("end_date") or _MIN_DATE
+            start_date = exp.get("start_date") or _MIN_DATE
+            # Negate booleans/dates for descending order via negation trick on ints;
+            # use negative timestamps for date objects to sort descending.
+            return (
+                0 if is_current else 1,          # current roles first
+                -end_date.toordinal(),            # end_date descending
+                -start_date.toordinal(),          # start_date descending as tiebreaker
+            )
+
+        experience_list.sort(key=_experience_sort_key)
         user_data["experience"] = experience_list
 
         # Extract education
