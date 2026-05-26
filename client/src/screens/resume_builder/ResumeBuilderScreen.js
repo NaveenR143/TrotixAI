@@ -561,7 +561,7 @@ const ResumeBuilderScreen = () => {
               variant="contained"
               startIcon={
                 downloading ? (
-                  <CircularProgress size={18} color="inherit" />
+                  <CircularProgress size={18} sx={{ color: "#ffffff" }} />
                 ) : (
                   <FileDownloadIcon />
                 )
@@ -604,10 +604,22 @@ const ResumeBuilderScreen = () => {
                 },
 
                 transition: "all 0.2s ease",
+
+                "&.Mui-disabled": {
+                  background: isPremiumTemplate
+                    ? "linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)"
+                    : "linear-gradient(135deg, #111827 0%, #1F2937 100%)",
+                  opacity: 0.85,
+                  color: "#FFFFFF",
+                },
               }}
             >
               {downloading ? (
-                "Generating PDF..."
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: "0.95rem", color: "#FFFFFF" }}>
+                    Generating PDF...
+                  </Typography>
+                </Box>
               ) : (
                 <Box
                   sx={{
@@ -715,7 +727,7 @@ const ResumeBuilderScreen = () => {
             sx={{ background: "#f59e0b", "&:hover": { background: "#d97706" } }}
             disabled={downloading}
           >
-            {downloading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
+            {downloading ? <CircularProgress size={20} sx={{ color: "#ffffff", mr: 1 }} /> : null}
             Confirm & Download
           </Button>
         </DialogActions>
