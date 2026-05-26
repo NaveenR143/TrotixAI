@@ -23,14 +23,17 @@
 }
 
 .t14-resume-page {
-    width: 210mm;
+    width: 100%;           /* fills the 210mm A4 wrapper */
     min-height: 297mm;
     background: var(--t14-bg-white);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
-    overflow: hidden;
+    /* box-shadow removed */
+    overflow: visible;     /* never clip long content */
     border-left: 8px solid var(--t14-accent);
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 /* HEADER */
@@ -100,6 +103,8 @@
     padding: 5px 12px;
     border-radius: 6px;
     border: 1px solid var(--t14-border-light);
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .t14-contact-item svg {

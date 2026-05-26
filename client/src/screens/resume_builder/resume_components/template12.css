@@ -26,14 +26,17 @@
 }
 
 .t12-resume-page {
-    width: 210mm;
+    width: 100%;           /* fills the 210mm A4 wrapper */
     min-height: 297mm;
     background: var(--t12-main-bg);
     display: grid;
     grid-template-columns: 220px 1fr;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
+    /* box-shadow removed */
+    overflow: visible;     /* never clip long content */
     position: relative;
+    box-sizing: border-box;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 /* LEFT SIDEBAR */
@@ -120,6 +123,8 @@
     font-weight: 400;
     color: var(--t12-text-sidebar-secondary);
     line-height: 1.5;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .t12-edu-block {

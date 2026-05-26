@@ -1,5 +1,5 @@
 .t9-resume-container {
-    width: 210mm;
+    width: 100%;           /* fills the 210mm A4 ResumePreview wrapper */
     min-height: 297mm;
     margin: 0 auto;
     background: #e0e0e0;
@@ -8,15 +8,19 @@
 }
 
 .t9-resume {
-    max-width: 800px;
+    width: 100%;           /* always fill the 210mm A4 parent */
     min-height: 297mm;
     margin: 0 auto;
     background: #ffffff;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-    overflow: hidden;
+    /* box-shadow removed */
+    /* overflow:hidden removed — it clips content that runs long */
+    overflow: visible;
     font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
     color: #2d3436;
     line-height: 1.5;
+    box-sizing: border-box;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 /* ===== TOP GREEN BAR ===== */
@@ -64,6 +68,8 @@
     border: 1px solid #d8f3dc;
     flex-wrap: wrap;
     gap: 10px;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .t9-contact-item {
@@ -110,6 +116,8 @@
     line-height: 1.7;
     color: #444;
     text-align: justify;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 /* ===== SKILLS ===== */
@@ -263,6 +271,8 @@
     text-decoration: none;
     display: block;
     margin: 2px 0;
+    word-break: break-all;  /* URLs should break at any character */
+    overflow-wrap: break-word;
 }
 
 .t9-proj-details {

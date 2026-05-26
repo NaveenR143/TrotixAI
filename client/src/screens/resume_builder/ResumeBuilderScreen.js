@@ -23,10 +23,8 @@ import {
   Alert,
   Chip
 } from "@mui/material";
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
-import Draggable from "react-draggable";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import jsPDF from "jspdf";
@@ -50,8 +48,37 @@ import SkillsForm from "./sections/SkillsForm";
 import ProjectsForm from "./sections/ProjectsForm";
 
 
-// Preview Component (To be created)
+// Preview Components
 import ResumePreview from "./ResumePreview";
+import MultiPageResumePreview from "./MultiPageResumePreview";
+
+const templateThemes = {
+  template1:  { type: "split", sidebarWidth: "35%", sidebarBg: "#f4f4f4", mainBg: "#ffffff" },
+  template2:  { type: "split", sidebarWidth: "240px", sidebarBg: "#111111", mainBg: "#ffffff" },
+  template3:  { type: "solid", mainBg: "#ffffff" },
+  template3p: { type: "solid", mainBg: "#ffffff" },
+  template4:  { type: "solid", mainBg: "#ffffff" },
+  template4p: { type: "solid", mainBg: "#ffffff" },
+  template5:  { type: "solid", mainBg: "#ffffff" },
+  template5p: { type: "solid", mainBg: "#ffffff" },
+  template6:  { type: "border", borderWidth: "6px", borderBg: "#1e3a5f", mainBg: "#ffffff" },
+  template6p: { type: "border", borderWidth: "6px", borderBg: "#1e3a5f", mainBg: "#ffffff" },
+  template7:  { type: "solid", mainBg: "#ffffff" },
+  template7p: { type: "solid", mainBg: "#ffffff" },
+  template8:  { type: "border", borderWidth: "8px", borderBg: "linear-gradient", mainBg: "#ffffff" },
+  template8p: { type: "border", borderWidth: "8px", borderBg: "linear-gradient", mainBg: "#ffffff" },
+  template9:  { type: "solid", mainBg: "#ffffff" },
+  template9p: { type: "solid", mainBg: "#ffffff" },
+  template11: { type: "solid", mainBg: "#ffffff" },
+  template11p:{ type: "solid", mainBg: "#ffffff" },
+  template12: { type: "split", sidebarWidth: "220px", sidebarBg: "#F4F1EE", mainBg: "#FDFCFA" },
+  template13: { type: "solid", mainBg: "#ffffff" },
+  template14: { type: "solid", mainBg: "#ffffff" },
+};
+
+const getTemplateTheme = (id) => {
+  return templateThemes[id] || { type: "solid", mainBg: "#ffffff" };
+};
 
 const steps = ["Personal Info", "Education", "Experience", "Projects", "Skills"];
 
@@ -86,7 +113,7 @@ const ResumeBuilderScreen = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
-  const nodeRef = React.useRef(null);
+
 
   useEffect(() => {
     const fetchUserProfileData = async () => {
@@ -239,94 +266,188 @@ const ResumeBuilderScreen = () => {
         (canvasWidth * PAGE_HEIGHT_MM) / PAGE_WIDTH_MM
       );
 
-      const ctx = canvas.getContext("2d");
-      const pixels = ctx.getImageData(0, 0, canvasWidth, canvasHeight).data;
 
-      /**
-       * Count how many dark pixels exist in a horizontal row.
-       * Samples every 6px for speed. "Dark" = any channel below 200
-       * (catches text, lines, icons — even on lightly tinted backgrounds).
-       */
-      const countDarkPixels = (y) => {
-        if (y < 0 || y >= canvasHeight) return 0;
-        let count = 0;
-        for (let x = 0; x < canvasWidth; x += 6) {
-          const idx = (y * canvasWidth + x) * 4;
-          const r = pixels[idx];
-          const g = pixels[idx + 1];
-          const b = pixels[idx + 2];
-          // Consider it "dark" if it's meaningfully non-background
-          if (r < 200 || g < 200 || b < 200) count++;
+
+      const TOP_PADDING_MM = 12;
+      const BOTTOM_PADDING_MM = 12;
+      const topPaddingPx = (TOP_PADDING_MM * canvasWidth) / PAGE_WIDTH_MM;
+      const bottomPaddingPx = (BOTTOM_PADDING_MM * canvasWidth) / PAGE_WIDTH_MM;
+
+      const exportElement = document.getElementById("resume-export-content");
+      const cssWidth = exportElement ? exportElement.offsetWidth : 794; // fallback A4 CSS width in px
+      const scale = cssWidth ? (canvasWidth / cssWidth) : 1;
+
+      // Extract text rects to find identical page breaks in export element
+      const containerRect = exportElement ? exportElement.getBoundingClientRect() : { top: 0 };
+      const allElements = exportElement ? exportElement.getElementsByTagName("*") : [];
+      const rects = [];
+      for (let i = 0; i < allElements.length; i++) {
+        const child = allElements[i];
+        const tagName = child.tagName;
+        const isTextElement = tagName === "P" || 
+                              tagName === "LI" || 
+                              tagName === "TR" || 
+                              tagName === "TD" || 
+                              tagName === "SPAN" || 
+                              tagName.match(/^H[1-6]$/) || 
+                              (tagName === "DIV" && Array.from(child.childNodes).some(n => n.nodeType === 3 && n.nodeValue.trim()));
+        
+        if (isTextElement && child.offsetWidth > 0 && child.offsetHeight > 0) {
+          const rect = child.getBoundingClientRect();
+          const top = rect.top - containerRect.top;
+          const bottom = rect.bottom - containerRect.top;
+          rects.push({ top, bottom, height: bottom - top });
         }
-        return count;
-      };
+      }
 
-      /**
-       * Scan upward from `startY` over `scanRange` rows.
-       * Returns the Y of the row with the FEWEST dark pixels
-       * (i.e., most likely a gap between text lines or sections).
-       * Falls back to startY if everything looks equally dense.
-       */
-      const findSafeBreak = (startY, scanRange = 150) => {
-        let bestY = startY;
-        let minDark = Infinity;
+      // Compute identical page breaks in CSS pixels
+      const pageHeightCss = cssWidth * (297 / 210);
+      const topPadCss = (TOP_PADDING_MM * cssWidth) / PAGE_WIDTH_MM;
+      const bottomPadCss = (BOTTOM_PADDING_MM * cssWidth) / PAGE_WIDTH_MM;
+      const totalHCss = exportElement ? exportElement.scrollHeight : canvasHeight / scale;
 
-        const scanFrom = startY;
-        const scanTo = Math.max(0, startY - scanRange);
+      const getPageBreaks = (rects, totalHeight, pageHeight, tpad, bpad) => {
+        const breaks = [0];
+        let currentY = 0;
+        let safety = 0;
 
-        for (let y = scanFrom; y > scanTo; y--) {
-          const dark = countDarkPixels(y);
+        while (currentY < totalHeight && safety < 100) {
+          safety++;
+          const limit = currentY === 0 
+            ? (pageHeight - bpad) 
+            : (pageHeight - tpad - bpad);
+            
+          let targetY = currentY + limit;
 
-          // Perfect empty row — stop immediately
-          if (dark === 0) return y;
-
-          if (dark < minDark) {
-            minDark = dark;
-            bestY = y;
+          if (targetY >= totalHeight) {
+            breaks.push(totalHeight);
+            break;
           }
+
+          let bestY = targetY;
+          let minIntersectionTop = Infinity;
+
+          for (let i = 0; i < rects.length; i++) {
+            const rect = rects[i];
+            if (rect.top < targetY && rect.bottom > targetY) {
+              if (rect.top > currentY && rect.height < limit) {
+                if (rect.top < minIntersectionTop) {
+                  minIntersectionTop = rect.top;
+                }
+              }
+            }
+          }
+
+          if (minIntersectionTop !== Infinity && minIntersectionTop > currentY) {
+            bestY = minIntersectionTop;
+          }
+
+          breaks.push(bestY);
+          currentY = bestY;
         }
 
-        return bestY;
+        return breaks;
       };
 
-      let renderedHeight = 0;
+      const cssBreaks = getPageBreaks(rects, totalHCss, pageHeightCss, topPadCss, bottomPadCss);
+      const canvasBreaks = cssBreaks.map(b => b * scale);
+
+      const theme = getTemplateTheme(templateId);
+
       let isFirstPage = true;
-      let safetyCounter = 0; // prevent infinite loop
+      for (let pageIndex = 0; pageIndex < canvasBreaks.length - 1; pageIndex++) {
+        const startY = canvasBreaks[pageIndex];
+        const endY = canvasBreaks[pageIndex + 1];
+        const sliceHeight = endY - startY;
 
-      while (renderedHeight < canvasHeight && safetyCounter < 50) {
-        safetyCounter++;
-        const remaining = canvasHeight - renderedHeight;
-        const rawSliceEnd = renderedHeight + Math.min(pageHeightPx, remaining);
-
-        // Only seek a safe break if there's more content after this page
-        const breakY =
-          remaining > pageHeightPx
-            ? findSafeBreak(rawSliceEnd)
-            : rawSliceEnd;
-
-        // Guard: never produce a zero-height or negative slice (infinite loop prevention)
-        const sliceHeight = Math.max(breakY - renderedHeight, pageHeightPx * 0.5);
-
+        // The page canvas should always have the full height of the A4 page (pageHeightPx)
         const pageCanvas = document.createElement("canvas");
         pageCanvas.width = canvasWidth;
-        pageCanvas.height = sliceHeight;
+        pageCanvas.height = pageHeightPx;
 
         const pageCtx = pageCanvas.getContext("2d");
+
+        // Fill with template main background color
+        pageCtx.fillStyle = theme.mainBg || "#ffffff";
+        pageCtx.fillRect(0, 0, canvasWidth, pageHeightPx);
+
+        // Draw background layout elements (sidebar/border) to absolute top/bottom of canvas
+        if (theme.type === "split") {
+          let sidebarWidthPx = 0;
+          if (theme.sidebarWidth.endsWith("%")) {
+            sidebarWidthPx = canvasWidth * (parseFloat(theme.sidebarWidth) / 100);
+          } else {
+            sidebarWidthPx = parseFloat(theme.sidebarWidth) * scale;
+          }
+          pageCtx.fillStyle = theme.sidebarBg;
+          pageCtx.fillRect(0, 0, sidebarWidthPx, pageHeightPx);
+        } else if (theme.type === "border") {
+          const borderWidthPx = parseFloat(theme.borderWidth) * scale;
+          if (theme.borderBg === "linear-gradient") {
+            const grad = pageCtx.createLinearGradient(0, 0, 0, pageHeightPx);
+            grad.addColorStop(0, "#0d3b66");
+            grad.addColorStop(1, "#00838f");
+            pageCtx.fillStyle = grad;
+          } else {
+            pageCtx.fillStyle = theme.borderBg;
+          }
+          pageCtx.fillRect(0, 0, borderWidthPx, pageHeightPx);
+        }
+
+        // Draw the main document content slice on top, offset by topPaddingPx on subsequent pages
+        const topOffset = isFirstPage ? 0 : topPaddingPx;
         pageCtx.drawImage(
           canvas,
-          0, renderedHeight,
+          0, startY,
           canvasWidth, sliceHeight,
-          0, 0,
+          0, topOffset,
           canvasWidth, sliceHeight
         );
 
-        const pageImgHeightMM = (sliceHeight * PAGE_WIDTH_MM) / canvasWidth;
+        // Draw overlay cover box at the bottom of the content slice if it's shorter
+        const limit = isFirstPage
+          ? (pageHeightPx - bottomPaddingPx)
+          : (pageHeightPx - topPaddingPx - bottomPaddingPx);
+
+        if (sliceHeight < limit) {
+          const overlayY = sliceHeight + topOffset;
+          const overlayHeight = limit - sliceHeight;
+
+          // Fill overlay main background
+          pageCtx.fillStyle = theme.mainBg || "#ffffff";
+          pageCtx.fillRect(0, overlayY, canvasWidth, overlayHeight);
+
+          // Draw overlay sidebar/border extension
+          if (theme.type === "split") {
+            let sidebarWidthPx = 0;
+            if (theme.sidebarWidth.endsWith("%")) {
+              sidebarWidthPx = canvasWidth * (parseFloat(theme.sidebarWidth) / 100);
+            } else {
+              sidebarWidthPx = parseFloat(theme.sidebarWidth) * scale;
+            }
+            pageCtx.fillStyle = theme.sidebarBg;
+            pageCtx.fillRect(0, overlayY, sidebarWidthPx, overlayHeight);
+          } else if (theme.type === "border") {
+            const borderWidthPx = parseFloat(theme.borderWidth) * scale;
+            if (theme.borderBg === "linear-gradient") {
+              const grad = pageCtx.createLinearGradient(0, overlayY, 0, overlayY + overlayHeight);
+              grad.addColorStop(0, "#0d3b66");
+              grad.addColorStop(1, "#00838f");
+              pageCtx.fillStyle = grad;
+            } else {
+              pageCtx.fillStyle = theme.borderBg;
+            }
+            pageCtx.fillRect(0, overlayY, borderWidthPx, overlayHeight);
+          }
+        }
+
         const pageData = pageCanvas.toDataURL("image/png", 1.0);
 
-        if (!isFirstPage) pdf.addPage();
-        pdf.addImage(pageData, "PNG", 0, 0, PAGE_WIDTH_MM, pageImgHeightMM, undefined, "FAST");
+        if (!isFirstPage) {
+          pdf.addPage();
+        }
+        pdf.addImage(pageData, "PNG", 0, 0, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, undefined, "FAST");
 
-        renderedHeight += sliceHeight;
         isFirstPage = false;
 
         // Yield to browser between pages
@@ -447,7 +568,7 @@ const ResumeBuilderScreen = () => {
             height: { xs: "600px", md: "100%" },
             bgcolor: "#f1f5f9",
             display: "block",
-            overflow: "hidden", // Prevent screen scroll
+            overflow: "hidden", // clip at Grid boundary; inner Box scrolls
             position: "relative"
           }}
         >
@@ -487,37 +608,38 @@ const ResumeBuilderScreen = () => {
                 {Math.round(zoom * 100)}%
               </Typography>
             </Stack>
-            <Divider orientation="vertical" flexItem />
-            <Box className="drag-handle" sx={{ cursor: "move", display: "flex", color: "#64748b" }}>
-              <DragIndicatorIcon />
-            </Box>
           </Paper>
 
-          {/* Draggable Paper Area */}
-          <Box sx={{ height: "calc(100% - 100px)", width: "100%", overflow: "auto", p: 4, pt: 12 }}>
-            <Draggable nodeRef={nodeRef} handle=".drag-handle" bounds="parent">
-              <Box
-                ref={nodeRef}
-                sx={{
-                  width: "100%",
-                  display: "flex",
-                  justifyContent: "center",
-                  transition: "transform 0.1s ease-out"
-                }}
-              >
-                <Box
-                  sx={{
-                    transform: `scale(${zoom})`,
-                    transformOrigin: "top center",
-                    transition: "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                    width: "210mm",
-                    mb: 4
-                  }}
-                >
-                  <ResumePreview templateId={templateId} data={profile} />
-                </Box>
-              </Box>
-            </Draggable>
+          {/* Scrollable Preview Area - multi-page A4 document view */}
+          <Box
+            sx={{
+              height: "calc(100% - 100px)",
+              width: "100%",
+              overflowX: "auto",
+              overflowY: "auto",
+              pt: 12,
+              pb: 8,
+              px: 3,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "flex-start",
+              bgcolor: "#edf0f4",
+            }}
+          >
+            {/* Scale wrapper — transform:scale doesn't affect layout,
+                so we wrap in a flex container sized to the scaled output */}
+            <Box
+              sx={{
+                display: "inline-flex",
+                justifyContent: "center",
+                // Use transformOrigin top-center so pages align from top
+                transform: `scale(${zoom})`,
+                transformOrigin: "top center",
+                transition: "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+            >
+              <MultiPageResumePreview templateId={templateId} data={profile} />
+            </Box>
           </Box>
 
           {/* Download Action Section */}

@@ -1,5 +1,5 @@
 .resume-container {
-  width: 210mm;
+  width: 100%;           /* fills the 210mm A4 wrapper in ResumePreview */
   min-height: 297mm;
   margin: 0 auto;
   background: white;
@@ -7,15 +7,18 @@
   color: #333;
   line-height: 1.5;
   box-sizing: border-box;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .resume-page {
-  width: 210mm;
+  width: 100%;
   min-height: 297mm;
   background: white;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  overflow: visible;     /* never clip long content */
 }
 
 /* Header Section */
@@ -51,6 +54,8 @@
   font-size: 11px;
   color: #666;
   flex-wrap: wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Body Section */

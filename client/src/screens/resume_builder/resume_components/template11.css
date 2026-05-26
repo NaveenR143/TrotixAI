@@ -1,5 +1,5 @@
 .t11-resume-container {
-    width: 210mm;
+    width: 100%;           /* fills the 210mm A4 ResumePreview wrapper */
     min-height: 297mm;
     margin: 0 auto;
     background: #e8e8e8;
@@ -10,14 +10,18 @@
 }
 
 .t11-resume {
-    width: 210mm;
+    width: 100%;           /* fills the 210mm A4 wrapper */
     min-height: 297mm;
     background: #ffffff;
     padding: 50px 60px;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    /* box-shadow removed */
+    overflow: visible;     /* never clip long content */
     font-family: 'Arial', 'Helvetica Neue', sans-serif;
     color: #000000;
     line-height: 1.5;
+    box-sizing: border-box;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 /* ===== HEADER ===== */
