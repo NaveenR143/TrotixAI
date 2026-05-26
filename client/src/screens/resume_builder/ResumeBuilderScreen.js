@@ -211,7 +211,6 @@ const ResumeBuilderScreen = () => {
     }
 
     try {
-      // Yield to browser before heavy work
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       const canvas = await html2canvas(element, {
@@ -233,62 +232,81 @@ const ResumeBuilderScreen = () => {
 
       const PAGE_WIDTH_MM = 210;
       const PAGE_HEIGHT_MM = 297;
-
       const canvasWidth = canvas.width;
       const canvasHeight = canvas.height;
 
-      // How many canvas px equal one PDF page height
       const pageHeightPx = Math.floor(
         (canvasWidth * PAGE_HEIGHT_MM) / PAGE_WIDTH_MM
       );
 
-      // Pre-read all pixel data ONCE — avoids repeated getImageData calls
       const ctx = canvas.getContext("2d");
-      const imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-      const pixels = imageData.data; // Uint8ClampedArray: [r,g,b,a, r,g,b,a, ...]
+      const pixels = ctx.getImageData(0, 0, canvasWidth, canvasHeight).data;
 
       /**
-       * Returns true if every sampled pixel in a horizontal row is near-white.
-       * Samples every 8px horizontally for speed.
+       * Count how many dark pixels exist in a horizontal row.
+       * Samples every 6px for speed. "Dark" = any channel below 200
+       * (catches text, lines, icons — even on lightly tinted backgrounds).
        */
-      const isRowEmpty = (y) => {
-        if (y < 0 || y >= canvasHeight) return true;
-        const step = 8;
-        for (let x = 0; x < canvasWidth; x += step) {
+      const countDarkPixels = (y) => {
+        if (y < 0 || y >= canvasHeight) return 0;
+        let count = 0;
+        for (let x = 0; x < canvasWidth; x += 6) {
           const idx = (y * canvasWidth + x) * 4;
           const r = pixels[idx];
           const g = pixels[idx + 1];
           const b = pixels[idx + 2];
-          if (r < 245 || g < 245 || b < 245) return false;
+          // Consider it "dark" if it's meaningfully non-background
+          if (r < 200 || g < 200 || b < 200) count++;
         }
-        return true;
+        return count;
       };
 
       /**
-       * Find the nearest empty row scanning upward from `startY`.
-       * Searches up to `scanRange` px. Returns startY if none found.
+       * Scan upward from `startY` over `scanRange` rows.
+       * Returns the Y of the row with the FEWEST dark pixels
+       * (i.e., most likely a gap between text lines or sections).
+       * Falls back to startY if everything looks equally dense.
        */
-      const findSafeBreak = (startY, scanRange = 80) => {
-        for (let y = startY; y > startY - scanRange; y--) {
-          if (isRowEmpty(y)) return y;
+      const findSafeBreak = (startY, scanRange = 150) => {
+        let bestY = startY;
+        let minDark = Infinity;
+
+        const scanFrom = startY;
+        const scanTo = Math.max(0, startY - scanRange);
+
+        for (let y = scanFrom; y > scanTo; y--) {
+          const dark = countDarkPixels(y);
+
+          // Perfect empty row — stop immediately
+          if (dark === 0) return y;
+
+          if (dark < minDark) {
+            minDark = dark;
+            bestY = y;
+          }
         }
-        return startY; // fallback: hard cut
+
+        return bestY;
       };
 
       let renderedHeight = 0;
       let isFirstPage = true;
+      let safetyCounter = 0; // prevent infinite loop
 
-      while (renderedHeight < canvasHeight) {
+      while (renderedHeight < canvasHeight && safetyCounter < 50) {
+        safetyCounter++;
         const remaining = canvasHeight - renderedHeight;
-        const rawSlice = Math.min(pageHeightPx, remaining);
+        const rawSliceEnd = renderedHeight + Math.min(pageHeightPx, remaining);
 
-        // Find a clean break point (only if this isn't the last page)
-        const sliceHeight =
+        // Only seek a safe break if there's more content after this page
+        const breakY =
           remaining > pageHeightPx
-            ? findSafeBreak(renderedHeight + rawSlice) - renderedHeight
-            : rawSlice;
+            ? findSafeBreak(rawSliceEnd)
+            : rawSliceEnd;
 
-        // Draw the slice onto a temp canvas
+        // Guard: never produce a zero-height or negative slice (infinite loop prevention)
+        const sliceHeight = Math.max(breakY - renderedHeight, pageHeightPx * 0.5);
+
         const pageCanvas = document.createElement("canvas");
         pageCanvas.width = canvasWidth;
         pageCanvas.height = sliceHeight;
@@ -296,24 +314,22 @@ const ResumeBuilderScreen = () => {
         const pageCtx = pageCanvas.getContext("2d");
         pageCtx.drawImage(
           canvas,
-          0, renderedHeight,       // source x, y
-          canvasWidth, sliceHeight, // source w, h
-          0, 0,                    // dest x, y
-          canvasWidth, sliceHeight  // dest w, h
+          0, renderedHeight,
+          canvasWidth, sliceHeight,
+          0, 0,
+          canvasWidth, sliceHeight
         );
 
         const pageImgHeightMM = (sliceHeight * PAGE_WIDTH_MM) / canvasWidth;
         const pageData = pageCanvas.toDataURL("image/png", 1.0);
 
         if (!isFirstPage) pdf.addPage();
-
         pdf.addImage(pageData, "PNG", 0, 0, PAGE_WIDTH_MM, pageImgHeightMM, undefined, "FAST");
 
-        // NO overlap — advance exactly by the slice we consumed
         renderedHeight += sliceHeight;
         isFirstPage = false;
 
-        // Yield between pages to keep browser responsive
+        // Yield to browser between pages
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
 

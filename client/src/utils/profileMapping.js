@@ -8,8 +8,6 @@ import { toTitleCase } from "../screens/candidate/utils/profileUtils";
 export const mapProfileData = (profileData) => {
   if (!profileData) return null;
 
-  debugger;
-
   return {
     id: profileData.id,
     wallet_balance: profileData.wallet_balance || 0, // Assuming balance is part of profile data

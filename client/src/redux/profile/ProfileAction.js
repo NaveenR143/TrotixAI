@@ -35,10 +35,11 @@ export const fetchAndStoreProfile = (identifier) => async (dispatch) => {
   dispatch(fetchProfileRequest());
 
 
+  if (identifier === null || identifier === undefined || identifier === "") {
+    return null;
+  }
 
   const response = await fetchProfile(identifier);
-
-
 
   if (!response.error) {
     const mappedData = mapProfileData(response.data);
