@@ -1,39 +1,46 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Box,
-    Grid,
-    Typography,
-    Divider,
-    Paper,
-    List,
-    ListItemButton,
-    ListItemText,
-    Chip,
+    Tabs,
+    Tab,
+    Container,
 } from "@mui/material";
-
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { HeaderComp } from "../common/HeaderComp";
 import { useAuth } from "../../authContext";
-import HeaderComp from "../common/HeaderComp";
 import TermsOfUseComp from "./TermsOfUseComp";
+import PrivacyPolicyComp from "./PrivacyPolicyComp";
 
 const TermsOfUseLayoutComp = (props) => {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const [activeTab, setActiveTab] = useState(0);
+
     useEffect(() => {
-        console.log("Point Analysis Layout User Info", user);
-        // if (!user) {
-        //   navigate("/", { replace: true });
-        // }
-    }, []);
+        console.log("Terms/Privacy Layout User Info", user);
+    }, [user]);
 
     return (
-        <>
-            <HeaderComp
-                children={<TermsOfUseComp />}
-            ></HeaderComp>
-        </>
+        <Container maxWidth="md" sx={{ py: 2 }}>
+            <Box sx={{ 
+                borderBottom: 1, 
+                borderColor: 'divider', 
+                display: 'flex', 
+                justifyContent: 'center',
+                mb: 1
+            }}>
+                <Tabs 
+                    value={activeTab} 
+                    onChange={(e, val) => setActiveTab(val)} 
+                    textColor="primary"
+                    indicatorColor="primary"
+                    aria-label="legal documents tabs"
+                >
+                    <Tab label="Terms of Use" sx={{ fontWeight: 700, textTransform: 'none', fontSize: '1.05rem', px: 4 }} />
+                    <Tab label="Privacy Policy" sx={{ fontWeight: 700, textTransform: 'none', fontSize: '1.05rem', px: 4 }} />
+                </Tabs>
+            </Box>
+            {activeTab === 0 ? <TermsOfUseComp /> : <PrivacyPolicyComp />}
+        </Container>
     );
 };
 

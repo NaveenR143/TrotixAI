@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Box, Typography, Button, Paper, Container,
   Stack, Chip, IconButton, useMediaQuery, useTheme,
-  styled, keyframes, Grid
+  styled, keyframes, Grid, Checkbox, FormControlLabel, Link
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -125,6 +125,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [revealed, setRevealed] = useState({});
+  const [termsAccepted, setTermsAccepted] = useState(true);
   const observerRef = useRef(null);
   const actionSectionRef = useRef(null);
 
@@ -296,28 +297,81 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                       </Box>
 
                       <Box sx={{ p: 4 }}>
-                        <ResumeUpload onSuccess={(resumeData) => onUpload({ resumeData })} />
+
+
+                        <ResumeUpload
+                          onSuccess={(resumeData) => onUpload({ resumeData })}
+                          disabled={!termsAccepted}
+                        />
 
                         <Button
                           fullWidth
-                          variant="text"
+                          variant="outlined"
                           onClick={onManualEntry}
+                          disabled={!termsAccepted}
                           sx={{
                             mt: 2,
                             py: 1.5,
                             borderRadius: '16px',
-                            color: '#64748B',
+                            borderColor: '#2563EB',
+                            borderWidth: '1.5px',
+                            color: '#2563EB',
                             fontWeight: 700,
                             textTransform: 'none',
-                            fontSize: '0.9rem',
+                            fontSize: '0.95rem',
                             "&:hover": {
+                              borderColor: '#1D4ED8',
+                              borderWidth: '1.5px',
                               bgcolor: 'rgba(37, 99, 235, 0.05)',
-                              color: '#2563EB'
+                              color: '#1D4ED8'
+                            },
+                            "&.Mui-disabled": {
+                              borderColor: '#E2E8F0',
+                              color: '#CBD5E1',
+                              cursor: 'not-allowed',
                             }
                           }}
                         >
-                          Start with Resume
+                          Start without Resume
                         </Button>
+
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={termsAccepted}
+                              onChange={(e) => setTermsAccepted(e.target.checked)}
+                              color="primary"
+                              size="small"
+                              sx={{
+                                color: '#2563EB',
+                                '&.Mui-checked': {
+                                  color: '#2563EB',
+                                },
+                              }}
+                            />
+                          }
+                          label={
+                            <Typography variant="caption" sx={{ color: '#64748B' }}>
+                              I agree to the{" "}
+                              <Link
+                                href="/terms"
+                                target="_blank"
+                                rel="noopener"
+                                sx={{
+                                  color: '#2563EB',
+                                  fontWeight: 200,
+                                  textDecoration: 'underline',
+                                  '&:hover': {
+                                    color: '#1D4ED8'
+                                  }
+                                }}
+                              >
+                                Terms of Use
+                              </Link>
+                            </Typography>
+                          }
+                          sx={{ mb: 2.5, width: '100%', ml: 0 }}
+                        />
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pt: 2, borderTop: '1px solid #F1F5F9', width: '100%', justifyContent: 'center', mb: 4 }}>
                           <Typography sx={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 500 }}>Returning user?</Typography>

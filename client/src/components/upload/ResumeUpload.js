@@ -58,12 +58,12 @@ const log = {
 const STATUS = { IDLE: "idle", UPLOADING: "uploading", SUCCESS: "success", ERROR: "error" };
 
 const StyledDropZone = styled(Box)(({ theme, dragging, disabled }) => ({
-  border: `1px dashed ${dragging ? '#2563EB' : '#93C5FD'}`,
+  border: `1px dashed ${disabled ? '#CBD5E1' : dragging ? '#2563EB' : '#93C5FD'}`,
   borderRadius: '24px',
   padding: '24px',
   textAlign: "center",
   cursor: disabled ? "not-allowed" : "pointer",
-  background: 'linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)',
+  background: disabled ? '#F1F5F9' : 'linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)',
   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   outline: "none",
   position: 'relative',
@@ -74,11 +74,11 @@ const StyledDropZone = styled(Box)(({ theme, dragging, disabled }) => ({
   justifyContent: 'center',
   minHeight: '140px',
   '&:hover': {
-    borderColor: '#2563EB',
+    borderColor: disabled ? '#CBD5E1' : '#2563EB',
     transform: disabled ? 'none' : 'translateY(-2px)',
-    boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.1)',
+    boxShadow: disabled ? 'none' : '0 10px 25px -5px rgba(37, 99, 235, 0.1)',
   },
-  opacity: disabled ? 0.7 : 1,
+  opacity: disabled ? 0.65 : 1,
 }));
 
 const ScanningOverlay = styled(Box)(({ theme }) => ({
@@ -118,7 +118,7 @@ const DropZone = ({ file, onFileChange, disabled, status }) => {
       onDrop={handleDrop}
     >
       <input ref={inputRef} type="file" accept={ACCEPTED_EXTENSIONS.join(",")} hidden disabled={disabled} onChange={(e) => processFile(e.target.files?.[0] ?? null)} />
-      
+
       {status === STATUS.UPLOADING && <ScanningOverlay />}
 
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mb: file ? 2 : 0 }}>
@@ -127,16 +127,16 @@ const DropZone = ({ file, onFileChange, disabled, status }) => {
             {file ? file.name : "Drag & drop your resume"}
           </Typography>
           <Typography sx={{ fontSize: "0.75rem", color: "#64748B", mt: 0.5 }}>
-            {file ? `${(file.size / 1024).toFixed(0)} KB` : "PDF, DOCX, or CSV supported"}
+            {file ? `${(file.size / 1024).toFixed(0)} KB` : "PDF & DOCX supported"}
           </Typography>
         </Box>
-        <Box sx={{ 
-          width: 48, 
-          height: 48, 
-          borderRadius: "16px", 
-          bgcolor: "#FFFFFF", 
-          display: "flex", 
-          alignItems: "center", 
+        <Box sx={{
+          width: 48,
+          height: 48,
+          borderRadius: "16px",
+          bgcolor: "#FFFFFF",
+          display: "flex",
+          alignItems: "center",
           justifyContent: "center",
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
           color: '#2563EB'
@@ -157,11 +157,11 @@ const DropZone = ({ file, onFileChange, disabled, status }) => {
               </Typography>
             </Box>
             <Box sx={{ position: 'relative', height: 4, bgcolor: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
-              <Box sx={{ 
-                position: 'absolute', 
-                top: 0, 
-                left: 0, 
-                height: '100%', 
+              <Box sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                height: '100%',
                 width: status === STATUS.UPLOADING ? '70%' : '100%',
                 background: 'linear-gradient(90deg, #2563EB, #7C3AED)',
                 borderRadius: 4,
@@ -175,7 +175,7 @@ const DropZone = ({ file, onFileChange, disabled, status }) => {
   );
 };
 
-const ResumeUpload = ({ onSuccess, onError }) => {
+const ResumeUpload = ({ onSuccess, onError, disabled }) => {
   const [file, setFile] = useState(null);
   const [status, setStatus] = useState(STATUS.IDLE);
   const [progress, setProgress] = useState(0);
@@ -230,15 +230,15 @@ const ResumeUpload = ({ onSuccess, onError }) => {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <DropZone file={file} onFileChange={handleFileChange} disabled={status === STATUS.UPLOADING} status={status} />
-      
+      <DropZone file={file} onFileChange={handleFileChange} disabled={disabled || status === STATUS.UPLOADING} status={status} />
+
       <Collapse in={status === STATUS.ERROR}>
         <Alert severity="error" onClose={handleReset} sx={{ borderRadius: '16px', border: '1px solid #FECACA' }}>
           <AlertTitle sx={{ fontWeight: 700 }}>Upload Failed</AlertTitle>
           {errorMsg}
         </Alert>
       </Collapse>
-      
+
       <Collapse in={status === STATUS.SUCCESS}>
         <Alert severity="success" sx={{ borderRadius: '16px', border: '1px solid #A7F3D0' }}>
           <AlertTitle sx={{ fontWeight: 700 }}>Resume Parsed!</AlertTitle>
@@ -247,31 +247,31 @@ const ResumeUpload = ({ onSuccess, onError }) => {
       </Collapse>
 
       {status !== STATUS.SUCCESS && (
-        <Button 
-          variant="contained" 
-          size="large" 
-          fullWidth 
-          disabled={!file || status === STATUS.UPLOADING} 
-          onClick={handleUpload} 
+        <Button
+          variant="contained"
+          size="large"
+          fullWidth
+          disabled={disabled || !file || status === STATUS.UPLOADING}
+          onClick={handleUpload}
           endIcon={<AutoAwesomeIcon />}
-          sx={{ 
-            py: 1.8, 
+          sx={{
+            py: 1.8,
             borderRadius: '16px',
-            background: 'linear-gradient(90deg, #2563EB, #7C3AED)', 
-            color: "white", 
+            background: 'linear-gradient(90deg, #2563EB, #7C3AED)',
+            color: "white",
             fontWeight: 700,
             textTransform: 'none',
             fontSize: '1rem',
-            "&:hover": { 
-              background: 'linear-gradient(90deg, #1D4ED8, #6D28D9)', 
+            "&:hover": {
+              background: 'linear-gradient(90deg, #1D4ED8, #6D28D9)',
               transform: "translateY(-2px)",
               boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.3)'
-            }, 
-            "&.Mui-disabled": { 
-              background: "#E2E8F0", 
-              color: "#94A3B8" 
-            }, 
-            boxShadow: "0 4px 14px rgba(37, 99, 235, 0.2)" 
+            },
+            "&.Mui-disabled": {
+              background: "#E2E8F0",
+              color: "#94A3B8"
+            },
+            boxShadow: "0 4px 14px rgba(37, 99, 235, 0.2)"
           }}
         >
           {status === STATUS.UPLOADING ? "Analyzing Resume..." : "Start AI Job Matching"}

@@ -37,6 +37,9 @@ const CandidateProfileScreen = Loadable(lazy(() => import("../screens/recruiter/
 
 
 
+const TermsOfUseLayout = Loadable(lazy(() => import("../components/others/TermsOfUseLayoutComp")));
+
+
 /* ***Layouts**** */
 const BlankLayout = Loadable(lazy(() => import("../layouts/blank-layout/BlankLayout")));
 
@@ -126,6 +129,7 @@ const Router = [
           { path: "jobs/:id", element: <PublicJobDetailScreen /> },
           { path: "govt-jobs", element: <GovtJobsScreen /> },
           { path: "login", element: <LoginScreen /> },
+          { path: "terms", element: <TermsOfUseLayout /> },
           
           {
             element: <ProtectedRoute><Outlet /></ProtectedRoute>,
