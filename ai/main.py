@@ -52,14 +52,18 @@ SRC_DIR = BASE_DIR / "client" / "src"
 # ── App ───────────────────────────────────────────────────────────────────────
 app = FastAPI(title="RightNxt AI", version="1.0.0")
 
+origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "http://192.168.1.7:3000",
+    "http://192.168.1.7:3001",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

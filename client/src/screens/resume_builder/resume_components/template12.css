@@ -16,6 +16,7 @@
 }
 
 .t12-resume-container {
+    width: 100%;
     background: #E0E0E0;
     display: flex;
     flex-direction: column;

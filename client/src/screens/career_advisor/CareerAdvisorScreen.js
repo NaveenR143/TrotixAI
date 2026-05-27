@@ -237,7 +237,7 @@ const CareerAdvisorScreen = () => {
                             logging: false
                         });
 
-                        const imgData = canvas.toDataURL("image/png", 1.0);
+                        const imgData = canvas.toDataURL("image/jpeg", 0.8);
                         const imgHeight = (canvas.height * contentWidth) / canvas.width;
 
                         // Check if section fits on current page
@@ -246,7 +246,7 @@ const CareerAdvisorScreen = () => {
                             currentY = margin;
                         }
 
-                        pdf.addImage(imgData, 'PNG', margin, currentY, contentWidth, imgHeight);
+                        pdf.addImage(imgData, 'JPEG', margin, currentY, contentWidth, imgHeight, undefined, 'FAST');
                         currentY += imgHeight + 10; // 10mm gap between sections
                         firstPage = false;
                     }
@@ -255,14 +255,14 @@ const CareerAdvisorScreen = () => {
                     const footer = reportContainer.lastElementChild;
                     if (footer && !footer.classList.contains('report-section')) {
                         const footerCanvas = await html2canvas(footer, { scale: 2, backgroundColor: "#ffffff" });
-                        const footerImgData = footerCanvas.toDataURL("image/png", 1.0);
+                        const footerImgData = footerCanvas.toDataURL("image/jpeg", 0.8);
                         const footerImgHeight = (footerCanvas.height * contentWidth) / footerCanvas.width;
 
                         if (currentY + footerImgHeight > pageHeight - margin) {
                             pdf.addPage();
                             currentY = margin;
                         }
-                        pdf.addImage(footerImgData, 'PNG', margin, currentY, contentWidth, footerImgHeight);
+                        pdf.addImage(footerImgData, 'JPEG', margin, currentY, contentWidth, footerImgHeight, undefined, 'FAST');
                     }
 
                     const name = profile?.personalDetails?.fullName || "Career";

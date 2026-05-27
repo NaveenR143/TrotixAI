@@ -213,7 +213,7 @@ const SkillDevelopmentScreen = () => {
                             logging: false
                         });
 
-                        const imgData = canvas.toDataURL("image/png", 1.0);
+                        const imgData = canvas.toDataURL("image/jpeg", 0.8);
                         const imgHeight = (canvas.height * contentWidth) / canvas.width;
 
                         if (!firstPage && (currentY + imgHeight > pageHeight - margin)) {
@@ -221,7 +221,7 @@ const SkillDevelopmentScreen = () => {
                             currentY = margin;
                         }
 
-                        pdf.addImage(imgData, 'PNG', margin, currentY, contentWidth, imgHeight);
+                        pdf.addImage(imgData, 'JPEG', margin, currentY, contentWidth, imgHeight, undefined, 'FAST');
                         currentY += imgHeight + 10;
                         firstPage = false;
                     }

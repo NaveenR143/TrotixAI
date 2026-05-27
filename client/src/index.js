@@ -1,5 +1,25 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import ReactDOM from "react-dom";
+
+// Polyfill ReactDOM.findDOMNode for React 19 compatibility with legacy libraries (like react-to-print)
+try {
+  const rDOM = require("react-dom");
+  if (rDOM && !rDOM.findDOMNode) {
+    rDOM.findDOMNode = (node) => node;
+  }
+} catch (e) {
+  console.warn("Failed to polyfill react-dom via require:", e);
+}
+
+if (ReactDOM && !ReactDOM.findDOMNode) {
+  try {
+    ReactDOM.findDOMNode = (node) => node;
+  } catch (e) {
+    console.warn("Failed to polyfill react-dom default export:", e);
+  }
+}
+
 import App from "./App";
 import store from "./redux/Store";
 import { Provider } from "react-redux";
