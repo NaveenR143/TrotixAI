@@ -1,5 +1,6 @@
 import React from "react";
 import "./template13.css";
+import DescriptionRenderer from "./descriptionRenderer";
 
 export default function Template13({ data }) {
     if (!data) return null;
@@ -89,15 +90,7 @@ export default function Template13({ data }) {
                                         <div className="t13-exp-content">
                                             <div className="t13-exp-role">{exp.role}</div>
                                             <div className="t13-exp-company">{exp.company}</div>
-                                            <div className="t13-exp-desc">
-                                                {exp.description && (
-                                                    <ul>
-                                                        {exp.description.split('\n').map((point, idx) => (
-                                                            point.trim() && <li key={idx}>{point.replace(/^[•\-\*]\s?/, '')}</li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </div>
+                                            <DescriptionRenderer description={exp.description} className="t13-exp-desc" />
                                         </div>
                                     </div>
                                 ))}
@@ -115,15 +108,7 @@ export default function Template13({ data }) {
                                         <div className="t13-exp-content">
                                             <div className="t13-exp-role">{proj.name}</div>
                                             {proj.link && <div className="t13-exp-company" style={{ fontSize: '0.65rem' }}>{proj.link}</div>}
-                                            <div className="t13-exp-desc">
-                                                {proj.description && (
-                                                    <ul>
-                                                        {proj.description.split('\n').map((point, idx) => (
-                                                            point.trim() && <li key={idx}>{point.replace(/^[•\-\*]\s?/, '')}</li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </div>
+                                            <DescriptionRenderer description={proj.description} className="t13-exp-desc" />
                                         </div>
                                     </div>
                                 ))}

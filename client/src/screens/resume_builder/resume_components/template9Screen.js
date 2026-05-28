@@ -1,5 +1,6 @@
 import React from "react";
 import "./template9.css";
+import DescriptionRenderer from "./descriptionRenderer";
 
 export default function Template9({ data }) {
     if (!data) return null;
@@ -79,13 +80,7 @@ export default function Template9({ data }) {
                                         </div>
                                     </div>
                                     <div className="t9-exp-company">{exp.company}</div>
-                                    {exp.description && (
-                                        <ul className="t9-exp-details">
-                                            {exp.description.split('\n').map((point, idx) => (
-                                                point.trim() && <li key={idx}>{point.replace(/^[•\-\*]\s?/, '')}</li>
-                                            ))}
-                                        </ul>
-                                    )}
+                                    <DescriptionRenderer description={exp.description} className="t9-exp-details" />
                                 </div>
                             ))}
                         </div>
@@ -106,13 +101,7 @@ export default function Template9({ data }) {
                                             {proj.link}
                                         </a>
                                     )}
-                                    {proj.description && (
-                                        <ul className="t9-proj-details">
-                                            {proj.description.split('\n').map((point, idx) => (
-                                                point.trim() && <li key={idx}>{point.replace(/^[•\-\*]\s?/, '')}</li>
-                                            ))}
-                                        </ul>
-                                    )}
+                                    <DescriptionRenderer description={proj.description} className="t9-proj-details" />
                                 </div>
                             ))}
                         </div>

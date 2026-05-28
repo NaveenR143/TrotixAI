@@ -1,5 +1,7 @@
 import React from "react";
-import { TextField, Grid, Stack, Typography, Button, IconButton, Paper, Checkbox, FormControlLabel } from "@mui/material";
+import { TextField, Grid, Stack, Typography, Button, IconButton, Paper, Checkbox, Checkbox as MuiCheckbox, FormControlLabel, Box } from "@mui/material";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { useDispatch, useSelector } from "react-redux";
@@ -108,15 +110,49 @@ const ExperienceForm = () => {
               />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                label="Description / Key Achievements"
-                value={exp.description}
-                onChange={(e) => handleChange(exp.id, "description", e.target.value)}
-                size="small"
-              />
+              <Typography sx={{ fontSize: "0.85rem", color: "text.secondary", mb: 1 }}>Description / Key Achievements</Typography>
+              <Box sx={{
+                "& .ql-container": {
+                  borderRadius: "0 0 8px 8px",
+                  minHeight: "150px",
+                  fontSize: "0.9rem",
+                  border: "1px solid #e2e8f0",
+                  bgcolor: "white"
+                },
+                "& .ql-toolbar": {
+                  borderRadius: "8px 8px 0 0",
+                  border: "1px solid #e2e8f0",
+                  borderBottom: "none",
+                  bgcolor: "#f8fafc"
+                },
+                "& .ql-editor": {
+                  minHeight: "150px",
+                  fontFamily: "inherit",
+                  color: "#0f172a",
+                  wordBreak: "break-word"
+                }
+              }}>
+                <ReactQuill
+                  theme="snow"
+                  value={exp.description || ""}
+                  onChange={(content) => handleChange(exp.id, "description", content)}
+                  modules={{
+                    toolbar: [
+                      [{ 'header': [1, 2, false] }],
+                      ['bold', 'italic', 'underline', 'strike'],
+                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                      ['link', 'clean'],
+                    ],
+                  }}
+                  formats={[
+                    'header',
+                    'bold', 'italic', 'underline', 'strike',
+                    'list',
+                    'link'
+                  ]}
+                  placeholder="Describe your role, responsibilities, and achievements..."
+                />
+              </Box>
             </Grid>
           </Grid>
         </Paper>

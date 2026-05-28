@@ -27,6 +27,8 @@ import { updateUserProfile, debitPoints, addUserDetails } from "../../redux/user
 import { scrollToFirstError, toTitleCase } from "../../utils/formUtils";
 import { fetchSkillsDropdown, fetchLanguagesDropdown, submitManualProfile } from "../../api/profileAPI";
 import { sendRegistrationOTP, verifyOTP } from "../../api/jobpostingAPI";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 
 const STEPS = ["Identity", "Experience & Education", "Summary & Skills"];
 // const SKILLS_OPTIONS = [
@@ -535,7 +537,51 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                   <Grid container spacing={2}>
                     <Grid item xs={6}><TextField fullWidth label="Company" value={exp.company_name} onChange={(e) => updateExperience(idx, 'company_name', e.target.value)} size="small" /></Grid>
                     <Grid item xs={6}><TextField fullWidth label="Role" value={exp.role} onChange={(e) => updateExperience(idx, 'role', e.target.value)} size="small" /></Grid>
-                    <Grid item xs={12}><TextField fullWidth multiline rows={2} label="Description" value={exp.description} onChange={(e) => updateExperience(idx, 'description', e.target.value)} size="small" /></Grid>
+                    <Grid item xs={12}>
+                      <Typography sx={{ fontSize: "0.85rem", color: "text.secondary", mb: 1 }}>Description</Typography>
+                      <Box sx={{
+                        "& .ql-container": {
+                          borderRadius: "0 0 8px 8px",
+                          minHeight: "120px",
+                          fontSize: "0.9rem",
+                          border: "1px solid #e2e8f0",
+                          bgcolor: "white"
+                        },
+                        "& .ql-toolbar": {
+                          borderRadius: "8px 8px 0 0",
+                          border: "1px solid #e2e8f0",
+                          borderBottom: "none",
+                          bgcolor: "#f8fafc"
+                        },
+                        "& .ql-editor": {
+                          minHeight: "120px",
+                          fontFamily: "inherit",
+                          color: "#0f172a",
+                          wordBreak: "break-word"
+                        }
+                      }}>
+                        <ReactQuill
+                          theme="snow"
+                          value={exp.description || ""}
+                          onChange={(content) => updateExperience(idx, "description", content)}
+                          modules={{
+                            toolbar: [
+                              [{ 'header': [1, 2, false] }],
+                              ['bold', 'italic', 'underline', 'strike'],
+                              [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                              ['link', 'clean'],
+                            ],
+                          }}
+                          formats={[
+                            'header',
+                            'bold', 'italic', 'underline', 'strike',
+                            'list',
+                            'link'
+                          ]}
+                          placeholder="Describe your role, responsibilities, and achievements..."
+                        />
+                      </Box>
+                    </Grid>
                   </Grid>
                 </Paper>
               ))}

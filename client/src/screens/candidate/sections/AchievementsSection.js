@@ -69,7 +69,7 @@ const AchievementsSection = ({ userId, profile, initialAchievements, onSuccess }
 
   const removeAchievement = async (index) => {
     const achievement = achievements[index];
-    
+
     if (achievement.id) {
       // If it's an existing record, delete from backend
       setRecordLoading((prev) => ({ ...prev, [index]: true }));
@@ -206,7 +206,7 @@ const AchievementsSection = ({ userId, profile, initialAchievements, onSuccess }
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <EmojiEventsIcon sx={{ fontSize: 20, color: "#f59e0b" }} />
           <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "1px", color: "#0f172a" }}>
-            Achievements
+            Achievements / Certifications / Accomplishments
           </Typography>
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

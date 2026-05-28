@@ -25,6 +25,9 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import { calculateExperienceDuration } from "../utils/profileUtils";
 import * as profileAPI from "../../../api/profileAPI";
 import { updateUserProfile } from "../../../redux/user/Action";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
+import { sanitizeHtml } from "../../../utils/htmlSanitizer";
 
 const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess, enhancedData }) => {
   const dispatch = useDispatch();
@@ -292,9 +295,17 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
                     ` • ${new Date(exp.startDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })} to ${exp.isCurrent ? "Present" : new Date(exp.endDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })}`}
                 </Typography>
                 {exp.description && (
-                  <Typography sx={{ fontSize: "0.9rem", color: "text.primary", lineHeight: 1.5 }}>
-                    {exp.description}
-                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.9rem",
+                      color: "text.primary",
+                      lineHeight: 1.5,
+                      "& ul, & ol": { pl: 3, my: 1 },
+                      "& li": { mb: 0.5 },
+                      "& p": { my: 0.5 }
+                    }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }}
+                  />
                 )}
               </Paper>
             ))
@@ -346,7 +357,49 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
                   </Box>
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField fullWidth multiline rows={3} label="Description" value={exp.description} onChange={(e) => updateExperience(idx, "description", e.target.value)} size="small" />
+                  <Typography sx={{ fontSize: "0.85rem", color: "text.secondary", mb: 1 }}>Description</Typography>
+                  <Box sx={{
+                    "& .ql-container": {
+                      borderRadius: "0 0 8px 8px",
+                      minHeight: "150px",
+                      fontSize: "0.9rem",
+                      border: "1px solid #e2e8f0",
+                      bgcolor: "white"
+                    },
+                    "& .ql-toolbar": {
+                      borderRadius: "8px 8px 0 0",
+                      border: "1px solid #e2e8f0",
+                      borderBottom: "none",
+                      bgcolor: "#f8fafc"
+                    },
+                    "& .ql-editor": {
+                      minHeight: "150px",
+                      fontFamily: "inherit",
+                      color: "#0f172a",
+                      wordBreak: "break-word"
+                    }
+                  }}>
+                    <ReactQuill
+                      theme="snow"
+                      value={exp.description || ""}
+                      onChange={(content) => updateExperience(idx, "description", content)}
+                      modules={{
+                        toolbar: [
+                          [{ 'header': [1, 2, false] }],
+                          ['bold', 'italic', 'underline', 'strike'],
+                          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                          ['link', 'clean'],
+                        ],
+                      }}
+                      formats={[
+                        'header',
+                        'bold', 'italic', 'underline', 'strike',
+                        'list',
+                        'link'
+                      ]}
+                      placeholder="Describe your role, responsibilities, and achievements..."
+                    />
+                  </Box>
                 </Grid>
                 {recordErrors?.[idx] && <Grid item xs={12}><Alert severity="error" sx={{ fontSize: "0.85rem" }}>{recordErrors[idx]}</Alert></Grid>}
                 {changedExperience.has(idx) && !recordErrors?.[idx] && <Grid item xs={12}><Typography sx={{ fontSize: "0.85rem", color: "#f59e0b" }}>⚠️ Unsaved changes</Typography></Grid>}

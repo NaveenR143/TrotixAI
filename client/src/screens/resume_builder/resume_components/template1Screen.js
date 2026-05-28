@@ -1,5 +1,6 @@
 import React from "react";
 import "./template1.css";
+import DescriptionRenderer from "./descriptionRenderer";
 
 export default function Template1({ data }) {
     if (!data) return null;
@@ -87,13 +88,7 @@ export default function Template1({ data }) {
                                             </div>
                                         </div>
                                         <div className="company-name exp-company">{exp.company}</div>
-                                        {exp.description && (
-                                            <ul>
-                                                {exp.description.split('\n').map((point, idx) => (
-                                                    point.trim() && <li key={idx}>{point.replace(/^[•\-\*]\s?/, '')}</li>
-                                                ))}
-                                            </ul>
-                                        )}
+                                        <DescriptionRenderer description={exp.description} />
                                     </div>
                                 ))}
                             </section>
@@ -113,13 +108,7 @@ export default function Template1({ data }) {
                                                 {proj.link}
                                             </div>
                                         )}
-                                        {proj.description && (
-                                            <ul>
-                                                {proj.description.split('\n').map((point, idx) => (
-                                                    point.trim() && <li key={idx}>{point.replace(/^[•\-\*]\s?/, '')}</li>
-                                                ))}
-                                            </ul>
-                                        )}
+                                        <DescriptionRenderer description={proj.description} />
                                     </div>
                                 ))}
                             </section>

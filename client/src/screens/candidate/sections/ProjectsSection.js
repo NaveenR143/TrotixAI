@@ -25,6 +25,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import * as profileAPI from "../../../api/profileAPI";
 import { updateUserProfile } from "../../../redux/user/Action";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
+import { sanitizeHtml } from "../../../utils/htmlSanitizer";
 
 const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhancedData }) => {
   const dispatch = useDispatch();
@@ -270,9 +273,18 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
                   </Box>
 
                   {project.description && (
-                    <Typography sx={{ fontSize: "0.9rem", color: "text.primary", lineHeight: 1.6, mb: 1 }}>
-                      {project.description}
-                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: "0.9rem",
+                        color: "text.primary",
+                        lineHeight: 1.6,
+                        mb: 1,
+                        "& ul, & ol": { pl: 3, my: 1 },
+                        "& li": { mb: 0.5 },
+                        "& p": { my: 0.5 }
+                      }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description) }}
+                    />
                   )}
 
                   {project.skills && project.skills.length > 0 && (
@@ -348,7 +360,49 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField fullWidth multiline rows={4} label="Description" value={proj.description} onChange={(e) => updateProjectField(idx, "description", e.target.value)} size="small" />
+                  <Typography sx={{ fontSize: "0.85rem", color: "text.secondary", mb: 1 }}>Description</Typography>
+                  <Box sx={{
+                    "& .ql-container": {
+                      borderRadius: "0 0 8px 8px",
+                      minHeight: "150px",
+                      fontSize: "0.9rem",
+                      border: "1px solid #e2e8f0",
+                      bgcolor: "white"
+                    },
+                    "& .ql-toolbar": {
+                      borderRadius: "8px 8px 0 0",
+                      border: "1px solid #e2e8f0",
+                      borderBottom: "none",
+                      bgcolor: "#f8fafc"
+                    },
+                    "& .ql-editor": {
+                      minHeight: "150px",
+                      fontFamily: "inherit",
+                      color: "#0f172a",
+                      wordBreak: "break-word"
+                    }
+                  }}>
+                    <ReactQuill
+                      theme="snow"
+                      value={proj.description || ""}
+                      onChange={(content) => updateProjectField(idx, "description", content)}
+                      modules={{
+                        toolbar: [
+                          [{ 'header': [1, 2, false] }],
+                          ['bold', 'italic', 'underline', 'strike'],
+                          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                          ['link', 'clean'],
+                        ],
+                      }}
+                      formats={[
+                        'header',
+                        'bold', 'italic', 'underline', 'strike',
+                        'list',
+                        'link'
+                      ]}
+                      placeholder="Describe the project, technologies used, and your contribution..."
+                    />
+                  </Box>
                 </Grid>
                 <Grid item xs={12}>
                   <TextField fullWidth label="Technologies (comma separated)" value={Array.isArray(proj.skills) ? proj.skills.join(", ") : ""} onChange={(e) => updateProjectField(idx, "skills", e.target.value.split(",").map(s => s.trim()))} size="small" />

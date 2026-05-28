@@ -1,5 +1,6 @@
 import React from "react";
 import "./template2.css";
+import DescriptionRenderer from "./descriptionRenderer";
 
 export default function Template2({ data }) {
     if (!data) return null;
@@ -136,13 +137,7 @@ export default function Template2({ data }) {
                                         {exp.startDate} — {exp.isCurrent ? 'Present' : exp.endDate}
                                     </div>
                                     <div className="t2-exp-desc">
-                                        {exp.description && (
-                                            <ul>
-                                                {exp.description.split('\n').map((point, idx) => (
-                                                    point.trim() && <li key={idx}>{point.replace(/^[•\-\*]\s?/, '')}</li>
-                                                ))}
-                                            </ul>
-                                        )}
+                                        <DescriptionRenderer description={exp.description} />
                                     </div>
                                 </div>
                             ))}
@@ -159,13 +154,7 @@ export default function Template2({ data }) {
                                     {proj.link && <div className="t2-exp-company">{proj.link}</div>}
                                     {proj.year && <div className="t2-exp-date">{proj.year}</div>}
                                     <div className="t2-exp-desc">
-                                        {proj.description && (
-                                            <ul>
-                                                {proj.description.split('\n').map((point, idx) => (
-                                                    point.trim() && <li key={idx}>{point.replace(/^[•\-\*]\s?/, '')}</li>
-                                                ))}
-                                            </ul>
-                                        )}
+                                        <DescriptionRenderer description={proj.description} />
                                     </div>
                                 </div>
                             ))}

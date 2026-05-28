@@ -205,18 +205,22 @@
     line-height: 1.7;
 }
 
-.t13-exp-desc ul {
+.t13-exp-desc ul,
+ul.t13-exp-desc {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
-.t13-exp-desc li {
+.t13-exp-desc li,
+ul.t13-exp-desc li {
     position: relative;
     padding-left: 12px;
     margin-bottom: 4px;
 }
 
-.t13-exp-desc li::before {
+.t13-exp-desc li::before,
+ul.t13-exp-desc li::before {
     content: '•';
     position: absolute;
     left: 0;

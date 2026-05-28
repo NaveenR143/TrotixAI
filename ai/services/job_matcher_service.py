@@ -13,7 +13,7 @@ from collections import defaultdict
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, text, or_, not_
+from sqlalchemy import select, func, text, or_, not_, desc, cast, String
 from sqlalchemy.orm import selectinload
 
 from ai.models.orm_models import (
@@ -28,6 +28,8 @@ from ai.models.orm_models import (
     JobStatusEnum,
     Industry,
     JobsViewed,
+    WorkExperience,
+    ExpLevelEnum,
 )
 
 from sqlalchemy.dialects import postgresql
@@ -35,6 +37,87 @@ from sqlalchemy.dialects import postgresql
 
 class JobMatcherService:
     """Service for matching job seekers with job postings"""
+
+    SYNONYM_GROUPS = [
+        {"software engineer", "software developer", "backend developer", "frontend developer", "fullstack developer", "programmer", "coder", "application developer", "web developer", "systems engineer"},
+        {"data scientist", "data analyst", "machine learning engineer", "ai engineer", "business intelligence analyst", "bi analyst", "data engineer", "analytics engineer"},
+        {"devops engineer", "site reliability engineer", "sre", "system administrator", "sysadmin", "infrastructure engineer", "cloud engineer"},
+        {"product manager", "project manager", "program manager", "scrum master", "product owner", "project coordinator"},
+        {"quality assurance engineer", "qa engineer", "software test engineer", "tester", "automation engineer", "qa analyst"},
+        {"sales executive", "business development associate", "sales manager", "account manager", "business development executive", "sales representative"},
+        {"hr manager", "human resources specialist", "hr executive", "recruiter", "talent acquisition specialist"},
+    ]
+
+    @staticmethod
+    def _normalize_title(title: str) -> str:
+        """Normalize job title string for similarity matching"""
+        if not title:
+            return ""
+        s = title.lower().strip()
+        # Remove common noise words/phrases
+        noise = [
+            "senior", "junior", "lead", "principal", "associate", "trainee", "intern", "staff",
+            "executive", "assistant", "head of", "director of", "manager of", "chief"
+        ]
+        for word in noise:
+            s = re.sub(rf"\b{word}\b", "", s)
+        # Remove special characters
+        s = re.sub(r"[^a-z0-9 ]", "", s)
+        # Remove extra spaces
+        s = re.sub(r"\s+", " ", s).strip()
+        return s
+
+    @staticmethod
+    def _compute_title_similarities(anchor_title: str, comparison_titles: List[str]) -> List[float]:
+        if not anchor_title or not comparison_titles:
+            return [0.0] * len(comparison_titles)
+
+        # Normalize anchor
+        anchor_normalized = JobMatcherService._normalize_title(anchor_title)
+        anchor_tokens = set(anchor_normalized.split())
+
+        similarities = []
+        for title in comparison_titles:
+            if not title:
+                similarities.append(0.0)
+                continue
+
+            comp_normalized = JobMatcherService._normalize_title(title)
+            if anchor_normalized == comp_normalized:
+                similarities.append(1.0)
+                continue
+
+            # Check if they share any synonym group
+            shared_group = False
+            for group in JobMatcherService.SYNONYM_GROUPS:
+                anchor_in_group = any(term in anchor_normalized or anchor_normalized in term for term in group)
+                comp_in_group = any(term in comp_normalized or comp_normalized in term for term in group)
+                if anchor_in_group and comp_in_group:
+                    shared_group = True
+                    break
+
+            # Calculate token Jaccard similarity
+            comp_tokens = set(comp_normalized.split())
+            jaccard = 0.0
+            if anchor_tokens or comp_tokens:
+                intersection = anchor_tokens.intersection(comp_tokens)
+                union = anchor_tokens.union(comp_tokens)
+                jaccard = len(intersection) / len(union)
+
+            # SequenceMatcher ratio
+            fuzzy_ratio = difflib.SequenceMatcher(None, anchor_normalized, comp_normalized).ratio()
+
+            # Combine similarity metrics
+            if shared_group:
+                # If they are synonyms, base similarity is high
+                score = max(0.85, fuzzy_ratio, jaccard)
+            else:
+                # Weighted average of fuzzy ratio and token overlap
+                score = 0.7 * fuzzy_ratio + 0.3 * jaccard
+
+            similarities.append(max(0.0, min(1.0, score)))
+
+        return similarities
 
     @staticmethod
     async def get_matching_jobs(
@@ -133,6 +216,27 @@ class JobMatcherService:
                 .group_by(text("ui.user_id"))
             ).subquery()
 
+            # Subquery to rank work experiences per user
+            latest_exp_subquery = (
+                select(
+                    WorkExperience.user_id,
+                    WorkExperience.title,
+                    func.row_number().over(
+                        partition_by=WorkExperience.user_id,
+                        order_by=[
+                            desc(WorkExperience.is_current),
+                            desc(WorkExperience.end_date),
+                            desc(WorkExperience.start_date)
+                        ]
+                    ).label("rn")
+                )
+            ).subquery()
+
+            user_latest_title_subquery = (
+                select(latest_exp_subquery.c.user_id, latest_exp_subquery.c.title)
+                .where(latest_exp_subquery.c.rn == 1)
+            ).subquery()
+
             applicants_query = (
                 select(
                     JobApplication,
@@ -141,6 +245,7 @@ class JobMatcherService:
                     User,
                     user_skills_subquery.c.skills,
                     user_industries_subquery.c.industries,
+                    user_latest_title_subquery.c.title.label("recent_job_title"),
                 )
                 .join(User, JobApplication.user_id == User.id)
                 .join(Resume, JobApplication.user_id == Resume.user_id, isouter=True)
@@ -159,6 +264,11 @@ class JobMatcherService:
                     JobApplication.user_id == user_industries_subquery.c.user_id,
                     isouter=True,
                 )
+                .join(
+                    user_latest_title_subquery,
+                    JobApplication.user_id == user_latest_title_subquery.c.user_id,
+                    isouter=True,
+                )
                 .where(JobApplication.job_posting_id == job_id_int)
                 .limit(limit)
             )
@@ -174,6 +284,7 @@ class JobMatcherService:
                 user,
                 user_skills,
                 user_industries,
+                recent_job_title,
             ) in rows:
                 candidate_users.append(
                     {
@@ -191,6 +302,7 @@ class JobMatcherService:
                         "phone": user.phone if user else "",
                         "headline": profile.headline if profile else "",
                         "current_location": profile.current_location if profile else "",
+                        "recent_job_title": recent_job_title or "",
                     }
                 )
 
@@ -213,7 +325,7 @@ class JobMatcherService:
                         else None
                     ),
                 }
-                for application, resume, profile, user, skills, industries in rows
+                for application, resume, profile, user, skills, industries, recent_job_title in rows
             }
 
             for cand in scored_candidates:
@@ -276,6 +388,26 @@ class JobMatcherService:
                 user_uuid, session
             )
 
+            # Fetch user's most recent job title
+            recent_job_title = ""
+            try:
+                experience_query = (
+                    select(WorkExperience.title)
+                    .where(WorkExperience.user_id == user_uuid)
+                    .order_by(
+                        desc(WorkExperience.is_current),
+                        desc(WorkExperience.end_date),
+                        desc(WorkExperience.start_date)
+                    )
+                    .limit(1)
+                )
+                exp_result = await session.execute(experience_query)
+                exp_row = exp_result.first()
+                if exp_row:
+                    recent_job_title = exp_row[0] or ""
+            except Exception as e:
+                print(f"Error fetching recent job title for user {user_id}: {str(e)}")
+
             return {
                 "user_id": user_id,
                 "summary": resume.parsed_summary or "",
@@ -283,6 +415,7 @@ class JobMatcherService:
                 "embedding": profile.profile_embedding,
                 "skills": user_skills,
                 "industries": user_industries,
+                "recent_job_title": recent_job_title,
             }
 
         except Exception as e:
@@ -347,6 +480,41 @@ class JobMatcherService:
                 ),
                 JobPosting.created_at >= ten_days_ago,
             ]
+
+            # Dynamic Filter Refinement based on experience and seniority
+            candidate_exp = user_data.get("experience_years") or 0.0
+            recent_title = user_data.get("recent_job_title", "").lower()
+
+            # Seniority check based on title keywords and experience
+            is_senior = any(term in recent_title for term in ["senior", "lead", "principal", "manager", "director", "vp", "head"]) or candidate_exp >= 8.0
+            is_entry = any(term in recent_title for term in ["junior", "entry", "intern", "fresher", "trainee"]) or (candidate_exp < 2.0 and not is_senior)
+
+            # Limit jobs based on experience requirements
+            if candidate_exp > 0:
+                base_filters.append(
+                    or_(
+                        JobPosting.experience_min_yrs.is_(None),
+                        JobPosting.experience_min_yrs <= int(candidate_exp + 3)
+                    )
+                )
+
+            # Restrict seniority mismatch
+            if is_senior:
+                # Senior candidates: avoid entry/junior roles
+                base_filters.append(
+                    or_(
+                        JobPosting.experience_level.is_(None),
+                        not_(cast(JobPosting.experience_level, String).in_(["entry", "junior"]))
+                    )
+                )
+            elif is_entry:
+                # Entry candidates: avoid lead/executive roles
+                base_filters.append(
+                    or_(
+                        JobPosting.experience_level.is_(None),
+                        not_(cast(JobPosting.experience_level, String).in_(["lead", "executive"]))
+                    )
+                )
 
             # Subquery to aggregate skills for each job to avoid N+1 queries
             skills_subquery = (
@@ -437,8 +605,15 @@ class JobMatcherService:
         """Compute detailed scores for each job"""
         scored_jobs = []
 
-        for job in jobs:
+        # Batch-compute title similarities
+        user_title = user_data.get("recent_job_title", "")
+        job_titles = [job.get("title", "") for job in jobs]
+        title_scores = JobMatcherService._compute_title_similarities(user_title, job_titles)
+
+        for idx, job in enumerate(jobs):
             try:
+                title_score = title_scores[idx]
+
                 # Embedding Score (cosine similarity)
                 embedding_score = 0.0
                 if user_data.get("embedding") and job.get("job_embedding"):
@@ -476,34 +651,50 @@ class JobMatcherService:
 
                 # Define Dynamic Weights
                 # Default: Skills: 0.5, Embedding: 0.3, Experience: 0.2
-                w_skill, w_emb, w_exp = 0.5, 0.3, 0.2
-
                 has_embedding = bool(
                     user_data.get("embedding") and job.get("job_embedding")
                 )
+                has_recent_title = bool(user_title)
 
-                if skill_score >= 1.0 and not missing_skills:
-                    # 100% Skills Match: ignore embedding
-                    w_skill, w_emb, w_exp = 0.7, 0.0, 0.3
-                elif not has_embedding:
-                    # No Embedding: Skills 0.6, Emb 0.1, Exp 0.3
-                    w_skill, w_emb, w_exp = 0.6, 0.1, 0.3
-                    # Also reduce the score itself to 20% as requested
-                    embedding_score = 0.2
-                elif user_data.get("experience_years", 0) <= 0:
-                    # No User Experience: Skills 0.6, Emb 0.3, Exp 0.1
-                    w_skill, w_emb, w_exp = 0.6, 0.3, 0.1
+                if has_recent_title:
+                    # Default weights when title is present: Skills 0.4, Title 0.25, Embedding 0.2, Experience 0.15
+                    if title_score >= 0.7:
+                        # High alignment: prioritize title match
+                        w_skill, w_title, w_emb, w_exp = 0.35, 0.35, 0.15, 0.15
+                    else:
+                        w_skill, w_title, w_emb, w_exp = 0.4, 0.25, 0.2, 0.15
+
+                    if skill_score >= 1.0 and not missing_skills:
+                        # 100% Skills Match: shift embedding weight to skill/title
+                        w_skill, w_title, w_emb, w_exp = 0.5, 0.3, 0.0, 0.2
+                    elif not has_embedding:
+                        w_skill, w_title, w_emb, w_exp = 0.5, 0.3, 0.05, 0.15
+                        embedding_score = 0.2
+                    elif user_data.get("experience_years", 0) <= 0:
+                        w_skill, w_title, w_emb, w_exp = 0.6, 0.0, 0.3, 0.1
+                        title_score = 0.0
+                else:
+                    w_title = 0.0
+                    w_skill, w_emb, w_exp = 0.5, 0.3, 0.2
+                    if skill_score >= 1.0 and not missing_skills:
+                        w_skill, w_emb, w_exp = 0.7, 0.0, 0.3
+                    elif not has_embedding:
+                        w_skill, w_emb, w_exp = 0.6, 0.1, 0.3
+                        embedding_score = 0.2
+                    elif user_data.get("experience_years", 0) <= 0:
+                        w_skill, w_emb, w_exp = 0.6, 0.3, 0.1
 
                 # Final Score
                 final_score = (
                     w_skill * skill_score
+                    + w_title * title_score
                     + w_emb * embedding_score
                     + w_exp * experience_score
                 )
 
                 # Generate reason
                 reason = JobMatcherService._generate_match_reason(
-                    embedding_score, skill_score, experience_score, matched_skills
+                    embedding_score, skill_score, experience_score, matched_skills, title_score
                 )
 
                 scored_jobs.append(
@@ -516,6 +707,7 @@ class JobMatcherService:
                             "embedding": round(embedding_score, 3),
                             "skills": round(skill_score, 3),
                             "experience": round(experience_score, 3),
+                            "title_similarity": round(title_score, 3),
                         },
                         "matched_skills": matched_skills,
                         "missing_skills": missing_skills,
@@ -614,6 +806,58 @@ class JobMatcherService:
                 .group_by(text("ui.user_id"))
             ).subquery()
 
+            # Subquery to rank work experiences per user
+            latest_exp_subquery = (
+                select(
+                    WorkExperience.user_id,
+                    WorkExperience.title,
+                    func.row_number().over(
+                        partition_by=WorkExperience.user_id,
+                        order_by=[
+                            desc(WorkExperience.is_current),
+                            desc(WorkExperience.end_date),
+                            desc(WorkExperience.start_date)
+                        ]
+                    ).label("rn")
+                )
+            ).subquery()
+
+            # Subquery to select only the top (rn = 1) work experience for each user
+            user_latest_title_subquery = (
+                select(latest_exp_subquery.c.user_id, latest_exp_subquery.c.title)
+                .where(latest_exp_subquery.c.rn == 1)
+            ).subquery()
+
+            candidate_filters = []
+            job_min_exp = job_data.get("experience_min_yrs") or 0
+            job_exp_level = job_data.get("experience_level")
+
+            # 1. Experience filter: candidate experience should be within reasonable range of job min experience
+            if job_min_exp > 0:
+                min_threshold = max(0.0, float(job_min_exp) - 3.0)
+                candidate_filters.append(
+                    or_(
+                        JobseekerProfile.years_of_experience.is_(None),
+                        JobseekerProfile.years_of_experience >= min_threshold
+                    )
+                )
+
+            # 2. Seniority check:
+            if job_exp_level in [ExpLevelEnum.senior, ExpLevelEnum.lead, ExpLevelEnum.executive]:
+                candidate_filters.append(
+                    or_(
+                        JobseekerProfile.years_of_experience.is_(None),
+                        JobseekerProfile.years_of_experience >= 2.0
+                    )
+                )
+            elif job_exp_level == ExpLevelEnum.entry:
+                candidate_filters.append(
+                    or_(
+                        JobseekerProfile.years_of_experience.is_(None),
+                        JobseekerProfile.years_of_experience <= 8.0
+                    )
+                )
+
             if not job_data.get("embedding"):
                 # Fallback: get all users with resumes
                 users_query = (
@@ -623,6 +867,7 @@ class JobMatcherService:
                         User,
                         user_skills_subquery.c.skills,
                         user_industries_subquery.c.industries,
+                        user_latest_title_subquery.c.title.label("recent_job_title"),
                     )
                     .join(
                         JobseekerProfile,
@@ -644,6 +889,12 @@ class JobMatcherService:
                         Resume.user_id == user_industries_subquery.c.user_id,
                         isouter=True,
                     )
+                    .join(
+                        user_latest_title_subquery,
+                        Resume.user_id == user_latest_title_subquery.c.user_id,
+                        isouter=True,
+                    )
+                    .where(*candidate_filters)
                     .limit(limit)
                 )
             else:
@@ -654,6 +905,7 @@ class JobMatcherService:
                         User,
                         user_skills_subquery.c.skills,
                         user_industries_subquery.c.industries,
+                        user_latest_title_subquery.c.title.label("recent_job_title"),
                     )
                     .join(
                         JobseekerProfile,
@@ -675,6 +927,12 @@ class JobMatcherService:
                         Resume.user_id == user_industries_subquery.c.user_id,
                         isouter=True,
                     )
+                    .join(
+                        user_latest_title_subquery,
+                        Resume.user_id == user_latest_title_subquery.c.user_id,
+                        isouter=True,
+                    )
+                    .where(*candidate_filters)
                     .order_by(text("profile_embedding <=> :job_embedding"))
                     .limit(limit)
                 )
@@ -684,7 +942,7 @@ class JobMatcherService:
             users_rows = users_result.all()
 
             candidate_users = []
-            for resume, profile, user, user_skills, user_industries in users_rows:
+            for resume, profile, user, user_skills, user_industries, recent_job_title in users_rows:
                 candidate_users.append(
                     {
                         "user_id": str(resume.user_id),
@@ -699,6 +957,7 @@ class JobMatcherService:
                         "phone": user.phone if user else "",
                         "headline": profile.headline if profile else "",
                         "current_location": profile.current_location if profile else "",
+                        "recent_job_title": recent_job_title or "",
                     }
                 )
 
@@ -717,8 +976,15 @@ class JobMatcherService:
         """Compute detailed scores for each candidate"""
         scored_candidates = []
 
-        for candidate in candidates:
+        # Batch-compute title similarities
+        job_title = job_data.get("title", "")
+        candidate_titles = [candidate.get("recent_job_title", "") for candidate in candidates]
+        title_scores = JobMatcherService._compute_title_similarities(job_title, candidate_titles)
+
+        for idx, candidate in enumerate(candidates):
             try:
+                title_score = title_scores[idx]
+
                 # Embedding Score (cosine similarity)
                 embedding_score = 0.0
                 if job_data.get("embedding") and candidate.get("profile_embedding"):
@@ -754,34 +1020,50 @@ class JobMatcherService:
 
                 # Define Dynamic Weights
                 # Default: Skills: 0.5, Embedding: 0.3, Experience: 0.2
-                w_skill, w_emb, w_exp = 0.5, 0.3, 0.2
-
                 has_embedding = bool(
                     job_data.get("embedding") and candidate.get("profile_embedding")
                 )
+                has_recent_title = bool(candidate.get("recent_job_title"))
 
-                if skill_score >= 1.0 and not missing_skills:
-                    # 100% Skills Match: ignore embedding
-                    w_skill, w_emb, w_exp = 0.7, 0.0, 0.3
-                elif not has_embedding:
-                    # No Embedding: Skills 0.6, Emb 0.1, Exp 0.3
-                    w_skill, w_emb, w_exp = 0.6, 0.1, 0.3
-                    # Also reduce the score itself to 20% as requested
-                    embedding_score = 0.2
-                elif candidate.get("experience_years", 0) <= 0:
-                    # No User Experience: Skills 0.6, Emb 0.3, Exp 0.1
-                    w_skill, w_emb, w_exp = 0.6, 0.3, 0.1
+                if has_recent_title:
+                    # Default weights when title is present: Skills 0.4, Title 0.25, Embedding 0.2, Experience 0.15
+                    if title_score >= 0.7:
+                        # High alignment: prioritize title match
+                        w_skill, w_title, w_emb, w_exp = 0.35, 0.35, 0.15, 0.15
+                    else:
+                        w_skill, w_title, w_emb, w_exp = 0.4, 0.25, 0.2, 0.15
+
+                    if skill_score >= 1.0 and not missing_skills:
+                        # 100% Skills Match: shift embedding weight to skill/title
+                        w_skill, w_title, w_emb, w_exp = 0.5, 0.3, 0.0, 0.2
+                    elif not has_embedding:
+                        w_skill, w_title, w_emb, w_exp = 0.5, 0.3, 0.05, 0.15
+                        embedding_score = 0.2
+                    elif candidate.get("experience_years", 0) <= 0:
+                        w_skill, w_title, w_emb, w_exp = 0.6, 0.0, 0.3, 0.1
+                        title_score = 0.0
+                else:
+                    w_title = 0.0
+                    w_skill, w_emb, w_exp = 0.5, 0.3, 0.2
+                    if skill_score >= 1.0 and not missing_skills:
+                        w_skill, w_emb, w_exp = 0.7, 0.0, 0.3
+                    elif not has_embedding:
+                        w_skill, w_emb, w_exp = 0.6, 0.1, 0.3
+                        embedding_score = 0.2
+                    elif candidate.get("experience_years", 0) <= 0:
+                        w_skill, w_emb, w_exp = 0.6, 0.3, 0.1
 
                 # Final Score
                 final_score = (
                     w_skill * skill_score
+                    + w_title * title_score
                     + w_emb * embedding_score
                     + w_exp * experience_score
                 )
 
                 # Generate reason
                 reason = JobMatcherService._generate_match_reason(
-                    embedding_score, skill_score, experience_score, matched_skills
+                    embedding_score, skill_score, experience_score, matched_skills, title_score
                 )
 
                 scored_candidates.append(
@@ -791,11 +1073,13 @@ class JobMatcherService:
                         "phone": candidate["phone"],
                         "headline": candidate["headline"],
                         "current_location": candidate["current_location"],
+                        "recent_job_title": candidate.get("recent_job_title", ""),
                         "final_score": round(final_score, 3),
                         "scores": {
                             "embedding": round(embedding_score, 3),
                             "skills": round(skill_score, 3),
                             "experience": round(experience_score, 3),
+                            "title_similarity": round(title_score, 3),
                         },
                         "matched_skills": matched_skills,
                         "missing_skills": missing_skills,
@@ -986,9 +1270,17 @@ class JobMatcherService:
         skill_score: float,
         experience_score: float,
         matched_skills: List[str],
+        title_score: float = 0.0,
     ) -> str:
         """Generate a short explanation for the match"""
         reasons = []
+
+        if title_score > 0.8:
+            reasons.append("Excellent role alignment")
+        elif title_score > 0.6:
+            reasons.append("Strong role alignment")
+        elif title_score > 0.4:
+            reasons.append("Moderate role alignment")
 
         if embedding_score > 0.7:
             reasons.append("Strong content match")

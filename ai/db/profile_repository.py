@@ -479,6 +479,9 @@ class ProfileRepository:
             Updated profile data
         """
         try:
+            if "description" in experience_data and experience_data["description"]:
+                from ai.utils.html_sanitizer import sanitize_html
+                experience_data["description"] = sanitize_html(experience_data["description"])
             if experience_id:
                 # Update existing experience
                 query = select(WorkExperience).where(
@@ -582,6 +585,9 @@ class ProfileRepository:
             Updated profile data
         """
         try:
+            if "description" in project_data and project_data["description"]:
+                from ai.utils.html_sanitizer import sanitize_html
+                project_data["description"] = sanitize_html(project_data["description"])
             if project_id:
                 # Update existing project
                 query = select(Project).where(
@@ -895,6 +901,10 @@ class ProfileRepository:
                 {"uid": user_id},
             )
             for exp_data in submission_data.get("experience") or []:
+                desc = exp_data.get("description")
+                if desc:
+                    from ai.utils.html_sanitizer import sanitize_html
+                    desc = sanitize_html(desc)
                 exp = WorkExperience(
                     user_id=user_id,
                     title=exp_data["title"],
@@ -903,7 +913,7 @@ class ProfileRepository:
                     start_date=exp_data["start_date"],
                     end_date=exp_data.get("end_date"),
                     is_current=exp_data.get("is_current", False),
-                    description=exp_data.get("description"),
+                    description=desc,
                 )
                 session.add(exp)
 

@@ -1,5 +1,6 @@
 import React from "react";
 import "./template12.css";
+import DescriptionRenderer from "./descriptionRenderer";
 
 export default function Template12({ data }) {
     if (!data) return null;
@@ -135,15 +136,7 @@ export default function Template12({ data }) {
                                     <div className="t12-exp-date">
                                         {exp.startDate} — {exp.isCurrent ? 'PRESENT' : exp.endDate?.toUpperCase()}
                                     </div>
-                                    <div className="t12-exp-desc">
-                                        {exp.description && (
-                                            <ul>
-                                                {exp.description.split('\n').map((point, idx) => (
-                                                    point.trim() && <li key={idx}>{point.replace(/^[•\-\*]\s?/, '')}</li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </div>
+                                    <DescriptionRenderer description={exp.description} className="t12-exp-desc" />
                                 </div>
                             ))}
                         </div>
@@ -158,15 +151,7 @@ export default function Template12({ data }) {
                                     <div className="t12-exp-role">{proj.name}</div>
                                     {proj.link && <div className="t12-exp-company">{proj.link}</div>}
                                     {proj.year && <div className="t12-exp-date">{proj.year}</div>}
-                                    <div className="t12-exp-desc">
-                                        {proj.description && (
-                                            <ul>
-                                                {proj.description.split('\n').map((point, idx) => (
-                                                    point.trim() && <li key={idx}>{point.replace(/^[•\-\*]\s?/, '')}</li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </div>
+                                    <DescriptionRenderer description={proj.description} className="t12-exp-desc" />
                                 </div>
                             ))}
                         </div>

@@ -1,5 +1,6 @@
 import React from "react";
 import "./template14.css";
+import DescriptionRenderer from "./descriptionRenderer";
 
 export default function Template14({ data }) {
     if (!data) return null;
@@ -105,15 +106,7 @@ export default function Template14({ data }) {
                                             </div>
                                         </div>
                                         <div className="t14-exp-company">{exp.company}</div>
-                                        <div className="t14-exp-desc">
-                                            {exp.description && (
-                                                <ul>
-                                                    {exp.description.split('\n').map((point, idx) => (
-                                                        point.trim() && <li key={idx}>{point.replace(/^[•\-\*]\s?/, '')}</li>
-                                                    ))}
-                                                </ul>
-                                            )}
-                                        </div>
+                                        <DescriptionRenderer description={exp.description} className="t14-exp-desc" />
                                     </div>
                                 ))}
                             </div>
@@ -129,15 +122,7 @@ export default function Template14({ data }) {
                                             <div className="t14-exp-date-badge">{proj.year}</div>
                                         </div>
                                         {proj.link && <div className="t14-exp-company" style={{ fontSize: '0.65rem' }}>{proj.link}</div>}
-                                        <div className="t14-exp-desc">
-                                            {proj.description && (
-                                                <ul>
-                                                    {proj.description.split('\n').map((point, idx) => (
-                                                        point.trim() && <li key={idx}>{point.replace(/^[•\-\*]\s?/, '')}</li>
-                                                    ))}
-                                                </ul>
-                                            )}
-                                        </div>
+                                        <DescriptionRenderer description={proj.description} className="t14-exp-desc" />
                                     </div>
                                 ))}
                             </div>

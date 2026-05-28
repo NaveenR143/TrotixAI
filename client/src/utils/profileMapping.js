@@ -31,7 +31,7 @@ export const mapProfileData = (profileData) => {
         company: toTitleCase(exp?.company_name || "") || "",
         role: toTitleCase(exp?.title) || "",
         location: toTitleCase(exp?.location) || "",
-        description: toTitleCase(exp?.description) || "",
+        description: exp?.description || "",
         startDate: exp?.start_date || "",
         endDate: exp?.end_date || "",
         isCurrent: exp?.is_current || false,

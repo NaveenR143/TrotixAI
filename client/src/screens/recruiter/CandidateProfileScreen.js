@@ -39,6 +39,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { fadeSlideUp } from "../../utils/themeUtils";
 import { fetchProfile } from "../../api/profileAPI";
 import { toTitleCase, toAllCapitals } from "../../screens/candidate/utils/profileUtils";
+import { sanitizeHtml } from "../../utils/htmlSanitizer";
 
 
 const CandidateProfileScreen = () => {
@@ -375,11 +376,13 @@ const CandidateProfileScreen = () => {
                         color: '#475569',
                         lineHeight: 1.7,
                         wordBreak: 'break-word',
-                        overflowWrap: 'anywhere'
+                        overflowWrap: 'anywhere',
+                        "& ul, & ol": { pl: 3, my: 1 },
+                        "& li": { mb: 0.5 },
+                        "& p": { my: 0.5 }
                       }}
-                    >
-                      {exp.description}
-                    </Typography>
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }}
+                    />
                   </Box>
                 ))}
               </Stack>
@@ -403,11 +406,13 @@ const CandidateProfileScreen = () => {
                           mb: 2.5,
                           lineHeight: 1.7,
                           wordBreak: 'break-word',
-                          overflowWrap: 'anywhere'
+                          overflowWrap: 'anywhere',
+                          "& ul, & ol": { pl: 3, my: 1 },
+                          "& li": { mb: 0.5 },
+                          "& p": { my: 0.5 }
                         }}
-                      >
-                        {proj.description}
-                      </Typography>
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }}
+                      />
 
                       <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 3 }}>
                         {proj.skills.map((skill, sIdx) => (

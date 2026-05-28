@@ -74,6 +74,7 @@ class TOONFormatter:
             '  languages: ["str", ...],\n'
             '  skills: ["str", ...],\n'
             '  parsed_job_titles: ["str", ...],\n\n'
+            '  accomplishments: ["str", ...],\n\n'
             "  work_experiences: [\n"
             "    ExperienceTOON(\n"
             '      company_name: "str",\n'
@@ -141,11 +142,11 @@ class TOONFormatter:
             "      is_current: true|false,\n"
             '      achievements: ["str", ...],\n'
             '      keywords: ["str", ...],\n'
-            '      project_type: "professional|academic|personal|unknown"\n'
-            '      url: "str|empty",\n'
+            '      project_type: "professional|academic|personal|unknown",\n'
+            '      url: "str|empty"\n'
             "    )\n"
             "  ],\n"
-            '   resume_summary: "str|empty"\n'
+            '  resume_summary: "str|empty"\n'
             ")\n\n"
             "STRICT RULES:\n"
             "- Return ONLY the object. No explanation.\n"
@@ -153,6 +154,13 @@ class TOONFormatter:
             "- Use empty values when missing.\n"
             "- Normalize all skills, technologies, and keywords to lowercase.\n"
             "- Remove duplicates in arrays.\n\n"
+            "HTML FORMATTING RULES:\n"
+            "- The 'description' fields inside ExperienceTOON and ProjectTOON MUST be formatted as valid HTML.\n"
+            "- Convert all bullet points, task lists, and sentences into an HTML unordered list (<ul>) with each point wrapped in a list item (<li>).\n\n"
+            "ACCOMPLISHMENTS, CERTIFICATIONS & ACHIEVEMENTS RULES:\n"
+            "- Extract ALL certifications, achievements, awards, and notable non-job-specific accomplishments into the single root 'accomplishments' array.\n"
+            "- Format each entry as a plain, consolidated string description (e.g., 'AWS Certified Solutions Architect - Amazon Web Services (2023)', 'Employee of the Month (Jan 2022)').\n"
+            "- Do NOT create separate objects or nested fields for issuing organizations or dates; combine all relevant details into the single string.\n\n"
             "PROJECT EXTRACTION RULES:\n"
             "- Extract projects from ANY section: experience, education, or separate 'projects' section.\n"
             "- Classify project_type:\n"
@@ -172,7 +180,7 @@ class TOONFormatter:
             "- Extract cgpa/percentage properly\n\n"
             "DATE RULES:\n"
             "- Use YYYY-MM-DD format\n"
-            "- If only year is available → YYYY-01-01\n"
+            "- If only year is available → YYYY-01-01\n\n"
             "RESUME SUMMARY RULES (FOR EMBEDDING):\n"
             "- Generate a single-paragraph resume_summary optimized for semantic search.\n"
             "- Length: 60–120 words.\n"
