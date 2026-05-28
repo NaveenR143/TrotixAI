@@ -765,7 +765,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
           </Grid>
           <Box sx={{ pt: 6, borderTop: "1px solid rgba(255,255,255,0.05)", textAlign: "center" }}>
             <Typography variant="caption" sx={{ opacity: 0.6 }}>
-              © 2026 RightNxt AI. Powered by advanced AI for ambitious professionals.
+              © 2026 RightNxt. Powered by advanced AI for ambitious professionals.
             </Typography>
           </Box>
         </Container>
