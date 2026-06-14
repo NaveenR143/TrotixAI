@@ -9,6 +9,7 @@ from ai.db.database import get_db
 from ai.db.credit_repository import CreditRepository
 from ai.models.credit_models import CreditOperationRequest, CreditResponse, CreditWalletResponse
 from ai.models.orm_models import CreditTxTypeEnum
+from ai.utils.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -56,10 +57,19 @@ class FeatureUsageResponse(BaseModel):
 router = APIRouter(prefix="/credits", tags=["Credits"])
 
 @router.get("/{user_id}", response_model=CreditWalletResponse)
-async def get_wallet_balance(user_id: UUID, db: AsyncSession = Depends(get_db)):
+async def get_wallet_balance(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user)
+):
     """
     Fetch the credit wallet balance for a user.
     """
+    if str(user_id) != current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You can only access your own credit wallet"
+        )
     try:
         wallet = await CreditRepository.get_wallet(user_id, db)
         if not wallet:
@@ -80,11 +90,17 @@ async def get_wallet_balance(user_id: UUID, db: AsyncSession = Depends(get_db)):
 async def add_credits(
     user_id: UUID,
     request: CreditOperationRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user)
 ):
     """
     Add credits to a user's wallet.
     """
+    if str(user_id) != current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You can only add credits to your own wallet"
+        )
     try:
         new_balance = await CreditRepository.add_credits(
             user_id=user_id,
@@ -113,11 +129,17 @@ async def add_credits(
 async def deduct_credits(
     user_id: UUID,
     request: CreditOperationRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user)
 ):
     """
     Deduct credits from a user's wallet.
     """
+    if str(user_id) != current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You can only deduct credits from your own wallet"
+        )
     try:
         # Step 1: Check wallet balance first
         wallet = await CreditRepository.get_wallet(user_id, db)
@@ -175,7 +197,8 @@ async def deduct_credits(
 async def use_ai_feature(
     user_id: UUID,
     request: FeatureUsageRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user)
 ):
     """
     Deduct credits for an AI feature or premium template download.
@@ -189,6 +212,11 @@ async def use_ai_feature(
     Validates wallet existence, checks balance, deducts credits, and returns updated balance.
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden: You can only use features for your own account"
+            )
         # Validate feature name
         feature_name = request.feature.lower().strip()
         if feature_name not in FEATURE_CONFIG:

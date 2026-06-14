@@ -1443,6 +1443,14 @@ class ResumeRepository:
                 )
 
             # -------------------------
+            # Achievements
+            # -------------------------
+            achievements = profile_data.get("achievements", [])
+            if achievements:
+                await self._insert_achievements(user_id, profile_data)
+
+
+            # -------------------------
             # 2. Industry Mappings
             # -------------------------
             if industry_ids:
@@ -1827,7 +1835,7 @@ class ResumeRepository:
         """Extract and insert achievements from profile data."""
         achievements_count = 0
         try:
-            achievements = profile_data.get("achievements", [])
+            achievements = profile_data.get("achievements", []) or profile_data.get("accomplishments", [])
             # Support both list of strings and list of dicts
             for ach in achievements:
                 try:

@@ -19,6 +19,8 @@ import logging
 import random
 
 from ai.api.router import router
+from ai.api.middleware import AuditLogMiddleware
+from ai.utils.auth import get_current_user
 
 # ── Optional deps ─────────────────────────────────────────────────────────────
 try:
@@ -69,6 +71,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(AuditLogMiddleware)
+
 app.include_router(router)
 
 # ── Static mounts ─────────────────────────────────────────────────────────────
@@ -90,7 +94,7 @@ else:
 
 
 @app.get("/test")
-async def test_get():
+async def test_get(current_user_id: str = Depends(get_current_user)):
     """Test GET endpoint."""
     return {
         "status": "success",
@@ -100,7 +104,7 @@ async def test_get():
 
 
 @app.post("/test")
-async def test_post(data: dict = None):
+async def test_post(data: dict = None, current_user_id: str = Depends(get_current_user)):
     """Test POST endpoint."""
     return {
         "status": "success",

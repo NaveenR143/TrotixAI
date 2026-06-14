@@ -270,6 +270,11 @@ async def update_personal_information(
         BlockUpdateResponse with updated profile
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
         logger.info(f"Updating personal information for user: {user_id}")
 
         # Convert Pydantic model to dict, excluding None values
@@ -334,6 +339,11 @@ async def update_work_experience(
         BlockUpdateResponse with updated profile
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
         logger.info(f"Updating work experience for user: {user_id}")
 
         # Convert to dict
@@ -396,6 +406,11 @@ async def update_education(
         BlockUpdateResponse with updated profile
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
         logger.info(f"Updating education for user: {user_id}")
 
         # Convert to dict
@@ -456,6 +471,11 @@ async def update_skills(
         BlockUpdateResponse with updated profile
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
         logger.info(f"Updating skills for user: {user_id}")
 
         if not skills_data.skills:
@@ -512,6 +532,11 @@ async def update_achievement(
         BlockUpdateResponse with updated profile
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
         logger.info(f"Updating achievement for user: {user_id}")
 
         # Convert to dict
@@ -572,6 +597,11 @@ async def delete_achievement(
         BlockUpdateResponse with updated profile
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
         logger.info(
             f"Deleting achievement {achievement_id} for user: {user_id}")
 
@@ -628,6 +658,11 @@ async def update_project(
         BlockUpdateResponse with updated profile
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
         logger.info(f"Updating project for user: {user_id}")
 
         # Convert to dict
@@ -688,6 +723,11 @@ async def update_languages(
         BlockUpdateResponse with updated profile
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
         logger.info(f"Updating languages for user: {user_id}")
 
         if not languages_data.languages:
@@ -734,6 +774,7 @@ async def update_personal_info(
     user_id: UUID,
     update_data: PersonalInformationUpdate,
     session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
 ) -> BlockUpdateResponse:
     """
     Update personal information block of user profile
@@ -747,6 +788,11 @@ async def update_personal_info(
         BlockUpdateResponse with updated profile
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
         print(f"Updating personal information for user: {user_id}")
 
         # Convert Pydantic model to dict, excluding None values
@@ -796,6 +842,7 @@ async def update_profile_summary(
     user_id: UUID,
     update_data: SummaryUpdate,
     session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
 ) -> BlockUpdateResponse:
     """
     Update profile summary block of user profile
@@ -809,6 +856,11 @@ async def update_profile_summary(
         BlockUpdateResponse with updated profile
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
         print(f"Updating profile summary for user: {user_id}")
 
         # Convert Pydantic model to dict, excluding None values
@@ -929,6 +981,7 @@ async def get_skills_dropdown(
     search: str = Query(..., description="Search term for skills"),
     limit: int = Query(100, description="Maximum number of results"),
     session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
 ) -> DropdownResponse:
     """
     Get all available skills for dropdown
@@ -970,6 +1023,7 @@ async def get_languages_dropdown(
     search: str = Query(..., description="Search term for languages"),
     limit: int = Query(100, description="Maximum number of results"),
     session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
 ) -> DropdownResponse:
     """
     Get all available languages for dropdown
@@ -1234,11 +1288,17 @@ async def get_career_advice(
 async def fetch_existing_career_advice(
     user_id: UUID = Query(..., description="User UUID"),
     session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
 ) -> CareerAdvisorSuccessResponse:
     """
     Fetch existing career advice from the database
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only access your own career advice"
+            )
         logger.info(f"Fetching existing career advice for user: {user_id}")
 
         advice_data = await CareerAdvisorService.get_existing_advice(user_id, session)
@@ -1277,11 +1337,17 @@ async def get_skill_development_analysis(
         False, description="Force regenerate recommendations using GPT"
     ),
     session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
 ) -> SkillDevelopmentSuccessResponse:
     """
     Generate personalized skill development recommendations based on industry trends.
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only access your own skill development analysis"
+            )
         logger.info(
             f"Generating skill development analysis for user: {user_id}, force_refresh: {force_refresh}"
         )
@@ -1316,11 +1382,17 @@ async def get_skill_development_analysis(
 async def fetch_existing_skill_analysis(
     user_id: UUID = Query(..., description="User UUID"),
     session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
 ) -> SkillDevelopmentSuccessResponse:
     """
     Fetch existing skill analysis from the database
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only access your own skill analysis"
+            )
         logger.info(f"Fetching existing skill analysis for user: {user_id}")
 
         analysis_data = await CareerAdvisorService.get_existing_skill_analysis(
@@ -1358,11 +1430,17 @@ async def fetch_existing_skill_analysis(
 async def get_ai_usage_status(
     user_id: UUID = Query(..., description="User UUID"),
     session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
 ) -> AIUsageSuccessResponse:
     """
     Get the daily AI usage status for the user.
     """
     try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only access your own AI usage status"
+            )
         resume_repo = ResumeRepository(session)
         usage_data = await resume_repo.get_daily_ai_usage(str(user_id))
 
@@ -1388,6 +1466,7 @@ async def get_ai_usage_status(
 async def enhance_user_resume(
     request: ResumeEnhanceRequest,
     session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
 ) -> ResumeEnhanceSuccessResponse:
     """
     Professionally enhance user resume content using AI.
@@ -1401,6 +1480,11 @@ async def enhance_user_resume(
     """
     try:
         user_id = request.user_id
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only enhance your own resume"
+            )
         logger.info(f"Enhancing resume for user: {user_id}")
 
         resume_repo = ResumeRepository(session)

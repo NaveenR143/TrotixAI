@@ -43,16 +43,22 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 async def get_current_user(request: Request):
     """
-    FastAPI dependency to get the current authenticated user from cookies.
+    FastAPI dependency to get the current authenticated user from cookies or Authorization header.
     """
     token = request.cookies.get("access_token")
     
     if not token:
-        logger.warning(f"Authentication failed: Missing access_token cookie. Available cookies: {list(request.cookies.keys())}")
+        # Check Authorization header if cookie not present
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+            
+    if not token:
+        logger.warning("Authentication failed: Missing access_token cookie and Authorization header.")
         raise HTTPException(
             status_code=401,
             detail="Authentication required",
-            headers={"WWW-Authenticate": "Cookie"},
+            headers={"WWW-Authenticate": "Bearer"},
         )
     
     try:

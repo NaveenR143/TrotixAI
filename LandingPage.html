@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RightNxt AI - The Smarter Way to Get Hired</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #2563EB;
+            --primary-purple: #7C3AED;
+            --accent-cyan: #22D3EE;
+            --light-bg: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --dark-grey: #111827;
+            --secondary-grey: #6B7280;
+            --border-color: #E5E7EB;
+            --success-green: #10B981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            color: var(--dark-grey);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+            color: #FFF;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1D4ED8 0%, #6D28D9 100%);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            display: block;
+            width: 100%;
+            background: transparent;
+            border: 1.5px solid var(--primary-blue);
+            color: var(--primary-blue);
+            border-radius: 16px;
+            padding: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .btn-outline:hover {
+            background: rgba(37, 99, 235, 0.05);
+            border-color: #1D4ED8;
+            color: #1D4ED8;
+        }
+
+        /* Utility Classes */
+        .glass-box {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 20px;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .gap-2 {
+            gap: 8px;
+        }
+
+        .gap-3 {
+            gap: 12px;
+        }
+
+        .gap-4 {
+            gap: 16px;
+        }
+
+        .gap-6 {
+            gap: 24px;
+        }
+
+        /* Layout Grids */
+        .grid {
+            display: grid;
+        }
+
+        .grid-cols-1 {
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 768px) {
+            h1 {
+                font-size: 4.4rem;
+            }
+
+            h2 {
+                font-size: 2.75rem;
+            }
+
+            .md-grid-cols-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .md-grid-cols-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .md-grid-7-5 {
+                grid-template-columns: 7fr 5fr;
+            }
+
+            .md-grid-5-7 {
+                grid-template-columns: 5fr 7fr;
+            }
+        }
+
+        /* Header & Navigation */
+        .header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 24px 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 99;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--dark-grey);
+            letter-spacing: -0.02em;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 767px) {
+            .header {
+                padding: 16px 20px;
+            }
+
+            .header .btn-primary {
+                font-size: 0.7rem;
+                padding: 8px 12px;
+            }
+        }
+
+        /* Hero Section */
+        .hero-section {
+            padding: 140px 0 120px;
+            position: relative;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.1), transparent 25%),
+                radial-gradient(circle at 80% 20%, rgba(124, 58, 237, 0.1), transparent 22%);
+            z-index: 0;
+        }
+
+        .action-card-container {
+            position: relative;
+        }
+
+        .action-card-blur-1 {
+            position: absolute;
+            top: -40px;
+            left: -40px;
+            width: 120px;
+            height: 120px;
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 50%;
+            filter: blur(40px);
+            z-index: 0;
+        }
+
+        .action-card-blur-2 {
+            position: absolute;
+            bottom: -40px;
+            right: -40px;
+            width: 160px;
+            height: 160px;
+            background: rgba(124, 58, 237, 0.1);
+            border-radius: 50%;
+            filter: blur(50px);
+            z-index: 0;
+        }
+
+        .action-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Animations */
+        @keyframes floaty {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes pulseRing {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        @keyframes scanBar {
+            0% {
+                top: 0;
+                height: 0;
+                opacity: 1;
+            }
+
+            50% {
+                top: 100%;
+                height: 2px;
+                opacity: 0.5;
+            }
+
+            100% {
+                top: 0;
+                height: 0;
+                opacity: 0;
+            }
+        }
+
+        /* Sections Shared */
+        section {
+            padding: 80px 0;
+        }
+
+        .bg-white {
+            background-color: #FFF;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <a href="/" class="logo-container">
+            <img src="https://www.image2url.com/r2/default/images/1780929103585-c687a9d4-06dd-4d39-bcb3-9a5b750455f1.png"
+                alt="RightNxt AI" style="height:45px; width:auto;">
+        </a>
+
+    </header>
+
+    <section class="hero-section">
+        <div class="hero-bg"></div>
+        <div class="container">
+            <div class="grid grid-cols-1 md-grid-7-5" style="gap: 64px; align-items: center;">
+
+                <div>
+                    <div
+                        style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 50px; border: 1px solid rgba(37,99,235,0.2); background: rgba(37,99,235,0.05); margin-bottom: 24px;">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary-blue);">
+                        </div>
+                        <span
+                            style="font-size: 0.75rem; font-weight: 700; color: var(--primary-blue); text-transform: uppercase; letter-spacing: 0.05em;">AI-powered
+                            job matching for modern careers</span>
+                    </div>
+
+                    <h1>The Smarter Way to <br /> <span class="gradient-text">Get Hired.</span></h1>
+
+                    <p style="font-size: 1.15rem; color: var(--secondary-grey); margin-bottom: 40px; max-width: 540px;">
+                        Build your smart profile, let our AI instantly match you with the right jobs, and uncover the
+                        exact skills that will help you land interviews faster.
+                    </p>
+
+                    <div class="grid grid-cols-1"
+                        style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 48px;">
+                        <div class="glass-box" style="padding: 16px;">
+                            <div
+                                style="width: 40px; height: 40px; border-radius: 12px; background: rgba(37,99,235,0.1); color: var(--primary-blue); display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                                <i class="fa-solid fa-file-lines"></i>
+                            </div>
+                            <h4 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 4px;">Free Resume Builder
+                            </h4>
+                            <p style="font-size: 0.75rem; color: var(--secondary-grey);">Polished templates with guided
+                                content.</p>
+                        </div>
+                        <div class="glass-box" style="padding: 16px;">
+                            <div
+                                style="width: 40px; height: 40px; border-radius: 12px; background: rgba(37,99,235,0.1); color: var(--primary-blue); display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </div>
+                            <h4 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 4px;">Instant AI Matching
+                            </h4>
+                            <p style="font-size: 0.75rem; color: var(--secondary-grey);">Smart recommendations from your
+                                profile.</p>
+                        </div>
+                        <div class="glass-box" style="padding: 16px;">
+                            <div
+                                style="width: 40px; height: 40px; border-radius: 12px; background: rgba(37,99,235,0.1); color: var(--primary-blue); display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                                <i class="fa-solid fa-magnifying-glass-chart"></i>
+                            </div>
+                            <h4 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 4px;">Skill Gap Analysis
+                            </h4>
+                            <p style="font-size: 0.75rem; color: var(--secondary-grey);">Know what to improve before
+                                applying.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-card-container">
+                    <div class="action-card-blur-1"></div>
+                    <div class="action-card-blur-2"></div>
+
+                    <div class="glass-box" style="padding: 8px; position: relative; z-index: 1;">
+                        <div class="action-card">
+                            <div class="flex items-center justify-between"
+                                style="padding: 16px 24px; border-bottom: 1px solid #F1F5F9;">
+                                <div class="flex gap-2">
+                                    <div style="width:10px; height:10px; border-radius:50%; background:#FF5F56;"></div>
+                                    <div style="width:10px; height:10px; border-radius:50%; background:#FFBD2E;"></div>
+                                    <div style="width:10px; height:10px; border-radius:50%; background:#27C93F;"></div>
+                                </div>
+                                <div
+                                    style="background: #F1F5F9; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 16px; display: flex; align-items: center; gap: 4px;">
+                                    <i class="fa-solid fa-shield-halved" style="color: var(--primary-blue);"></i> ATS
+                                    Score 92
+                                </div>
+                            </div>
+
+                            <div style="padding: 32px;">
+
+                                <div style="text-align: center; margin-bottom: 24px;">
+                                    <div
+                                        style="width: 64px; height: 64px; border-radius: 50%; background: rgba(37,99,235,0.05); color: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 16px; border: 1px solid rgba(37,99,235,0.1);">
+                                        <i class="fa-solid fa-user-astronaut"></i>
+                                    </div>
+                                    <h3 style="font-weight: 800; font-size: 1.25rem; margin-bottom: 8px;">Launch Your
+                                        Career</h3>
+                                    <p style="font-size: 0.875rem; color: var(--secondary-grey);">Create your AI-powered
+                                        profile in minutes to get matched with top employers instantly.</p>
+                                </div>
+
+
+
+                                <div style="display: flex; flex-direction: column; gap: 16px;">
+                                    <div
+                                        style="padding: 16px; border-radius: 16px; background: #F8FAFC; border: 1px solid #E2E8F0; display: flex; align-items: center; gap: 16px;">
+                                        <div
+                                            style="width: 40px; height: 40px; border-radius: 12px; background: #ECFDF5; color: var(--success-green); display: flex; align-items: center; justify-content: center;">
+                                            <i class="fa-solid fa-check"></i>
+                                        </div>
+                                        <div>
+                                            <h4 style="font-size: 0.875rem; font-weight: 700;">ATS Friendly</h4>
+                                            <p style="font-size: 0.75rem; color: var(--secondary-grey);">Keyword
+                                                coverage improved</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2" style="gap: 16px;">
+                                        <div class="glass-box"
+                                            style="padding: 16px; animation: floaty 7s ease-in-out infinite;">
+                                            <span
+                                                style="font-size: 0.75rem; color: var(--secondary-grey); font-weight: 600;">Match
+                                                Score</span>
+                                            <div class="flex items-center gap-2"
+                                                style="margin-top: 8px; align-items: flex-end;">
+                                                <span
+                                                    style="font-size: 1.5rem; font-weight: 800; line-height: 1;">94%</span>
+                                                <span
+                                                    style="font-size: 0.75rem; color: var(--success-green); font-weight: 700;">+12%</span>
+                                            </div>
+                                        </div>
+                                        <div class="glass-box"
+                                            style="padding: 16px; animation: floaty 8.5s ease-in-out infinite 0.7s;">
+                                            <span
+                                                style="font-size: 0.75rem; color: var(--secondary-grey); font-weight: 600;">AI
+                                                Actions</span>
+                                            <div
+                                                style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+                                                <div
+                                                    style="height: 4px; border-radius: 2px; background: #E2E8F0; overflow: hidden;">
+                                                    <div
+                                                        style="width: 80%; height: 100%; background: linear-gradient(90deg, #2563EB, #7C3AED);">
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    style="height: 4px; border-radius: 2px; background: #E2E8F0; overflow: hidden;">
+                                                    <div
+                                                        style="width: 60%; height: 100%; background: linear-gradient(90deg, #3B82F6, #2DD4BF);">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div
+                            style="position: absolute; bottom: 20px; left: -20px; padding: 12px 24px; border-radius: 16px; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; animation: pulseRing 2.6s ease-in-out infinite;">
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--success-green);">
+                            </div>
+                            <span style="font-size: 0.75rem; font-weight: 700; color: #1E293B;">AI scanning career
+                                fit...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-white">
+        <div class="container">
+            <div style="margin-bottom: 64px;">
+                <h2>Find Your Dream Job in Just 2 Simple Steps</h2>
+                <p style="font-size: 1.1rem; color: var(--secondary-grey); font-weight: 500;">Fast. Smart. Personalized.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md-grid-cols-2" style="gap: 32px;">
+                <div class="glass-box" style="padding: 32px; background: #F8FAFC; border-color: #F1F5F9;">
+                    <div class="flex gap-4" style="margin-bottom: 32px;">
+                        <div
+                            style="width: 48px; height: 48px; border-radius: 16px; background: linear-gradient(135deg, #2563EB, #0EA5E9); color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fa-solid fa-address-card" style="font-size: 1.2rem;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">1. Build Your Profile
+                            </h3>
+                            <p style="font-size: 0.875rem; color: var(--secondary-grey);">Start by detailing your
+                                experience and skills. Our AI extracts and structures everything to create a clean,
+                                searchable career profile instantly.</p>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: white; border-radius: 20px; padding: 24px; border: 1px solid var(--border-color);">
+                        <div class="grid grid-cols-2" style="align-items: center; gap: 24px;">
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <div style="height: 8px; width: 80%; background: #F1F5F9; border-radius: 4px;"></div>
+                                <div style="height: 8px; width: 100%; background: #F1F5F9; border-radius: 4px;"></div>
+                                <div style="height: 8px; width: 60%; background: #F1F5F9; border-radius: 4px;"></div>
+                                <div
+                                    style="margin-top: 16px; height: 60px; width: 100%; border-radius: 12px; background: linear-gradient(135deg, #EFF6FF, #F5F3FF);">
+                                </div>
+                            </div>
+                            <div
+                                style="text-align: center; padding: 16px; border-radius: 16px; border: 1px dashed var(--primary-blue); background: rgba(37, 99, 235, 0.02);">
+                                <i class="fa-solid fa-file-lines"
+                                    style="color: var(--primary-blue); font-size: 2rem; margin-bottom: 8px;"></i>
+                                <span style="font-size: 0.75rem; font-weight: 700; display: block;">Parsing...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-box" style="padding: 32px; background: #F8FAFC; border-color: #F1F5F9;">
+                    <div class="flex gap-4" style="margin-bottom: 32px;">
+                        <div
+                            style="width: 48px; height: 48px; border-radius: 16px; background: linear-gradient(135deg, #7C3AED, #D946EF); color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fa-solid fa-briefcase" style="font-size: 1.2rem;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">2. Find Jobs with AI +
+                                ATS Score</h3>
+                            <p style="font-size: 0.875rem; color: var(--secondary-grey);">See ranked roles with match
+                                percentages, ATS score indicators, and job cards tailored to your strengths and goals.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2" style="gap: 16px; height: 130px;">
+                        <div
+                            style="background: white; border-radius: 20px; padding: 20px; border: 1px solid var(--border-color);">
+                            <span style="font-size: 0.75rem; font-weight: 800; display: block; margin-bottom: 16px;">AI
+                                Matching</span>
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <div>
+                                    <div class="flex justify-between" style="margin-bottom: 4px;">
+                                        <span
+                                            style="font-size: 10px; font-weight: 700; color: var(--secondary-grey);">Designer</span>
+                                        <span
+                                            style="font-size: 10px; font-weight: 800; color: var(--dark-grey);">96%</span>
+                                    </div>
+                                    <div
+                                        style="height: 4px; background: #F1F5F9; border-radius: 4px; overflow: hidden;">
+                                        <div
+                                            style="width: 96%; height: 100%; background: linear-gradient(90deg, #2563EB, #7C3AED);">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between" style="margin-bottom: 4px;">
+                                        <span
+                                            style="font-size: 10px; font-weight: 700; color: var(--secondary-grey);">Writer</span>
+                                        <span
+                                            style="font-size: 10px; font-weight: 800; color: var(--dark-grey);">89%</span>
+                                    </div>
+                                    <div
+                                        style="height: 4px; background: #F1F5F9; border-radius: 4px; overflow: hidden;">
+                                        <div
+                                            style="width: 89%; height: 100%; background: linear-gradient(90deg, #2563EB, #7C3AED);">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            style="background: white; border-radius: 20px; padding: 20px; border: 1px solid var(--border-color); text-align: center;">
+                            <span style="font-size: 0.75rem; font-weight: 800; display: block; margin-bottom: 8px;">ATS
+                                Score</span>
+                            <div
+                                style="position: relative; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+                                <div
+                                    style="width: 60px; height: 60px; border-radius: 50%; border: 6px solid #F1F5F9; display: flex; align-items: center; justify-content: center;">
+                                    <span style="font-weight: 900; font-size: 1rem;">92</span>
+                                </div>
+                                <div
+                                    style="position: absolute; inset: 0; border-radius: 50%; border: 6px solid transparent; border-top-color: var(--primary-blue); border-right-color: var(--primary-purple); transform: rotate(50deg);">
+                                </div>
+                            </div>
+                            <div class="flex justify-center gap-2">
+                                <span
+                                    style="padding: 4px 8px; background: #F8FAFC; border-radius: 4px; font-size: 8px; font-weight: 700;">Keywords</span>
+                                <span
+                                    style="padding: 4px 8px; background: #F8FAFC; border-radius: 4px; font-size: 8px; font-weight: 700;">Format</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section style="position: relative;">
+        <div class="container">
+            <div class="grid grid-cols-1 md-grid-cols-2" style="gap: 64px; align-items: center;">
+
+                <div style="order: 2;">
+                    <div class="glass-box" style="padding: 24px; position: relative;">
+                        <div style="border-radius: 20px; overflow: hidden; margin-bottom: 24px;">
+                            <img src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&q=80&w=800"
+                                alt="Resume" style="width: 100%; height: 300px; object-fit: cover; display: block;">
+                        </div>
+                        <div class="grid grid-cols-2" style="gap: 16px;">
+                            <div
+                                style="padding: 16px; border-radius: 16px; border: 1px solid #FECACA; background: #FEF2F2;">
+                                <span
+                                    style="font-size: 0.75rem; font-weight: 800; color: #EF4444; text-transform: uppercase; margin-bottom: 8px; display: block;">Before</span>
+                                <p style="color: #7F1D1D; font-size: 0.8rem;">Generic formatting, low visibility.</p>
+                            </div>
+                            <div
+                                style="padding: 16px; border-radius: 16px; border: 1px solid #A7F3D0; background: #F0FDF4;">
+                                <span
+                                    style="font-size: 0.75rem; font-weight: 800; color: var(--success-green); text-transform: uppercase; margin-bottom: 8px; display: block;">After</span>
+                                <p style="color: #064E3B; font-size: 0.8rem;">ATS-optimized, 3x more views.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="order: 1;">
+                    <h2 style="margin-bottom: 24px;">Applying to Jobs… But Never Hearing Back?</h2>
+                    <p style="color: var(--secondary-grey); font-size: 1.1rem; margin-bottom: 32px;">
+                        Most resumes are filtered by ATS before a recruiter ever sees them. Our AI ensures your profile
+                        is structured and keyword-optimized for maximum visibility.
+                    </p>
+
+                    <div style="display: flex; flex-direction: column; gap: 24px;">
+                        <div class="glass-box flex gap-4"
+                            style="padding: 24px; background: white; transition: all 0.3s ease;">
+                            <div
+                                style="width: 44px; height: 44px; border-radius: 12px; background: rgba(37,99,235,0.1); color: var(--primary-blue); font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                1</div>
+                            <div>
+                                <h4 style="font-size: 1rem; font-weight: 800; margin-bottom: 4px;">Start Your Profile
+                                </h4>
+                                <p style="font-size: 0.875rem; color: var(--secondary-grey);">Input your current
+                                    experience and analyze the starting point.</p>
+                            </div>
+                        </div>
+                        <div class="glass-box flex gap-4"
+                            style="padding: 24px; background: white; transition: all 0.3s ease;">
+                            <div
+                                style="width: 44px; height: 44px; border-radius: 12px; background: rgba(124,58,237,0.1); color: var(--primary-purple); font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                2</div>
+                            <div>
+                                <h4 style="font-size: 1rem; font-weight: 800; margin-bottom: 4px;">Enhance with AI</h4>
+                                <p style="font-size: 0.875rem; color: var(--secondary-grey);">Improve clarity,
+                                    formatting, keywords, and achievement language.</p>
+                            </div>
+                        </div>
+                        <div class="glass-box flex gap-4"
+                            style="padding: 24px; background: white; transition: all 0.3s ease;">
+                            <div
+                                style="width: 44px; height: 44px; border-radius: 12px; background: rgba(14,165,233,0.1); color: #0EA5E9; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                3</div>
+                            <div>
+                                <h4 style="font-size: 1rem; font-weight: 800; margin-bottom: 4px;">Generate Optimized
+                                    PDF</h4>
+                                <p style="font-size: 0.875rem; color: var(--secondary-grey);">Download a polished
+                                    version ready for submission.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-white">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 80px;">
+                <h2 style="font-size: 3.5rem;">Premium tools built to move your career forward</h2>
+                <p style="font-size: 1.15rem; color: var(--secondary-grey); max-width: 720px; margin: 0 auto;">
+                    A focused set of AI features designed to help professionals build stronger resumes, find better
+                    jobs, and understand exactly how to improve.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md-grid-cols-3" style="gap: 24px; margin-bottom: 24px;">
+
+                <div class="glass-box" style="padding: 32px; transition: all 0.3s ease; cursor: pointer;">
+                    <div
+                        style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #10B981, #059669); color: white; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                        <i class="fa-solid fa-file-pen" style="font-size: 1.75rem;"></i>
+                    </div>
+                    <h4 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 12px;">Cover Letter Gen</h4>
+                    <p style="font-size: 0.875rem; color: var(--secondary-grey);">Instantly generate targeted cover
+                        letters that match the job description and your unique tone.</p>
+                </div>
+
+                <div class="glass-box" style="padding: 32px; transition: all 0.3s ease; cursor: pointer;">
+                    <div
+                        style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #F59E0B, #D97706); color: white; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                        <i class="fa-solid fa-bullseye" style="font-size: 1.75rem;"></i>
+                    </div>
+                    <h4 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 12px;">Career Mapping</h4>
+                    <p style="font-size: 0.875rem; color: var(--secondary-grey);">Visualize your progression path and
+                        see exactly what roles you are qualified for next.</p>
+                </div>
+
+                <div class="glass-box" style="padding: 32px; transition: all 0.3s ease; cursor: pointer;">
+                    <div
+                        style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #EC4899, #BE185D); color: white; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                        <i class="fa-solid fa-comments" style="font-size: 1.75rem;"></i>
+                    </div>
+                    <h4 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 12px;">Mock Interviews</h4>
+                    <p style="font-size: 0.875rem; color: var(--secondary-grey);">Practice with our conversational AI
+                        recruiter to perfect your elevator pitch and behavioral answers.</p>
+                </div>
+            </div>
+
+            <div class="glass-box"
+                style="padding: 48px; background: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(239, 246, 255, 0.8) 100%);">
+                <div class="grid grid-cols-1 md-grid-7-5" style="gap: 48px; align-items: center;">
+                    <div>
+                        <div
+                            style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple)); color: white; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                            <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 1.75rem;"></i>
+                        </div>
+                        <h3 style="font-size: 2rem; font-weight: 800; margin-bottom: 16px;">AI Resume Enhancement</h3>
+                        <p style="color: var(--secondary-grey); font-size: 1.1rem; margin-bottom: 32px;">
+                            Rewrite bullet points, sharpen summaries, and elevate your profile with polished,
+                            recruiter-friendly language using our fine-tuned LLMs.
+                        </p>
+                        <div class="flex gap-4">
+                            <div
+                                style="padding: 16px; border-radius: 16px; background: white; border: 1px solid var(--border-color); flex: 1;">
+                                <span
+                                    style="font-size: 0.75rem; color: var(--secondary-grey); font-weight: 600;">Clarity</span>
+                                <h4 style="font-size: 1rem; font-weight: 800;">Better</h4>
+                            </div>
+                            <div
+                                style="padding: 16px; border-radius: 16px; background: white; border: 1px solid var(--border-color); flex: 1;">
+                                <span
+                                    style="font-size: 0.75rem; color: var(--secondary-grey); font-weight: 600;">Impact</span>
+                                <h4 style="font-size: 1rem; font-weight: 800;">Stronger</h4>
+                            </div>
+                            <div
+                                style="padding: 16px; border-radius: 16px; background: white; border: 1px solid var(--border-color); flex: 1;">
+                                <span
+                                    style="font-size: 0.75rem; color: var(--secondary-grey); font-weight: 600;">Response</span>
+                                <h4 style="font-size: 1rem; font-weight: 800;">Higher</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div
+                            style="padding: 32px; border-radius: 24px; background: white; border: 1px solid var(--border-color); position: relative; overflow: hidden;">
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <div style="height: 12px; width: 40%; background: #F1F5F9; border-radius: 4px;"></div>
+                                <div style="height: 12px; width: 90%; background: #F1F5F9; border-radius: 4px;"></div>
+                                <div style="height: 12px; width: 75%; background: #F1F5F9; border-radius: 4px;"></div>
+                                <div
+                                    style="height: 40px; width: 100%; border-radius: 12px; border: 1px dashed var(--primary-blue); margin-top: 16px; display: flex; align-items: center; justify-content: center;">
+                                    <span
+                                        style="font-size: 0.75rem; font-weight: 800; color: var(--primary-blue);">Optimizing
+                                        with AI...</span>
+                                </div>
+                            </div>
+                            <div
+                                style="position: absolute; inset: 0; border: 2px solid transparent; border-top-color: var(--primary-blue); animation: scanBar 3s infinite;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section style="background: #F8FAFC; border-top: 1px solid #F1F5F9; padding: 96px 0;">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 64px;">
+                <h2 style="font-weight: 900;">Trusted by thousands of ambitious professionals.</h2>
+            </div>
+            <div class="grid grid-cols-1 md-grid-cols-3" style="gap: 32px; max-width: 900px; margin: 0 auto;">
+
+                <div class="glass-box" style="padding: 32px; text-align: center; background: white;">
+                    <div
+                        style="margin: 0 auto 16px; width: 64px; height: 64px; border-radius: 50%; background: #F8FAFC; color: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <h3 style="font-size: 2rem; font-weight: 900; margin-bottom: 4px;">50K+</h3>
+                    <p style="font-size: 0.875rem; color: var(--secondary-grey); font-weight: 600;">Candidates</p>
+                </div>
+
+                <div class="glass-box" style="padding: 32px; text-align: center; background: white;">
+                    <div
+                        style="margin: 0 auto 16px; width: 64px; height: 64px; border-radius: 50%; background: #F8FAFC; color: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                        <i class="fa-solid fa-arrow-trend-up"></i>
+                    </div>
+                    <h3 style="font-size: 2rem; font-weight: 900; margin-bottom: 4px;">98%</h3>
+                    <p style="font-size: 0.875rem; color: var(--secondary-grey); font-weight: 600;">ATS Precision</p>
+                </div>
+
+                <div class="glass-box" style="padding: 32px; text-align: center; background: white;">
+                    <div
+                        style="margin: 0 auto 16px; width: 64px; height: 64px; border-radius: 50%; background: #F8FAFC; color: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                        <i class="fa-solid fa-rocket"></i>
+                    </div>
+                    <h3 style="font-size: 2rem; font-weight: 900; margin-bottom: 4px;">Real-time</h3>
+                    <p style="font-size: 0.875rem; color: var(--secondary-grey); font-weight: 600;">AI Insights</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <footer style="background: #0F172A; color: #94A3B8; padding: 80px 0 48px;">
+        <div class="container">
+            <div class="grid grid-cols-1 md-grid-5-7" style="gap: 64px; margin-bottom: 64px;">
+
+                <div>
+                    <div style="display: flex; flex-direction: column; gap: 32px;">
+                        <div class="flex items-center gap-4">
+                            <div
+                                style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple)); color: white; display: flex; align-items: center; justify-content: center;">
+                                <i class="fa-solid fa-sparkles"></i>
+                            </div>
+                            <div>
+                                <h4 style="color: white; font-weight: 800; letter-spacing: -0.02em;">RightNxt AI</h4>
+                                <p style="font-size: 0.75rem;">Career intelligence platform</p>
+                            </div>
+                        </div>
+                        <p style="line-height: 1.6; max-width: 360px;">
+                            Modern AI tools to help professionals build stronger applications, discover better-fit jobs,
+                            and get hired faster.
+                        </p>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="grid grid-cols-2 md-grid-cols-3" style="gap: 32px;">
+                        <div>
+                            <h4 style="color: white; font-weight: 700; font-size: 0.875rem; margin-bottom: 24px;">
+                                Product</h4>
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <a href="#" style="color: #94A3B8; font-size: 0.875rem;">Resume Builder</a>
+                                <a href="#" style="color: #94A3B8; font-size: 0.875rem;">Job Matching</a>
+                                <a href="#" style="color: #94A3B8; font-size: 0.875rem;">ATS Scoring</a>
+                                <a href="#" style="color: #94A3B8; font-size: 0.875rem;">Skill Gap</a>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="color: white; font-weight: 700; font-size: 0.875rem; margin-bottom: 24px;">
+                                Company</h4>
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <a href="#" style="color: #94A3B8; font-size: 0.875rem;">About Us</a>
+                                <a href="#" style="color: #94A3B8; font-size: 0.875rem;">Privacy Policy</a>
+                                <a href="#" style="color: #94A3B8; font-size: 0.875rem;">Terms of Service</a>
+                                <a href="#" style="color: #94A3B8; font-size: 0.875rem;">Contact : nr@rightnxt.com</a>
+                            </div>
+                        </div>
+                        <div style="grid-column: span 2; @media(min-width: 768px) { grid-column: span 1; }">
+                            <h4 style="color: white; font-weight: 700; font-size: 0.875rem; margin-bottom: 24px;">Follow
+                                Us</h4>
+                            <div class="flex gap-4">
+                                <a href="https://www.linkedin.com/company/rightnxt"
+                                    style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); color: #94A3B8; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                                    <i class="fa-brands fa-linkedin-in"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="padding-top: 48px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <span style="font-size: 0.75rem; opacity: 0.6;">© 2026 RightNxt. Powered by advanced AI for ambitious
+                    professionals.</span>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>

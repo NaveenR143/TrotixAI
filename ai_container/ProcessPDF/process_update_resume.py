@@ -26,7 +26,7 @@ class FileValidationError(Exception):
 
 class UpdateResumeHandler:
     MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
-    CONTAINER_NAME = "trotixai"
+    CONTAINER_NAME = "rightnxtstorage"
 
     def __init__(self, resume_id: int = None, user_id: str = None):
         self.user_id = str(user_id) if user_id is not None else None

@@ -48,6 +48,7 @@ async def list_govt_jobs(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
 ):
     """
     Public endpoint to fetch government jobs.
@@ -87,7 +88,11 @@ async def list_govt_jobs(
 
 
 @router.get("/govt-jobs/{job_id}")
-async def get_govt_job_details(job_id: int, db: AsyncSession = Depends(get_db)):
+async def get_govt_job_details(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
     """
     Protected endpoint to fetch complete details of a specific government job.
     Requires authentication.
@@ -242,7 +247,10 @@ async def fetch_recruiter_posted_jobs(
 
 
 @router.get("/metadata", response_model=JobMetadataResponse)
-async def get_job_metadata(db: AsyncSession = Depends(get_db)):
+async def get_job_metadata(
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
     """Fetch metadata for job posting dropdowns"""
     try:
         # Fetch industries
@@ -567,7 +575,11 @@ async def tailoring_job_email(
 
 
 @router.get("/{job_id}")
-async def get_job_by_id(job_id: int, db: AsyncSession = Depends(get_db)):
+async def get_job_by_id(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
     """
     Fetch complete job details for a specific job ID.
     This endpoint is public and does not require authentication.

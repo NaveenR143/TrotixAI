@@ -35,7 +35,10 @@ MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 
 
 @router.post("/test-upload")
-async def test_upload(file: UploadFile = File(...)):
+async def test_upload(
+    file: UploadFile = File(...),
+    current_user_id: str = Depends(get_current_user),
+):
     """
     Simple test endpoint to verify file upload is working.
     """

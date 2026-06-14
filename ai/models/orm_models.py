@@ -1009,3 +1009,24 @@ class CreditTransaction(Base):
     # Relationships
     user = relationship("User", backref="credit_transactions")
     wallet = relationship("CreditWallet", back_populates="transactions")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# API Audit Log Table
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class ApiAuditLog(Base):
+    __tablename__ = "api_audit_log"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(UUID(as_uuid=True), nullable=True)
+    method = Column(String(10), nullable=False)
+    endpoint = Column(Text, nullable=False)
+    query_params = Column(Text, nullable=True)
+    request_body = Column(Text, nullable=True)
+    response_status = Column(Integer, nullable=True)
+    response_time_ms = Column(Integer, nullable=True)
+    error_message = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+

@@ -33,7 +33,7 @@ class ResumeEnhancerService:
         self._endpoint = endpoint or os.getenv("AZURE_OPENAI_ENDPOINT", "")
         self._api_key = api_key or os.getenv("AZURE_OPENAI_API_KEY", "")
         self._api_version = api_version or os.getenv(
-            "AZURE_OPENAI_API_VERSION", "2024-06-01"
+            "AZURE_OPENAI_API_VERSION", "2025-04-14"
         )
         self._deployment = deployment or os.getenv("AZURE_OPENAI_DEPLOYMENT", "")
         self._formatter = TOONFormatter()

@@ -16,9 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 try:
-    from openai import AzureOpenAI  # type: ignore
+    from openai import AzureOpenAI, OpenAI  # type: ignore
 except Exception:  # pragma: no cover
     AzureOpenAI = None  # type: ignore
+    OpenAI = None  # type: ignore
 
 load_dotenv()
 
@@ -36,7 +37,7 @@ class AzureOpenAIResumeRefiner:
         self._endpoint = endpoint or os.getenv("AZURE_OPENAI_ENDPOINT", "")
         self._api_key = api_key or os.getenv("AZURE_OPENAI_API_KEY", "")
         self._api_version = api_version or os.getenv(
-            "AZURE_OPENAI_API_VERSION", "2024-06-01"
+            "AZURE_OPENAI_API_VERSION", "2025-04-14"
         )
         self._deployment = deployment or os.getenv(
             "AZURE_OPENAI_DEPLOYMENT", "")
@@ -53,10 +54,15 @@ class AzureOpenAIResumeRefiner:
                 "`openai` package is required for Azure OpenAI calls."
             )
 
-        self._client = AzureOpenAI(
-            azure_endpoint=self._endpoint,
+        # self._client = AzureOpenAI(
+        #     azure_endpoint=self._endpoint,
+        #     api_key=self._api_key,
+        #     api_version=self._api_version,
+        # )
+
+        self._client = OpenAI(
+            base_url=self._endpoint,
             api_key=self._api_key,
-            api_version=self._api_version,
         )
 
     async def generate_career_advice(

@@ -22,7 +22,7 @@ class AzureStorageService:
 
     def __init__(self):
         self.connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
-        self.container_name = os.getenv("AZURE_CONTAINER_NAME", "trotixai")
+        self.container_name = os.getenv("AZURE_CONTAINER_NAME", "rightnxtstorage")
         self.blob_tier = "cool"
 
         if not self.connection_string:
@@ -84,6 +84,7 @@ class AzureStorageService:
             upload_kwargs = {
                 "overwrite": True,
             }
+            
             if blob_tier:
                 upload_kwargs["standard_blob_tier"] = blob_tier
 

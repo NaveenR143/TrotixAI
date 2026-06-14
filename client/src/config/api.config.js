@@ -10,6 +10,8 @@
 // ─── Base URL Configuration ────────────────────────────────────────────────────
 const API_BASE_URL = 'http://localhost:8000';
 // const API_BASE_URL = 'http://192.168.1.7:8000';
+// const API_BASE_URL = 'https://rightnxtapp-ffc6ekb2erescebx.centralindia-01.azurewebsites.net';
+// const API_BASE_URL = 'https://rightnxtapp-ffc6ekb2erescebx.centralindia-01.azurewebsites.net';
 
 // ─── API Endpoints ────────────────────────────────────────────────────────────
 const API_ENDPOINTS = {

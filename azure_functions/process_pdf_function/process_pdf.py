@@ -18,7 +18,7 @@ class FileValidationError(Exception):
 
 class ProcessPDFHandler:
     MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
-    CONTAINER_NAME = "trotixai"
+    CONTAINER_NAME = "rightnxtstorage"
 
     def __init__(self, blob_url: str = None, blob_name: str = None):
         self.blob_url = blob_url

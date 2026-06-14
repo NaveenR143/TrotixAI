@@ -341,6 +341,45 @@ class ResumeProcessor:
             # Merge the two dicts
             merged_data = {**profile_dict, **deterministic_dict}
 
+            # Merge achievements, accomplishments, certifications, or similar details if present
+            achievements_list = []
+            keys_to_merge = []
+            for key in list(merged_data.keys()):
+                key_lower = key.lower()
+                if any(term in key_lower for term in ["achiev", "accomplish", "certif", "award", "honor", "courses", "training"]):
+                    keys_to_merge.append(key)
+            
+            for key in keys_to_merge:
+                val = merged_data.get(key)
+                if not val:
+                    continue
+                if isinstance(val, list):
+                    for item in val:
+                        if not item:
+                            continue
+                        if isinstance(item, dict):
+                            if "achievement" not in item:
+                                for k in ["title", "name", "certification", "accomplishment", "value"]:
+                                    if k in item:
+                                        item["achievement"] = item[k]
+                                        break
+                        if item not in achievements_list:
+                            achievements_list.append(item)
+                else:
+                    if val:
+                        if isinstance(val, dict):
+                            if "achievement" not in val:
+                                for k in ["title", "name", "certification", "accomplishment", "value"]:
+                                    if k in val:
+                                        val["achievement"] = val[k]
+                                        break
+                        if val not in achievements_list:
+                            achievements_list.append(val)
+                if key != "achievements":
+                    merged_data.pop(key, None)
+            
+            merged_data["achievements"] = achievements_list
+
             # Optional: if you want to keep the UUID mapping as well
             # merged_data = {"profile": merged_data, "uuids": {k.hex: v.hex for k, v in profile.items() if isinstance(k, UUID)}}
 
