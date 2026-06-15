@@ -150,7 +150,15 @@ const SkillsSection = ({ userId, profile, initialSkills, onSuccess, enhancedData
             startIcon={isEditing ? <CancelIcon /> : <EditIcon />}
             onClick={isEditing ? handleCancel : handleEditClick}
             disabled={loading}
-            sx={{ color: isEditing ? "#ef4444" : "#6366f1" }}
+            sx={{
+              color: isEditing ? "#ef4444" : "#6366f1",
+              textTransform: "none",
+              "&.Mui-disabled": {
+                color: "#cfcfcfff",
+                backgroundColor: "#cdcbcbff",
+                opacity: 0.8,
+              },
+            }}
           >
             {isEditing ? "Cancel" : "Edit"}
           </Button>
@@ -263,6 +271,12 @@ const SkillsSection = ({ userId, profile, initialSkills, onSuccess, enhancedData
               disabled={loading}
               sx={{
                 background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  background: "#cdcbcbff",
+                  color: "#cfcfcfff",
+                  opacity: 0.8,
+                },
               }}
             >
               Save
@@ -273,6 +287,14 @@ const SkillsSection = ({ userId, profile, initialSkills, onSuccess, enhancedData
               onClick={handleCancel}
               startIcon={<CancelIcon />}
               disabled={loading}
+              sx={{
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  background: "#cdcbcbff",
+                  color: "#cfcfcfff",
+                  opacity: 0.8,
+                },
+              }}
             >
               Cancel
             </Button>

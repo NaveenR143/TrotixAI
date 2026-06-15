@@ -150,7 +150,15 @@ const PersonalDetailsSection = ({ userId, profile, initialData, onSuccess }) => 
             startIcon={isEditing ? <CancelIcon /> : <EditIcon />}
             onClick={handleToggleEdit}
             disabled={loading}
-            sx={{ color: isEditing ? "#ef4444" : "#6366f1" }}
+            sx={{
+              color: isEditing ? "#ef4444" : "#6366f1",
+              textTransform: "none",
+              "&.Mui-disabled": {
+                color: "#cfcfcfff",
+                backgroundColor: "#cdcbcbff",
+                opacity: 0.8,
+              },
+            }}
           >
             {isEditing ? "Cancel" : "Edit"}
           </Button>
@@ -290,7 +298,15 @@ const PersonalDetailsSection = ({ userId, profile, initialData, onSuccess }) => 
               onClick={handleSave}
               startIcon={loading ? <CircularProgress size={16} /> : <SaveIcon />}
               disabled={loading}
-              sx={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }}
+              sx={{
+                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  background: "#cdcbcbff",
+                  color: "#cfcfcfff",
+                  opacity: 0.8,
+                },
+              }}
             >
               Save
             </Button>
@@ -300,6 +316,14 @@ const PersonalDetailsSection = ({ userId, profile, initialData, onSuccess }) => 
               onClick={handleCancel}
               startIcon={<CancelIcon />}
               disabled={loading}
+              sx={{
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  color: "#cfcfcfff",
+                  backgroundColor: "#cdcbcbff",
+                  opacity: 0.8,
+                },
+              }}
             >
               Cancel
             </Button>

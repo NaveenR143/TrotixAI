@@ -225,7 +225,15 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
             startIcon={isEditing ? <CancelIcon /> : <EditIcon />}
             onClick={handleToggleEdit}
             disabled={sectionLoading}
-            sx={{ color: isEditing ? "#ef4444" : "#6366f1" }}
+            sx={{
+              color: isEditing ? "#ef4444" : "#6366f1",
+              textTransform: "none",
+              "&.Mui-disabled": {
+                background: "#cdcbcbff",
+                color: "#cfcfcfff",
+                opacity: 0.8,
+              },
+            }}
           >
             {isEditing ? "Cancel" : "Edit"}
           </Button>
@@ -416,25 +424,53 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
                     variant="contained" size="small" onClick={() => saveIndividualProject(idx)}
                     startIcon={recordLoading?.[idx] ? <CircularProgress size={16} /> : <SaveIcon />}
                     disabled={recordLoading?.[idx] || !changedProjects.has(idx)}
-                    sx={{ background: recordLoading?.[idx] ? "#cbd5e1" : changedProjects.has(idx) ? "linear-gradient(135deg, #10b981, #059669)" : "#cbd5e1" }}
+                    sx={{
+                      background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                      textTransform: "none",
+                      "&.Mui-disabled": {
+                        background: "#cdcbcbff",
+                        color: "#cfcfcfff",
+                        opacity: 0.8,
+                      },
+                    }}
                   >
-                    {recordLoading?.[idx] ? "Saving..." : "Save Record"}
+                    {recordLoading?.[idx] ? "Saving..." : "Save"}
                   </Button>
                 </Grid>
               </Grid>
             </Paper>
           ))}
-          <Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={addProject} sx={{ color: "#6366f1", borderColor: "#c4b5fd", alignSelf: "flex-start" }}>Add Project</Button>
+          <Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={addProject} sx={{ color: "#6366f1", borderColor: "#c4b5fd", alignSelf: "flex-start", textTransform: "none" }}>Add Project</Button>
           <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
             <Button
               variant="contained" size="small" onClick={saveAllProjects}
               startIcon={sectionLoading ? <CircularProgress size={16} /> : <SaveIcon />}
               disabled={sectionLoading || changedProjects.size === 0}
-              sx={{ background: sectionLoading ? "#cbd5e1" : "linear-gradient(135deg, #6366f1, #4f46e5)" }}
+              sx={{
+                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  background: "#cdcbcbff",
+                  color: "#cfcfcfff",
+                  opacity: 0.8,
+                },
+              }}
             >
               Save All
             </Button>
-            <Button variant="outlined" size="small" onClick={handleCancel} startIcon={<CancelIcon />} disabled={sectionLoading}>Cancel</Button>
+            <Button
+              variant="outlined" size="small" onClick={handleCancel} startIcon={<CancelIcon />} disabled={sectionLoading}
+              sx={{
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  background: "#cdcbcbff",
+                  color: "#cfcfcfff",
+                  opacity: 0.8,
+                },
+              }}
+            >
+              Cancel
+            </Button>
           </Box>
         </Stack>
       )}

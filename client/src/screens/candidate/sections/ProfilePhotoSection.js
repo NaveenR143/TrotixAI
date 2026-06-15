@@ -254,6 +254,11 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
                     background: "linear-gradient(135deg, #6366f1, #4f46e5)",
                     boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3)",
                     "&:hover": { background: "linear-gradient(135deg, #4f46e5, #4338ca)" },
+                    "&.Mui-disabled": {
+                      color: "#cfcfcfff",
+                      backgroundColor: "#cdcbcbff",
+                      opacity: 0.8,
+                    },
                   }}
                 >
                   {loading ? "Uploading..." : "Save Changes"}
@@ -269,6 +274,11 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
                     fontWeight: 600,
                     color: "#ef4444",
                     "&:hover": { bgcolor: "#fef2f2" },
+                    "&.Mui-disabled": {
+                      color: "#cfcfcfff",
+                      backgroundColor: "#cdcbcbff",
+                      opacity: 0.8,
+                    },
                   }}
                 >
                   Cancel

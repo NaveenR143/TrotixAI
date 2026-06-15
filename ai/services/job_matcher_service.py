@@ -13,7 +13,7 @@ from collections import defaultdict
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, text, or_, not_, desc, cast, String
+from sqlalchemy import select, func, text, or_, not_, desc, cast, String, and_
 from sqlalchemy.orm import selectinload
 
 from ai.models.orm_models import (
@@ -467,11 +467,10 @@ class JobMatcherService:
             viewed_jobs_result = await session.execute(viewed_jobs_query)
             viewed_job_ids = {row[0] for row in viewed_jobs_result.all()}
 
-            # Base filters: Active, Not Applied, Not Viewed, and Has Valid Application Path
+            # Strict non-negotiable filters: Not Applied, Has Valid Application Path, and Created Recently
             ten_days_ago = datetime.now(timezone.utc) - timedelta(days=15)
-            base_filters = [
+            strict_filters = [
                 # JobPosting.status == JobStatusEnum.active,
-                Industry.name.in_(user_industries),
                 not_(JobPosting.id.in_(applied_jobs_subquery)),
                 or_(
                     JobPosting.recruiter_id.isnot(None),
@@ -489,9 +488,14 @@ class JobMatcherService:
             is_senior = any(term in recent_title for term in ["senior", "lead", "principal", "manager", "director", "vp", "head"]) or candidate_exp >= 8.0
             is_entry = any(term in recent_title for term in ["junior", "entry", "intern", "fresher", "trainee"]) or (candidate_exp < 2.0 and not is_senior)
 
+            # Matching criteria: Industry, Experience, and Seniority
+            other_criteria = [
+                Industry.name.in_(user_industries)
+            ]
+
             # Limit jobs based on experience requirements
             if candidate_exp > 0:
-                base_filters.append(
+                other_criteria.append(
                     or_(
                         JobPosting.experience_min_yrs.is_(None),
                         JobPosting.experience_min_yrs <= int(candidate_exp + 3)
@@ -501,7 +505,7 @@ class JobMatcherService:
             # Restrict seniority mismatch
             if is_senior:
                 # Senior candidates: avoid entry/junior roles
-                base_filters.append(
+                other_criteria.append(
                     or_(
                         JobPosting.experience_level.is_(None),
                         not_(cast(JobPosting.experience_level, String).in_(["entry", "junior"]))
@@ -509,12 +513,29 @@ class JobMatcherService:
                 )
             elif is_entry:
                 # Entry candidates: avoid lead/executive roles
-                base_filters.append(
+                other_criteria.append(
                     or_(
                         JobPosting.experience_level.is_(None),
                         not_(cast(JobPosting.experience_level, String).in_(["lead", "executive"]))
                     )
                 )
+
+            # Optional Job Posting Title match condition (case-insensitive LIKE match)
+            title_match_cond = None
+            if recent_title:
+                title_match_cond = func.lower(JobPosting.title).like(f"%{recent_title}%")
+
+            # Combine title match condition with other filter criteria using OR operator
+            if title_match_cond is not None:
+                matching_filter = or_(
+                    title_match_cond,
+                    and_(*other_criteria)
+                )
+            else:
+                matching_filter = and_(*other_criteria)
+
+            # Final base filters: strict non-negotiables combined with the matching criteria
+            base_filters = strict_filters + [matching_filter]
 
             # Subquery to aggregate skills for each job to avoid N+1 queries
             skills_subquery = (

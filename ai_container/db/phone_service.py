@@ -49,7 +49,8 @@ async def save_phone_to_db(phone: str, session: AsyncSession) -> tuple:
 
     except Exception as e:
         await session.rollback()
-        raise Exception(f"Failed to save phone number: {str(e)}")
+        print(f"Failed to save phone number: {str(e)}")
+        return (None, False)
 
 
 async def mark_phone_verified(phone: str, session: AsyncSession) -> bool:
@@ -85,4 +86,5 @@ async def mark_phone_verified(phone: str, session: AsyncSession) -> bool:
 
     except Exception as e:
         await session.rollback()
-        raise Exception(f"Failed to mark phone as verified: {str(e)}")
+        print(f"Failed to mark phone as verified: {str(e)}")
+        return False

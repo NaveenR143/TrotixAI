@@ -219,7 +219,15 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhanc
             startIcon={isEditing ? <CancelIcon /> : <EditIcon />}
             onClick={handleToggleEdit}
             disabled={sectionLoading}
-            sx={{ color: isEditing ? "#ef4444" : "#6366f1" }}
+            sx={{
+              color: isEditing ? "#ef4444" : "#6366f1",
+              textTransform: "none",
+              "&.Mui-disabled": {
+                color: "#cfcfcfff",
+                backgroundColor: "#cdcbcbff",
+                opacity: 0.8,
+              },
+            }}
           >
             {isEditing ? "Cancel" : "Edit"}
           </Button>
@@ -271,9 +279,9 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhanc
       ) : (
         <Stack spacing={2}>
           {education.map((edu, idx) => (
-            <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed", border: newEducationIndices.has(idx) ? "2px dashed #0ea5e9" : "1px dashed #e2e8f0" }}>
+            <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed", border: newEducationIndices.has(idx) ? "2px dashed #10b981" : "1px dashed #e2e8f0" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-                {newEducationIndices.has(idx) && <Chip label="🆕 NEW RECORD" size="small" sx={{ bgcolor: "#dbeafe", color: "#0369a1", fontWeight: 700 }} />}
+                {newEducationIndices.has(idx) && <Chip label="🆕 NEW RECORD" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 700 }} />}
                 <IconButton size="small" onClick={() => removeEducation(idx)} sx={{ color: "#f43f5e", ml: "auto" }}>
                   <DeleteIcon fontSize="inherit" />
                 </IconButton>
@@ -295,25 +303,53 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhanc
                     variant="contained" size="small" onClick={() => saveIndividualEducation(idx)}
                     startIcon={recordLoading?.[idx] ? <CircularProgress size={16} /> : <SaveIcon />}
                     disabled={recordLoading?.[idx] || !changedEducation.has(idx)}
-                    sx={{ background: recordLoading?.[idx] ? "#cbd5e1" : changedEducation.has(idx) ? "linear-gradient(135deg, #0ea5e9, #0284c7)" : "#cbd5e1" }}
+                    sx={{
+                      background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                      textTransform: "none",
+                      "&.Mui-disabled": {
+                        background: "#cdcbcbff",
+                        color: "#cfcfcfff",
+                        opacity: 0.8,
+                      },
+                    }}
                   >
-                    {recordLoading?.[idx] ? "Saving..." : "Save Record"}
+                    {recordLoading?.[idx] ? "Saving..." : "Save"}
                   </Button>
                 </Grid>
               </Grid>
             </Paper>
           ))}
-          <Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={addEducation} sx={{ color: "#6366f1", borderColor: "#c4b5fd", alignSelf: "flex-start" }}>Add Entry</Button>
+          <Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={addEducation} sx={{ color: "#6366f1", borderColor: "#c4b5fd", alignSelf: "flex-start", textTransform: "none" }}>Add Entry</Button>
           <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
             <Button
               variant="contained" size="small" onClick={saveAllEducation}
               startIcon={sectionLoading ? <CircularProgress size={16} /> : <SaveIcon />}
               disabled={sectionLoading || changedEducation.size === 0}
-              sx={{ background: sectionLoading ? "#cbd5e1" : "linear-gradient(135deg, #6366f1, #4f46e5)" }}
+              sx={{
+                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  background: "#cdcbcbff",
+                  color: "#cfcfcfff",
+                  opacity: 0.8,
+                },
+              }}
             >
               Save All
             </Button>
-            <Button variant="outlined" size="small" onClick={handleCancel} startIcon={<CancelIcon />} disabled={sectionLoading}>Cancel</Button>
+            <Button
+              variant="outlined" size="small" onClick={handleCancel} startIcon={<CancelIcon />} disabled={sectionLoading}
+              sx={{
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  color: "#cfcfcfff",
+                  backgroundColor: "#cdcbcbff",
+                  opacity: 0.8,
+                },
+              }}
+            >
+              Cancel
+            </Button>
           </Box>
         </Stack>
       )}

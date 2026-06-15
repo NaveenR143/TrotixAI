@@ -480,7 +480,7 @@ class Achievement(Base):
         nullable=False,
         index=True,
     )
-    achievement = Column("achivement", Text, nullable=False)
+    achievement = Column("achievement", Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships

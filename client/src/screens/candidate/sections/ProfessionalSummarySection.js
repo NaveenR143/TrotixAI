@@ -13,6 +13,7 @@ import {
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import EditIcon from "@mui/icons-material/Edit";
+import DescriptionIcon from "@mui/icons-material/Description";
 import { updateUserProfile } from "../../../redux/user/Action";
 import * as profileAPI from "../../../api/profileAPI";
 
@@ -118,9 +119,12 @@ const ProfessionalSummarySection = ({ userId, profile, initialAbout, onSuccess, 
           mb: 2,
         }}
       >
-        <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
-          Professional Summary
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <DescriptionIcon sx={{ fontSize: 20, color: "#6366f1" }} />
+          <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
+            Professional Summary
+          </Typography>
+        </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {loading && <CircularProgress size={20} />}
           <Button
@@ -129,7 +133,15 @@ const ProfessionalSummarySection = ({ userId, profile, initialAbout, onSuccess, 
             startIcon={isEditing ? <CancelIcon /> : <EditIcon />}
             onClick={handleToggleEdit}
             disabled={loading}
-            sx={{ color: isEditing ? "#ef4444" : "#6366f1" }}
+            sx={{
+              color: isEditing ? "#ef4444" : "#6366f1",
+              textTransform: "none",
+              "&.Mui-disabled": {
+                background: "#cdcbcbff",
+                color: "#cfcfcfff",
+                opacity: 0.8,
+              },
+            }}
           >
             {isEditing ? "Cancel" : "Edit"}
           </Button>
@@ -179,7 +191,15 @@ const ProfessionalSummarySection = ({ userId, profile, initialAbout, onSuccess, 
               onClick={handleSave}
               startIcon={loading ? <CircularProgress size={16} /> : <SaveIcon />}
               disabled={loading}
-              sx={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }}
+              sx={{
+                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  background: "#cdcbcbff",
+                  color: "#cfcfcfff",
+                  opacity: 0.8,
+                },
+              }}
             >
               Save
             </Button>
@@ -189,6 +209,14 @@ const ProfessionalSummarySection = ({ userId, profile, initialAbout, onSuccess, 
               onClick={handleCancel}
               startIcon={<CancelIcon />}
               disabled={loading}
+              sx={{
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  background: "#cdcbcbff",
+                  color: "#cfcfcfff",
+                  opacity: 0.8,
+                },
+              }}
             >
               Cancel
             </Button>

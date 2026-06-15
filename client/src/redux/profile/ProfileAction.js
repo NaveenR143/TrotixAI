@@ -58,6 +58,7 @@ export const fetchAndStoreProfile = (identifier) => async (dispatch) => {
       fullname: mappedData.personalDetails.fullName, // UserReducer uses fullname
       mobile: mappedData.personalDetails.phone, // UserReducer uses mobile
       points: mappedData.wallet_balance, // Add points to UserReducer
+      achievements: mappedData.achievements,
     };
 
 

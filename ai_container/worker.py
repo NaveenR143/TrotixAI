@@ -23,6 +23,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("azure").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("aiohttp").setLevel(logging.WARNING)
+
 # ----------------------------
 # Load Environment Variables
 # ----------------------------
@@ -163,7 +168,7 @@ class QueueWorker:
             # ----------------------------
             # Delete only if SUCCESS
             # ----------------------------
-            # self.queue_client.delete_message(msg)
+            self.queue_client.delete_message(msg)
             logger.info(f"🗑️ Message deleted: {msg.id}")
 
         except Exception as e:

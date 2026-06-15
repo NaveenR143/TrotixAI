@@ -68,6 +68,12 @@ export const mapProfileData = (profileData) => {
     languages: profileData?.languages && Array.isArray(profileData.languages)
       ? profileData.languages.map((l) => toTitleCase(typeof l === "string" ? l : l?.language))
       : [],
+    achievements: profileData?.achievements && Array.isArray(profileData.achievements)
+      ? profileData.achievements.map((l, index) => ({
+        id: (typeof l === "object" && l?.id) || Date.now() + index + Math.random(),
+        achievement: toTitleCase(typeof l === "string" ? l : l?.achievement) || "",
+      }))
+      : [],
   };
 };
 

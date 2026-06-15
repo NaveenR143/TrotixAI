@@ -471,7 +471,7 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.achievements (
     id integer NOT NULL,
-    achivement text,
+    achievement text,
     user_id uuid,
     created_at date DEFAULT now()
 );
@@ -1382,7 +1382,7 @@ ALTER TABLE ONLY public.achievements
 --
 
 ALTER TABLE ONLY public.achievements
-    ADD CONSTRAINT achievements_user_id_achievement_ukey UNIQUE (user_id, achivement);
+    ADD CONSTRAINT achievements_user_id_achievement_ukey UNIQUE (user_id, achievement);
 
 
 --

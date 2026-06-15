@@ -181,9 +181,12 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
           mb: 2,
         }}
       >
-        <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
-          Personal Information
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <PersonIcon sx={{ fontSize: 20, color: "#64748b" }} />
+          <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
+            Personal Information
+          </Typography>
+        </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {loading && <CircularProgress size={20} />}
           <Button
@@ -192,7 +195,15 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
             startIcon={isEditing ? <CancelIcon /> : <EditIcon />}
             onClick={handleToggleEdit}
             disabled={loading}
-            sx={{ color: isEditing ? "#ef4444" : "#6366f1" }}
+            sx={{
+              color: isEditing ? "#ef4444" : "#6366f1",
+              textTransform: "none",
+              "&.Mui-disabled": {
+                background: "#cdcbcbff",
+                color: "#cfcfcfff",
+                opacity: 0.8,
+              },
+            }}
           >
             {isEditing ? "Cancel" : "Edit"}
           </Button>
@@ -313,6 +324,14 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
                 size="small" 
                 onClick={handleSendOtp}
                 disabled={loading || !formData.mobile || formData.mobile.length < 10}
+                sx={{
+                  textTransform: "none",
+                  "&.Mui-disabled": {
+                    background: "#cdcbcbff",
+                    color: "#cfcfcfff",
+                    opacity: 0.8,
+                  },
+                }}
               >
                 Verify
               </Button>
@@ -356,6 +375,12 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
               disabled={loading}
               sx={{
                 background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  background: "#cdcbcbff",
+                  color: "#cfcfcfff",
+                  opacity: 0.8,
+                },
               }}
             >
               Save
@@ -366,6 +391,14 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
               onClick={handleCancel}
               startIcon={<CancelIcon />}
               disabled={loading}
+              sx={{
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  background: "#cdcbcbff",
+                  color: "#cfcfcfff",
+                  opacity: 0.8,
+                },
+              }}
             >
               Cancel
             </Button>

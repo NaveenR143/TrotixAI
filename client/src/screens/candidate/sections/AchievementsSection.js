@@ -33,6 +33,8 @@ const AchievementsSection = ({ userId, profile, initialAchievements, onSuccess }
   const [recordLoading, setRecordLoading] = useState({});
   const [recordErrors, setRecordErrors] = useState({});
 
+  console.log("achievements", achievements);
+
   useEffect(() => {
     if (!isEditing && initialAchievements) {
       setAchievements(JSON.parse(JSON.stringify(initialAchievements)));
@@ -192,7 +194,6 @@ const AchievementsSection = ({ userId, profile, initialAchievements, onSuccess }
         borderRadius: 2,
         bgcolor: "#fff",
         boxShadow: "0 4px 24px rgba(15,23,42,0.06)",
-        mb: 3
       }}
     >
       <Box
@@ -217,7 +218,15 @@ const AchievementsSection = ({ userId, profile, initialAchievements, onSuccess }
             startIcon={isEditing ? <CancelIcon /> : <EditIcon />}
             onClick={handleToggleEdit}
             disabled={sectionLoading}
-            sx={{ color: isEditing ? "#ef4444" : "#6366f1" }}
+            sx={{
+              color: isEditing ? "#ef4444" : "#6366f1",
+              textTransform: "none",
+              "&.Mui-disabled": {
+                color: "#cfcfcfff",
+                backgroundColor: "#cdcbcbff",
+                opacity: 0.8,
+              },
+            }}
           >
             {isEditing ? "Cancel" : "Edit"}
           </Button>
@@ -231,12 +240,15 @@ const AchievementsSection = ({ userId, profile, initialAchievements, onSuccess }
       )}
 
       {!isEditing ? (
-        <Box>
+
+
+        < Box >
           {(!achievements || achievements.length === 0) ? (
             <Typography sx={{ fontSize: "0.85rem", color: "text.secondary", fontStyle: "italic" }}>
               No achievements added yet.
             </Typography>
           ) : (
+
             <Stack spacing={1.5}>
               {achievements.map((ach, idx) => (
                 <Box key={idx} sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
@@ -252,13 +264,17 @@ const AchievementsSection = ({ userId, profile, initialAchievements, onSuccess }
       ) : (
         <Stack spacing={2}>
           {achievements.map((ach, idx) => (
-            <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed" }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b" }}>
-                  ACHIEVEMENT #{idx + 1}
-                </Typography>
+            <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed", border: newIndices.has(idx) ? "2px dashed #10b981" : "1px dashed #e2e8f0" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                {newIndices.has(idx) ? (
+                  <Chip label="🆕 NEW RECORD" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 700 }} />
+                ) : (
+                  <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b" }}>
+                    ACHIEVEMENT #{idx + 1}
+                  </Typography>
+                )}
                 <IconButton size="small" onClick={() => removeAchievement(idx)} sx={{ color: "#f43f5e" }}>
-                  <DeleteIcon fontSize="small" />
+                  <DeleteIcon fontSize="inherit" />
                 </IconButton>
               </Box>
               <Grid container spacing={2}>
@@ -279,9 +295,21 @@ const AchievementsSection = ({ userId, profile, initialAchievements, onSuccess }
                     variant="contained"
                     size="small"
                     onClick={() => saveIndividualAchievement(idx)}
-                    startIcon={recordLoading?.[idx] ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
-                    disabled={recordLoading?.[idx] || !changedIndices.has(idx)}
-                    sx={{ textTransform: "none" }}
+                    startIcon={
+                      recordLoading?.[idx]
+                        ? <CircularProgress size={16} color="inherit" />
+                        : <SaveIcon />
+                    }
+                    disabled={recordLoading?.[idx] || !changedIndices.has(idx) || ach.achievement === ""}
+                    sx={{
+                      background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                      textTransform: "none",
+                      "&.Mui-disabled": {
+                        background: "#cdcbcbff",
+                        color: "#cfcfcfff",
+                        opacity: 0.8,
+                      },
+                    }}
                   >
                     Save
                   </Button>
@@ -289,7 +317,7 @@ const AchievementsSection = ({ userId, profile, initialAchievements, onSuccess }
               </Grid>
             </Paper>
           ))}
-          <Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={addAchievement} sx={{ alignSelf: "flex-start" }}>
+          <Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={addAchievement} sx={{ color: "#6366f1", borderColor: "#c4b5fd", alignSelf: "flex-start", textTransform: "none" }}>
             Add Achievement
           </Button>
           <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
@@ -298,16 +326,39 @@ const AchievementsSection = ({ userId, profile, initialAchievements, onSuccess }
               size="small"
               onClick={saveAllAchievements}
               disabled={sectionLoading || changedIndices.size === 0}
+              sx={{
+                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  background: "#cdcbcbff",
+                  color: "#cfcfcfff",
+                  opacity: 0.8,
+                },
+              }}
             >
               Save All
             </Button>
-            <Button variant="outlined" size="small" onClick={handleCancel}>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleCancel}
+              startIcon={<CancelIcon />}
+              sx={{
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  color: "#cfcfcfff",
+                  backgroundColor: "#cdcbcbff",
+                  opacity: 0.8,
+                },
+              }}
+            >
               Cancel
             </Button>
           </Box>
         </Stack>
-      )}
-    </Paper>
+      )
+      }
+    </Paper >
   );
 };
 

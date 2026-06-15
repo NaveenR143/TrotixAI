@@ -209,7 +209,7 @@ const ProcessingScreen = ({ onComplete }) => {
 
     // Refresh auth state immediately so the frontend knows we're logged in
     // This allows background status checks (which are protected) to succeed
-    refreshAuth(verificationData.mobileNumber).catch(err => 
+    refreshAuth(verificationData.mobileNumber).catch(err =>
       console.error("Auth refresh after OTP failed:", err)
     );
 
@@ -363,7 +363,7 @@ const ProcessingScreen = ({ onComplete }) => {
                   <Typography sx={{ fontSize: "0.85rem", color: "#b91c1c", mb: 1.5, fontWeight: 500 }}>
                     {processingError}
                   </Typography>
-                  <Button
+                  {/* <Button
                     size="small"
                     variant="outlined"
                     color="error"
@@ -372,7 +372,7 @@ const ProcessingScreen = ({ onComplete }) => {
                     sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700 }}
                   >
                     Try Again
-                  </Button>
+                  </Button> */}
                 </Alert>
               </Fade>
             )}

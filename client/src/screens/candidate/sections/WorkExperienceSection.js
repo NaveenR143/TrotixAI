@@ -236,7 +236,15 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
             startIcon={isEditing ? <CancelIcon /> : <EditIcon />}
             onClick={handleToggleEdit}
             disabled={sectionLoading}
-            sx={{ color: isEditing ? "#ef4444" : "#6366f1" }}
+            sx={{
+              color: isEditing ? "#ef4444" : "#6366f1",
+              textTransform: "none",
+              "&.Mui-disabled": {
+                color: "#cfcfcfff",
+                backgroundColor: "#cdcbcbff",
+                opacity: 0.8,
+              },
+            }}
           >
             {isEditing ? "Cancel" : "Edit"}
           </Button>
@@ -408,25 +416,53 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
                     variant="contained" size="small" onClick={() => saveIndividualExperience(idx)}
                     startIcon={recordLoading?.[idx] ? <CircularProgress size={16} /> : <SaveIcon />}
                     disabled={recordLoading?.[idx] || !changedExperience.has(idx)}
-                    sx={{ background: recordLoading?.[idx] ? "#cbd5e1" : changedExperience.has(idx) ? "linear-gradient(135deg, #10b981, #059669)" : "#cbd5e1" }}
+                    sx={{
+                      background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                      textTransform: "none",
+                      "&.Mui-disabled": {
+                        background: "#cdcbcbff",
+                        color: "#cfcfcfff",
+                        opacity: 0.8,
+                      },
+                    }}
                   >
-                    {recordLoading?.[idx] ? "Saving..." : "Save Record"}
+                    {recordLoading?.[idx] ? "Saving..." : "Save"}
                   </Button>
                 </Grid>
               </Grid>
             </Paper>
           ))}
-          <Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={addExperience} sx={{ color: "#6366f1", borderColor: "#c4b5fd", alignSelf: "flex-start" }}>Add Entry</Button>
+          <Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={addExperience} sx={{ color: "#6366f1", borderColor: "#c4b5fd", alignSelf: "flex-start", textTransform: "none" }}>Add Entry</Button>
           <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
             <Button
               variant="contained" size="small" onClick={saveAllExperiences}
               startIcon={sectionLoading ? <CircularProgress size={16} /> : <SaveIcon />}
               disabled={sectionLoading || changedExperience.size === 0}
-              sx={{ background: sectionLoading ? "#cbd5e1" : "linear-gradient(135deg, #6366f1, #4f46e5)" }}
+              sx={{
+                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  background: "#cdcbcbff",
+                  color: "#cfcfcfff",
+                  opacity: 0.8,
+                },
+              }}
             >
               Save All
             </Button>
-            <Button variant="outlined" size="small" onClick={handleCancel} startIcon={<CancelIcon />} disabled={sectionLoading}>Cancel</Button>
+            <Button
+              variant="outlined" size="small" onClick={handleCancel} startIcon={<CancelIcon />} disabled={sectionLoading}
+              sx={{
+                textTransform: "none",
+                "&.Mui-disabled": {
+                  background: "#cdcbcbff",
+                  color: "#cfcfcfff",
+                  opacity: 0.8,
+                },
+              }}
+            >
+              Cancel
+            </Button>
           </Box>
         </Stack>
       )}

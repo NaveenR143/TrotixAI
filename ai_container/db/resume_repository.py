@@ -1358,25 +1358,26 @@ class ResumeRepository:
             commit: Whether to commit the transaction
         """
         try:
-            # First, delete existing industries for this user to avoid duplicates
-            # and handle updates (simple approach)
-            delete_query = text("DELETE FROM user_industries WHERE user_id = :user_id")
-            await self.session.execute(delete_query, {"user_id": str(user_id)})
+            async with self.session.begin_nested():
+                # First, delete existing industries for this user to avoid duplicates
+                # and handle updates (simple approach)
+                delete_query = text("DELETE FROM user_industries WHERE user_id = :user_id")
+                await self.session.execute(delete_query, {"user_id": str(user_id)})
 
-            if industry_ids:
-                # Bulk insert new industry mappings
-                insert_query = text(
+                if industry_ids:
+                    # Bulk insert new industry mappings
+                    insert_query = text(
+                        """
+                        INSERT INTO user_industries (user_id, industry_id)
+                        VALUES (:user_id, :industry_id)
                     """
-                    INSERT INTO user_industries (user_id, industry_id)
-                    VALUES (:user_id, :industry_id)
-                """
-                )
+                    )
 
-                params = [
-                    {"user_id": str(user_id), "industry_id": ind_id}
-                    for ind_id in industry_ids
-                ]
-                await self.session.execute(insert_query, params)
+                    params = [
+                        {"user_id": str(user_id), "industry_id": ind_id}
+                        for ind_id in industry_ids
+                    ]
+                    await self.session.execute(insert_query, params)
 
             if commit:
                 await self.session.commit()
@@ -1384,8 +1385,6 @@ class ResumeRepository:
             LOGGER.debug(f"Saved {len(industry_ids)} industries for user {user_id}")
         except Exception as e:
             LOGGER.error(f"Error saving user industries: {str(e)}")
-            await self.session.rollback()
-            raise
 
     # ══════════════════════════════════════════════════════════════════════════════
     # COMPREHENSIVE PROFILE & RESUME OPERATIONS
@@ -1698,52 +1697,54 @@ class ResumeRepository:
 
             for exp_idx, exp in enumerate(work_experiences):
                 try:
-                    # Insert work experience
-                    exp_id = await self.add_work_experience(
-                        user_id=user_id,
-                        company_name=exp.get("company_name", ""),
-                        title=exp.get("title", ""),
-                        location=exp.get("location"),
-                        start_date=exp.get("start_date"),
-                        end_date=exp.get("end_date") or None,
-                        is_current=exp.get("is_current", False),
-                        description=exp.get("description"),
-                        skills_used=exp.get("skills_used", []),
-                        achievements=exp.get("achievements", []),
-                        sort_order=exp_idx,
-                    )
-                    work_exp_count += 1
-                    LOGGER.info(f"Inserted work experience {exp_id} for user {user_id}")
+                    async with self.session.begin_nested():
+                        # Insert work experience
+                        exp_id = await self.add_work_experience(
+                            user_id=user_id,
+                            company_name=exp.get("company_name", ""),
+                            title=exp.get("title", ""),
+                            location=exp.get("location"),
+                            start_date=exp.get("start_date"),
+                            end_date=exp.get("end_date") or None,
+                            is_current=exp.get("is_current", False),
+                            description=exp.get("description"),
+                            skills_used=exp.get("skills_used", []),
+                            achievements=exp.get("achievements", []),
+                            sort_order=exp_idx,
+                        )
+                        work_exp_count += 1
+                        LOGGER.info(f"Inserted work experience {exp_id} for user {user_id}")
 
-                    # Insert nested projects from this work experience
-                    nested_projects = exp.get("projects", [])
-                    for proj_idx, project in enumerate(nested_projects):
-                        try:
-                            proj_id = await self.add_project(
-                                user_id=user_id,
-                                work_experience_id=exp_id,
-                                title=project.get("name", project.get("title", "")),
-                                description=project.get("description"),
-                                url=project.get("url"),
-                                repo_url=project.get("repo_url"),
-                                skills_used=project.get("technologies", []),
-                                start_date=project.get("start_date"),
-                                end_date=project.get("end_date") or None,
-                                sort_order=proj_idx,
-                            )
-                            projects_count += 1
-                            LOGGER.debug(
-                                f"Inserted project {proj_id} for work exp {exp_id}"
-                            )
+                        # Insert nested projects from this work experience
+                        nested_projects = exp.get("projects", [])
+                        for proj_idx, project in enumerate(nested_projects):
+                            try:
+                                async with self.session.begin_nested():
+                                    proj_id = await self.add_project(
+                                        user_id=user_id,
+                                        work_experience_id=exp_id,
+                                        title=project.get("name", project.get("title", "")),
+                                        description=project.get("description"),
+                                        url=project.get("url"),
+                                        repo_url=project.get("repo_url"),
+                                        skills_used=project.get("technologies", []),
+                                        start_date=project.get("start_date"),
+                                        end_date=project.get("end_date") or None,
+                                        sort_order=proj_idx,
+                                    )
+                                    projects_count += 1
+                                    LOGGER.debug(
+                                        f"Inserted project {proj_id} for work exp {exp_id}"
+                                    )
 
-                            # Add project skills
-                            if project.get("technologies"):
-                                await self.add_project_skills(
-                                    project_id=proj_id,
-                                    skill_names=project.get("technologies", []),
-                                )
-                        except Exception as e:
-                            LOGGER.warning(f"Failed to insert project: {str(e)}")
+                                    # Add project skills
+                                    if project.get("technologies"):
+                                        await self.add_project_skills(
+                                            project_id=proj_id,
+                                            skill_names=project.get("technologies", []),
+                                        )
+                            except Exception as e:
+                                LOGGER.warning(f"Failed to insert project: {str(e)}")
 
                 except Exception as e:
                     LOGGER.warning(f"Failed to insert work experience: {str(e)}")
@@ -1771,18 +1772,19 @@ class ResumeRepository:
                     # field_of_study conversion is now handled in add_education repository method
                     field_of_study = edu.get("field_of_study")
 
-                    edu_id = await self.add_education(
-                        user_id=user_id,
-                        institution=edu.get("institution", ""),
-                        degree=edu.get("degree"),
-                        field_of_study=field_of_study,
-                        grade=edu.get("grade"),
-                        start_year=edu.get("start_year"),
-                        end_year=edu.get("end_year"),
-                        is_current=edu.get("is_current", False),
-                        description=edu.get("description"),
-                        sort_order=edu_idx,
-                    )
+                    async with self.session.begin_nested():
+                        edu_id = await self.add_education(
+                            user_id=user_id,
+                            institution=edu.get("institution", ""),
+                            degree=edu.get("degree"),
+                            field_of_study=field_of_study,
+                            grade=edu.get("grade"),
+                            start_year=edu.get("start_year"),
+                            end_year=edu.get("end_year"),
+                            is_current=edu.get("is_current", False),
+                            description=edu.get("description"),
+                            sort_order=edu_idx,
+                        )
                     education_count += 1
                     LOGGER.debug(f"Inserted education {edu_id} for user {user_id}")
 
@@ -1843,7 +1845,8 @@ class ResumeRepository:
                         ach if isinstance(ach, str) else ach.get("achievement", "")
                     )
                     if achievement_text:
-                        await self.add_achievement(user_id, achievement_text)
+                        async with self.session.begin_nested():
+                            await self.add_achievement(user_id, achievement_text)
                         achievements_count += 1
                 except Exception as e:
                     LOGGER.warning(f"Failed to insert achievement: {str(e)}")
