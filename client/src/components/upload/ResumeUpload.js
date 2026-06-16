@@ -9,7 +9,8 @@ import {
   AlertTitle,
   Collapse,
   styled,
-  keyframes
+  keyframes,
+  Chip
 } from "@mui/material";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -36,6 +37,17 @@ const API_ENDPOINT = `${API_BASE_URL}${API_ENDPOINTS.UPLOAD_RESUME}`;
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function validateFile(file) {
   if (!file) return "No file selected.";
+
+  // Check for special or invalid characters in filename
+  const invalidPattern = /[<>:"/\\|?*\^%#$&;`\x00-\x1F\x7F]/;
+  const match = file.name.match(invalidPattern);
+  if (match) {
+    const char = match[0];
+    const isControlChar = char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127;
+    const charDesc = isControlChar ? "control/non-printable character" : `"${char}"`;
+    return `Filename contains invalid character ${charDesc}. Please rename the file and upload again.`;
+  }
+
   const ext = "." + file.name.split(".").pop().toLowerCase();
   const mimeOk = Object.keys(ACCEPTED_TYPES).includes(file.type);
   const extOk = ACCEPTED_EXTENSIONS.includes(ext);
@@ -55,7 +67,7 @@ const log = {
   error: (msg, err) => console.error(`[ResumeUpload] ${msg}`, err || ''),
 };
 
-const STATUS = { IDLE: "idle", UPLOADING: "uploading", SUCCESS: "success", ERROR: "error" };
+const STATUS = { IDLE: "idle", UPLOADING: "uploading", SUCCESS: "success", ERROR: "error", MULTIPLE_PHONES: "multiple_phones" };
 
 const StyledDropZone = styled(Box)(({ theme, dragging, disabled }) => ({
   border: `1px dashed ${disabled ? '#CBD5E1' : dragging ? '#2563EB' : '#93C5FD'}`,
@@ -180,10 +192,11 @@ const ResumeUpload = ({ onSuccess, onError, disabled }) => {
   const [status, setStatus] = useState(STATUS.IDLE);
   const [progress, setProgress] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
+  const [multiplePhones, setMultiplePhones] = useState([]);
   const cancelSourceRef = useRef(null);
 
   const handleFileChange = useCallback((selectedFile) => {
-    setStatus(STATUS.IDLE); setErrorMsg(""); setProgress(0);
+    setStatus(STATUS.IDLE); setErrorMsg(""); setProgress(0); setMultiplePhones([]);
     const validationError = validateFile(selectedFile);
     if (validationError) {
       setErrorMsg(validationError); setStatus(STATUS.ERROR); setFile(null); return;
@@ -196,7 +209,7 @@ const ResumeUpload = ({ onSuccess, onError, disabled }) => {
     const formData = new FormData();
     formData.append("file", file);
     cancelSourceRef.current = axios.CancelToken.source();
-    setStatus(STATUS.UPLOADING); setProgress(0); setErrorMsg("");
+    setStatus(STATUS.UPLOADING); setProgress(0); setErrorMsg(""); setMultiplePhones([]);
     try {
       log.info("Uploading resume", { fileName: file.name, fileSize: file.size, endpoint: API_ENDPOINT });
 
@@ -207,6 +220,18 @@ const ResumeUpload = ({ onSuccess, onError, disabled }) => {
       });
 
       log.info("Resume upload successful", { status: response.status, data: response.data });
+      
+      if (response.data && response.data.phone_numbers && response.data.phone_numbers.length > 1) {
+        log.warn("Multiple phone numbers detected", response.data);
+        setMultiplePhones(response.data.phone_numbers);
+        setErrorMsg(response.data.message || "Multiple phone numbers found. Please select your primary number.");
+        setStatus(STATUS.MULTIPLE_PHONES);
+        if (onError) {
+          onError(new Error(response.data.message || "Multiple phone numbers found. Please upload resume with primary phone number."));
+        }
+        return;
+      }
+
       setStatus(STATUS.SUCCESS);
       setProgress(100);
       if (onSuccess) onSuccess(response.data);
@@ -225,7 +250,7 @@ const ResumeUpload = ({ onSuccess, onError, disabled }) => {
 
   const handleReset = () => {
     if (cancelSourceRef.current) cancelSourceRef.current.cancel();
-    setFile(null); setStatus(STATUS.IDLE); setProgress(0); setErrorMsg("");
+    setFile(null); setStatus(STATUS.IDLE); setProgress(0); setErrorMsg(""); setMultiplePhones([]);
   };
 
   return (
@@ -236,6 +261,45 @@ const ResumeUpload = ({ onSuccess, onError, disabled }) => {
         <Alert severity="error" onClose={handleReset} sx={{ borderRadius: '16px', border: '1px solid #FECACA' }}>
           <AlertTitle sx={{ fontWeight: 700 }}>Upload Failed</AlertTitle>
           {errorMsg}
+        </Alert>
+      </Collapse>
+
+      <Collapse in={status === STATUS.MULTIPLE_PHONES}>
+        <Alert
+          severity="warning"
+          onClose={handleReset}
+          sx={{
+            borderRadius: '16px',
+            border: '1px solid #FDE047',
+            bgcolor: '#FEFCE8',
+            color: '#854D0E',
+            '& .MuiAlert-icon': {
+              color: '#CA8A04'
+            }
+          }}
+        >
+          <AlertTitle sx={{ fontWeight: 700, color: '#854D0E' }}>Multiple Phone Numbers Found</AlertTitle>
+          <Typography variant="body2" sx={{ mb: 1.5 }}>
+            We detected multiple phone numbers in your resume:
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+            {multiplePhones.map((phone) => (
+              <Chip
+                key={phone}
+                label={phone}
+                size="small"
+                sx={{
+                  bgcolor: '#FEF08A',
+                  color: '#854D0E',
+                  fontWeight: 700,
+                  border: '1px solid #FDE047'
+                }}
+              />
+            ))}
+          </Box>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            Please upload a resume containing only your primary phone number.
+          </Typography>
         </Alert>
       </Collapse>
 
@@ -251,7 +315,7 @@ const ResumeUpload = ({ onSuccess, onError, disabled }) => {
           variant="contained"
           size="large"
           fullWidth
-          disabled={disabled || !file || status === STATUS.UPLOADING}
+          disabled={disabled || !file || status === STATUS.UPLOADING || status === STATUS.MULTIPLE_PHONES}
           onClick={handleUpload}
           endIcon={<AutoAwesomeIcon />}
           sx={{
@@ -278,7 +342,7 @@ const ResumeUpload = ({ onSuccess, onError, disabled }) => {
         </Button>
       )}
 
-      {(status === STATUS.SUCCESS || status === STATUS.ERROR) && (
+      {(status === STATUS.SUCCESS || status === STATUS.ERROR || status === STATUS.MULTIPLE_PHONES) && (
         <Button variant="text" size="small" onClick={handleReset} sx={{ alignSelf: "center", color: "#64748B", fontWeight: 600 }}>
           Upload another file
         </Button>
