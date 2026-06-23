@@ -699,3 +699,72 @@ export const addFeatureCredits = async (userId, amount, type = "purchase", descr
     return handleError(error);
   }
 };
+
+/**
+ * Create a Razorpay payment order on the backend
+ * @param {string} userId - User UUID
+ * @param {number} amount - Amount in INR (e.g., 99)
+ * @param {number} creditsToAdd - Credits to be added (e.g., 100)
+ * @param {string} packageName - Name of the package (e.g., "100 Credits")
+ */
+export const createPaymentOrder = async (userId, amount, creditsToAdd, packageName) => {
+  try {
+    const payload = {
+      amount,
+      credits_to_add: creditsToAdd,
+      package_name: packageName,
+    };
+
+    const response = await axios.post(
+      `${API_BASE_URL}${API_ENDPOINTS.CREATE_PAYMENT_ORDER}/${userId}`,
+      payload,
+      { headers: getHeaders(), timeout: 10000 }
+    );
+
+    return {
+      error: false,
+      success: response.data?.success ?? true,
+      message: response.data?.message || "Order created successfully",
+      order: response.data?.order,
+      data: response.data,
+    };
+  } catch (error) {
+    console.error("Error creating payment order:", error);
+    return handleError(error);
+  }
+};
+
+/**
+ * Verify Razorpay payment signature and credit the user wallet
+ * @param {string} userId - User UUID
+ * @param {string} razorpayOrderId - Razorpay Order ID
+ * @param {string} razorpayPaymentId - Razorpay Payment ID
+ * @param {string} razorpaySignature - Razorpay Signature
+ */
+export const verifyPayment = async (userId, razorpayOrderId, razorpayPaymentId, razorpaySignature) => {
+  try {
+    const payload = {
+      razorpay_order_id: razorpayOrderId,
+      razorpay_payment_id: razorpayPaymentId,
+      razorpay_signature: razorpaySignature,
+    };
+
+    const response = await axios.post(
+      `${API_BASE_URL}${API_ENDPOINTS.VERIFY_PAYMENT}/${userId}`,
+      payload,
+      { headers: getHeaders(), timeout: 15000 }
+    );
+
+    return {
+      error: false,
+      success: response.data?.success ?? true,
+      message: response.data?.message || "Payment verified successfully",
+      credits_added: response.data?.credits_added,
+      balance: response.data?.balance,
+      data: response.data,
+    };
+  } catch (error) {
+    console.error("Error verifying payment:", error);
+    return handleError(error);
+  }
+};

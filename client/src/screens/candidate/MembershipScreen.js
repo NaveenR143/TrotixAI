@@ -18,6 +18,9 @@ import {
   TableRow,
   Paper,
   Collapse,
+  Dialog,
+  DialogContent,
+  CircularProgress,
 } from "@mui/material";
 
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
@@ -110,48 +113,144 @@ const COMPARISON_FEATURES = [
   },
 ];
 
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 const MembershipScreen = () => {
   const [showComparison, setShowComparison] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState(null); // 'success' | 'failure' | null
+  const [paymentMessage, setPaymentMessage] = useState("");
+  const [creditsAdded, setCreditsAdded] = useState(0);
+  const [newBalance, setNewBalance] = useState(0);
 
   const dispatch = useDispatch();
-  const userid = useSelector((state) => state.UserReducer?.userid || state.UserReducer?.userid);
+  const user = useSelector((state) => state.UserReducer);
+  const userid = user?.userid;
+  const fullname = user?.fullname || "";
+  const email = user?.email || "";
+  const phone = user?.mobile || "";
 
   const handlePlanSelect = async (packageItem) => {
     if (packageItem.disabled) return;
 
-    // Attempt to add credits via API and update Redux store
     if (!userid) {
       alert("Unable to identify user. Please login and try again.");
       return;
     }
 
-    try {
-      // Map package to amount
-      let amount = 0;
-      if (packageItem.id === "credits") {
-        amount = 100; // 100 Credits package
-      }
+    setLoading(true);
+    setPaymentStatus(null);
+    setPaymentMessage("");
 
-      if (amount <= 0) {
-        alert("Invalid credit package selected.");
+    // 1. Load Razorpay script dynamically
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      setLoading(false);
+      setPaymentStatus("failure");
+      setPaymentMessage("Failed to load Razorpay SDK. Please check your internet connection.");
+      return;
+    }
+
+    try {
+      const amount = 99; // ₹99 price for 100 credits pack
+      const creditsToAdd = 100;
+
+      // 2. Create payment order on the backend
+      const orderRes = await profileAPI.createPaymentOrder(
+        userid,
+        amount,
+        creditsToAdd,
+        packageItem.title
+      );
+
+      if (orderRes.error || !orderRes.success || !orderRes.order) {
+        setLoading(false);
+        setPaymentStatus("failure");
+        setPaymentMessage(orderRes.message || "Failed to initiate payment. Please try again.");
         return;
       }
 
-      const result = await profileAPI.addFeatureCredits(userid, amount, "purchase", packageItem.title);
+      const orderDetails = orderRes.order;
+      const razorpayKey = orderRes.razorpay_key_id || "rzp_test_zS0qL012345678";
 
-      const newBalance = result?.balance ?? result?.data?.balance;
+      // 3. Configure Razorpay options
+      const options = {
+        key: razorpayKey,
+        amount: orderDetails.amount,
+        currency: orderDetails.currency,
+        name: "TrotixAI",
+        description: `Purchase ${creditsToAdd} Credits`,
+        image: "https://trotix.ai/logo.png",
+        order_id: orderDetails.id,
+        handler: async function (response) {
+          setLoading(true);
+          try {
+            const verifyRes = await profileAPI.verifyPayment(
+              userid,
+              response.razorpay_order_id,
+              response.razorpay_payment_id,
+              response.razorpay_signature
+            );
 
-      if (newBalance !== undefined) {
-        dispatch(updateUserProfile({ points: newBalance }));
-        alert(`Credits added. New balance: ${newBalance}`);
-      } else if (result?.success) {
-        alert(result.message || "Credits added successfully");
-      } else {
-        alert(result?.message || "Failed to add credits. Please try again.");
-      }
+            if (!verifyRes.error && verifyRes.success) {
+              const updatedBalance = verifyRes.balance;
+              const added = verifyRes.credits_added;
+
+              // Update Redux store
+              dispatch(updateUserProfile({ points: updatedBalance }));
+
+              setPaymentStatus("success");
+              setPaymentMessage(verifyRes.message || "Payment completed successfully!");
+              setCreditsAdded(added);
+              setNewBalance(updatedBalance);
+            } else {
+              setPaymentStatus("failure");
+              setPaymentMessage(verifyRes.message || "Payment verification failed. Please contact support.");
+            }
+          } catch (err) {
+            console.error("Verification error:", err);
+            setPaymentStatus("failure");
+            setPaymentMessage("An error occurred during payment verification.");
+          } finally {
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: fullname,
+          email: email,
+          contact: phone,
+        },
+        notes: orderDetails.notes,
+        theme: {
+          color: COLORS.primaryBlue,
+        },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", function (response) {
+        setPaymentStatus("failure");
+        setPaymentMessage(response.error.description || "Payment failed. Please try again.");
+        setLoading(false);
+      });
+      rzp.open();
     } catch (err) {
-      console.error("Error adding credits:", err);
-      alert("Failed to add credits. Please try again later.");
+      console.error("Payment initiation error:", err);
+      setPaymentStatus("failure");
+      setPaymentMessage("An unexpected error occurred while initiating payment.");
+      setLoading(false);
     }
   };
 
@@ -604,6 +703,156 @@ const MembershipScreen = () => {
             Contact Support
           </Button>
         </Box>
+
+        {/* Payment Loading/Status Dialog */}
+        <Dialog
+          open={loading || paymentStatus !== null}
+          onClose={loading ? undefined : () => setPaymentStatus(null)}
+          maxWidth="xs"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 4,
+              p: 3,
+              textAlign: "center",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.15)",
+            },
+          }}
+        >
+          <DialogContent>
+            <Box display="flex" flexDirection="column" alignItems="center" py={2}>
+              {loading && (
+                <>
+                  <CircularProgress
+                    size={60}
+                    thickness={4}
+                    sx={{
+                      color: COLORS.primaryBlue,
+                      mb: 3,
+                    }}
+                  />
+                  <Typography variant="h6" fontWeight={700} color={COLORS.darkText} mb={1}>
+                    Processing Payment...
+                  </Typography>
+                  <Typography variant="body2" color={COLORS.mutedText}>
+                    Please do not close this window or refresh the page.
+                  </Typography>
+                </>
+              )}
+
+              {!loading && paymentStatus === "success" && (
+                <>
+                  <Box
+                    sx={{
+                      width: 70,
+                      height: 70,
+                      borderRadius: "50%",
+                      bgcolor: "rgba(16, 185, 129, 0.1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: COLORS.success,
+                      mb: 3,
+                    }}
+                  >
+                    <CheckCircleRoundedIcon sx={{ fontSize: 48 }} />
+                  </Box>
+                  <Typography variant="h5" fontWeight={800} color={COLORS.darkText} mb={1}>
+                    Payment Successful!
+                  </Typography>
+                  <Typography variant="body1" color={COLORS.mutedText} mb={3}>
+                    {paymentMessage || "Your credits have been added successfully."}
+                  </Typography>
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      width: "100%",
+                      p: 2,
+                      borderRadius: 3,
+                      bgcolor: COLORS.bg,
+                      mb: 3,
+                      border: `1px solid ${COLORS.border}`,
+                    }}
+                  >
+                    <Grid container spacing={2}>
+                      <Grid item xs={6} textAlign="left">
+                        <Typography variant="body2" color={COLORS.mutedText}>
+                          Credits Added
+                        </Typography>
+                        <Typography variant="h6" fontWeight={800} color={COLORS.success}>
+                          +{creditsAdded}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6} textAlign="right">
+                        <Typography variant="body2" color={COLORS.mutedText}>
+                          New Balance
+                        </Typography>
+                        <Typography variant="h6" fontWeight={800} color={COLORS.primaryBlue}>
+                          {newBalance} Credits
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={() => setPaymentStatus(null)}
+                    sx={{
+                      py: 1.2,
+                      borderRadius: 2.5,
+                      fontWeight: 700,
+                      textTransform: "none",
+                      background: `linear-gradient(135deg, ${COLORS.primaryBlue}, ${COLORS.primaryPurple})`,
+                    }}
+                  >
+                    Close
+                  </Button>
+                </>
+              )}
+
+              {!loading && paymentStatus === "failure" && (
+                <>
+                  <Box
+                    sx={{
+                      width: 70,
+                      height: 70,
+                      borderRadius: "50%",
+                      bgcolor: "rgba(239, 68, 68, 0.1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#ef4444",
+                      mb: 3,
+                    }}
+                  >
+                    <CloseRoundedIcon sx={{ fontSize: 48 }} />
+                  </Box>
+                  <Typography variant="h5" fontWeight={800} color={COLORS.darkText} mb={1}>
+                    Payment Failed
+                  </Typography>
+                  <Typography variant="body1" color={COLORS.mutedText} mb={3}>
+                    {paymentMessage || "Something went wrong while processing your payment."}
+                  </Typography>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={() => setPaymentStatus(null)}
+                    sx={{
+                      py: 1.2,
+                      borderRadius: 2.5,
+                      fontWeight: 700,
+                      textTransform: "none",
+                      borderColor: COLORS.primaryBlue,
+                      color: COLORS.primaryBlue,
+                    }}
+                  >
+                    Close & Try Again
+                  </Button>
+                </>
+              )}
+            </Box>
+          </DialogContent>
+        </Dialog>
       </Container>
     </Box>
   );

@@ -19,3 +19,46 @@ class CreditWalletResponse(BaseModel):
     balance: int
     used_credits: Optional[int] = None
     updated_at: datetime
+
+
+class CreatePaymentOrderRequest(BaseModel):
+    amount: float = Field(..., gt=0, description="Amount in INR, e.g. 99.00")
+    credits_to_add: int = Field(..., gt=0, description="Number of credits to add, e.g. 100")
+    package_name: str = Field(..., description="Name of the package")
+
+
+class RazorpayOrderDetails(BaseModel):
+    id: str
+    entity: str
+    amount: int
+    amount_paid: int
+    amount_due: int
+    currency: str
+    receipt: Optional[str] = None
+    offer_id: Optional[str] = None
+    status: str
+    attempts: int
+    notes: dict
+    created_at: int
+
+
+class CreatePaymentOrderResponse(BaseModel):
+    success: bool
+    message: str
+    order: Optional[RazorpayOrderDetails] = None
+    razorpay_key_id: Optional[str] = None
+
+
+class VerifyPaymentRequest(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
+
+class PaymentVerificationResponse(BaseModel):
+    success: bool
+    message: str
+    order_id: str
+    payment_id: str
+    credits_added: int
+    balance: int

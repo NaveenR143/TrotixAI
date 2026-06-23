@@ -3,15 +3,33 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime, timezone
 import logging
+import os
 
 from ai.db.database import get_db
 from ai.db.credit_repository import CreditRepository
-from ai.models.credit_models import CreditOperationRequest, CreditResponse, CreditWalletResponse
-from ai.models.orm_models import CreditTxTypeEnum
+from ai.models.credit_models import (
+    CreditOperationRequest,
+    CreditResponse,
+    CreditWalletResponse,
+    CreatePaymentOrderRequest,
+    CreatePaymentOrderResponse,
+    RazorpayOrderDetails,
+    VerifyPaymentRequest,
+    PaymentVerificationResponse,
+)
+from ai.models.orm_models import CreditTxTypeEnum, PaymentOrder
 from ai.utils.auth import get_current_user
 
 logger = logging.getLogger(__name__)
+
+
+import razorpay
+razorpay_key_id = os.getenv("RAZORPAY_KEY_ID")
+razorpay_key_secret = os.getenv("RAZORPAY_KEY_SECRET")
+
+client = razorpay.Client(auth=(razorpay_key_id, razorpay_key_secret))
 
 # ─── Constants ─────────────────────────────────────────────────────────────
 AI_FEATURE_CREDIT_COST = 20
@@ -102,6 +120,48 @@ async def add_credits(
             detail="Forbidden: You can only add credits to your own wallet"
         )
     try:
+
+        DATA = {
+            "amount": 99,
+            "currency": "INR",
+            "receipt": user_id,
+            "notes": {
+                "key1": "value3",
+                "key2": "value2"
+            }
+        }
+
+        # success response 
+        # {
+        #     "id": "order_IluGWxBm9U8zJ8",
+        #     "entity": "order",
+        #     "amount": 50000,
+        #     "amount_paid": 0,
+        #     "amount_due": 50000,
+        #     "currency": "INR",
+        #     "receipt": "rcptid_11",
+        #     "offer_id": null,
+        #     "status": "created",
+        #     "attempts": 0,
+        #     "notes": [],
+        #     "created_at": 1642662092
+        # }
+
+        # failure response
+        # {
+        #     "error": {
+        #         "code": "BAD_REQUEST_ERROR",
+        #         "description": "Order amount less than minimum amount allowed",
+        #         "source": "business",
+        #         "step": "payment_initiation",
+        #         "reason": "input_validation_failed",
+        #         "metadata": {},
+        #         "field": "amount"
+        #     }
+        # }
+
+        
+
         new_balance = await CreditRepository.add_credits(
             user_id=user_id,
             amount=request.amount,
@@ -124,6 +184,254 @@ async def add_credits(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
+
+
+@router.post("/create-order/{user_id}", response_model=CreatePaymentOrderResponse)
+async def create_payment_order(
+    user_id: UUID,
+    request: CreatePaymentOrderRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user)
+):
+    """
+    Create a payment order via Razorpay and persist it in `payment_orders`.
+    """
+    if str(user_id) != current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You can only create payment orders for your own account"
+        )
+    
+    # 1. Prepare Razorpay order parameters
+    # Note: amount in Razorpay is in paise (subunit of currency).
+    amount_paise = int(request.amount * 100)
+    receipt_id = f"rcpt_{user_id.hex[:10]}_{int(datetime.now().timestamp())}"
+    
+    notes = {
+        "user_id": str(user_id),
+        "credits_to_add": str(request.credits_to_add),
+        "package_name": request.package_name
+    }
+    
+    order_data = {
+        "amount": amount_paise,
+        "currency": "INR",
+        "receipt": receipt_id,
+        "notes": notes
+    }
+    
+    # 2. Call Razorpay API
+    try:
+        razorpay_order = client.order.create(data=order_data)
+        
+        # Parse provider_created_at
+        provider_created_at = None
+        if "created_at" in razorpay_order:
+            provider_created_at = datetime.fromtimestamp(razorpay_order["created_at"], tz=timezone.utc)
+        
+        # Create database entry
+        db_order = PaymentOrder(
+            user_id=user_id,
+            request_status="success",
+            order_id=razorpay_order.get("id"),
+            entity=razorpay_order.get("entity"),
+            amount=razorpay_order.get("amount"),
+            amount_paid=razorpay_order.get("amount_paid"),
+            amount_due=razorpay_order.get("amount_due"),
+            currency=razorpay_order.get("currency"),
+            receipt=razorpay_order.get("receipt"),
+            offer_id=razorpay_order.get("offer_id"),
+            order_status=razorpay_order.get("status"),
+            attempts=razorpay_order.get("attempts"),
+            notes=razorpay_order.get("notes"),
+            provider_created_at=provider_created_at
+        )
+        db.add(db_order)
+        await db.commit()
+        
+        order_details = RazorpayOrderDetails(
+            id=razorpay_order.get("id"),
+            entity=razorpay_order.get("entity"),
+            amount=razorpay_order.get("amount"),
+            amount_paid=razorpay_order.get("amount_paid"),
+            amount_due=razorpay_order.get("amount_due"),
+            currency=razorpay_order.get("currency"),
+            receipt=razorpay_order.get("receipt"),
+            offer_id=razorpay_order.get("offer_id"),
+            status=razorpay_order.get("status"),
+            attempts=razorpay_order.get("attempts"),
+            notes=razorpay_order.get("notes") or {},
+            created_at=razorpay_order.get("created_at")
+        )
+        return CreatePaymentOrderResponse(
+            success=True,
+            message="Payment order created successfully",
+            order=order_details,
+            razorpay_key_id=razorpay_key_id
+        )
+        
+    except Exception as e:
+        # Log error
+        logger.error(f"Razorpay order creation failed for user {user_id}: {str(e)}")
+        
+        # Extract error details if razorpay error format is dictionary-like
+        error_code = "GATEWAY_ERROR"
+        error_description = str(e)
+        error_source = "gateway"
+        error_step = "order_creation"
+        error_reason = "internal_error"
+        error_metadata = {}
+        error_field = None
+        
+        # If we got a structured error from Razorpay
+        if hasattr(e, 'error') and isinstance(e.error, dict):
+            err_dict = e.error
+            error_code = err_dict.get("code", error_code)
+            error_description = err_dict.get("description", error_description)
+            error_source = err_dict.get("source", error_source)
+            error_step = err_dict.get("step", error_step)
+            error_reason = err_dict.get("reason", error_reason)
+            error_metadata = err_dict.get("metadata", {})
+            error_field = err_dict.get("field")
+        
+        db_order = PaymentOrder(
+            user_id=user_id,
+            request_status="failure",
+            error_code=error_code,
+            error_description=error_description,
+            error_source=error_source,
+            error_step=error_step,
+            error_reason=error_reason,
+            error_metadata=error_metadata,
+            error_field=error_field
+        )
+        db.add(db_order)
+        await db.commit()
+        
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to create payment order: {error_description}"
+        )
+
+
+@router.post("/verify-payment/{user_id}", response_model=PaymentVerificationResponse)
+async def verify_payment(
+    user_id: UUID,
+    request: VerifyPaymentRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user)
+):
+    """
+    Verify Razorpay payment signature and atomically credit the user's wallet.
+    """
+    if str(user_id) != current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You can only verify payments for your own account"
+        )
+        
+    # 1. Verify payment signature
+    try:
+        client.utility.verify_payment_signature({
+            "razorpay_order_id": request.razorpay_order_id,
+            "razorpay_payment_id": request.razorpay_payment_id,
+            "razorpay_signature": request.razorpay_signature
+        })
+    except Exception as e:
+        logger.error(f"Signature verification failed for order {request.razorpay_order_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid payment signature. Verification failed."
+        )
+
+    # 2. Process order and add credits atomically
+    from sqlalchemy import select
+    
+    try:
+        async with db.begin_nested():
+            order_query = select(PaymentOrder).where(PaymentOrder.order_id == request.razorpay_order_id).with_for_update()
+            order_result = await db.execute(order_query)
+            db_order = order_result.scalars().first()
+            
+            if not db_order:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Payment order not found."
+                )
+            
+            # Idempotency check: if order is already completed/paid, don't credit again
+            if db_order.order_status in ["paid", "completed"]:
+                wallet = await CreditRepository.get_wallet(user_id, db)
+                balance = wallet["balance"] if wallet else 0
+                return PaymentVerificationResponse(
+                    success=True,
+                    message="Payment already processed and credits added.",
+                    order_id=request.razorpay_order_id,
+                    payment_id=request.razorpay_payment_id,
+                    credits_added=0,
+                    balance=balance
+                )
+            
+            # Calculate credits to add
+            credits_to_add = 0
+            if db_order.notes and "credits_to_add" in db_order.notes:
+                try:
+                    credits_to_add = int(db_order.notes["credits_to_add"])
+                except ValueError:
+                    pass
+            
+            if credits_to_add <= 0:
+                if db_order.amount == 9900:
+                    credits_to_add = 100
+                else:
+                    credits_to_add = 0
+            
+            if credits_to_add <= 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid credit amount detected in order metadata."
+                )
+                
+            # Update order details
+            db_order.order_status = "paid"
+            db_order.amount_paid = db_order.amount
+            db_order.amount_due = 0
+            
+            # Add payment ID to notes
+            if db_order.notes is None:
+                db_order.notes = {}
+            if isinstance(db_order.notes, dict):
+                notes_copy = dict(db_order.notes)
+                notes_copy["razorpay_payment_id"] = request.razorpay_payment_id
+                db_order.notes = notes_copy
+            
+            # Add credits atomically
+            description = f"Credits purchase: Order {request.razorpay_order_id}"
+            new_balance = await CreditRepository.add_credits(
+                user_id=user_id,
+                amount=credits_to_add,
+                tx_type=CreditTxTypeEnum.purchase,
+                description=description,
+                session=db
+            )
+            
+            return PaymentVerificationResponse(
+                success=True,
+                message=f"Payment verified successfully! Added {credits_to_add} credits.",
+                order_id=request.razorpay_order_id,
+                payment_id=request.razorpay_payment_id,
+                credits_added=credits_to_add,
+                balance=new_balance
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error processing payment verification for order {request.razorpay_order_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Verification failed: {str(e)}"
+        )
+
 
 @router.post("/deduct/{user_id}", response_model=CreditResponse)
 async def deduct_credits(
@@ -280,3 +588,4 @@ async def use_ai_feature(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
+

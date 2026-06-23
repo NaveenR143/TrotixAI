@@ -11,6 +11,7 @@ from sqlalchemy import (
     DateTime,
     Boolean,
     Integer,
+    BigInteger,
     Float,
     Date,
     ARRAY,
@@ -1029,4 +1030,43 @@ class ApiAuditLog(Base):
     response_time_ms = Column(Integer, nullable=True)
     error_message = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Payment Orders Table
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class PaymentOrder(Base):
+    __tablename__ = "payment_orders"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    request_status = Column(String, nullable=False)
+    order_id = Column(String, nullable=True, index=True)
+    entity = Column(String, nullable=True)
+    amount = Column(BigInteger, nullable=True)
+    amount_paid = Column(BigInteger, nullable=True)
+    amount_due = Column(BigInteger, nullable=True)
+    currency = Column(String, nullable=True)
+    receipt = Column(String, nullable=True)
+    offer_id = Column(String, nullable=True)
+    order_status = Column(String, nullable=True)
+    attempts = Column(Integer, nullable=True)
+    notes = Column(JSON, nullable=True)
+    provider_created_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Error fields
+    error_code = Column(String, nullable=True)
+    error_description = Column(Text, nullable=True)
+    error_source = Column(String, nullable=True)
+    error_step = Column(String, nullable=True)
+    error_reason = Column(String, nullable=True)
+    error_metadata = Column(JSON, nullable=True)
+    error_field = Column(String, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    user = relationship("User", backref="payment_orders")
 
