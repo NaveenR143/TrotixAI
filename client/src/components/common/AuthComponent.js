@@ -12,10 +12,11 @@ import PersonIcon from "@mui/icons-material/Person";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { sendOTP, verifyOTP, sendRegistrationOTP } from "../../api/jobpostingAPI";
+import { verifyOTP } from "../../api/jobpostingAPI";
 import { UPDATE_USER_PROFILE } from "../../redux/constants";
 import { fetchAndStoreProfile } from "../../redux/profile/ProfileAction";
 import { mapRoleToType } from "../../utils/profileMapping";
+import { useOtp } from "../../hooks/useOtp";
 
 const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) => {
   const navigate = useNavigate();
@@ -28,6 +29,10 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
   useEffect(() => {
     setIsLogin(!isPostJobRoute);
   }, [isPostJobRoute]);
+
+  const loginOtp = useOtp("login");
+  const registrationOtp = useOtp("registration");
+  const activeOtp = isLogin ? loginOtp : registrationOtp;
 
   const [step, setStep] = useState(1); // 1: Input, 2: OTP
   const [formData, setFormData] = useState({ name: "", mobile: "", otp: "" });
@@ -62,11 +67,11 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
     setLoading(true);
     setError("");
     try {
-      const resp = await sendRegistrationOTP(name, phone, role);
+      const resp = await registrationOtp.sendOtp({ name, phone, isResend: false, role });
       if (!resp.error) {
         setStep(2);
       } else {
-        setError(resp.message);
+        setError(resp.message || registrationOtp.error);
       }
     } catch (err) {
       setError("Registration failed. Please try again.");
@@ -93,13 +98,30 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
     setLoading(true);
     setError("");
     try {
-      const resp = await sendOTP(formData.mobile);
+      const resp = await loginOtp.sendOtp({ phone: formData.mobile, isResend: false });
       if (!resp.error) setStep(2);
-      else setError(resp.message);
+      else setError(resp.message || loginOtp.error);
     } catch (err) {
       setError("Failed to send OTP.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setError("");
+    try {
+      const resp = await activeOtp.sendOtp({
+        name: formData.name,
+        phone: formData.mobile,
+        isResend: true,
+        role: userType
+      });
+      if (resp.error) {
+        setError(resp.message || activeOtp.error);
+      }
+    } catch (err) {
+      setError("Failed to resend OTP.");
     }
   };
 
@@ -172,6 +194,12 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
         {error && (
           <Alert severity="error" sx={{ mb: 4, borderRadius: '12px', fontWeight: 600 }}>
             {error}
+          </Alert>
+        )}
+
+        {step === 2 && activeOtp.resendAttempts >= 3 && (
+          <Alert severity="warning" sx={{ mb: 4, borderRadius: '12px', fontWeight: 600 }}>
+            You have exhausted all 3 daily resend attempts. Please request a new code tomorrow.
           </Alert>
         )}
 
@@ -252,13 +280,34 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
                 >
                   {loading ? "Verifying..." : "Verify OTP"}
                 </Button>
-                <Button
-                  fullWidth variant="text" size="small"
-                  onClick={() => { setStep(1); setError(""); }}
-                  sx={{ color: '#64748B', fontWeight: 700, textTransform: 'none' }}
-                >
-                  Resend code or change number
-                </Button>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+                  <Button
+                    fullWidth variant="outlined" size="medium"
+                    onClick={handleResendOtp}
+                    disabled={activeOtp.isCooldownActive || !activeOtp.isEligible || activeOtp.loading}
+                    sx={{
+                      borderRadius: '16px', fontWeight: 700, textTransform: 'none', py: 1.5,
+                      "&.Mui-disabled": {
+                        color: "#94A3B8"
+                      }
+                    }}
+                  >
+                    {activeOtp.loading
+                      ? "Resending..."
+                      : activeOtp.isCooldownActive
+                      ? `Resend code in ${activeOtp.remainingSeconds}s`
+                      : activeOtp.resendAttempts >= 3
+                      ? "Daily Limit Reached"
+                      : "Resend Code"}
+                  </Button>
+                  <Button
+                    fullWidth variant="text" size="small"
+                    onClick={() => { setStep(1); setError(""); }}
+                    sx={{ color: '#64748B', fontWeight: 700, textTransform: 'none' }}
+                  >
+                    Change phone number
+                  </Button>
+                </Box>
               </>
             )}
           </Stack>

@@ -77,3 +77,10 @@ export const UPDATE_PROFILE_DATA = "UPDATE_PROFILE_DATA";
 
 export const CANDIDATE = "Candidate";
 export const RECRUITER = "Recruiter";
+
+// OTP Constants
+export const OTP_SEND_REQUEST = "OTP_SEND_REQUEST";
+export const OTP_SEND_SUCCESS = "OTP_SEND_SUCCESS";
+export const OTP_SEND_FAILURE = "OTP_SEND_FAILURE";
+export const OTP_TICK_COOLDOWN = "OTP_TICK_COOLDOWN";
+export const OTP_DAILY_RESET = "OTP_DAILY_RESET";

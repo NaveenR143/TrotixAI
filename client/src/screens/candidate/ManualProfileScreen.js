@@ -29,6 +29,7 @@ import { fetchSkillsDropdown, fetchLanguagesDropdown, submitManualProfile } from
 import { sendRegistrationOTP, verifyOTP } from "../../api/jobpostingAPI";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import { useOtp } from "../../hooks/useOtp";
 
 const STEPS = ["Identity", "Experience & Education", "Summary & Skills"];
 // const SKILLS_OPTIONS = [
@@ -137,6 +138,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
   const [errors, setErrors] = useState({});
 
   // OTP Verification State
+  const otpVerification = useOtp("registration");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
@@ -204,7 +206,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
     }
   };
 
-  const handleSendOtp = async () => {
+  const handleSendOtp = async (isResend = false) => {
     const cleanPhone = formData.phone.replace(/\D/g, '');
     if (cleanPhone.length !== 10) {
       setErrors(prev => ({ ...prev, phone: "Enter valid 10-digit number" }));
@@ -216,13 +218,17 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
 
     const name = formData.firstName + " " + formData.lastName;
 
-
     try {
-      const resp = await sendRegistrationOTP(name, cleanPhone, "Candidate");
+      const resp = await otpVerification.sendOtp({
+        name,
+        phone: cleanPhone,
+        isResend,
+        role: "Candidate"
+      });
       if (!resp.error) {
         setOtpSent(true);
       } else {
-        setVerificationError(resp.message);
+        setVerificationError(resp.message || otpVerification.error);
       }
     } catch (err) {
       setVerificationError("Failed to send OTP. Please try again.");
@@ -478,7 +484,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
 
               {otpSent && !isPhoneVerified && (
                 <Grid item xs={12}>
-                  <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                  <Stack direction="row" spacing={1} sx={{ mt: 1, alignItems: 'center' }}>
                     <TextField
                       placeholder="4-digit OTP"
                       size="small"
@@ -493,7 +499,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                       onClick={handleVerifyOtp}
                       disabled={verificationLoading || otp.length !== 4}
                       sx={{
-                        background: 'black', color: 'white', textTransform: 'none', px: 3,
+                        background: 'black', color: 'white', textTransform: 'none', px: 3, height: 40,
                         "&.Mui-disabled": {
                           background: "#E2E8F0",
                           color: "#475569"
@@ -502,7 +508,32 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                     >
                       {verificationLoading ? <CircularProgress size={20} color="inherit" /> : "Verify"}
                     </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleSendOtp(true)}
+                      disabled={verificationLoading || otpVerification.isCooldownActive || !otpVerification.isEligible || otpVerification.loading}
+                      sx={{
+                        height: 40, textTransform: 'none', px: 2,
+                        "&.Mui-disabled": {
+                          color: "#94A3B8"
+                        }
+                      }}
+                    >
+                      {otpVerification.loading
+                        ? "Resending..."
+                        : otpVerification.isCooldownActive
+                        ? `Resend in ${otpVerification.remainingSeconds}s`
+                        : otpVerification.resendAttempts >= 3
+                        ? "Limit Reached"
+                        : "Resend OTP"}
+                    </Button>
                   </Stack>
+                  {otpVerification.resendAttempts >= 3 && (
+                    <Typography color="warning.main" variant="caption" sx={{ mt: 1, display: 'block', fontWeight: 600 }}>
+                      ⚠️ Daily resend limit of 3 attempts reached. Please request a new OTP tomorrow.
+                    </Typography>
+                  )}
                   {verificationError && (
                     <Typography color="error" variant="caption" sx={{ mt: 0.5, display: 'block' }}>
                       {verificationError}

@@ -6,6 +6,7 @@ import UserReducer from "./user/UserReducer";
 import SearchingReducer from "./searching/SearchingReducer";
 import RecentSearchesReducer from "./recentsearches/RecentSearchesReducer";
 import ProfileReducer from "./profile/ProfileReducer";
+import OtpReducer from "./otp/OtpReducer";
 
 const RootReducers = combineReducers({
   CustomizerReducer,
@@ -14,7 +15,8 @@ const RootReducers = combineReducers({
   UserReducer,
   SearchingReducer,
   RecentSearchesReducer,
-  ProfileReducer
+  ProfileReducer,
+  OtpReducer
 });
 
 export default RootReducers;

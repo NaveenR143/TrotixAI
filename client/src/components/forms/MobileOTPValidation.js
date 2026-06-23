@@ -23,6 +23,7 @@ import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
 import { fadeSlideUp } from "../../utils/themeUtils";
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
 import { getStatusMessage, calculateRealisticProgress } from "../../utils/progressUtils";
+import { useOtp } from "../../hooks/useOtp";
 
 /**
  * MobileOTPValidation Component
@@ -56,6 +57,28 @@ const MobileOTPValidation = ({
     const [resumeStatus, setResumeStatus] = useState("unknown");
     const [processingProgress, setProcessingProgress] = useState(30);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+    const flowType = newUser ? "registration" : "login";
+    const activeOtp = useOtp(flowType);
+
+    const handleResendOtp = async () => {
+        setError("");
+        const name = resumeData?.name || resumeData?.fullName || "Candidate";
+        const role = "Candidate";
+        try {
+            const resp = await activeOtp.sendOtp({
+                name,
+                phone: mobileNumber,
+                isResend: true,
+                role
+            });
+            if (resp.error) {
+                setError(resp.message || activeOtp.error);
+            }
+        } catch (err) {
+            setError("Failed to resend OTP. Please try again.");
+        }
+    };
 
     const handleOtpChange = (e) => {
         const val = e.target.value.replace(/\D/g, '').slice(0, otpLength);
@@ -277,6 +300,19 @@ const MobileOTPValidation = ({
                     </Alert>
                 </Fade>
 
+                {/* Daily limit exhausted warning */}
+                <Fade in={!activeOtp.isEligible && !verificationSuccess}>
+                    <Alert
+                        severity="warning"
+                        sx={{ mb: 3, borderRadius: 2 }}
+                    >
+                        <AlertTitle sx={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                            Resend Limit Exceeded
+                        </AlertTitle>
+                        You have exhausted all 3 daily resend attempts. Please request a new code tomorrow.
+                    </Alert>
+                </Fade>
+
                 {/* Success Alert */}
                 <Fade in={verificationSuccess}>
                     <Alert
@@ -385,27 +421,50 @@ const MobileOTPValidation = ({
                                 {loading ? "Verifying..." : otp.length === otpLength ? "Verify Now" : "Verify OTP"}
                             </Button>
 
-                            {onChangeNumber && (
+                            <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
                                 <Button
                                     fullWidth
-                                    variant="text"
-                                    size="small"
-                                    onClick={onChangeNumber}
-                                    disabled={disabled || loading}
+                                    variant="outlined"
+                                    onClick={handleResendOtp}
+                                    disabled={disabled || loading || activeOtp.isCooldownActive || !activeOtp.isEligible || activeOtp.loading}
                                     sx={{
-                                        color: "#64748b",
-                                        fontWeight: 600,
+                                        borderRadius: 2.5,
+                                        fontWeight: 700,
                                         textTransform: "none",
-                                        fontSize: "0.85rem",
-                                        "&:hover": {
-                                            bgcolor: "rgba(99, 102, 241, 0.05)",
-                                            color: "#6366f1"
-                                        }
+                                        py: 1.2
                                     }}
                                 >
-                                    Didn't receive the code? Resend OTP
+                                    {activeOtp.loading
+                                        ? "Resending..."
+                                        : activeOtp.isCooldownActive
+                                        ? `Resend in ${activeOtp.remainingSeconds}s`
+                                        : activeOtp.resendAttempts >= 3
+                                        ? "Daily Limit Reached"
+                                        : "Resend OTP"}
                                 </Button>
-                            )}
+
+                                {onChangeNumber && (
+                                    <Button
+                                        fullWidth
+                                        variant="text"
+                                        size="small"
+                                        onClick={onChangeNumber}
+                                        disabled={disabled || loading}
+                                        sx={{
+                                            color: "#64748b",
+                                            fontWeight: 600,
+                                            textTransform: "none",
+                                            fontSize: "0.85rem",
+                                            "&:hover": {
+                                                bgcolor: "rgba(99, 102, 241, 0.05)",
+                                                color: "#6366f1"
+                                            }
+                                        }}
+                                    >
+                                        Change mobile number
+                                    </Button>
+                                )}
+                            </Stack>
 
                             {/* Helpful messaging during entry */}
                             <Typography sx={{

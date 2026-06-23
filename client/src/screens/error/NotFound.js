@@ -77,7 +77,7 @@ const NotFound = () => {
             }}>
               404
             </Typography>
-            
+
             <Typography variant="h2" sx={{
               fontSize: { xs: '1.5rem', md: '2.5rem' },
               fontWeight: 900,
@@ -100,11 +100,11 @@ const NotFound = () => {
             </Typography>
           </Stack>
 
-          <Stack 
-            direction={{ xs: 'column', sm: 'row' }} 
-            spacing={2} 
-            sx={{ 
-              width: { xs: '100%', sm: 'auto' }, 
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            sx={{
+              width: { xs: '100%', sm: 'auto' },
               pt: 2,
               px: { xs: 4, sm: 0 }
             }}
@@ -112,7 +112,7 @@ const NotFound = () => {
             <Button
               variant="contained"
               startIcon={<HomeIcon />}
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/')}
               sx={{
                 borderRadius: '16px',
                 px: 5,
@@ -132,7 +132,7 @@ const NotFound = () => {
             >
               Back to Dashboard
             </Button>
-            
+
             <Button
               variant="outlined"
               startIcon={<ArrowBackIcon />}

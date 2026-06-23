@@ -21,6 +21,8 @@ import PublicIcon from "@mui/icons-material/Public";
 import { API_BASE_URL, API_ENDPOINTS } from "../../../config/api.config";
 import * as profileAPI from "../../../api/profileAPI";
 import { updateUserProfile } from "../../../redux/user/Action";
+import { useOtp } from "../../../hooks/useOtp";
+import { verifyOTP } from "../../../api/jobpostingAPI";
 
 const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
   const dispatch = useDispatch();
@@ -37,6 +39,13 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
     headline: "",
   });
   const [formErrors, setFormErrors] = useState({});
+
+  const phoneVerificationOtp = useOtp("phone_verification");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationError, setVerificationError] = useState("");
 
   // Sync with profile prop when not editing
   useEffect(() => {
@@ -99,20 +108,53 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
     setFormErrors({});
     setIsEditing(false);
     setError(null);
+    setOtp("");
+    setOtpSent(false);
+    setOtpVerified(false);
+    setVerificationError("");
   };
 
-  const handleSendOtp = async () => {
-    setLoading(true);
+  const handleSendOtp = async (isResend = false) => {
     setError(null);
+    setVerificationError("");
     try {
-      const endpoint = `${API_BASE_URL}${API_ENDPOINTS.SEND_OTP}`;
-      await axios.post(endpoint, { phone: formData.mobile.toString() });
-      if (onSuccess) onSuccess("OTP sent successfully!");
+      const resp = await phoneVerificationOtp.sendOtp({
+        phone: formData.mobile.toString(),
+        isResend
+      });
+      if (!resp.error) {
+        setOtpSent(true);
+        if (onSuccess) onSuccess("OTP sent successfully!");
+      } else {
+        setVerificationError(resp.message || phoneVerificationOtp.error);
+      }
     } catch (err) {
-      const errorMsg = err?.response?.data?.detail || err?.message || "Sending OTP failed.";
-      setError(errorMsg);
+      setVerificationError("Failed to send OTP. Please try again.");
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp.length !== 4) {
+      setVerificationError("Enter 4-digit OTP");
+      return;
+    }
+
+    setVerificationLoading(true);
+    setVerificationError("");
+    try {
+      const resp = await verifyOTP(formData.mobile, otp);
+      if (!resp.error) {
+        setOtpVerified(true);
+        setOtpSent(false);
+        setOtp("");
+        if (onSuccess) onSuccess("Mobile verified successfully!");
+      } else {
+        setVerificationError(resp.message);
+      }
+    } catch (err) {
+      setVerificationError("Verification failed. Please try again.");
     } finally {
-      setLoading(false);
+      setVerificationLoading(false);
     }
   };
 
@@ -307,34 +349,111 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
             />
           </Grid>
           <Grid item xs={12}>
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <TextField
-                fullWidth
-                label="Mobile Number *"
-                name="mobile"
-                value={formData.mobile}
-                onChange={handleInputChange}
-                error={!!formErrors.mobile}
-                helperText={formErrors.mobile}
-                size="small"
-                placeholder="10-digit number"
-              />
-              <Button 
-                variant="outlined" 
-                size="small" 
-                onClick={handleSendOtp}
-                disabled={loading || !formData.mobile || formData.mobile.length < 10}
-                sx={{
-                  textTransform: "none",
-                  "&.Mui-disabled": {
-                    background: "#cdcbcbff",
-                    color: "#cfcfcfff",
-                    opacity: 0.8,
-                  },
-                }}
-              >
-                Verify
-              </Button>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <TextField
+                  fullWidth
+                  label="Mobile Number *"
+                  name="mobile"
+                  value={formData.mobile}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    setOtpSent(false);
+                    setOtpVerified(false);
+                    setOtp("");
+                    setVerificationError("");
+                  }}
+                  error={!!formErrors.mobile}
+                  helperText={formErrors.mobile}
+                  size="small"
+                  placeholder="10-digit number"
+                  disabled={loading || otpVerified}
+                />
+                {!otpVerified && !otpSent && (
+                  <Button 
+                    variant="outlined" 
+                    size="small" 
+                    onClick={() => handleSendOtp(false)}
+                    disabled={loading || !formData.mobile || formData.mobile.length < 10 || phoneVerificationOtp.loading}
+                    sx={{
+                      textTransform: "none",
+                      height: 40,
+                      "&.Mui-disabled": {
+                        color: "#cfcfcfff",
+                        opacity: 0.8,
+                      },
+                    }}
+                  >
+                    {phoneVerificationOtp.loading ? <CircularProgress size={20} /> : "Verify"}
+                  </Button>
+                )}
+              </Box>
+
+              {otpSent && !otpVerified && (
+                <Box>
+                  <Stack direction="row" spacing={1} sx={{ mt: 1, alignItems: 'center' }}>
+                    <TextField
+                      placeholder="4-digit OTP"
+                      size="small"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      sx={{ width: 150 }}
+                      autoFocus
+                    />
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={handleVerifyOtp}
+                      disabled={verificationLoading || otp.length !== 4}
+                      sx={{
+                        background: 'black', color: 'white', textTransform: 'none', px: 3, height: 40,
+                        "&.Mui-disabled": {
+                          background: "#E2E8F0",
+                          color: "#475569"
+                        }
+                      }}
+                    >
+                      {verificationLoading ? <CircularProgress size={20} color="inherit" /> : "Verify"}
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleSendOtp(true)}
+                      disabled={verificationLoading || phoneVerificationOtp.isCooldownActive || !phoneVerificationOtp.isEligible || phoneVerificationOtp.loading}
+                      sx={{
+                        height: 40, textTransform: 'none', px: 2,
+                        "&.Mui-disabled": {
+                          color: "#94A3B8"
+                        }
+                      }}
+                    >
+                      {phoneVerificationOtp.loading
+                        ? "Resending..."
+                        : phoneVerificationOtp.isCooldownActive
+                        ? `Resend in ${phoneVerificationOtp.remainingSeconds}s`
+                        : phoneVerificationOtp.resendAttempts >= 3
+                        ? "Limit Reached"
+                        : "Resend OTP"}
+                    </Button>
+                  </Stack>
+                  {phoneVerificationOtp.resendAttempts >= 3 && (
+                    <Typography color="warning.main" variant="caption" sx={{ mt: 1, display: 'block', fontWeight: 600 }}>
+                      ⚠️ Daily resend limit of 3 attempts reached. Please request a new OTP tomorrow.
+                    </Typography>
+                  )}
+                  {verificationError && (
+                    <Typography color="error" variant="caption" sx={{ mt: 0.5, display: 'block' }}>
+                      {verificationError}
+                    </Typography>
+                  )}
+                </Box>
+              )}
+
+              {otpVerified && (
+                <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  ✓ Mobile number verified successfully
+                </Typography>
+              )}
             </Box>
           </Grid>
           <Grid item xs={12}>
