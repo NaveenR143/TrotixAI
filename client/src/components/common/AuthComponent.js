@@ -17,10 +17,12 @@ import { UPDATE_USER_PROFILE } from "../../redux/constants";
 import { fetchAndStoreProfile } from "../../redux/profile/ProfileAction";
 import { mapRoleToType } from "../../utils/profileMapping";
 import { useOtp } from "../../hooks/useOtp";
+import { useAuth } from "../../authContext";
 
 const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { refreshAuth } = useAuth();
 
   const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
@@ -136,6 +138,10 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
       const resp = await verifyOTP(formData.mobile, otpToVerify);
       if (!resp.error) {
         const verifiedType = mapRoleToType(resp.data.user_type);
+        
+        // Refresh React Auth Context before navigating to populate the context user state
+        await refreshAuth(formData.mobile);
+
         dispatch({
           type: UPDATE_USER_PROFILE,
           payload: {

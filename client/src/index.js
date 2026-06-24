@@ -52,10 +52,10 @@ axios.interceptors.response.use(
       // 3. Reset Redux store
       store.dispatch({ type: RESET_INITIAL_STATE });
 
-      // 4. Redirect to login page ONLY if not already there or on the landing page
+      // 4. Redirect to login page ONLY if not already on the landing page
       const currentPath = window.location.pathname;
-      if (currentPath !== "/login" && currentPath !== "/") {
-        window.location.href = "/login";
+      if (currentPath !== "/") {
+        window.location.href = "/";
       }
     }
     return Promise.reject(error);

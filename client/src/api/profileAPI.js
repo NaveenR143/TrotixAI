@@ -46,11 +46,20 @@ const handleError = (error) => {
 export const fetchProfile = async (phone) => {
   try {
 
+    // Don't call API if phone number is not provided
+    if (!phone) {
+      return null;
+    }
+
+    const params = {};
+    if (phone) {
+      params.phone = phone;
+    }
 
     const response = await axios.get(
       `${API_BASE_URL}${API_ENDPOINTS.USER_PROFILE}`,
       {
-        params: { phone },
+        params,
         headers: getHeaders(),
         timeout: 10000,
       }

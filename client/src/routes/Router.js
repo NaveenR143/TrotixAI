@@ -3,6 +3,8 @@ import React, { lazy } from "react";
 import { Navigate, useNavigate, useParams, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ProtectedRoute from "../components/common/ProtectedRoute";
+import { useAuth } from "../authContext";
+import Spinner from "../components/common/Spinner";
 import Loadable from "../layouts/full-layout/loadable/Loadable";
 import { jobService } from "../services/jobService";
 import { profileService } from "../services/profileService";
@@ -44,6 +46,26 @@ const TermsOfUseLayout = Loadable(lazy(() => import("../components/others/TermsO
 const BlankLayout = Loadable(lazy(() => import("../layouts/blank-layout/BlankLayout")));
 
 /* ***Route Wrappers*** */
+const HomeRoute = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        width: '100%'
+      }}>
+        <Spinner />
+      </div>
+    );
+  }
+
+  return <EntryRoute />;
+};
+
 const EntryRoute = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.UserReducer);
@@ -59,7 +81,7 @@ const EntryRoute = () => {
   return <EntryScreen onUpload={(data) => {
     // Navigate to processing and pass resume data
     navigate('/processing', { state: data });
-  }} onDirectSearch={() => navigate('/dashboard')} onManualEntry={() => navigate('/manual-profile')} onPostJob={() => navigate('/post-job')} />;
+  }} onDirectSearch={() => navigate('/login')} onManualEntry={() => navigate('/manual-profile')} onPostJob={() => navigate('/post-job')} />;
 };
 
 const ManualProfileRoute = () => {
@@ -125,15 +147,15 @@ const Router = [
         path: "/",
         element: <MainLayout />,
         children: [
-          { index: true, element: <EntryRoute /> },
-          { path: "jobs/:id", element: <PublicJobDetailScreen /> },
-          { path: "govt-jobs", element: <GovtJobsScreen /> },
+          { index: true, element: <HomeRoute /> },
           { path: "login", element: <LoginScreen /> },
-          { path: "terms", element: <TermsOfUseLayout /> },
           
           {
             element: <ProtectedRoute><Outlet /></ProtectedRoute>,
             children: [
+              { path: "jobs/:id", element: <PublicJobDetailScreen /> },
+              { path: "govt-jobs", element: <GovtJobsScreen /> },
+              { path: "terms", element: <TermsOfUseLayout /> },
               { path: "dashboard", element: <DashboardRoute /> },
               { path: "manual-profile", element: <ManualProfileRoute /> },
               { path: "processing", element: <ProcessingRoute /> },

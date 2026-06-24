@@ -142,7 +142,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email = Column(String, unique=True, nullable=False, index=True)
+    email = Column(String, unique=True, nullable=True, index=True)
     phone = Column(String, unique=True, nullable=True, index=True)
     role = Column(
         Enum(UserRoleEnum, name="user_role", create_type=False),

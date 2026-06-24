@@ -71,8 +71,8 @@ class ProfileService:
         # Validate required fields
         required_fields = {
             "id": "User ID",
-            "email": "Email",
-            "full_name": "Full Name",
+            # "email": "Email",
+            # "full_name": "Full Name",
         }
         
         for field, label in required_fields.items():

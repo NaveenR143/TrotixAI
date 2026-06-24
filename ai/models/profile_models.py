@@ -147,7 +147,7 @@ class UserProfileResponse(BaseModel):
 
     # User Basic Info
     id: UUID
-    email: EmailStr
+    email: Optional[EmailStr] = None
     phone: Optional[str] = None
     full_name: str
     avatar_url: Optional[str] = None
@@ -423,7 +423,7 @@ class ManualProfileSubmission(BaseModel):
 
     user_id: UUID
     full_name: str
-    email: EmailStr
+    email: Optional[EmailStr] = None
     phone: str
     current_location: Optional[str] = None
     preferred_locations: Optional[List[str]] = []

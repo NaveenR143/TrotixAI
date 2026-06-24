@@ -167,9 +167,9 @@ class JobMatcherService:
         if not job_data:
             return []
 
-        # Step 2: Fetch top candidates by embedding similarity
+        # Step 2: Fetch top 200 candidates by embedding similarity (increased pool for filtering)
         candidates = await JobMatcherService._fetch_candidate_users(
-            job_data, session, limit=100
+            job_data, session, limit=200
         )
 
         # Step 3: Compute full scores for candidates

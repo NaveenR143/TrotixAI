@@ -3,6 +3,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 import boto3
+import re
 from botocore.exceptions import ClientError
 
 # Configure logger
@@ -18,24 +19,61 @@ client = boto3.client(
     region_name="ap-south-2"
 )
 
+def validate_and_format_indian_phone(phone: str) -> str:
+    """
+    Validates if the phone number is a valid Indian mobile number and returns it in E.164 format.
+    Accepts formats like:
+      - 9009006739
+      - +919009006739
+      - 919009006739
+      - +91 9009006739
+      - 91-9009006739
+      - 09009006739
+    Indian mobile numbers must be 10 digits starting with 6, 7, 8, or 9.
+    """
+    if not phone:
+        raise ValueError("Phone number cannot be empty")
+    
+    # Strip any non-digit characters
+    cleaned = re.sub(r'\D', '', phone)
+    
+    # Remove leading zero if present
+    if cleaned.startswith("0"):
+        cleaned = cleaned[1:]
+        
+    if len(cleaned) == 10 and cleaned[0] in '6789':
+        return f"+91{cleaned}"
+    elif len(cleaned) == 12 and cleaned.startswith("91") and cleaned[2] in '6789':
+        return f"+{cleaned}"
+    else:
+        raise ValueError("Invalid Indian mobile number. Must be a 10-digit number starting with 6, 7, 8, or 9.")
+
 
 def send_otp(phone: str) -> str:
     """
     Generate a 4-digit OTP, store it in-memory, and return it.
     OTP expires in 5 minutes.
     """
+
+    formattedphone = validate_and_format_indian_phone(phone if phone.startswith("+") else f"+91{phone}")
+
     otp = str(random.randint(1000, 9999))
     expiry_time = datetime.utcnow() + timedelta(minutes=5)
-    otp_store[phone] = (otp, expiry_time)
+    otp_store[formattedphone] = (otp, expiry_time)
+
+    print("formattedphone: ", formattedphone)
 
     message = f"Your OTP code sent by RightNxt is {otp}."
 
     try:
         # Prepare parameters for the send_text_message API call
+
+        # phonenumber = '+919009006739'
         params = {
-            "DestinationPhoneNumber": "+919972566264",
+            "DestinationPhoneNumber": formattedphone,
             "MessageBody": message,
             "MessageType": "TRANSACTIONAL",
+            # "OriginationIdentity": "RNXT"
         }
 
         # Check if an origination identity is configured in environment
@@ -47,6 +85,7 @@ def send_otp(phone: str) -> str:
         response = client.send_text_message(**params)
 
         message_id = response.get("MessageId")
+        print("OTP SMS sent successfully to ", phone, ". MessageId: ", message_id)
         logger.info(f"OTP SMS sent successfully to {phone}. MessageId: {message_id}")
 
     except ClientError as e:
@@ -68,23 +107,32 @@ def verify_otp(phone: str, otp: str) -> bool:
     """
     Verify OTP for a given phone number.
     Returns True if correct and deletes it from memory.
-    Returns False if incorrect or expired.
+    Returns False if incorrect, expired, or on error.
     """
-    entry = otp_store.get(phone)
+    try:
+        phone_key = phone if phone.startswith("+") else f"+91{phone}"
 
-    if not entry:
+        entry = otp_store.get(phone_key)
+
+        print("entry:", entry)
+
+        if not entry:
+            return False
+
+        stored_otp, expiry_time = entry
+
+        # Check expiry
+        if datetime.utcnow() > expiry_time:
+            otp_store.pop(phone_key, None)  # safely remove expired OTP
+            return False
+
+        # Check correctness
+        if stored_otp == otp:
+            otp_store.pop(phone_key, None)  # delete OTP after successful verification
+            return True
+
         return False
 
-    stored_otp, expiry_time = entry
-
-    # Check expiry
-    if datetime.utcnow() > expiry_time:
-        del otp_store[phone]  # remove expired OTP
+    except Exception as e:
+        print(f"Error verifying OTP for {phone}: {e}")
         return False
-
-    # Check correctness
-    if stored_otp == otp:
-        del otp_store[phone]  # delete OTP after successful verification
-        return True
-
-    return False

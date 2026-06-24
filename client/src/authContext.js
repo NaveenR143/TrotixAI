@@ -22,10 +22,6 @@ export const AuthProvider = ({ children }) => {
   const refreshAuth = async (phone = null) => {
     try {
 
-      if (phone === null) {
-        return null;
-      }
-
       // We allow phone to be null because the backend can identify the user via the access_token cookie
       const response = await fetchProfile(phone);
 

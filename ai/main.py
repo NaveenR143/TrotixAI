@@ -13,14 +13,18 @@ from pathlib import Path
 from contextlib import asynccontextmanager
 from uuid import UUID, uuid4
 from typing import Any, Literal
+from dotenv import load_dotenv
 import io
 import re
 import logging
 import random
 
+from ai.db.database import engine
 from ai.api.router import router
 from ai.api.middleware import AuditLogMiddleware
 from ai.utils.auth import get_current_user
+
+load_dotenv()
 
 # ── Optional deps ─────────────────────────────────────────────────────────────
 try:
@@ -49,6 +53,8 @@ OTP_CACHE: dict[str, str] = {}
 BASE_DIR = Path(__file__).resolve().parent.parent
 PUBLIC_DIR = BASE_DIR / "client" / "public"
 SRC_DIR = BASE_DIR / "client" / "src"
+
+# Test DB Connection
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -92,6 +98,17 @@ else:
 
 # ── API Routes ────────────────────────────────────────────────────────────────
 
+@app.on_event("startup")
+async def test_database_connection():
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(text("SELECT 1"))
+            print("✅ Database connection successful")
+            print("Result:", result.scalar())
+    except Exception as e:
+        print("❌ Database connection failed")
+        print("Error:", str(e))
+        raise
 
 @app.get("/test")
 async def test_get(current_user_id: str = Depends(get_current_user)):

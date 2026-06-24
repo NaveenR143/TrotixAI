@@ -22,10 +22,10 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  // if (!user) {
-  //   // Save the current location they were trying to access
-  //   return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
-  // }
+  if (!user) {
+    // Save the current location they were trying to access
+    return <Navigate to={`/?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+  }
 
   return children;
 };

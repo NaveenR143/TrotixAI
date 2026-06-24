@@ -469,7 +469,7 @@ const PublicJobDetailScreen = () => {
 
               <Paper
                 variant="outlined"
-                onClick={() => navigate(`/login?redirect=${encodeURIComponent(location.pathname)}&action=apply`)}
+                onClick={() => navigate(`/?redirect=${encodeURIComponent(location.pathname)}&action=apply`)}
                 sx={{
                   p: 3, borderRadius: '20px', cursor: 'pointer', transition: 'all 0.2s',
                   '&:hover': { bgcolor: '#F8FAFC', borderColor: '#7C3AED', transform: 'translateY(-2px)' }

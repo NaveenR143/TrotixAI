@@ -180,7 +180,7 @@ const GovtJobDetailScreen = ({ job: initialJob, isEmbedded = false, onBack }) =>
                     if (mobile) {
                       window.open(job.apply_url, '_blank');
                     } else {
-                      navigate('/login', { state: { redirectTo: `/govt-job-detail/${id}` } });
+                      navigate(`/?redirect=${encodeURIComponent(`/govt-job-detail/${id}`)}`);
                     }
                   }}
                   sx={{ 
@@ -204,7 +204,7 @@ const GovtJobDetailScreen = ({ job: initialJob, isEmbedded = false, onBack }) =>
                     if (mobile) {
                       window.open(job.pdf_url, '_blank');
                     } else {
-                      navigate('/login', { state: { redirectTo: `/govt-job-detail/${id}` } });
+                      navigate(`/?redirect=${encodeURIComponent(`/govt-job-detail/${id}`)}`);
                     }
                   }}
                   sx={{ 
