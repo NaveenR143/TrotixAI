@@ -26,10 +26,13 @@ logger = logging.getLogger(__name__)
 
 
 import razorpay
-razorpay_key_id = os.getenv("RAZORPAY_KEY_ID")
-razorpay_key_secret = os.getenv("RAZORPAY_KEY_SECRET")
 
-client = razorpay.Client(auth=(razorpay_key_id, razorpay_key_secret))
+def get_razorpay_client():
+    key_id = os.getenv("RAZORPAY_KEY_ID")
+    key_secret = os.getenv("RAZORPAY_KEY_SECRET")
+    if not key_id or not key_secret:
+        logger.error("Razorpay keys are not configured in environment variables")
+    return razorpay.Client(auth=(key_id, key_secret)), key_id
 
 # ─── Constants ─────────────────────────────────────────────────────────────
 AI_FEATURE_CREDIT_COST = 20
@@ -202,9 +205,22 @@ async def create_payment_order(
             detail="Forbidden: You can only create payment orders for your own account"
         )
     
-    # 1. Prepare Razorpay order parameters
-    # Note: amount in Razorpay is in paise (subunit of currency).
+    # 1. Resolve client dynamically and verify credentials exist
+    client, razorpay_key_id = get_razorpay_client()
+    if not razorpay_key_id or not os.getenv("RAZORPAY_KEY_SECRET"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication failed: Razorpay credentials are not configured on the backend"
+        )
+
+    # 2. Validate amount >= 100 paise (minimum allowed by Razorpay)
     amount_paise = int(request.amount * 100)
+    if amount_paise < 100:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Order amount must be at least 100 paise (1 INR)"
+        )
+    
     receipt_id = f"rcpt_{user_id.hex[:10]}_{int(datetime.now().timestamp())}"
     
     notes = {
@@ -220,7 +236,7 @@ async def create_payment_order(
         "notes": notes
     }
     
-    # 2. Call Razorpay API
+    # 3. Call Razorpay API
     try:
         razorpay_order = client.order.create(data=order_data)
         
@@ -308,8 +324,15 @@ async def create_payment_order(
         db.add(db_order)
         await db.commit()
         
+        # Determine status code based on error content
+        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        if any(keyword in error_description.lower() for keyword in ["auth", "credential", "unauthorized", "key_secret", "key_id"]):
+            status_code = status.HTTP_401_UNAUTHORIZED
+        elif "amount" in error_description.lower():
+            status_code = status.HTTP_400_BAD_REQUEST
+
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status_code,
             detail=f"Failed to create payment order: {error_description}"
         )
 
@@ -330,7 +353,15 @@ async def verify_payment(
             detail="Forbidden: You can only verify payments for your own account"
         )
         
-    # 1. Verify payment signature
+    # Validate missing fields explicitly
+    if not request.razorpay_order_id or not request.razorpay_payment_id or not request.razorpay_signature:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing fields: razorpay_order_id, razorpay_payment_id, and razorpay_signature are required"
+        )
+        
+    # 1. Verify payment signature using dynamic client
+    client, _ = get_razorpay_client()
     try:
         client.utility.verify_payment_signature({
             "razorpay_order_id": request.razorpay_order_id,

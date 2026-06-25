@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
       // We allow phone to be null because the backend can identify the user via the access_token cookie
       const response = await fetchProfile(phone);
 
-      if (response.status === 401) {
+      if (!response || response.status === 401) {
         // 2. Clear all web storage (localStorage & sessionStorage)
         localStorage.clear();
         sessionStorage.clear();
@@ -39,10 +39,16 @@ export const AuthProvider = ({ children }) => {
 
         // 4. Reset Redux store to initial state
         dispatch({ type: RESET_INITIAL_STATE });
+
+        // Redirect if on a protected path (e.g. not / and not /login)
+        const currentPath = window.location.pathname;
+        if (currentPath !== "/" && currentPath !== "/login") {
+          window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        }
         return null;
       }
 
-      if (!response.error && response.data) {
+      if (response && !response.error && response.data) {
         const userData = response.data;
         const verifiedType = mapRoleToType(userData.user_type);
 
@@ -81,11 +87,16 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-
-
-
       if (currentUser) {
-        setUser(currentUser);
+        // If Firebase user is present, always fetch/refresh backend profile to ensure Redux is in sync
+        const bUser = await refreshAuth(currentUser.phoneNumber || null);
+        if (bUser) {
+          setUser(bUser);
+        } else {
+          // If backend refresh fails, clear Firebase user as well to stay consistent
+          await auth.signOut();
+          setUser(null);
+        }
         setLoading(false);
       } else {
         // If no Firebase user, attempt to refresh from backend session (if applicable)

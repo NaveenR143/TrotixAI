@@ -1,6 +1,6 @@
 // routes/Router.js
 import React, { lazy } from "react";
-import { Navigate, useNavigate, useParams, Outlet } from "react-router-dom";
+import { Navigate, useNavigate, useParams, Outlet, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import { useAuth } from "../authContext";
@@ -68,20 +68,47 @@ const HomeRoute = () => {
 
 const EntryRoute = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useSelector((state) => state.UserReducer);
 
   if (user?.mobile && user?.role) {
-    if (user.role === CANDIDATE) {
-      return <Navigate to="/dashboard" replace />;
-    } else if (user.role === RECRUITER) {
-      return <Navigate to="/recruiter-dashboard" replace />;
+    const searchParams = new URLSearchParams(location.search);
+    const redirectUrl = searchParams.get('redirect');
+    if (redirectUrl) {
+      return <Navigate to={redirectUrl} replace />;
     }
+    // Removed unnecessary default redirects, letting logged-in users stay on landing page
   }
 
-  return <EntryScreen onUpload={(data) => {
-    // Navigate to processing and pass resume data
-    navigate('/processing', { state: data });
-  }} onDirectSearch={() => navigate('/login')} onManualEntry={() => navigate('/manual-profile')} onPostJob={() => navigate('/post-job')} />;
+  return (
+    <EntryScreen
+      onUpload={(data) => {
+        // Navigate to processing and pass resume data
+        navigate('/processing', { state: data });
+      }}
+      onDirectSearch={() => {
+        if (user?.mobile && user?.role) {
+          navigate(user.role === RECRUITER ? '/recruiter-dashboard' : '/dashboard');
+        } else {
+          navigate({ pathname: '/login', search: location.search });
+        }
+      }}
+      onManualEntry={() => {
+        if (user?.mobile && user?.role) {
+          navigate('/manual-profile');
+        } else {
+          navigate({ pathname: '/login', search: '?redirect=%2Fmanual-profile' });
+        }
+      }}
+      onPostJob={() => {
+        if (user?.mobile && user?.role) {
+          navigate('/post-job');
+        } else {
+          navigate({ pathname: '/login', search: '?redirect=%2Fpost-job' });
+        }
+      }}
+    />
+  );
 };
 
 const ManualProfileRoute = () => {

@@ -47,29 +47,35 @@ export const fetchProfile = async (phone) => {
   try {
 
     // Don't call API if phone number is not provided
-    if (!phone) {
-      return null;
-    }
-
-    const params = {};
     if (phone) {
-      params.phone = phone;
-    }
 
-    const response = await axios.get(
-      `${API_BASE_URL}${API_ENDPOINTS.USER_PROFILE}`,
-      {
-        params,
-        headers: getHeaders(),
-        timeout: 10000,
+
+
+      const params = {};
+      if (phone) {
+        params.phone = phone;
       }
-    );
 
-    return {
-      error: false,
-      data: response.data?.data || response.data,
-      message: "Profile fetched successfully",
-    };
+      const response = await axios.get(
+        `${API_BASE_URL}${API_ENDPOINTS.USER_PROFILE}`,
+        {
+          params,
+          headers: getHeaders(),
+          timeout: 10000,
+        }
+      );
+
+      return {
+        error: false,
+        data: response.data?.data || response.data,
+        message: "Profile fetched successfully",
+      };
+    } else {
+      return {
+        error: true,
+        message: "Missing Phone Number",
+      };
+    }
   } catch (error) {
     console.error("Error fetching profile:", error);
     return handleError(error);
@@ -735,6 +741,7 @@ export const createPaymentOrder = async (userId, amount, creditsToAdd, packageNa
       success: response.data?.success ?? true,
       message: response.data?.message || "Order created successfully",
       order: response.data?.order,
+      razorpay_key_id: response.data?.razorpay_key_id,
       data: response.data,
     };
   } catch (error) {

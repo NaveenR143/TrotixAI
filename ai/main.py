@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 from uuid import UUID, uuid4
 from typing import Any, Literal
 from dotenv import load_dotenv
+load_dotenv()
 import io
 import re
 import logging
@@ -24,7 +25,6 @@ from ai.api.router import router
 from ai.api.middleware import AuditLogMiddleware
 from ai.utils.auth import get_current_user
 
-load_dotenv()
 
 # ── Optional deps ─────────────────────────────────────────────────────────────
 try:

@@ -1,9 +1,31 @@
 const path = require("path");
+const fs = require("fs");
+const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const WorkboxWebpackPlugin = require("workbox-webpack-plugin");
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === "production";
+
+  // Load environment variables from .env file
+  const dotenvPath = path.resolve(__dirname, ".env");
+  const envKeys = {};
+  if (fs.existsSync(dotenvPath)) {
+    const envContent = fs.readFileSync(dotenvPath, "utf-8");
+    envContent.split(/\r?\n/).forEach((line) => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) return;
+      const parts = trimmed.split("=");
+      if (parts.length >= 2) {
+        const key = parts[0].trim();
+        let value = parts.slice(1).join("=").trim();
+        if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+          value = value.slice(1, -1);
+        }
+        envKeys[key] = value;
+      }
+    });
+  }
 
   return {
     entry: path.join(__dirname, "src", "index.js"),
@@ -15,6 +37,13 @@ module.exports = (env, argv) => {
       new HtmlWebpackPlugin({
         template: path.join(__dirname, "public", "index.html"),
         favicon: path.join(__dirname, "public", "favicon.ico"),
+      }),
+      new webpack.DefinePlugin({
+        "process.env": JSON.stringify({
+          ...envKeys,
+          NODE_ENV: isProduction ? "production" : "development",
+          PUBLIC_URL: "/"
+        })
       }),
       ...(isProduction ? [
         new WorkboxWebpackPlugin.GenerateSW({

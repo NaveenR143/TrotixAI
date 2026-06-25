@@ -67,6 +67,8 @@ const CREDIT_PACKAGES = [
     id: "credits",
     title: "100 Credits",
     price: "₹99",
+    amount: 99,
+    creditsToAdd: 100,
     duration: "One-time",
     icon: <WorkspacePremiumRoundedIcon sx={{ fontSize: 30 }} />,
     description: "Access to premium features, faster processing, and advanced tools.",
@@ -160,8 +162,8 @@ const MembershipScreen = () => {
     }
 
     try {
-      const amount = 99; // ₹99 price for 100 credits pack
-      const creditsToAdd = 100;
+      const amount = packageItem.amount || 99;
+      const creditsToAdd = packageItem.creditsToAdd || 100;
 
       // 2. Create payment order on the backend
       const orderRes = await profileAPI.createPaymentOrder(
@@ -171,22 +173,24 @@ const MembershipScreen = () => {
         packageItem.title
       );
 
-      if (orderRes.error || !orderRes.success || !orderRes.order) {
+      if (!orderRes || orderRes.error || !orderRes.success || !orderRes.order) {
         setLoading(false);
         setPaymentStatus("failure");
-        setPaymentMessage(orderRes.message || "Failed to initiate payment. Please try again.");
+        setPaymentMessage(orderRes?.message || "Failed to initiate payment. Please try again.");
         return;
       }
 
       const orderDetails = orderRes.order;
-      const razorpayKey = orderRes.razorpay_key_id || "rzp_test_zS0qL012345678";
+      const razorpayKey = (typeof process !== "undefined" && process.env && process.env.REACT_APP_RAZORPAY_KEY_ID) || orderRes.razorpay_key_id || "rzp_test_zS0qL012345678";
+
+      console.log(JSON.stringify(orderDetails));
 
       // 3. Configure Razorpay options
       const options = {
         key: razorpayKey,
         amount: orderDetails.amount,
         currency: orderDetails.currency,
-        name: "TrotixAI",
+        name: "RightNxt",
         description: `Purchase ${creditsToAdd} Credits`,
         image: "https://trotix.ai/logo.png",
         order_id: orderDetails.id,
@@ -228,13 +232,15 @@ const MembershipScreen = () => {
           email: email,
           contact: phone,
         },
-        notes: orderDetails.notes,
+        notes: JSON.stringify(orderDetails.notes),
         theme: {
           color: COLORS.primaryBlue,
         },
         modal: {
           ondismiss: function () {
             setLoading(false);
+            setPaymentStatus("failure");
+            setPaymentMessage("Payment was cancelled by the user.");
           },
         },
       };
