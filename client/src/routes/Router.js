@@ -176,6 +176,7 @@ const Router = [
         children: [
           { index: true, element: <HomeRoute /> },
           { path: "login", element: <LoginScreen /> },
+          { path: "terms", element: <TermsOfUseLayout /> },
           
           { path: "jobs/:id", element: <PublicJobDetailScreen /> },
           { path: "processing", element: <ProcessingRoute /> },
@@ -183,7 +184,6 @@ const Router = [
             element: <ProtectedRoute><Outlet /></ProtectedRoute>,
             children: [
               { path: "govt-jobs", element: <GovtJobsScreen /> },
-              { path: "terms", element: <TermsOfUseLayout /> },
               { path: "dashboard", element: <DashboardRoute /> },
               { path: "manual-profile", element: <ManualProfileRoute /> },
               { path: "profile", element: <ProfileRoute /> },

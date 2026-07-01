@@ -153,7 +153,11 @@ const PublicJobDetailScreen = () => {
         setApplying(false);
       }
     } else if (job.careers_url) {
-      window.open(job.careers_url, "_blank");
+      // External Application
+      const companyName = (typeof job.company === "object" ? job.company?.name : job.company) || "";
+      const searchQuery = `${companyName} jobs careers`;
+      const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+      window.open(searchUrl, "_blank");
     } else if (job.hiring_email) {
       setShowEmailDialog(true);
     } else {

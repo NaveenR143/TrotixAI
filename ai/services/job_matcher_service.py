@@ -582,8 +582,8 @@ class JobMatcherService:
                 # Fallback: get all filtered active jobs if no embedding
                 jobs_query = (
                     select(JobPosting, Company, skills_subquery.c.skills)
-                    .join(Company, JobPosting.company_id == Company.id)
-                    .join(Industry, JobPosting.industry_id == Industry.id)
+                    .join(Company, JobPosting.company_id == Company.id, isouter=True)
+                    .join(Industry, JobPosting.industry_id == Industry.id, isouter=True)
                     .join(
                         skills_subquery,
                         JobPosting.id == skills_subquery.c.job_posting_id,
@@ -596,8 +596,8 @@ class JobMatcherService:
                 # Use pgvector cosine similarity to get top active jobs
                 jobs_query = (
                     select(JobPosting, Company, skills_subquery.c.skills)
-                    .join(Company, JobPosting.company_id == Company.id)
-                    .join(Industry, JobPosting.industry_id == Industry.id)
+                    .join(Company, JobPosting.company_id == Company.id, isouter=True)
+                    .join(Industry, JobPosting.industry_id == Industry.id, isouter=True)
                     .join(
                         skills_subquery,
                         JobPosting.id == skills_subquery.c.job_posting_id,
@@ -626,15 +626,19 @@ class JobMatcherService:
                         "experience_min_yrs": job.experience_min_yrs or 0,
                         "experience_max_yrs": job.experience_max_yrs or 0,
                         "job_embedding": job.job_embedding,
-                        "company_name": company.name,
-                        "careers_url": company.careers_url,
-                        "hiring_email": company.hiring_email,
+                        "company_id": company.id if company else None,
+                        "company_name": company.name if company else None,
+                        "website": company.website if company else None,
+                        "is_verified": company.is_verified if company else False,
+                        "careers_url": company.careers_url if company else None,
+                        "hiring_email": company.hiring_email if company else None,
                         "skills": job_skills,
                         "location": job.location,
                         "state": job.state,
                         "city": job.city,
                         "posted_date": (
-                            job.posted_at.isoformat() if job.posted_at else None
+                            job.posted_at.isoformat() if job.posted_at
+                            else (job.created_at.isoformat() if job.created_at else None)
                         ),
                         "department": job.department,
                         "work_mode": job.work_mode,
@@ -769,7 +773,10 @@ class JobMatcherService:
                         "experience_min_yrs": job["experience_min_yrs"],
                         "experience_max_yrs": job["experience_max_yrs"],
                         # "job_embedding": job["job_embedding"],
-                        "company_name": job["company_name"],
+                        "company_id": job.get("company_id"),
+                        "company_name": job.get("company_name"),
+                        "website": job.get("website"),
+                        "is_verified": job.get("is_verified"),
                         "skills": job["skills"],
                         "location": job["location"],
                         "state": job["state"],

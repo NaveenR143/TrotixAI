@@ -20,8 +20,6 @@ import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import EmailIcon from "@mui/icons-material/Email";
-import TwitterIcon from "@mui/icons-material/Twitter";
-import GitHubIcon from "@mui/icons-material/GitHub";
 import SparklesIcon from "@mui/icons-material/AutoAwesome";
 import ShieldCheckIcon from "@mui/icons-material/ShieldOutlined";
 import FileTextIcon from "@mui/icons-material/DescriptionOutlined";
@@ -734,7 +732,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
             </Grid>
             <Grid item xs={12} md={7}>
               <Grid container spacing={4}>
-                <Grid item xs={6} sm={4}>
+                <Grid item xs={12} sm={4}>
                   <Typography variant="subtitle2" sx={{ color: "#FFF", fontWeight: 700, mb: 3 }}>Product</Typography>
                   <Stack spacing={2}>
                     {["Resume Builder", "Job Matching", "ATS Scoring", "Skill Gap"].map(link => (
@@ -742,22 +740,36 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                     ))}
                   </Stack>
                 </Grid>
-                <Grid item xs={6} sm={4}>
-                  <Typography variant="subtitle2" sx={{ color: "#FFF", fontWeight: 700, mb: 3 }}>Company</Typography>
+                <Grid item xs={12} sm={5}>
+                  <Typography variant="subtitle2" sx={{ color: "#FFF", fontWeight: 700, mb: 3 }}>Contact Us</Typography>
                   <Stack spacing={2}>
-                    {["About Us", "Privacy Policy", "Terms of Service", "Contact"].map(link => (
-                      <Typography key={link} variant="body2" sx={{ cursor: 'pointer', '&:hover': { color: '#FFF' } }}>{link}</Typography>
-                    ))}
+                    <Box>
+                      <Typography variant="caption" sx={{ color: "#FFF", fontWeight: 600, display: "block", mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mailing Address</Typography>
+                      <Typography variant="body2" sx={{ color: "#94A3B8", lineHeight: 1.5 }}>
+                        THANISH AI INNOVATIONS (OPC) PRIVATE LIMITED<br />
+                        C/O R SATHYAPREMA, SRI LAKSHMI VENKATESHWAR, Krishnarajapuram, Bangalore North, Bangalore- 560036, Karnataka
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ color: "#FFF", fontWeight: 600, display: "block", mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Customer Queries</Typography>
+                      <Link href="mailto:nr@rightnxt.com" sx={{ color: '#2563EB', textDecoration: 'none', fontWeight: 600, '&:hover': { color: '#3B82F6', textDecoration: 'underline' } }}>
+                        nr@rightnxt.com
+                      </Link>
+                    </Box>
                   </Stack>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={3}>
                   <Typography variant="subtitle2" sx={{ color: "#FFF", fontWeight: 700, mb: 3 }}>Follow Us</Typography>
                   <Stack direction="row" spacing={2}>
-                    {[<LinkedInIcon />, <TwitterIcon />, <GitHubIcon />].map((icon, i) => (
-                      <IconButton key={i} sx={{ bgcolor: 'rgba(255,255,255,0.05)', color: '#94A3B8', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)', color: '#FFF' } }}>
-                        {icon}
-                      </IconButton>
-                    ))}
+                    <IconButton 
+                      component="a"
+                      href="https://www.linkedin.com/company/rightnxt"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ bgcolor: 'rgba(255,255,255,0.05)', color: '#94A3B8', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)', color: '#FFF' } }}
+                    >
+                      <LinkedInIcon />
+                    </IconButton>
                   </Stack>
                 </Grid>
               </Grid>
