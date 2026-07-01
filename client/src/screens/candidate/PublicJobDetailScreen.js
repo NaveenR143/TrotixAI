@@ -495,7 +495,7 @@ const PublicJobDetailScreen = () => {
               </Typography>
               <ResumeUpload
                 onSuccess={(data) => {
-                  navigate('/processing', { state: { ...data, autoApplyJobId: job.id } });
+                  navigate('/processing', { state: { resumeData: data, autoApplyJobId: job.id } });
                 }}
               />
               <Button

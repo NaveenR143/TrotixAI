@@ -72,8 +72,8 @@ export const sendRegistrationOTP = async (name, phone, userType = 'Recruiter') =
         const endpoint = userType === 'Recruiter'
             ? API_ENDPOINTS.NEW_RECRUITER_OTP
             : userType === 'Candidate'
-            ? API_ENDPOINTS.NEW_CANDIDATE_OTP
-            : API_ENDPOINTS.SEND_OTP;
+                ? API_ENDPOINTS.NEW_CANDIDATE_OTP
+                : API_ENDPOINTS.SEND_OTP;
 
         const response = await axios.post(
             `${API_BASE_URL}${endpoint}`,
@@ -233,6 +233,32 @@ export const fetchJobMatchingCandidates = async (jobId) => {
         return handleError(error);
     }
 };
+
+/**
+ * Fetch Job Matching Candidates Test (returns all candidates)
+ */
+// export const fetchJobMatchingCandidatesTest = async (jobId) => {
+//     try {
+//         const response = await axios.get(
+//             `${API_BASE_URL}${API_ENDPOINTS.JOB_MATCHING_CANDIDATES_TEST}`,
+//             {
+//                 params: {
+//                     job_id: jobId,
+//                 },
+//                 headers: getHeaders(),
+//             }
+//         );
+
+//         return {
+//             error: false,
+//             data: response.data?.data || response.data,
+//             message: "Job Matching Candidates Test fetched successfully",
+//         };
+//     } catch (error) {
+//         console.error("Error fetching Job Matching Candidates Test:", error);
+//         return handleError(error);
+//     }
+// };
 
 /**
  * Fetch Job Applicants

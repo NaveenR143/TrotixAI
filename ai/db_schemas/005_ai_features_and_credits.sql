@@ -78,3 +78,18 @@ CREATE TABLE public.credit_wallets (
 
 
 --
+-- Name: recruiter_unlocked_candidates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.recruiter_unlocked_candidates (
+    id bigint NOT NULL GENERATED ALWAYS AS IDENTITY,
+    user_id uuid,
+    recruiter_id uuid,
+    created_at date DEFAULT now(),
+    CONSTRAINT recruiter_unlocked_candidates_pkey PRIMARY KEY (id),
+    CONSTRAINT recruiter_unlocked_candidates_userid_recruiterid UNIQUE (user_id, recruiter_id)
+);
+
+
+
+--

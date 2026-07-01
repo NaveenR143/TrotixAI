@@ -21,6 +21,8 @@ import {
   Menu,
   MenuItem,
   CircularProgress,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -37,9 +39,14 @@ import DownloadIcon from "@mui/icons-material/Download";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import { useNavigate, useLocation } from "react-router-dom";
 import { fadeSlideUp } from "../../utils/themeUtils";
-import { fetchProfile } from "../../api/profileAPI";
+import { fetchProfile, deductFeatureCredits, fetchWalletBalance, downloadResume, unlockCandidate, checkUnlockStatus } from "../../api/profileAPI";
 import { toTitleCase, toAllCapitals } from "../../screens/candidate/utils/profileUtils";
 import { sanitizeHtml } from "../../utils/htmlSanitizer";
+import { useSelector, useDispatch } from "react-redux";
+import { updateUserProfile } from "../../redux/user/Action";
+import InsufficientCreditsDialog from "../candidate/components/dialogs/InsufficientCreditsDialog";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
+import LockIcon from "@mui/icons-material/Lock";
 
 
 const CandidateProfileScreen = () => {
@@ -47,9 +54,13 @@ const CandidateProfileScreen = () => {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const dispatch = useDispatch();
 
   // Get initial data from location state
   const { applicant: rawApplicant, jobId, jobTitle } = location.state || {};
+  const candidateId = rawApplicant?.id || rawApplicant?.user_id;
+
+  const { userid: recruiterUserId, points: recruiterPoints } = useSelector((state) => state.UserReducer);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -59,27 +70,64 @@ const CandidateProfileScreen = () => {
   const [message, setMessage] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
 
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [insufficientCreditsDialogOpen, setInsufficientCreditsDialogOpen] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "info" });
+
   const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
+  // Fetch wallet balance on mount
+  useEffect(() => {
+    const fetchBalance = async () => {
+      const userId = recruiterUserId || localStorage.getItem("user_id");
+      if (userId) {
+        try {
+          const result = await fetchWalletBalance(userId);
+          if (!result.error && result.data?.balance !== undefined) {
+            dispatch(updateUserProfile({ points: result.data.balance }));
+          }
+        } catch (e) {
+          console.error("Error fetching wallet balance:", e);
+        }
+      }
+    };
+    fetchBalance();
+  }, [recruiterUserId, dispatch]);
+
+  // Load candidate profile and check unlock status on mount
   useEffect(() => {
     const loadProfile = async () => {
-      const phoneToUse = rawApplicant?.phone;
-
-      if (!phoneToUse) {
+      if (!candidateId) {
         setLoading(false);
         return;
       }
 
       setLoading(true);
       try {
-
-
-        const response = await fetchProfile(phoneToUse);
+        const response = await fetchProfile(null, candidateId);
         if (!response.error && response.data) {
+          let updatedData = response.data;
 
-          
-          setProfileData(response.data);
+          // Check if candidate details are unlocked on the backend
+          const userId = recruiterUserId || localStorage.getItem("user_id");
+          if (userId) {
+            const unlockRes = await checkUnlockStatus(candidateId);
+            if (!unlockRes.error && unlockRes.unlocked) {
+              setIsUnlocked(true);
+              updatedData = {
+                ...updatedData,
+                phone: unlockRes.phone,
+                email: unlockRes.email
+              };
+            } else {
+              setIsUnlocked(false);
+            }
+          }
+
+          setProfileData(updatedData);
         } else {
           setError(response.message || "Failed to load candidate profile");
         }
@@ -92,7 +140,185 @@ const CandidateProfileScreen = () => {
     };
 
     loadProfile();
-  }, [rawApplicant]);
+  }, [candidateId, recruiterUserId]);
+
+  const handleUnlockCandidate = async () => {
+    if (unlocking) return;
+    if (!recruiterUserId || !candidateId) return;
+
+    // if (!recruiterPoints || recruiterPoints < 20) {
+    //   setInsufficientCreditsDialogOpen(true);
+    //   return;
+    // }
+
+    setUnlocking(true);
+    try {
+      // const creditResult = await deductFeatureCredits(recruiterUserId, "unlock_candidate");
+      // if (creditResult.success) {
+      // const newBalance = creditResult.balance !== undefined ? creditResult.balance : creditResult.data?.balance;
+      // if (newBalance !== undefined) {
+      //   dispatch(updateUserProfile({ points: newBalance }));
+      // }
+
+      // Call backend API to unlock candidate
+      const unlockResult = await unlockCandidate(candidateId);
+      if (!unlockResult.error && unlockResult.status === "success") {
+        setIsUnlocked(true);
+        setProfileData(prev => ({
+          ...prev,
+          phone: unlockResult.phone,
+          email: unlockResult.email
+        }));
+        setSnackbar({
+          open: true,
+          message: "Candidate contact details unlocked successfully!",
+          severity: "success"
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: unlockResult.message || "Failed to unlock candidate details.",
+          severity: "error"
+        });
+      }
+      // } else {
+      //   setInsufficientCreditsDialogOpen(true);
+      // }
+    } catch (err) {
+      console.error("Error unlocking candidate details:", err);
+      setSnackbar({
+        open: true,
+        message: "An unexpected error occurred during unlock.",
+        severity: "error"
+      });
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
+  const downloadFile = async (url) => {
+    if (!url) {
+      setSnackbar({
+        open: true,
+        message: "No resume file available for this candidate.",
+        severity: "warning"
+      });
+      return;
+    }
+
+    try {
+      setDownloading(true);
+      const response = await downloadResume(candidateId);
+
+      if (response.error) {
+        throw new Error(response.message || "Failed to download resume.");
+      }
+
+      // Create a temporary object URL from the blob response
+      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+      const downloadUrl = window.URL.createObjectURL(blob);
+
+      // Get suggested filename from Content-Disposition header
+      const disposition = response.headers["content-disposition"];
+      let filename = `Resume_${applicant?.name ? applicant.name.replace(/\s+/g, "_") : "Candidate"}.pdf`;
+      if (disposition && disposition.indexOf("attachment") !== -1) {
+        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+        const matches = filenameRegex.exec(disposition);
+        if (matches != null && matches[1]) {
+          filename = matches[1].replace(/['"]/g, "");
+        }
+      }
+
+      // Trigger browser download via a virtual anchor tag
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      setSnackbar({
+        open: true,
+        message: "Resume download started.",
+        severity: "success"
+      });
+    } catch (err) {
+      console.error("Error downloading file:", err);
+      setSnackbar({
+        open: true,
+        message: err.message || "Failed to download resume. Please try again.",
+        severity: "error"
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleDownloadResume = async () => {
+    if (downloading) return;
+
+    if (!isUnlocked) {
+      if (unlocking) return;
+      if (!recruiterUserId || !candidateId) return;
+
+      if (!recruiterPoints || recruiterPoints < 20) {
+        setInsufficientCreditsDialogOpen(true);
+        return;
+      }
+
+      setUnlocking(true);
+      try {
+        const creditResult = await deductFeatureCredits(recruiterUserId, "unlock_candidate");
+        if (creditResult.success) {
+          const newBalance = creditResult.balance !== undefined ? creditResult.balance : creditResult.data?.balance;
+          if (newBalance !== undefined) {
+            dispatch(updateUserProfile({ points: newBalance }));
+          }
+
+          // Call backend API to unlock candidate
+          const unlockResult = await unlockCandidate(candidateId);
+          if (!unlockResult.error && unlockResult.status === "success") {
+            setIsUnlocked(true);
+            setProfileData(prev => ({
+              ...prev,
+              phone: unlockResult.phone,
+              email: unlockResult.email
+            }));
+            setSnackbar({
+              open: true,
+              message: "Candidate unlocked and resume download starting...",
+              severity: "success"
+            });
+
+            // Trigger download immediately
+            const targetUrl = profileData?.resume_url || applicant?.resume_url;
+            downloadFile(targetUrl);
+          } else {
+            setSnackbar({
+              open: true,
+              message: unlockResult.message || "Failed to unlock candidate for resume download.",
+              severity: "error"
+            });
+          }
+        } else {
+          setInsufficientCreditsDialogOpen(true);
+        }
+      } catch (err) {
+        console.error("Error unlocking candidate for resume download:", err);
+        setSnackbar({
+          open: true,
+          message: "An error occurred during unlock. Please try again.",
+          severity: "error"
+        });
+      } finally {
+        setUnlocking(false);
+      }
+    } else {
+      // Already unlocked, download directly
+      downloadFile(profileData?.resume_url || applicant?.resume_url);
+    }
+  };
 
   // Normalize applicant data with API data and fallbacks
   const applicant = useMemo(() => {
@@ -104,7 +330,8 @@ const CandidateProfileScreen = () => {
     const apiProjects = apiData.projects || [];
     const apiSkills = apiData.skills?.map(s => s.name).filter(Boolean) || [];
 
-    
+    const fullPhone = apiData.phone || rawApplicant.phone;
+    const fullEmail = apiData.email || `${(apiData.full_name || rawApplicant.name).toLowerCase().replace(/ /g, ".")}@email.com`;
 
     return {
       ...rawApplicant,
@@ -115,9 +342,10 @@ const CandidateProfileScreen = () => {
       about: apiData.summary || rawApplicant.summary || "No summary provided.",
       keySkills: apiSkills.length > 0 ? apiSkills.map(toTitleCase) : (rawApplicant.allSkills || rawApplicant.keySkills || rawApplicant.matchedSkills || []).map(toTitleCase),
       company: toTitleCase(apiData.company_name || rawApplicant.company || "Company"),
-      phone: apiData.phone || rawApplicant.phone,
-      email: apiData.email || `${(apiData.full_name || rawApplicant.name).toLowerCase().replace(/ /g, ".")}@email.com`,
+      phone: isUnlocked ? fullPhone : "••••••••••",
+      email: isUnlocked ? fullEmail : "••••••••••@•••••.com",
       profileImage: apiData.avatar_url || rawApplicant.profileImage,
+      resume_url: apiData.resume_url || rawApplicant.resume_url || null,
 
       workHistory: apiExperience.length > 0 ? apiExperience.map(exp => ({
         title: toTitleCase(exp.title),
@@ -164,7 +392,7 @@ const CandidateProfileScreen = () => {
         };
       }) : []
     };
-  }, [rawApplicant, profileData]);
+  }, [rawApplicant, profileData, isUnlocked]);
 
 
   if (loading) {
@@ -444,14 +672,28 @@ const CandidateProfileScreen = () => {
                   <Button
                     fullWidth
                     variant="contained"
-                    startIcon={<DownloadIcon />}
+                    startIcon={downloading || unlocking ? null : <DownloadIcon />}
+                    onClick={handleDownloadResume}
+                    disabled={downloading || unlocking}
                     sx={{
                       py: 1.5,
                       bgcolor: '#2563EB',
-                      '&:hover': { bgcolor: '#1e40af' }
+                      '&:hover': { bgcolor: '#1e40af' },
+                      '&.Mui-disabled': {
+                        bgcolor: '#2563EB',
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        opacity: 0.7
+                      },
+                      whiteSpace: 'nowrap'
                     }}
                   >
-                    Download Resume
+                    {downloading || unlocking ? (
+                      <CircularProgress size={18} color="inherit" />
+                    ) : isUnlocked ? (
+                      "Download Resume"
+                    ) : (
+                      "Unlock & Download (20 Credits)"
+                    )}
                   </Button>
                   <Button
                     fullWidth
@@ -493,10 +735,10 @@ const CandidateProfileScreen = () => {
               </Paper>
 
               {/* Contact Information */}
-              <Paper elevation={0} sx={{ p: 4 }}>
+              <Paper elevation={0} sx={{ p: 4, position: "relative" }}>
                 <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Contact Info</Typography>
                 <Stack spacing={3}>
-                  <Stack direction="row" alignItems="center" spacing={2}>
+                  <Stack direction="row" alignItems="center" spacing={2} sx={{ opacity: isUnlocked ? 1 : 0.4 }}>
                     <Box sx={{ p: 1, bgcolor: '#F8FAFC', borderRadius: '10px' }}>
                       <MessageIcon sx={{ fontSize: 20, color: '#6B7280' }} />
                     </Box>
@@ -505,7 +747,7 @@ const CandidateProfileScreen = () => {
                       <Typography variant="body2" sx={{ fontWeight: 700 }}>{applicant.email}</Typography>
                     </Box>
                   </Stack>
-                  <Stack direction="row" alignItems="center" spacing={2}>
+                  <Stack direction="row" alignItems="center" spacing={2} sx={{ opacity: isUnlocked ? 1 : 0.4 }}>
                     <Box sx={{ p: 1, bgcolor: '#F8FAFC', borderRadius: '10px' }}>
                       <VideoCallIcon sx={{ fontSize: 20, color: '#6B7280' }} />
                     </Box>
@@ -523,6 +765,67 @@ const CandidateProfileScreen = () => {
                       <Typography variant="body2" sx={{ fontWeight: 700 }}>{applicant.location}</Typography>
                     </Box>
                   </Stack>
+
+                  {!isUnlocked && (
+                    <Box
+                      sx={{
+                        mt: 2,
+                        p: 2.5,
+                        borderRadius: "16px",
+                        background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+                        border: "1px dashed #cbd5e1",
+                        textAlign: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 1.5,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          p: 1.5,
+                          bgcolor: "#e0e7ff",
+                          color: "#4f46e5",
+                          borderRadius: "50%",
+                          display: "inline-flex",
+                        }}
+                      >
+                        <LockIcon sx={{ fontSize: 24 }} />
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: "#1e293b", mb: 0.5 }}>
+                          Contact Info Locked
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "#64748b", display: "block", px: 1 }}>
+                          Unlock candidate's complete profile details for 20 credits.
+                        </Typography>
+                      </Box>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        onClick={handleUnlockCandidate}
+                        disabled={unlocking}
+                        sx={{
+                          py: 1.2,
+                          borderRadius: "10px",
+                          background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
+                          fontWeight: 800,
+                          fontSize: "0.85rem",
+                          textTransform: "none",
+                          boxShadow: "0 4px 10px rgba(99, 102, 241, 0.2)",
+                          "&:hover": {
+                            background: "linear-gradient(135deg, #5568d3 0%, #3e38c5 100%)",
+                          },
+                        }}
+                      >
+                        {unlocking ? (
+                          <CircularProgress size={18} color="inherit" />
+                        ) : (
+                          "Show Candidate Details"
+                        )}
+                      </Button>
+                    </Box>
+                  )}
                 </Stack>
               </Paper>
             </Stack>
@@ -587,6 +890,28 @@ const CandidateProfileScreen = () => {
           Block Candidate
         </MenuItem>
       </Menu>
+
+      {/* Insufficient Credits Dialog */}
+      <InsufficientCreditsDialog
+        open={insufficientCreditsDialogOpen}
+        onClose={() => setInsufficientCreditsDialogOpen(false)}
+      />
+
+      {/* Feedback Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          sx={{ width: "100%", borderRadius: "10px", fontWeight: 600 }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -97,12 +97,11 @@ const DashboardScreen = () => {
       count: '50k+',
     },
     {
-      icon: AccountBalanceIcon,
-      title: 'Government Jobs',
-      description: 'Explore the latest career opportunities in government departments.',
-      accent: '#059669',
-      onClick: () => navigate('/govt-jobs'),
-      count: '100+',
+      icon: DescriptionIcon,
+      title: 'Resume AI',
+      description: 'Create high-converting resumes with our smart builder tools.',
+      accent: '#F59E0B',
+      onClick: () => navigate('/resume-builder'),
     },
     {
       icon: PersonIcon,
@@ -118,19 +117,21 @@ const DashboardScreen = () => {
       accent: '#0EA5E9',
       onClick: () => navigate('/career-advice'),
     },
-    {
-      icon: DescriptionIcon,
-      title: 'Resume AI',
-      description: 'Create high-converting resumes with our smart builder tools.',
-      accent: '#F59E0B',
-      onClick: () => navigate('/resume-builder'),
-    },
+
     {
       icon: SchoolIcon,
       title: 'Skill Center - 20 Credits',
       description: 'Upskill with curated courses and certifications in your field.',
       accent: '#EC4899',
       onClick: () => navigate('/skill-development'),
+    },
+    {
+      icon: AccountBalanceIcon,
+      title: 'Government Jobs',
+      description: 'Explore the latest career opportunities in government departments.',
+      accent: '#059669',
+      onClick: () => navigate('/govt-jobs'),
+      count: '100+',
     },
   ];
 

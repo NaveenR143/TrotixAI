@@ -177,15 +177,15 @@ const Router = [
           { index: true, element: <HomeRoute /> },
           { path: "login", element: <LoginScreen /> },
           
+          { path: "jobs/:id", element: <PublicJobDetailScreen /> },
+          { path: "processing", element: <ProcessingRoute /> },
           {
             element: <ProtectedRoute><Outlet /></ProtectedRoute>,
             children: [
-              { path: "jobs/:id", element: <PublicJobDetailScreen /> },
               { path: "govt-jobs", element: <GovtJobsScreen /> },
               { path: "terms", element: <TermsOfUseLayout /> },
               { path: "dashboard", element: <DashboardRoute /> },
               { path: "manual-profile", element: <ManualProfileRoute /> },
-              { path: "processing", element: <ProcessingRoute /> },
               { path: "profile", element: <ProfileRoute /> },
               { path: "feed", element: <FeedRoute /> },
               { path: "detail/:id", element: <DetailRoute /> },

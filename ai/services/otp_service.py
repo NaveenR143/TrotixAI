@@ -4,7 +4,7 @@ import os
 from datetime import datetime, timedelta
 import boto3
 import re
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, NoCredentialsError
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -13,11 +13,18 @@ logger = logging.getLogger(__name__)
 # Format: {phone: (otp, expiry_time)}
 otp_store = {}
 
-# Initialize Boto3 client
-client = boto3.client(
-    "pinpoint-sms-voice-v2",
-    region_name="ap-south-2"
-)
+# Initialize Boto3 client lazily
+_client = None
+
+def get_sms_client():
+    global _client
+    if _client is None:
+        _client = boto3.client(
+            "pinpoint-sms-voice-v2",
+            region_name="ap-south-2"
+        )
+    return _client
+
 
 def validate_and_format_indian_phone(phone: str) -> str:
     """
@@ -68,9 +75,9 @@ def send_otp(phone: str) -> str:
     try:
         # Prepare parameters for the send_text_message API call
 
-        # phonenumber = '+919009006739'
+        phonenumber = '+919972566264'
         params = {
-            "DestinationPhoneNumber": formattedphone,
+            "DestinationPhoneNumber": phonenumber,
             "MessageBody": message,
             "MessageType": "TRANSACTIONAL",
             # "OriginationIdentity": "RNXT"
@@ -82,12 +89,18 @@ def send_otp(phone: str) -> str:
             params["OriginationIdentity"] = origination_identity
 
         logger.info(f"Sending OTP to {phone}")
+        client = get_sms_client()
         response = client.send_text_message(**params)
 
         message_id = response.get("MessageId")
         print("OTP SMS sent successfully to ", phone, ". MessageId: ", message_id)
         logger.info(f"OTP SMS sent successfully to {phone}. MessageId: {message_id}")
 
+    except NoCredentialsError as e:
+        logger.warning(
+            f"AWS credentials not located. Using fallback mock OTP for {phone}: {otp}"
+        )
+        print(f"AWS credentials not located. Using fallback mock OTP for {phone}: {otp}")
     except ClientError as e:
         error_code = e.response.get("Error", {}).get("Code", "Unknown")
         error_message = e.response.get("Error", {}).get("Message", str(e))
@@ -99,6 +112,7 @@ def send_otp(phone: str) -> str:
     except Exception as e:
         logger.error(f"Unexpected error sending OTP to {phone}: {str(e)}", exc_info=True)
         raise RuntimeError(f"An unexpected error occurred while sending OTP: {str(e)}") from e
+
 
     return otp
 

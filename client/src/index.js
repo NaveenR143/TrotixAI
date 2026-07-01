@@ -27,6 +27,7 @@ import { AuthProvider } from "./authContext";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import axios from "axios";
 import { RESET_INITIAL_STATE } from "./redux/constants";
+import { API_BASE_URL } from "./config/api.config";
 
 // Set withCredentials to true globally for Axios to handle cookies
 axios.defaults.withCredentials = true;
@@ -35,7 +36,11 @@ axios.defaults.withCredentials = true;
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
+    const url = error.config?.url || "";
+    // Only intercept 401 errors for backend API requests to prevent third-party failures (e.g. Geolocation API) from logging out the user
+    const isBackendRequest = !url.startsWith("http") || url.startsWith(API_BASE_URL);
+
+    if (error.response && error.response.status === 401 && isBackendRequest) {
       console.warn("Unauthorized access - Clearing session");
       
       // 1. Clear all web storage

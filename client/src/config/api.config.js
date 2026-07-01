@@ -8,9 +8,9 @@
  */
 
 // ─── Base URL Configuration ────────────────────────────────────────────────────
-// const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://localhost:8000';
 // const API_BASE_URL = 'http://192.168.1.7:8000';
-const API_BASE_URL = 'https://rightnxtai-bkdudpehedfwffgy.centralindia-01.azurewebsites.net';
+// const API_BASE_URL = 'https://rightnxtai-bkdudpehedfwffgy.centralindia-01.azurewebsites.net';
 
 // ─── API Endpoints ────────────────────────────────────────────────────────────
 const API_ENDPOINTS = {
@@ -21,6 +21,9 @@ const API_ENDPOINTS = {
   VERIFY_OTP: '/otp/verify-otp',
   USER_PROFILE: '/profile/fetch',
   PROFILE: '/profile',
+  DOWNLOAD_RESUME: '/profile/download-resume',
+  UNLOCK_CANDIDATE: '/profile/unlock-candidate',
+  CHECK_UNLOCK_STATUS: '/profile/unlock-status',
   SEND_OTP: '/otp/send-otp',
   NEW_RECRUITER_OTP: '/otp/new-recruiter-otp',
   NEW_CANDIDATE_OTP: '/otp/new-candidate-otp',
@@ -35,6 +38,7 @@ const API_ENDPOINTS = {
   AI_USAGE_STATUS: '/profile/ai-usage-status',
   POSTED_JOBS: '/jobs/fetch-recruiter-posted-jobs',
   JOB_MATCHING_CANDIDATES: '/jobs/fetch-job-matching-candidates',
+  // JOB_MATCHING_CANDIDATES_TEST: '/jobs/fetch-job-matching-candidates-test',
   JOB_APPLICANTS: '/jobs/fetch-job-applicants',
   APPLY_JOB: '/jobs/apply-job',
   TAILORING_JOB_EMAIL: '/jobs/tailoring-job-email',

@@ -2,6 +2,9 @@
 # FastAPI — serves React PWA + resume parse + PostgreSQL job matching
 # Run: uvicorn api.main:app --reload --port 8000
 
+from dotenv import load_dotenv
+load_dotenv(override=True)
+
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -13,10 +16,9 @@ from pathlib import Path
 from contextlib import asynccontextmanager
 from uuid import UUID, uuid4
 from typing import Any, Literal
-from dotenv import load_dotenv
-load_dotenv()
 import io
 import re
+import os
 import logging
 import random
 
@@ -24,6 +26,9 @@ from ai.db.database import engine
 from ai.api.router import router
 from ai.api.middleware import AuditLogMiddleware
 from ai.utils.auth import get_current_user
+import traceback
+import sys
+from ai.api.routes.credits import get_razorpay_client
 
 
 # ── Optional deps ─────────────────────────────────────────────────────────────
@@ -103,12 +108,141 @@ async def test_database_connection():
     try:
         async with engine.connect() as conn:
             result = await conn.execute(text("SELECT 1"))
-            print("✅ Database connection successful")
+            print("[OK] Database connection successful")
             print("Result:", result.scalar())
     except Exception as e:
-        print("❌ Database connection failed")
+        print("[FAIL] Database connection failed")
         print("Error:", str(e))
         raise
+
+@app.on_event("startup")
+async def run_otp_startup_validation():
+    import traceback
+    import sys
+    
+    # Ensure LOGGER level is at least INFO, and configure local handler only if no handler exists anywhere
+    LOGGER.setLevel(logging.INFO)
+    if not LOGGER.handlers and not logging.getLogger().handlers:
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter(
+            "[%(asctime)s] %(levelname)s in %(module)s (%(filename)s:%(lineno)d): %(message)s"
+        ))
+        LOGGER.addHandler(handler)
+
+    LOGGER.info("Running startup validation for send_otp")
+    print("Running startup validation for send_otp", file=sys.stdout, flush=True)
+    
+    # Safe validation of AWS credentials from environment/files to help debug on Azure App Portal
+    LOGGER.info("Checking AWS environment configuration:")
+    aws_vars = ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_DEFAULT_REGION"]
+    for var in aws_vars:
+        val = os.environ.get(var)
+        if val is None:
+            LOGGER.info(f"  - {var}: [NOT SET]")
+        else:
+            # Safely mask the value to protect credentials in logs
+            if len(val) <= 6:
+                masked = "*" * len(val)
+            else:
+                masked = val[:3] + "..." + val[-3:]
+            LOGGER.info(f"  - {var}: [SET] (length={len(val)}, value={masked})")
+            
+    aws_dir = Path.home() / ".aws"
+    if aws_dir.is_dir():
+        LOGGER.info("Shared AWS config directory ~/.aws is present")
+        LOGGER.info(f"  - config file: {'PRESENT' if (aws_dir / 'config').is_file() else 'NOT FOUND'}")
+        LOGGER.info(f"  - credentials file: {'PRESENT' if (aws_dir / 'credentials').is_file() else 'NOT FOUND'}")
+    else:
+        LOGGER.info("Shared AWS config directory ~/.aws is not present")
+
+    try:
+        # Call the function once during application initialization/startup
+        # Use a dummy but valid format Indian mobile number (starts with 9, 10 digits)
+        # send_otp("9999999999")
+        LOGGER.info("Startup validation for send_otp succeeded")
+        print("Startup validation for send_otp succeeded", file=sys.stdout, flush=True)
+    except Exception as e:
+        exc_type = type(e).__name__
+        exc_message = str(e)
+        stack_trace = traceback.format_exc()
+        
+        # Traverse to the root cause of the exception if it was wrapped
+        cause = e
+        while getattr(cause, "__cause__", None) is not None:
+            cause = cause.__cause__
+            
+        tb_frames = traceback.extract_tb(cause.__traceback__)
+        if tb_frames:
+            last_frame = tb_frames[-1]
+            filename = last_frame.filename
+            lineno = last_frame.lineno
+        else:
+            filename, lineno = "unknown", "unknown"
+            
+        error_details = (
+            f"Startup validation for send_otp failed:\n"
+            f"Exception Type: {exc_type}\n"
+            f"Exception Message: {exc_message}\n"
+            f"File Name: {filename}\n"
+            f"Line Number: {lineno}\n"
+            f"Full Stack Trace:\n{stack_trace}"
+        )
+        
+        LOGGER.error(error_details)
+        print(error_details, file=sys.stderr, flush=True)
+
+@app.on_event("startup")
+async def run_razorpay_startup_validation():
+    
+
+    LOGGER.info("Running startup validation for Razorpay client")
+    print("Running startup validation for Razorpay client", file=sys.stdout, flush=True)
+
+    # Safe validation of Razorpay credentials from environment
+    key_id = os.environ.get("RAZORPAY_KEY_ID")
+    key_secret = os.environ.get("RAZORPAY_KEY_SECRET")
+
+    # Print configuring details with safe masking
+    if not key_id:
+        LOGGER.info("  - RAZORPAY_KEY_ID: [NOT SET]")
+    else:
+        masked_id = key_id[:6] + "..." + key_id[-3:] if len(key_id) > 9 else "***"
+        LOGGER.info(f"  - RAZORPAY_KEY_ID: [SET] (length={len(key_id)}, value={masked_id})")
+
+    if not key_secret:
+        LOGGER.info("  - RAZORPAY_KEY_SECRET: [NOT SET]")
+    else:
+        masked_secret = key_secret[:3] + "..." + key_secret[-3:] if len(key_secret) > 6 else "***"
+        LOGGER.info(f"  - RAZORPAY_KEY_SECRET: [SET] (length={len(key_secret)})")
+
+    if not key_id or not key_secret:
+        error_msg = "Startup validation for Razorpay failed: Credentials are not configured in environment variables."
+        LOGGER.error(error_msg)
+        print(error_msg, file=sys.stderr, flush=True)
+        return
+
+    try:
+        client, _ = get_razorpay_client()
+        # Query Razorpay API with a simple list orders request to verify authentication
+        LOGGER.info("Sending test request to Razorpay API...")
+        client.order.all(data={"count": 1})
+        LOGGER.info("Startup validation for Razorpay succeeded (Authentication success)")
+        print("Startup validation for Razorpay succeeded (Authentication success)", file=sys.stdout, flush=True)
+    except Exception as e:
+        exc_type = type(e).__name__
+        exc_message = str(e)
+        stack_trace = traceback.format_exc()
+
+        error_details = (
+            f"Startup validation for Razorpay failed (Authentication failed):\n"
+            f"Exception Type: {exc_type}\n"
+            f"Exception Message: {exc_message}\n"
+            f"Full Stack Trace:\n{stack_trace}"
+        )
+        LOGGER.error(error_details)
+        print(error_details, file=sys.stderr, flush=True)
+
+
 
 @app.get("/test")
 async def test_get(current_user_id: str = Depends(get_current_user)):

@@ -151,6 +151,7 @@ class UserProfileResponse(BaseModel):
     phone: Optional[str] = None
     full_name: str
     avatar_url: Optional[str] = None
+    resume_url: Optional[str] = None
     is_email_verified: bool = False
     is_phone_verified: bool = False
 

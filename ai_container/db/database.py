@@ -27,7 +27,7 @@ engine = create_async_engine(
     connect_args={
         "timeout": 30,
         "command_timeout": 30,
-        "server_settings": {"application_name": "trotixai_app"},
+        "server_settings": {"application_name": "rightnxtai_container"},
     },
 )
 

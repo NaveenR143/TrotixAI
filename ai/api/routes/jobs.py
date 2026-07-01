@@ -131,6 +131,17 @@ async def fetch_job_matching_candidates(
     return {"status": "completed", "candidates": candidates}
 
 
+# @router.get("/fetch-job-matching-candidates-test")
+# async def fetch_job_matching_candidates_test(
+#     job_id: str,
+#     db: AsyncSession = Depends(get_db),
+#     current_user_id: str = Depends(get_current_user),
+# ):
+#     candidates = await JobMatcherService.get_matching_candidates_test(job_id, db)
+
+#     return {"status": "completed", "candidates": candidates}
+
+
 @router.get("/fetch-job-applicants")
 async def fetch_job_applicants(
     job_id: str,

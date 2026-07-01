@@ -11,6 +11,8 @@ import { fadeSlideUp, pulse } from "../../utils/themeUtils";
 import { calculateRealisticProgress, getStatusMessage, isProcessingTimeout } from "../../utils/progressUtils";
 import MobileOTPValidation from "../../components/forms/MobileOTPValidation";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { useOtp } from "../../hooks/useOtp";
 
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
 import { applyJob } from "../../api/jobpostingAPI";
@@ -28,6 +30,10 @@ const ProcessingScreen = ({ onComplete }) => {
   const navigate = useNavigate();
   const { refreshAuth } = useAuth();
   const resumeData = location.state?.resumeData;
+  const dispatch = useDispatch();
+
+  const flowType = resumeData?.new_user ? "registration" : "login";
+  const activeOtp = useOtp(flowType);
 
   // State management
   const [currentStep, setCurrentStep] = useState(0);
@@ -72,10 +78,17 @@ const ProcessingScreen = ({ onComplete }) => {
 
       setNewUser(resumeData.new_user);
       setShowOTPValidation(true);
+
+      // Trigger the 25s cooldown timer for the flow immediately since the backend sends the first OTP during resume upload
+      const flowType = resumeData.new_user ? "registration" : "login";
+      dispatch({
+        type: "OTP_SEND_REQUEST",
+        payload: { flowType, isResend: false }
+      });
     } else {
       console.log("No resume data received")
     }
-  }, [resumeData]);
+  }, [resumeData, dispatch]);
 
   // Track progress after OTP verification
   useEffect(() => {
@@ -244,6 +257,35 @@ const ProcessingScreen = ({ onComplete }) => {
     setResumeProcessingStatus("unknown");
   };
 
+  const handleResendOtp = async () => {
+    const name = resumeData?.name || resumeData?.fullName || "Candidate";
+    const phone = resumeData?.phone;
+    if (!phone) return;
+
+    try {
+      const resp = await activeOtp.sendOtp({
+        name,
+        phone,
+        isResend: true,
+        role: "Candidate"
+      });
+
+      if (!resp.error) {
+        setProcessingError(null);
+        setOtpVerified(false);
+        setProgressPercent(0);
+        setElapsedSeconds(0);
+        setProcessingStartTime(null);
+        setResumeProcessingStatus("unknown");
+      } else {
+        setProcessingError(resp.message || "Failed to resend OTP.");
+      }
+    } catch (err) {
+      console.error("Failed to resend OTP:", err);
+      setProcessingError("Failed to resend OTP. Please try again.");
+    }
+  };
+
   const handleAutoApply = async (jobId, userId) => {
     setAutoApplyStatus("applying");
     try {
@@ -363,16 +405,33 @@ const ProcessingScreen = ({ onComplete }) => {
                   <Typography sx={{ fontSize: "0.85rem", color: "#b91c1c", mb: 1.5, fontWeight: 500 }}>
                     {processingError}
                   </Typography>
-                  {/* <Button
-                    size="small"
-                    variant="outlined"
-                    color="error"
-                    startIcon={<ReplayIcon />}
-                    onClick={handleRetry}
-                    sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700 }}
-                  >
-                    Try Again
-                  </Button> */}
+                  <Stack direction="row" spacing={1.5}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      onClick={handleResendOtp}
+                      disabled={activeOtp.isCooldownActive || activeOtp.loading || !activeOtp.isEligible}
+                      sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700 }}
+                    >
+                      {activeOtp.loading
+                        ? "Resending..."
+                        : activeOtp.isCooldownActive
+                        ? `Resend in ${activeOtp.remainingSeconds}s`
+                        : activeOtp.resendAttempts >= 3
+                        ? "Daily Limit Reached"
+                        : "Resend OTP"}
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="text"
+                      color="error"
+                      onClick={handleRetry}
+                      sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700 }}
+                    >
+                      Cancel & Retry
+                    </Button>
+                  </Stack>
                 </Alert>
               </Fade>
             )}

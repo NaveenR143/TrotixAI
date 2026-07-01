@@ -142,6 +142,7 @@ class ProfileRepository:
             "phone": user.phone,
             "full_name": user.full_name,
             "avatar_url": user.avatar_url,
+            "resume_url": f"/profile/download-resume/{user.id}" if user.resume_url else None,
             "is_email_verified": user.is_email_verified,
             "is_phone_verified": user.is_phone_verified,
             "industry_id": user.industry_id,

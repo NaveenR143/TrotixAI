@@ -59,7 +59,7 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
           const normalized = rawCandidates.map(c => ({
             id: c.user_id,
             name: toTitleCase(c.full_name),
-            phone: c.phone,
+            phone: null,
             jobTitle: toTitleCase(c.headline),
             location: toTitleCase(c.current_location),
             matchScore: Math.round(c.final_score * 100),

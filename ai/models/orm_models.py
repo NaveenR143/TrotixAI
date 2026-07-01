@@ -158,6 +158,7 @@ class User(Base):
     )
     full_name = Column(String, nullable=False)
     avatar_url = Column(String, nullable=True)
+    resume_url = Column(String, nullable=True)
     is_email_verified = Column(Boolean, default=False)
     is_phone_verified = Column(Boolean, default=False)
     last_login_at = Column(DateTime(timezone=True), nullable=True)
@@ -1069,4 +1070,18 @@ class PaymentOrder(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     user = relationship("User", backref="payment_orders")
+
+
+class RecruiterUnlockedCandidate(Base):
+    __tablename__ = "recruiter_unlocked_candidates"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+    recruiter_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+    created_at = Column(Date, server_default=func.now())
+
+    # Relationships
+    candidate = relationship("User", foreign_keys=[user_id], backref="unlocked_by_recruiters")
+    recruiter = relationship("User", foreign_keys=[recruiter_id], backref="unlocked_candidates")
+
 

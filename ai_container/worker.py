@@ -203,6 +203,15 @@ class QueueWorker:
 # Main Entry
 # ----------------------------
 if __name__ == "__main__":
+    from db.session_manager import db_session_manager
+
+    logger.info("Checking database connection...")
+    try:
+        asyncio.run(db_session_manager.init())
+    except Exception as e:
+        logger.critical(f"Database connection check failed: {e}")
+        import sys
+        sys.exit(1)
 
     db_worker = DBWorker()
     db_worker.start()

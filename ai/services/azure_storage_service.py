@@ -2,6 +2,7 @@
 import asyncio
 import os
 import logging
+from urllib.parse import unquote
 from dotenv import load_dotenv
 from pathlib import Path
 from fastapi import UploadFile
@@ -206,7 +207,7 @@ class AzureStorageService:
                 raise ValueError(f"Invalid blob URL: {blob_url}")
             
             container_name = parts[3]
-            blob_name = "/".join(parts[4:])
+            blob_name = unquote("/".join(parts[4:]))
 
             # Use connection string to initialize BlobServiceClient
             service_client = BlobServiceClient.from_connection_string(self.connection_string)
@@ -226,3 +227,45 @@ class AzureStorageService:
         except Exception as e:
             LOGGER.error(f"Error retrieving blob {blob_url}: {str(e)}")
             raise
+
+    def stream_blob(self, blob_url: str):
+        """
+        Stream blob content in chunks from Azure Storage.
+        Returns (chunk_generator, content_type, content_length).
+        """
+        try:
+            # Parse URL to get container and blob name
+            # URL: https://<account>.blob.core.windows.net/<container>/<blob_name>
+            print(f"DEBUG: stream_blob called with URL: {blob_url}")
+            parts = blob_url.split('/')
+            if len(parts) < 5:
+                raise ValueError(f"Invalid blob URL: {blob_url}")
+            
+            container_name = parts[3]
+            blob_name = unquote("/".join(parts[4:]))
+            print(f"DEBUG: stream_blob parsed container: {container_name}, blob_name: {blob_name}")
+
+            # Use same connection string as upload to initialize BlobServiceClient
+            service_client = BlobServiceClient.from_connection_string(self.connection_string)
+            blob_client = service_client.get_blob_client(container=container_name, blob=blob_name)
+
+            if not blob_client.exists():
+                print(f"DEBUG: blob_client.exists() is False for blob_name: {blob_name}")
+                LOGGER.error(f"Blob not found: {blob_url}")
+                raise FileNotFoundError(f"Blob not found: {blob_url}")
+
+            properties = blob_client.get_blob_properties()
+            content_type = properties.content_settings.content_type or "application/pdf"
+            content_length = properties.size
+
+            def chunk_generator():
+                download_stream = blob_client.download_blob()
+                for chunk in download_stream.chunks():
+                    yield chunk
+
+            return chunk_generator(), content_type, content_length
+
+        except Exception as e:
+            LOGGER.error(f"Error streaming blob {blob_url}: {str(e)}")
+            raise
+

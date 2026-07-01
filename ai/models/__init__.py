@@ -21,6 +21,7 @@ from ai.models.orm_models import (
     GenderTypeEnum,
     SalaryCurrencyEnum,
     ApiAuditLog,
+    RecruiterUnlockedCandidate,
 )
 
 from ai.models.profile_models import (
@@ -49,6 +50,7 @@ __all__ = [
     "Skill",
     "JobseekerSkill",
     "ApiAuditLog",
+    "RecruiterUnlockedCandidate",
     # Enums
     "UserRoleEnum",
     "UserStatusEnum",

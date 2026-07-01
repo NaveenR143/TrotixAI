@@ -43,39 +43,30 @@ const handleError = (error) => {
 /**
  * Fetch Complete User Profile
  */
-export const fetchProfile = async (phone) => {
+export const fetchProfile = async (phone = null, userId = null) => {
   try {
-
-    // Don't call API if phone number is not provided
+    const params = {};
     if (phone) {
-
-
-
-      const params = {};
-      if (phone) {
-        params.phone = phone;
-      }
-
-      const response = await axios.get(
-        `${API_BASE_URL}${API_ENDPOINTS.USER_PROFILE}`,
-        {
-          params,
-          headers: getHeaders(),
-          timeout: 10000,
-        }
-      );
-
-      return {
-        error: false,
-        data: response.data?.data || response.data,
-        message: "Profile fetched successfully",
-      };
-    } else {
-      return {
-        error: true,
-        message: "Missing Phone Number",
-      };
+      params.phone = phone;
     }
+    if (userId) {
+      params.user_id = userId;
+    }
+
+    const response = await axios.get(
+      `${API_BASE_URL}${API_ENDPOINTS.USER_PROFILE}`,
+      {
+        params,
+        headers: getHeaders(),
+        timeout: 10000,
+      }
+    );
+
+    return {
+      error: false,
+      data: response.data?.data || response.data,
+      message: "Profile fetched successfully",
+    };
   } catch (error) {
     console.error("Error fetching profile:", error);
     return handleError(error);
@@ -784,3 +775,80 @@ export const verifyPayment = async (userId, razorpayOrderId, razorpayPaymentId, 
     return handleError(error);
   }
 };
+
+/**
+ * Download Candidate Resume Securely as Blob
+ */
+export const downloadResume = async (candidateId) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}${API_ENDPOINTS.DOWNLOAD_RESUME}/${candidateId}`,
+      {
+        headers: getHeaders(),
+        responseType: "blob",
+        timeout: 30000,
+      }
+    );
+
+    return {
+      error: false,
+      data: response.data,
+      headers: response.headers,
+      message: "Resume downloaded successfully",
+    };
+  } catch (error) {
+    console.error("Error downloading resume:", error);
+    if (error.response?.data instanceof Blob) {
+      try {
+        const text = await error.response.data.text();
+        const parsed = JSON.parse(text);
+        if (parsed.detail) {
+          error.response.data = parsed;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    return handleError(error);
+  }
+};
+
+/**
+ * Unlock candidate contact details
+ */
+export const unlockCandidate = async (candidateId) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}${API_ENDPOINTS.UNLOCK_CANDIDATE}`,
+      { candidate_id: candidateId },
+      { headers: getHeaders(), timeout: 10000 }
+    );
+    return {
+      error: false,
+      ...response.data,
+    };
+  } catch (error) {
+    console.error("Error unlocking candidate:", error);
+    return handleError(error);
+  }
+};
+
+/**
+ * Check candidate unlock status
+ */
+export const checkUnlockStatus = async (candidateId) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}${API_ENDPOINTS.CHECK_UNLOCK_STATUS}/${candidateId}`,
+      { headers: getHeaders(), timeout: 10000 }
+    );
+    return {
+      error: false,
+      ...response.data,
+    };
+  } catch (error) {
+    console.error("Error checking unlock status:", error);
+    return handleError(error);
+  }
+};
+

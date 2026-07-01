@@ -64,6 +64,11 @@ FEATURE_CONFIG = {
         "description": "AI Apply (Generate Email)",
         "cost": 5,
     },
+    "unlock_candidate": {
+        "tx_type": CreditTxTypeEnum.purchase,
+        "description": "Unlock Candidate Contact Details",
+        "cost": 20,
+    },
 }
 
 class FeatureUsageRequest(BaseModel):

@@ -1535,3 +1535,280 @@ async def enhance_user_resume(
         logger.error(f"Error enhancing resume: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.get(
+    "/download-resume/{candidate_id}",
+    summary="Download Candidate Resume Securely",
+    description="Securely stream candidate resume directly from Azure storage, checking recruiter or user authorization.",
+)
+async def download_candidate_resume(
+    candidate_id: UUID,
+    session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
+    """
+    Securely download candidate resume.
+    """
+    from ai.models.orm_models import User, UserRoleEnum
+    from fastapi.responses import StreamingResponse
+    from sqlalchemy import select
+    import urllib.parse
+
+    try:
+        # 1. Fetch current user to validate authorization
+        current_user_uuid = UUID(current_user_id)
+        current_user_query = select(User).where(User.id == current_user_uuid)
+        current_user_res = await session.execute(current_user_query)
+        current_user = current_user_res.scalars().first()
+
+        if not current_user:
+            raise HTTPException(
+                status_code=401,
+                detail="Authentication required: User not found"
+            )
+
+        # 2. Fetch candidate
+        candidate_query = select(User).where(User.id == candidate_id)
+        candidate_res = await session.execute(candidate_query)
+        candidate = candidate_res.scalars().first()
+
+        if not candidate:
+            raise HTTPException(
+                status_code=404,
+                detail="Candidate not found"
+            )
+
+        # 3. Check access validation
+        is_owner = (candidate_id == current_user_uuid)
+        is_admin = (current_user.role == UserRoleEnum.admin)
+        is_recruiter_or_consultant = current_user.role in [UserRoleEnum.recruiter, UserRoleEnum.consultant]
+
+        if not (is_owner or is_admin or is_recruiter_or_consultant):
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You do not have permission to download this resume."
+            )
+
+        # 4. Check if candidate has resume
+        if not candidate.resume_url:
+            raise HTTPException(
+                status_code=404,
+                detail="No resume file available for this candidate."
+            )
+
+        # 5. Extract filename from URL
+        filename = "resume.pdf"
+        try:
+            parts = candidate.resume_url.split('/')
+            if parts:
+                filename = urllib.parse.unquote(parts[-1])
+        except Exception:
+            pass
+
+        # 6. Stream file from Azure Blob Storage using AzureStorageService
+        try:
+            storage_service = AzureStorageService()
+            generator, content_type, content_length = storage_service.stream_blob(candidate.resume_url)
+        except FileNotFoundError:
+            raise HTTPException(
+                status_code=404,
+                detail="Resume file not found in storage."
+            )
+        except Exception as e:
+            logger.error(f"Error fetching resume from Azure: {str(e)}", exc_info=True)
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to fetch file from storage: {str(e)}"
+            )
+
+        headers = {
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(content_length),
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        }
+
+        return StreamingResponse(
+            generator,
+            media_type=content_type,
+            headers=headers
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error downloading resume: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}"
+        )
+
+
+from pydantic import BaseModel
+
+class UnlockCandidateRequest(BaseModel):
+    candidate_id: UUID
+
+@router.post(
+    "/unlock-candidate",
+    summary="Unlock Candidate Contact Info",
+    description="Unlock candidate's contact info for recruiter by inserting a record in recruiter_unlocked_candidates.",
+)
+async def unlock_candidate(
+    request: UnlockCandidateRequest,
+    session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
+    from ai.models.orm_models import User, UserRoleEnum, RecruiterUnlockedCandidate
+    from sqlalchemy import select
+    
+    try:
+        recruiter_uuid = UUID(current_user_id)
+        candidate_uuid = request.candidate_id
+
+        # 1. Fetch and validate recruiter
+        recruiter_query = select(User).where(User.id == recruiter_uuid)
+        recruiter_res = await session.execute(recruiter_query)
+        recruiter = recruiter_res.scalars().first()
+
+        if not recruiter:
+            raise HTTPException(
+                status_code=401,
+                detail="Authentication required: Recruiter not found"
+            )
+
+        if recruiter.role not in [UserRoleEnum.recruiter, UserRoleEnum.consultant, UserRoleEnum.admin]:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: Only recruiters, consultants, or admins can unlock candidates."
+            )
+
+        # 2. Fetch and validate candidate
+        candidate_query = select(User).where(User.id == candidate_uuid)
+        candidate_res = await session.execute(candidate_query)
+        candidate = candidate_res.scalars().first()
+
+        if not candidate:
+            raise HTTPException(
+                status_code=404,
+                detail="Candidate not found"
+            )
+
+        # 3. Check if already unlocked
+        unlock_query = select(RecruiterUnlockedCandidate).where(
+            RecruiterUnlockedCandidate.recruiter_id == recruiter_uuid,
+            RecruiterUnlockedCandidate.user_id == candidate_uuid
+        )
+        unlock_res = await session.execute(unlock_query)
+        existing_unlock = unlock_res.scalars().first()
+
+        if existing_unlock:
+            return {
+                "status": "success",
+                "message": "Candidate is already unlocked",
+                "email": candidate.email,
+                "phone": candidate.phone
+            }
+
+        # 4. Insert unlock record
+        new_unlock = RecruiterUnlockedCandidate(
+            recruiter_id=recruiter_uuid,
+            user_id=candidate_uuid
+        )
+        session.add(new_unlock)
+        await session.commit()
+
+        return {
+            "status": "success",
+            "message": "Candidate unlocked successfully",
+            "email": candidate.email,
+            "phone": candidate.phone
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error unlocking candidate: {str(e)}", exc_info=True)
+        await session.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}"
+        )
+
+
+@router.get(
+    "/unlock-status/{candidate_id}",
+    summary="Check Candidate Unlock Status",
+    description="Check whether a candidate is unlocked for the recruiter.",
+)
+async def check_unlock_status(
+    candidate_id: UUID,
+    session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
+    from ai.models.orm_models import User, UserRoleEnum, RecruiterUnlockedCandidate
+    from sqlalchemy import select
+
+    try:
+        recruiter_uuid = UUID(current_user_id)
+        candidate_uuid = candidate_id
+
+        # 1. Fetch and validate recruiter
+        recruiter_query = select(User).where(User.id == recruiter_uuid)
+        recruiter_res = await session.execute(recruiter_query)
+        recruiter = recruiter_res.scalars().first()
+
+        if not recruiter:
+            raise HTTPException(
+                status_code=401,
+                detail="Authentication required: Recruiter not found"
+            )
+
+        if recruiter.role not in [UserRoleEnum.recruiter, UserRoleEnum.consultant, UserRoleEnum.admin]:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: Only recruiters, consultants, or admins can check unlock status."
+            )
+
+        # 2. Fetch and validate candidate
+        candidate_query = select(User).where(User.id == candidate_uuid)
+        candidate_res = await session.execute(candidate_query)
+        candidate = candidate_res.scalars().first()
+
+        if not candidate:
+            raise HTTPException(
+                status_code=404,
+                detail="Candidate not found"
+            )
+
+        # 3. Check if unlocked
+        unlock_query = select(RecruiterUnlockedCandidate).where(
+            RecruiterUnlockedCandidate.recruiter_id == recruiter_uuid,
+            RecruiterUnlockedCandidate.user_id == candidate_uuid
+        )
+        unlock_res = await session.execute(unlock_query)
+        existing_unlock = unlock_res.scalars().first()
+
+        if existing_unlock:
+            return {
+                "status": "success",
+                "unlocked": True,
+                "email": candidate.email,
+                "phone": candidate.phone
+            }
+        else:
+            return {
+                "status": "success",
+                "unlocked": False
+            }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error checking unlock status: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}"
+        )
+
+

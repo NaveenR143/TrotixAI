@@ -13,7 +13,7 @@ from collections import defaultdict
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, text, or_, not_, desc, cast, String, and_
+from sqlalchemy import select, func, text, or_, not_, desc, cast, String, and_, table, column
 from sqlalchemy.orm import selectinload
 
 from ai.models.orm_models import (
@@ -30,6 +30,7 @@ from ai.models.orm_models import (
     JobsViewed,
     WorkExperience,
     ExpLevelEnum,
+    UserRoleEnum,
 )
 
 from sqlalchemy.dialects import postgresql
@@ -182,6 +183,32 @@ class JobMatcherService:
         filtered_candidates.sort(key=lambda x: x["final_score"], reverse=True)
         return filtered_candidates[:limit]
 
+    # @staticmethod
+    # async def get_matching_candidates_test(
+    #     job_id: str, session: AsyncSession, limit: int = 100
+    # ) -> List[Dict[str, Any]]:
+    #     """
+    #     Retrieve and rank all candidates for a given job_id for testing (without filtering by matched skills).
+    #     """
+    #     # Step 1: Fetch Job Data
+    #     job_data = await JobMatcherService._fetch_job_data(job_id, session)
+    #     if not job_data:
+    #         return []
+
+    #     # Step 2: Fetch candidates (no match filter, returns role jobseeker)
+    #     candidates = await JobMatcherService._fetch_candidate_users_test(
+    #         job_data, session, limit=200
+    #     )
+
+    #     # Step 3: Compute full scores for candidates
+    #     scored_candidates = await JobMatcherService._compute_candidate_scores(
+    #         job_data, candidates, session
+    #     )
+
+    #     # Step 4: Do not filter candidates, just sort by final score
+    #     scored_candidates.sort(key=lambda x: x["final_score"], reverse=True)
+    #     return scored_candidates[:limit]
+
     @staticmethod
     async def get_job_applicants(
         job_id: str, session: AsyncSession, limit: int = 100
@@ -206,14 +233,20 @@ class JobMatcherService:
                 .group_by(JobseekerSkill.user_id)
             ).subquery()
 
+            user_industries = table(
+                "user_industries",
+                column("user_id"),
+                column("industry_id")
+            )
+
             user_industries_subquery = (
                 select(
-                    text("ui.user_id").label("user_id"),
+                    user_industries.c.user_id.label("user_id"),
                     func.array_agg(Industry.name).label("industries"),
                 )
                 .select_from(Industry)
-                .join(text("user_industries ui"), Industry.id == text("ui.industry_id"))
-                .group_by(text("ui.user_id"))
+                .join(user_industries, Industry.id == user_industries.c.industry_id)
+                .group_by(user_industries.c.user_id)
             ).subquery()
 
             # Subquery to rank work experiences per user
@@ -294,12 +327,11 @@ class JobMatcherService:
                             float(profile.years_of_experience or 0) if profile else 0.0
                         ),
                         "profile_embedding": (
-                            resume.profile_embedding if resume else None
+                            profile.profile_embedding if profile else None
                         ),
                         "skills": user_skills or [],
                         "industries": user_industries or [],
                         "full_name": user.full_name if user else "",
-                        "phone": user.phone if user else "",
                         "headline": profile.headline if profile else "",
                         "current_location": profile.current_location if profile else "",
                         "recent_job_title": recent_job_title or "",
@@ -817,14 +849,20 @@ class JobMatcherService:
                 .group_by(JobseekerSkill.user_id)
             ).subquery()
 
+            user_industries = table(
+                "user_industries",
+                column("user_id"),
+                column("industry_id")
+            )
+
             user_industries_subquery = (
                 select(
-                    text("ui.user_id").label("user_id"),
+                    user_industries.c.user_id.label("user_id"),
                     func.array_agg(Industry.name).label("industries"),
                 )
                 .select_from(Industry)
-                .join(text("user_industries ui"), Industry.id == text("ui.industry_id"))
-                .group_by(text("ui.user_id"))
+                .join(user_industries, Industry.id == user_industries.c.industry_id)
+                .group_by(user_industries.c.user_id)
             ).subquery()
 
             # Subquery to rank work experiences per user
@@ -971,11 +1009,10 @@ class JobMatcherService:
                         "experience_years": (
                             float(profile.years_of_experience or 0) if profile else 0.0
                         ),
-                        "profile_embedding": resume.profile_embedding,
+                        "profile_embedding": profile.profile_embedding if profile else None,
                         "skills": user_skills or [],
                         "industries": user_industries or [],
                         "full_name": user.full_name if user else "",
-                        "phone": user.phone if user else "",
                         "headline": profile.headline if profile else "",
                         "current_location": profile.current_location if profile else "",
                         "recent_job_title": recent_job_title or "",
@@ -987,6 +1024,129 @@ class JobMatcherService:
         except Exception as e:
             print(f"Error fetching candidate users: {str(e)}")
             return []
+
+    # @staticmethod
+    # async def _fetch_candidate_users_test(
+    #     job_data: Dict[str, Any], session: AsyncSession, limit: int = 100
+    # ) -> List[Dict[str, Any]]:
+    #     """Fetch candidate users with their skills, ranked by embedding similarity"""
+    #     try:
+    #         # Subqueries to aggregate skills and industries for each user to avoid N+1 queries
+
+    #         user_skills_subquery = (
+    #             select(
+    #                 JobseekerSkill.user_id, func.array_agg(Skill.name).label("skills")
+    #             )
+    #             .join(Skill, JobseekerSkill.skill_id == Skill.id)
+    #             .group_by(JobseekerSkill.user_id)
+    #         ).subquery()
+
+    #         user_industries = table(
+    #             "user_industries",
+    #             column("user_id"),
+    #             column("industry_id")
+    #         )
+
+    #         user_industries_subquery = (
+    #             select(
+    #                 user_industries.c.user_id.label("user_id"),
+    #                 func.array_agg(Industry.name).label("industries"),
+    #             )
+    #             .select_from(Industry)
+    #             .join(user_industries, Industry.id == user_industries.c.industry_id)
+    #             .group_by(user_industries.c.user_id)
+    #         ).subquery()
+
+    #         # Subquery to rank work experiences per user
+    #         latest_exp_subquery = (
+    #             select(
+    #                 WorkExperience.user_id,
+    #                 WorkExperience.title,
+    #                 func.row_number().over(
+    #                     partition_by=WorkExperience.user_id,
+    #                     order_by=[
+    #                         desc(WorkExperience.is_current),
+    #                         desc(WorkExperience.end_date),
+    #                         desc(WorkExperience.start_date)
+    #                     ]
+    #                 ).label("rn")
+    #             )
+    #         ).subquery()
+
+    #         # Subquery to select only the top (rn = 1) work experience for each user
+    #         user_latest_title_subquery = (
+    #             select(latest_exp_subquery.c.user_id, latest_exp_subquery.c.title)
+    #             .where(latest_exp_subquery.c.rn == 1)
+    #         ).subquery()
+            
+    #         users_query = (
+    #                 select(
+    #                     User,
+    #                     JobseekerProfile,
+    #                     Resume,
+    #                     user_skills_subquery.c.skills,
+    #                     user_industries_subquery.c.industries,
+    #                     user_latest_title_subquery.c.title.label("recent_job_title"),
+    #                 )
+    #                 .join(
+    #                     JobseekerProfile,
+    #                     User.id == JobseekerProfile.user_id,
+    #                     isouter=True,
+    #                 )
+    #                 .join(
+    #                     Resume,
+    #                     User.id == Resume.user_id,
+    #                     isouter=True,
+    #                 )
+    #                 .join(
+    #                     user_skills_subquery,
+    #                     User.id == user_skills_subquery.c.user_id,
+    #                     isouter=True,
+    #                 )
+    #                 .join(
+    #                     user_industries_subquery,
+    #                     User.id == user_industries_subquery.c.user_id,
+    #                     isouter=True,
+    #                 )
+    #                 .join(
+    #                     user_latest_title_subquery,
+    #                     User.id == user_latest_title_subquery.c.user_id,
+    #                     isouter=True,
+    #                 )
+    #                 .where(User.role == UserRoleEnum.jobseeker)
+    #                 .limit(limit)
+    #             )
+            
+            
+
+    #         users_result = await session.execute(users_query)
+    #         users_rows = users_result.all()
+
+    #         candidate_users = []
+    #         for user, profile, resume, user_skills, user_industries, recent_job_title in users_rows:
+    #             candidate_users.append(
+    #                 {
+    #                     "user_id": str(user.id),
+    #                     "summary": resume.parsed_summary if resume else "",
+    #                     "experience_years": (
+    #                         float(profile.years_of_experience or 0) if profile else 0.0
+    #                     ),
+    #                     "profile_embedding": profile.profile_embedding if profile else None,
+    #                     "skills": user_skills or [],
+    #                     "industries": user_industries or [],
+    #                     "full_name": user.full_name if user else "",
+    #                     "headline": profile.headline if profile else "",
+    #                     "current_location": profile.current_location if profile else "",
+    #                     "recent_job_title": recent_job_title or "",
+    #                 }
+    #             )
+
+    #         return candidate_users
+
+    #     except Exception as e:
+    #         print(f"Error fetching candidate users: {str(e)}")
+    #         return []
+
 
     @staticmethod
     async def _compute_candidate_scores(
@@ -1091,7 +1251,6 @@ class JobMatcherService:
                     {
                         "user_id": candidate["user_id"],
                         "full_name": candidate["full_name"],
-                        "phone": candidate["phone"],
                         "headline": candidate["headline"],
                         "current_location": candidate["current_location"],
                         "recent_job_title": candidate.get("recent_job_title", ""),
@@ -1347,3 +1506,11 @@ async def get_matching_candidates(
 ) -> List[Dict[str, Any]]:
     """Get matching candidates for a job"""
     return await JobMatcherService.get_matching_candidates(job_id, session, limit)
+
+
+# Convenience function for external use
+# async def get_matching_candidates_test(
+#     job_id: str, session: AsyncSession, limit: int = 10
+# ) -> List[Dict[str, Any]]:
+#     """Get matching candidates for a job (test function returning all candidates)"""
+#     return await JobMatcherService.get_matching_candidates_test(job_id, session, limit)
