@@ -34,13 +34,13 @@ class AzureOpenAIResumeRefiner:
         api_version: str | None = None,
         deployment: str | None = None,
     ) -> None:
-        self._endpoint = endpoint or os.getenv("AZURE_OPENAI_ENDPOINT", "")
-        self._api_key = api_key or os.getenv("AZURE_OPENAI_API_KEY", "")
-        self._api_version = api_version or os.getenv(
+        self._endpoint = (endpoint or os.getenv("AZURE_OPENAI_ENDPOINT", "")).split("#")[0].strip()
+        self._api_key = (api_key or os.getenv("AZURE_OPENAI_API_KEY", "")).split("#")[0].strip()
+        self._api_version = (api_version or os.getenv(
             "AZURE_OPENAI_API_VERSION", "2025-04-14"
-        )
-        self._deployment = deployment or os.getenv(
-            "AZURE_OPENAI_DEPLOYMENT", "")
+        )).split("#")[0].strip()
+        self._deployment = (deployment or os.getenv(
+            "AZURE_OPENAI_DEPLOYMENT", "")).split("#")[0].strip()
         self._formatter = TOONFormatter()
 
         if not self._endpoint or not self._api_key or not self._deployment:

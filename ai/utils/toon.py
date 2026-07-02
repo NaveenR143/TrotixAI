@@ -333,25 +333,27 @@ class TOONFormatter:
             "- Tone: Professional, achievement-oriented, and authoritative.\n\n"
             "OUTPUT SCHEMA (must match exactly):\n"
             "EnhancedResumeTOON(\n"
-            "  summary: str,\n"
-            "  skills: list[str],\n"
-            "  workExperience: list[ExperienceEnhancementTOON],\n"
-            "  projects: list[ProjectEnhancementTOON],\n"
-            "  languages: list[str],\n"
-            ")\n\n"
-            "ExperienceEnhancementTOON(\n"
-            "  company_name: str,\n"
-            "  title: str,\n"
-            "  original_description: str,\n"
-            "  enhanced_description: str,\n"
-            "  key_achievements: list[str]\n"
-            ")\n\n"
-            "ProjectEnhancementTOON(\n"
-            "  name: str,\n"
-            "  original_description: str,\n"
-            "  enhanced_description: str,\n"
-            "  technologies: list[str],\n"
-            "  impact: str\n"
+            '  summary: "str",\n'
+            '  skills: ["str", ...],\n'
+            "  workExperience: [\n"
+            "    ExperienceEnhancementTOON(\n"
+            '      company_name: "str",\n'
+            '      title: "str",\n'
+            '      original_description: "str",\n'
+            '      enhanced_description: "str",\n'
+            '      key_achievements: ["str", ...]\n'
+            "    )\n"
+            "  ],\n"
+            "  projects: [\n"
+            "    ProjectEnhancementTOON(\n"
+            '      name: "str",\n'
+            '      original_description: "str",\n'
+            '      enhanced_description: "str",\n'
+            '      technologies: ["str", ...],\n'
+            '      impact: "str"\n'
+            "    )\n"
+            "  ],\n"
+            '  languages: ["str", ...]\n'
             ")\n"
         )
 
@@ -408,11 +410,11 @@ class TOONFormatter:
             toon_str = re.sub(r"\)(?=\s*[,\}\]]|\s*$)", "}", toon_str)
 
             # ── Step 4 ──────────────────────────────────────────────────────────
-            # Quote bare identifier keys.
+            # Quote bare identifier keys and convert = to :.
             # Safe to run now — all string content is replaced by __STRn__ tokens
-            # so there's no risk of mangling URLs, empty strings, or colons inside
+            # so there's no risk of mangling URLs, empty strings, or colons/equals inside
             # values.
-            toon_str = re.sub(r"(\b\w+\b)\s*:", r'"\1":', toon_str)
+            toon_str = re.sub(r"(\b\w+\b)\s*[:=]", r'"\1":', toon_str)
 
             # ── Step 5 ──────────────────────────────────────────────────────────
             # Restore original string values from placeholders
@@ -489,8 +491,8 @@ class TOONFormatter:
             toon_str = re.sub(r"\)(?=\s*[,\}\]]|\s*$)", "}", toon_str)
 
             # ── Step 4 ──────────────────────────────────────────────────────────
-            # Quote keys
-            toon_str = re.sub(r"(\b\w+\b)\s*:", r'"\1":', toon_str)
+            # Quote keys and convert = to :
+            toon_str = re.sub(r"(\b\w+\b)\s*[:=]", r'"\1":', toon_str)
 
             # ── Step 5 ──────────────────────────────────────────────────────────
             # Restore strings

@@ -15,9 +15,10 @@ from ai.utils.data_utils import clean_dict
 logger = logging.getLogger(__name__)
 
 try:
-    from openai import AzureOpenAI  # type: ignore
+    from openai import AzureOpenAI, OpenAI  # type: ignore
 except Exception:
     AzureOpenAI = None  # type: ignore
+    OpenAI = None  # type: ignore
 
 
 class ResumeEnhancerService:
@@ -30,12 +31,12 @@ class ResumeEnhancerService:
         api_version: str | None = None,
         deployment: str | None = None,
     ) -> None:
-        self._endpoint = endpoint or os.getenv("AZURE_OPENAI_ENDPOINT", "")
-        self._api_key = api_key or os.getenv("AZURE_OPENAI_API_KEY", "")
-        self._api_version = api_version or os.getenv(
+        self._endpoint = (endpoint or os.getenv("AZURE_OPENAI_ENDPOINT", "")).split("#")[0].strip()
+        self._api_key = (api_key or os.getenv("AZURE_OPENAI_API_KEY", "")).split("#")[0].strip()
+        self._api_version = (api_version or os.getenv(
             "AZURE_OPENAI_API_VERSION", "2025-04-14"
-        )
-        self._deployment = deployment or os.getenv("AZURE_OPENAI_DEPLOYMENT", "")
+        )).split("#")[0].strip()
+        self._deployment = (deployment or os.getenv("AZURE_OPENAI_DEPLOYMENT", "")).split("#")[0].strip()
         self._formatter = TOONFormatter()
 
         if not self._endpoint or not self._api_key or not self._deployment:
@@ -51,7 +52,7 @@ class ResumeEnhancerService:
         """
         Enhance resume content using Azure OpenAI.
         """
-        if AzureOpenAI is None:
+        if AzureOpenAI is None or OpenAI is None:
             raise CareerAdvisorError(
                 "`openai` package is required for AI resume enhancement."
             )
@@ -59,11 +60,17 @@ class ResumeEnhancerService:
         if not self._endpoint or not self._api_key or not self._deployment:
             raise CareerAdvisorError("Azure OpenAI configuration missing.")
 
-        client = AzureOpenAI(
-            azure_endpoint=self._endpoint,
-            api_key=self._api_key,
-            api_version=self._api_version,
-        )
+        if "openai/v1" in self._endpoint or "services.ai.azure.com" in self._endpoint:
+            client = OpenAI(
+                base_url=self._endpoint,
+                api_key=self._api_key,
+            )
+        else:
+            client = AzureOpenAI(
+                azure_endpoint=self._endpoint,
+                api_key=self._api_key,
+                api_version=self._api_version,
+            )
 
         schema_instruction = self._formatter.build_resume_enhancement_instructions()
 
@@ -92,6 +99,7 @@ class ResumeEnhancerService:
                     "9. Maintain strict schema consistency."
                     "10. Do NOT omit required fields."
                     "11. Use empty arrays instead of null values where applicable."
+                    "12. Every key MUST be followed by a colon."
                     "FACTUAL ACCURACY RULES:"
                     "1. Never invent companies, job titles, degrees, certifications, or technologies."
                     "2. Never fabricate years of experience."
