@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -21,6 +21,7 @@ import {
   Dialog,
   DialogContent,
   CircularProgress,
+  Radio,
 } from "@mui/material";
 
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
@@ -133,6 +134,11 @@ const MembershipScreen = () => {
   const [creditsAdded, setCreditsAdded] = useState(0);
   const [newBalance, setNewBalance] = useState(0);
 
+  // New gateway selection states
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("payu"); // 'payu' | 'razorpay'
+
   const dispatch = useDispatch();
   const user = useSelector((state) => state.UserReducer);
   const userid = user?.userid;
@@ -140,7 +146,66 @@ const MembershipScreen = () => {
   const email = user?.email || "";
   const phone = user?.mobile || "";
 
-  const handlePlanSelect = async (packageItem) => {
+  // Effect to verify landing back on page after PayU Redirect Callback
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
+    const txnid = params.get("txnid");
+    const credits = params.get("credits");
+    const message = params.get("message");
+
+    if (status) {
+      if (status === "success") {
+        const added = parseInt(credits || "100", 10);
+
+        const syncPaymentStatus = async () => {
+          setLoading(true);
+          try {
+            const statusRes = await profileAPI.fetchPayUPaymentStatus(txnid);
+            if (!statusRes.error && statusRes.status === "paid") {
+              const addedCredits = statusRes.credits_to_add || 100;
+              setCreditsAdded(addedCredits);
+
+              const walletRes = await profileAPI.fetchWalletBalance(userid);
+              if (!walletRes.error && walletRes.data) {
+                const newBal = walletRes.data.balance;
+                setNewBalance(newBal);
+                dispatch(updateUserProfile({ points: newBal }));
+              }
+
+              setPaymentStatus("success");
+              setPaymentMessage(`Payment completed successfully via PayU! Transaction ID: ${txnid}`);
+            } else {
+              setPaymentStatus("failure");
+              setPaymentMessage(statusRes.message || "Unable to verify payment status.");
+            }
+          } catch (err) {
+            console.error("Error syncing PayU status:", err);
+            setPaymentStatus("failure");
+            setPaymentMessage("An error occurred while verifying the transaction.");
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        if (txnid && userid) {
+          syncPaymentStatus();
+        } else {
+          setPaymentStatus("success");
+          setPaymentMessage("Payment completed successfully!");
+          setCreditsAdded(added);
+        }
+      } else if (status === "failure") {
+        setPaymentStatus("failure");
+        setPaymentMessage(message || "Payment failed or was cancelled.");
+      }
+
+      // Clean query parameters from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [userid, dispatch]);
+
+  const handlePlanSelect = (packageItem) => {
     if (packageItem.disabled) return;
 
     if (!userid) {
@@ -148,115 +213,164 @@ const MembershipScreen = () => {
       return;
     }
 
+    setSelectedPackage(packageItem);
+    setCheckoutOpen(true);
+  };
+
+  const handlePaymentSubmit = async () => {
+    if (!selectedPackage) return;
+    setCheckoutOpen(false);
     setLoading(true);
     setPaymentStatus(null);
     setPaymentMessage("");
 
-    // 1. Load Razorpay script dynamically
-    const scriptLoaded = await loadRazorpayScript();
-    if (!scriptLoaded) {
-      setLoading(false);
-      setPaymentStatus("failure");
-      setPaymentMessage("Failed to load Razorpay SDK. Please check your internet connection.");
-      return;
-    }
+    const amount = selectedPackage.amount || 99;
+    const creditsToAdd = selectedPackage.creditsToAdd || 100;
+    const packageName = selectedPackage.title;
 
-    try {
-      const amount = packageItem.amount || 99;
-      const creditsToAdd = packageItem.creditsToAdd || 100;
+    if (paymentMethod === "payu") {
+      try {
+        const initiateRes = await profileAPI.initiatePayUPayment(
+          userid,
+          amount,
+          creditsToAdd,
+          packageName
+        );
 
-      // 2. Create payment order on the backend
-      const orderRes = await profileAPI.createPaymentOrder(
-        userid,
-        amount,
-        creditsToAdd,
-        packageItem.title
-      );
+        if (!initiateRes || initiateRes.error || !initiateRes.success || !initiateRes.payment_params) {
+          setLoading(false);
+          setPaymentStatus("failure");
+          setPaymentMessage(initiateRes?.message || "Failed to initiate PayU payment. Please try again.");
+          return;
+        }
 
-      if (!orderRes || orderRes.error || !orderRes.success || !orderRes.order) {
+        const { payment_url, payment_params } = initiateRes;
+
+        // Dynamically create and submit POST form for PayU checkout redirect
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = payment_url;
+
+        Object.keys(payment_params).forEach((key) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = key;
+          input.value = payment_params[key];
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+      } catch (err) {
+        console.error("PayU initiation error:", err);
+        setPaymentStatus("failure");
+        setPaymentMessage("An unexpected error occurred while initiating PayU payment.");
+        setLoading(false);
+      }
+    } else {
+      // 1. Load Razorpay script dynamically
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
         setLoading(false);
         setPaymentStatus("failure");
-        setPaymentMessage(orderRes?.message || "Failed to initiate payment. Please try again.");
+        setPaymentMessage("Failed to load Razorpay SDK. Please check your internet connection.");
         return;
       }
 
-      const orderDetails = orderRes.order;
-      const razorpayKey = (typeof process !== "undefined" && process.env && process.env.REACT_APP_RAZORPAY_KEY_ID) || orderRes.razorpay_key_id || "rzp_test_zS0qL012345678";
+      try {
+        // 2. Create payment order on the backend
+        const orderRes = await profileAPI.createPaymentOrder(
+          userid,
+          amount,
+          creditsToAdd,
+          packageName
+        );
 
-      console.log(JSON.stringify(orderDetails));
+        if (!orderRes || orderRes.error || !orderRes.success || !orderRes.order) {
+          setLoading(false);
+          setPaymentStatus("failure");
+          setPaymentMessage(orderRes?.message || "Failed to initiate Razorpay payment. Please try again.");
+          return;
+        }
 
-      // 3. Configure Razorpay options
-      const options = {
-        key: razorpayKey,
-        amount: orderDetails.amount,
-        currency: orderDetails.currency,
-        name: "RightNxt",
-        description: `Purchase ${creditsToAdd} Credits`,
-        image: "https://trotix.ai/logo.png",
-        order_id: orderDetails.id,
-        handler: async function (response) {
-          setLoading(true);
-          try {
-            const verifyRes = await profileAPI.verifyPayment(
-              userid,
-              response.razorpay_order_id,
-              response.razorpay_payment_id,
-              response.razorpay_signature
-            );
+        const orderDetails = orderRes.order;
+        const razorpayKey = (typeof process !== "undefined" && process.env && process.env.REACT_APP_RAZORPAY_KEY_ID) || orderRes.razorpay_key_id || "rzp_test_zS0qL012345678";
 
-            if (!verifyRes.error && verifyRes.success) {
-              const updatedBalance = verifyRes.balance;
-              const added = verifyRes.credits_added;
+        console.log(JSON.stringify(orderDetails));
 
-              // Update Redux store
-              dispatch(updateUserProfile({ points: updatedBalance }));
+        // 3. Configure Razorpay options
+        const options = {
+          key: razorpayKey,
+          amount: orderDetails.amount,
+          currency: orderDetails.currency,
+          name: "RightNxt",
+          description: `Purchase ${creditsToAdd} Credits`,
+          image: "https://trotix.ai/logo.png",
+          order_id: orderDetails.id,
+          handler: async function (response) {
+            setLoading(true);
+            try {
+              const verifyRes = await profileAPI.verifyPayment(
+                userid,
+                response.razorpay_order_id,
+                response.razorpay_payment_id,
+                response.razorpay_signature
+              );
 
-              setPaymentStatus("success");
-              setPaymentMessage(verifyRes.message || "Payment completed successfully!");
-              setCreditsAdded(added);
-              setNewBalance(updatedBalance);
-            } else {
+              if (!verifyRes.error && verifyRes.success) {
+                const updatedBalance = verifyRes.balance;
+                const added = verifyRes.credits_added;
+
+                // Update Redux store
+                dispatch(updateUserProfile({ points: updatedBalance }));
+
+                setPaymentStatus("success");
+                setPaymentMessage(verifyRes.message || "Payment completed successfully!");
+                setCreditsAdded(added);
+                setNewBalance(updatedBalance);
+              } else {
+                setPaymentStatus("failure");
+                setPaymentMessage(verifyRes.message || "Payment verification failed. Please contact support.");
+              }
+            } catch (err) {
+              console.error("Verification error:", err);
               setPaymentStatus("failure");
-              setPaymentMessage(verifyRes.message || "Payment verification failed. Please contact support.");
+              setPaymentMessage("An error occurred during payment verification.");
+            } finally {
+              setLoading(false);
             }
-          } catch (err) {
-            console.error("Verification error:", err);
-            setPaymentStatus("failure");
-            setPaymentMessage("An error occurred during payment verification.");
-          } finally {
-            setLoading(false);
-          }
-        },
-        prefill: {
-          name: fullname,
-          email: email,
-          contact: phone,
-        },
-        notes: JSON.stringify(orderDetails.notes),
-        theme: {
-          color: COLORS.primaryBlue,
-        },
-        modal: {
-          ondismiss: function () {
-            setLoading(false);
-            setPaymentStatus("failure");
-            setPaymentMessage("Payment was cancelled by the user.");
           },
-        },
-      };
+          prefill: {
+            name: fullname,
+            email: email,
+            contact: phone,
+          },
+          notes: JSON.stringify(orderDetails.notes),
+          theme: {
+            color: COLORS.primaryBlue,
+          },
+          modal: {
+            ondismiss: function () {
+              setLoading(false);
+              setPaymentStatus("failure");
+              setPaymentMessage("Payment was cancelled by the user.");
+            },
+          },
+        };
 
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function (response) {
+        const rzp = new window.Razorpay(options);
+        rzp.on("payment.failed", function (response) {
+          setPaymentStatus("failure");
+          setPaymentMessage(response.error.description || "Payment failed. Please try again.");
+          setLoading(false);
+        });
+        rzp.open();
+      } catch (err) {
+        console.error("Payment initiation error:", err);
         setPaymentStatus("failure");
-        setPaymentMessage(response.error.description || "Payment failed. Please try again.");
+        setPaymentMessage("An unexpected error occurred while initiating Razorpay payment.");
         setLoading(false);
-      });
-      rzp.open();
-    } catch (err) {
-      console.error("Payment initiation error:", err);
-      setPaymentStatus("failure");
-      setPaymentMessage("An unexpected error occurred while initiating payment.");
-      setLoading(false);
+      }
     }
   };
 
@@ -857,6 +971,188 @@ const MembershipScreen = () => {
                 </>
               )}
             </Box>
+          </DialogContent>
+        </Dialog>
+
+        {/* Checkout Modal */}
+        <Dialog
+          open={checkoutOpen}
+          onClose={() => setCheckoutOpen(false)}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 4,
+              p: 2,
+              boxShadow: "0 24px 64px rgba(0,0,0,0.15)",
+            },
+          }}
+        >
+          <DialogContent>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h5" fontWeight={800} color={COLORS.darkText}>
+                Checkout
+              </Typography>
+              <Button
+                onClick={() => setCheckoutOpen(false)}
+                sx={{
+                  minWidth: "auto",
+                  color: COLORS.mutedText,
+                  p: 0.5,
+                  borderRadius: "50%",
+                  "&:hover": { bgcolor: "#f1f5f9" },
+                }}
+              >
+                <CloseRoundedIcon />
+              </Button>
+            </Box>
+
+            {selectedPackage && (
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2.5,
+                  borderRadius: 3,
+                  bgcolor: COLORS.bg,
+                  border: `1px solid ${COLORS.border}`,
+                  mb: 3,
+                }}
+              >
+                <Typography variant="subtitle2" color={COLORS.mutedText} fontWeight={600} gutterBottom>
+                  Order Summary
+                </Typography>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
+                  <Box>
+                    <Typography variant="h6" fontWeight={800} color={COLORS.darkText}>
+                      {selectedPackage.title}
+                    </Typography>
+                    <Typography variant="body2" color={COLORS.mutedText}>
+                      {selectedPackage.description}
+                    </Typography>
+                  </Box>
+                  <Typography variant="h5" fontWeight={900} color={COLORS.primaryBlue}>
+                    {selectedPackage.price}
+                  </Typography>
+                </Box>
+              </Paper>
+            )}
+
+            <Typography variant="subtitle1" fontWeight={800} color={COLORS.darkText} mb={2}>
+              Select Payment Method
+            </Typography>
+
+            <Stack spacing={2} mb={4}>
+              {/* PayU Option */}
+              <Card
+                onClick={() => setPaymentMethod("payu")}
+                sx={{
+                  borderRadius: 3,
+                  border: paymentMethod === "payu" ? `2.5px solid ${COLORS.primaryBlue}` : `1px solid ${COLORS.border}`,
+                  bgcolor: paymentMethod === "payu" ? "rgba(37, 99, 235, 0.03)" : COLORS.white,
+                  boxShadow: paymentMethod === "payu" ? "0 4px 20px rgba(37, 99, 235, 0.08)" : "none",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    borderColor: COLORS.primaryBlue,
+                    bgcolor: "rgba(37, 99, 235, 0.01)",
+                  },
+                }}
+              >
+                <CardContent sx={{ p: "16px !important", display: "flex", alignItems: "center", gap: 2 }}>
+                  <Radio
+                    checked={paymentMethod === "payu"}
+                    onChange={() => setPaymentMethod("payu")}
+                    value="payu"
+                    sx={{
+                      color: COLORS.border,
+                      "&.Mui-checked": {
+                        color: COLORS.primaryBlue,
+                      },
+                    }}
+                  />
+                  <Box flexGrow={1}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Typography variant="subtitle1" fontWeight={750} color={COLORS.darkText}>
+                        PayU Gateway
+                      </Typography>
+                      <Chip
+                        label="Primary / Default"
+                        size="small"
+                        color="primary"
+                        sx={{
+                          height: 18,
+                          fontSize: "0.65rem",
+                          fontWeight: 700,
+                          bgcolor: COLORS.primaryBlue,
+                        }}
+                      />
+                    </Box>
+                    <Typography variant="body2" color={COLORS.mutedText}>
+                      Fast, secure redirection payment via Cards, UPI, Netbanking or Wallets
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* Razorpay Option */}
+              {/* <Card
+                onClick={() => setPaymentMethod("razorpay")}
+                sx={{
+                  borderRadius: 3,
+                  border: paymentMethod === "razorpay" ? `2.5px solid ${COLORS.primaryBlue}` : `1px solid ${COLORS.border}`,
+                  bgcolor: paymentMethod === "razorpay" ? "rgba(37, 99, 235, 0.03)" : COLORS.white,
+                  boxShadow: paymentMethod === "razorpay" ? "0 4px 20px rgba(37, 99, 235, 0.08)" : "none",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    borderColor: COLORS.primaryBlue,
+                    bgcolor: "rgba(37, 99, 235, 0.01)",
+                  },
+                }}
+              >
+                <CardContent sx={{ p: "16px !important", display: "flex", alignItems: "center", gap: 2 }}>
+                  <Radio
+                    checked={paymentMethod === "razorpay"}
+                    onChange={() => setPaymentMethod("razorpay")}
+                    value="razorpay"
+                    sx={{
+                      color: COLORS.border,
+                      "&.Mui-checked": {
+                        color: COLORS.primaryBlue,
+                      },
+                    }}
+                  />
+                  <Box flexGrow={1}>
+                    <Typography variant="subtitle1" fontWeight={750} color={COLORS.darkText}>
+                      Razorpay Checkout
+                    </Typography>
+                    <Typography variant="body2" color={COLORS.mutedText}>
+                      Pay directly inside a popup overlay without leaving the page
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card> */}
+            </Stack>
+
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handlePaymentSubmit}
+              sx={{
+                py: 1.5,
+                borderRadius: 2.5,
+                fontWeight: 800,
+                fontSize: "1rem",
+                textTransform: "none",
+                background: `linear-gradient(135deg, ${COLORS.primaryBlue}, ${COLORS.primaryPurple})`,
+                boxShadow: "0 10px 25px rgba(37, 99, 235, 0.2)",
+                "&:hover": {
+                  opacity: 0.95,
+                },
+              }}
+            >
+              Proceed to Pay
+            </Button>
           </DialogContent>
         </Dialog>
       </Container>

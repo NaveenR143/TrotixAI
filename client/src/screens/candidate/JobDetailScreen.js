@@ -107,7 +107,7 @@ const JobDetailScreen = ({
       } finally {
         setApplying(false);
       }
-    } else if (job.careers_url) {
+    } else if (job.careers_url && !job.is_verified) {
       // External Application
 
       // window.open(job.careers_url, "_blank");
@@ -115,7 +115,10 @@ const JobDetailScreen = ({
       const searchQuery = `${companyName} jobs careers`;
       const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
       window.open(searchUrl, "_blank");
-    } else if (job.hiring_email) {
+    } else if (job.careers_url && !job.is_verified) {
+      window.open(job.careers_url, "_blank");
+    }
+    else if (job.hiring_email) {
       // Email Contact
       setShowEmailDialog(true);
     } else {

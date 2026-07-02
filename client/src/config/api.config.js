@@ -8,9 +8,9 @@
  */
 
 // ─── Base URL Configuration ────────────────────────────────────────────────────
-const API_BASE_URL = 'http://localhost:8000';
+// const API_BASE_URL = 'http://localhost:8000';
 // const API_BASE_URL = 'http://192.168.1.7:8000';
-// const API_BASE_URL = 'https://rightnxtai-bkdudpehedfwffgy.centralindia-01.azurewebsites.net';
+const API_BASE_URL = 'https://rightnxtai-bkdudpehedfwffgy.centralindia-01.azurewebsites.net';
 
 // ─── API Endpoints ────────────────────────────────────────────────────────────
 const API_ENDPOINTS = {
@@ -56,6 +56,8 @@ const API_ENDPOINTS = {
   ADD_CREDITS: '/credits/add',
   CREATE_PAYMENT_ORDER: '/credits/create-order',
   VERIFY_PAYMENT: '/credits/verify-payment',
+  INITIATE_PAYU_PAYMENT: '/credits/payu/initiate',
+  PAYU_PAYMENT_STATUS: '/credits/payu/status',
 };
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────

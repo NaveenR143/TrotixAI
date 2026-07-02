@@ -777,6 +777,67 @@ export const verifyPayment = async (userId, razorpayOrderId, razorpayPaymentId, 
 };
 
 /**
+ * Initiate a PayU payment on the backend
+ * @param {string} userId - User UUID
+ * @param {number} amount - Amount in INR (e.g., 99)
+ * @param {number} creditsToAdd - Credits to be added (e.g., 100)
+ * @param {string} packageName - Name of the package (e.g., "100 Credits")
+ */
+export const initiatePayUPayment = async (userId, amount, creditsToAdd, packageName) => {
+  try {
+    const payload = {
+      amount,
+      credits_to_add: creditsToAdd,
+      package_name: packageName,
+    };
+
+    const response = await axios.post(
+      `${API_BASE_URL}${API_ENDPOINTS.INITIATE_PAYU_PAYMENT}/${userId}`,
+      payload,
+      { headers: getHeaders(), timeout: 10000 }
+    );
+
+    return {
+      error: false,
+      success: response.data?.success ?? true,
+      message: response.data?.message || "PayU payment initiated successfully",
+      payment_params: response.data?.payment_params,
+      payment_url: response.data?.payment_url,
+      data: response.data,
+    };
+  } catch (error) {
+    console.error("Error initiating PayU payment:", error);
+    return handleError(error);
+  }
+};
+
+/**
+ * Fetch PayU transaction status on the backend
+ * @param {string} txnid - Unique transaction ID
+ */
+export const fetchPayUPaymentStatus = async (txnid) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}${API_ENDPOINTS.PAYU_PAYMENT_STATUS}/${txnid}`,
+      { headers: getHeaders(), timeout: 10000 }
+    );
+
+    return {
+      error: false,
+      success: response.data?.success ?? true,
+      status: response.data?.status,
+      amount: response.data?.amount,
+      credits_to_add: response.data?.credits_to_add,
+      request_status: response.data?.request_status,
+      data: response.data,
+    };
+  } catch (error) {
+    console.error("Error fetching PayU payment status:", error);
+    return handleError(error);
+  }
+};
+
+/**
  * Download Candidate Resume Securely as Blob
  */
 export const downloadResume = async (candidateId) => {

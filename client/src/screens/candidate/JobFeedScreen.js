@@ -115,10 +115,11 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
             recruiter_id: job.recruiter_id || '',
             experience_min_yrs: job.experience_min_yrs,
             experience_max_yrs: job.experience_max_yrs,
-            experience: job.experience_min_yrs != null && job.experience_max_yrs != null 
-              ? `${job.experience_min_yrs}-${job.experience_max_yrs} Yrs` 
+            experience: job.experience_min_yrs != null && job.experience_max_yrs != null
+              ? `${job.experience_min_yrs}-${job.experience_max_yrs} Yrs`
               : (job.experience_min_yrs != null ? `${job.experience_min_yrs}+ Yrs` : 'Not specified'),
             is_viewed: job.is_viewed || false,
+            is_verified: job.is_verified
           }));
 
           setJobs(fetchedJobs);
@@ -210,7 +211,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
     if (filters.matchScore > 0) {
       result = result.filter(job => job.matchScore >= filters.matchScore);
     }
-    
+
     // Apply hide viewed filter
     if (filters.hideViewed) {
       result = result.filter(job => !job.is_viewed);

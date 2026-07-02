@@ -62,3 +62,42 @@ class PaymentVerificationResponse(BaseModel):
     payment_id: str
     credits_added: int
     balance: int
+
+
+class CreatePayUPaymentRequest(BaseModel):
+    amount: float = Field(..., gt=0, description="Amount in INR, e.g. 99.00")
+    credits_to_add: int = Field(..., gt=0, description="Number of credits to add, e.g. 100")
+    package_name: str = Field(..., description="Name of the package")
+
+
+class PayUPaymentParams(BaseModel):
+    key: str
+    txnid: str
+    amount: str
+    productinfo: str
+    firstname: str
+    email: str
+    phone: str
+    surl: str
+    furl: str
+    hash: str
+    udf1: str
+    udf2: str
+    udf3: str
+
+
+class InitiatePayUPaymentResponse(BaseModel):
+    success: bool
+    message: str
+    payment_params: Optional[PayUPaymentParams] = None
+    payment_url: Optional[str] = None
+
+
+class PayUTxnStatusResponse(BaseModel):
+    success: bool
+    txnid: str
+    status: Optional[str] = None
+    amount: Optional[float] = None
+    credits_to_add: Optional[int] = None
+    request_status: Optional[str] = None
+

@@ -153,6 +153,7 @@ const PublicJobDetailScreen = () => {
         setApplying(false);
       }
     } else if (job.careers_url) {
+
       // External Application
       const companyName = (typeof job.company === "object" ? job.company?.name : job.company) || "";
       const searchQuery = `${companyName} jobs careers`;
