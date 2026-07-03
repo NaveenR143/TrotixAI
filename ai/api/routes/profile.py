@@ -103,10 +103,7 @@ async def fetch_user_profile(
         validation_errors = ProfileService.validate_profile_data(profile_data)
         if validation_errors:
             logger.warning(f"Profile validation errors: {validation_errors}")
-            raise HTTPException(
-                status_code=400,
-                detail=f"Profile data validation failed: {validation_errors}",
-            )
+            # Log warning but do not block profile fetch with an exception
 
         # Enrich profile with computed fields
         profile_data = ProfileService.enrich_profile_data(profile_data)
@@ -190,10 +187,7 @@ async def fetch_user_profile_post(
         validation_errors = ProfileService.validate_profile_data(profile_data)
         if validation_errors:
             logger.warning(f"Profile validation errors: {validation_errors}")
-            raise HTTPException(
-                status_code=400,
-                detail=f"Profile data validation failed: {validation_errors}",
-            )
+            # Log warning but do not block profile fetch with an exception
 
         # Enrich profile with computed fields
         profile_data = ProfileService.enrich_profile_data(profile_data)

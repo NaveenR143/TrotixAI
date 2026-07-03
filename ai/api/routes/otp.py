@@ -42,14 +42,20 @@ async def verify_otp_update_handler(req: OTPVerifyRequest, response: Response):
     token_data = {"sub": user_id, "role": role}
     access_token = create_access_token(token_data)
 
+    # Set cookie properties based on request origin / ENVIRONMENT
+    import os
+    is_prod = os.getenv("DATABASE_URL") and "azure.com" in os.getenv("DATABASE_URL")
+    cookie_secure = is_prod or os.getenv("COOKIE_SECURE", "False").lower() == "true"
+    cookie_samesite = "None" if cookie_secure else "Lax"
+
     # Set Secure HTTP-only Cookie
-    print(f"DEBUG: Setting access_token cookie for user: {user_id}")
+    print(f"DEBUG: Setting access_token cookie for user: {user_id} (Secure: {cookie_secure}, SameSite: {cookie_samesite})")
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,  # Prevent JavaScript access (XSS protection)
-        secure=False,  # Set to False for local development (HTTP)
-        samesite="Lax",  # Changed from Strict to Lax for cross-origin local dev
+        secure=cookie_secure,
+        samesite=cookie_samesite,
         max_age=3600,  # 1 hour in seconds
         path="/",
     )
@@ -58,6 +64,7 @@ async def verify_otp_update_handler(req: OTPVerifyRequest, response: Response):
         "status": "success",
         "user_id": user_id,
         "user_type": role,
+        "access_token": access_token,
         "message": "Phone verified successfully and session established",
     }
 
@@ -67,11 +74,16 @@ async def logout(response: Response):
     """
     Clear the access token cookie to log out the user.
     """
+    import os
+    is_prod = os.getenv("DATABASE_URL") and "azure.com" in os.getenv("DATABASE_URL")
+    cookie_secure = is_prod or os.getenv("COOKIE_SECURE", "False").lower() == "true"
+    cookie_samesite = "None" if cookie_secure else "Lax"
+
     response.delete_cookie(
         key="access_token",
         httponly=True,
-        secure=False,  # Match the setting in verify_otp_update_handler
-        samesite="Lax", # Match the setting in verify_otp_update_handler
+        secure=cookie_secure,
+        samesite=cookie_samesite,
         path="/",      # Explicitly set path to match
     )
     return {"status": "success", "message": "Logged out successfully"}

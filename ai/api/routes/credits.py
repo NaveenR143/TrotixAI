@@ -27,6 +27,7 @@ from ai.models.credit_models import (
 )
 from ai.models.orm_models import CreditTxTypeEnum, PaymentOrder, User
 from ai.utils.auth import get_current_user
+from payu_websdk.payuClient import Client as PayUClient
 
 logger = logging.getLogger(__name__)
 
@@ -42,12 +43,12 @@ def get_razorpay_client():
 
 
 def get_payu_client():
-    payu_key = os.getenv("PAYU_KEY", "k9IyWw")
-    payu_salt = os.getenv("PAYU_SALT", "sCQvCzC6Ij2JwaIxO5f8IS9hCjS4Vwl1")
-    payu_env = os.getenv("PAYU_ENV", "TEST")
+    payu_key = os.getenv("PAYU_KEY")
+    payu_salt = os.getenv("PAYU_SALT")
+    payu_env = os.getenv("PAYU_ENV")
     if not payu_key or not payu_salt:
         logger.error("PayU keys are not configured in environment variables")
-    from payu_websdk.payuClient import Client as PayUClient
+    
     return PayUClient(key=payu_key, salt=payu_salt, env=payu_env), payu_key, payu_salt, payu_env
 
 

@@ -71,7 +71,8 @@ const Header = ({ sx, customClass, toggleSidebar, toggleMobileSidebar }) => {
 
   const logout = () => {
     fnDeleteAllDbs();
-
+    localStorage.clear();
+    sessionStorage.clear();
     window.location.href = "/";
   };
 

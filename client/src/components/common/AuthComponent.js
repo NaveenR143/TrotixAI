@@ -41,6 +41,18 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (step === 2 && formData.otp.length === 4) {
+      handleVerifyOtp(null, formData.otp);
+    }
+  }, [formData.otp, step]);
+
+  useEffect(() => {
+    if (step === 1) {
+      setFormData(prev => ({ ...prev, otp: "" }));
+    }
+  }, [step]);
+
   const handleNavigation = (type) => {
     if (invokedFrom === 'JobPost') {
       if (onSuccess) onSuccess();
@@ -267,7 +279,11 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
                   onChange={(e) => {
                     const val = e.target.value.replace(/\D/g, '').slice(0, 4);
                     setFormData({ ...formData, otp: val });
-                    if (val.length === 4) handleVerifyOtp(null, val);
+                  }}
+                  inputProps={{
+                    autoComplete: 'one-time-code',
+                    inputMode: 'numeric',
+                    pattern: '[0-9]*',
                   }}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' }, '& input': { textAlign: 'center', letterSpacing: '8px', fontWeight: 800, fontSize: '1.2rem' } }}
                 />

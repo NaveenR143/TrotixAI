@@ -70,7 +70,7 @@ def send_otp(phone: str) -> str:
 
     print("formattedphone: ", formattedphone)
 
-    message = f"Your OTP code sent by RightNxt is {otp}."
+    message = f"Your OTP for RightNxt is {otp}."
 
     try:
         # Prepare parameters for the send_text_message API call
@@ -80,19 +80,30 @@ def send_otp(phone: str) -> str:
             "DestinationPhoneNumber": phonenumber,
             "MessageBody": message,
             "MessageType": "TRANSACTIONAL",
-            # "OriginationIdentity": "RNXT"
         }
 
-        # Check if an origination identity is configured in environment
-        origination_identity = os.environ.get("AWS_SMS_ORIGINATION_IDENTITY")
-        if origination_identity:
-            params["OriginationIdentity"] = origination_identity
+        # # Check if an origination identity is configured in environment
+        # origination_identity = os.environ.get("AWS_SMS_ORIGINATION_IDENTITY")
+        # if origination_identity:
+        #     params["OriginationIdentity"] = origination_identity
+
+        # # Add India DLT parameters if configured
+        # entity_id = os.environ.get("IN_ENTITY_ID")
+        # template_id = os.environ.get("IN_TEMPLATE_ID")
+        # if entity_id or template_id:
+        #     country_params = {}
+        #     if entity_id:
+        #         country_params["IN_ENTITY_ID"] = entity_id
+        #     if template_id:
+        #         country_params["IN_TEMPLATE_ID"] = template_id
+        #     params["DestinationCountryParameters"] = country_params
 
         logger.info(f"Sending OTP to {phone}")
         client = get_sms_client()
         response = client.send_text_message(**params)
 
         message_id = response.get("MessageId")
+        # print("Sender ID :",origination_identity)
         print("OTP SMS sent successfully to ", phone, ". MessageId: ", message_id)
         logger.info(f"OTP SMS sent successfully to {phone}. MessageId: {message_id}")
 

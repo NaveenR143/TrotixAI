@@ -357,8 +357,12 @@ const MobileOTPValidation = ({
                                 value={otp}
                                 onChange={handleOtpChange}
                                 onPaste={handlePaste}
-                                maxLength={otpLength}
-                                inputMode="numeric"
+                                inputProps={{
+                                    maxLength: otpLength,
+                                    autoComplete: "one-time-code",
+                                    inputMode: "numeric",
+                                    pattern: "[0-9]*",
+                                }}
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">

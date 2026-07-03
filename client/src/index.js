@@ -32,6 +32,23 @@ import { API_BASE_URL } from "./config/api.config";
 // Set withCredentials to true globally for Axios to handle cookies
 axios.defaults.withCredentials = true;
 
+// Global Axios Request Interceptor to attach Authorization header
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("access_token");
+    const url = config.url || "";
+    // Only attach Authorization header to backend API requests
+    const isBackendRequest = !url.startsWith("http") || url.startsWith(API_BASE_URL);
+    if (token && isBackendRequest) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Global Axios Interceptor for 401 Unauthorized
 axios.interceptors.response.use(
   (response) => response,

@@ -125,6 +125,11 @@ export const verifyOTP = async (phone, otp) => {
             { headers: getHeaders(), timeout: 10000 }
         );
 
+        const data = response.data;
+        if (data && data.access_token) {
+            localStorage.setItem("access_token", data.access_token);
+        }
+
         return {
             error: false,
             data: response.data,

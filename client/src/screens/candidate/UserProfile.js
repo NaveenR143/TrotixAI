@@ -105,6 +105,11 @@ const UserProfile = () => {
 
   const handleSuccess = (message, updateData = null) => {
     setSuccessMessage(message);
+
+    // Sync ProfileReducer and UserReducer from API to reflect latest changes in Resume Builder
+    const phone = profile?.mobile || "9789502974";
+    dispatch(fetchAndStoreProfile(phone));
+
     if (updateData) {
       dispatch(updateUserProfile({
         ...profile,

@@ -123,9 +123,40 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
     setChangedProjects((prev) => new Set([...prev, index]));
   };
 
+  const validateProject = (proj) => {
+    if (proj.startDate) {
+      const start = dayjs(proj.startDate);
+      if (!start.isValid()) {
+        return "Start date is invalid";
+      }
+    }
+    if (proj.endDate) {
+      const end = dayjs(proj.endDate);
+      if (!end.isValid()) {
+        return "End date is invalid";
+      }
+    }
+    if (proj.startDate && proj.endDate) {
+      const start = dayjs(proj.startDate);
+      const end = dayjs(proj.endDate);
+      if (start.isValid() && end.isValid()) {
+        if (start.isAfter(end)) {
+          return "Start date must be before end date";
+        }
+      }
+    }
+    return null;
+  };
+
   const saveIndividualProject = async (index) => {
     const proj = projects[index];
     const isNewRecord = newProjectIndices.has(index);
+
+    const validationError = validateProject(proj);
+    if (validationError) {
+      setRecordErrors((prev) => ({ ...prev, [index]: validationError }));
+      return false;
+    }
 
     setRecordLoading((prev) => ({ ...prev, [index]: true }));
     setRecordErrors((prev) => ({ ...prev, [index]: null }));
@@ -353,18 +384,46 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
                   <DatePicker
                     label="Start Date"
                     value={proj.startDate ? dayjs(proj.startDate) : null}
-                    onChange={(val) => updateProjectField(idx, "startDate", val ? val.format("YYYY-MM-DD") : "")}
+                    onChange={(val) => {
+                      updateProjectField(idx, "startDate", val ? val.format("YYYY-MM-DD") : "");
+                      if (recordErrors[idx]) {
+                        setRecordErrors((prev) => ({ ...prev, [idx]: null }));
+                      }
+                    }}
+                    maxDate={proj.endDate && dayjs(proj.endDate).isValid() ? dayjs(proj.endDate) : undefined}
                     format="DD/MM/YYYY"
-                    slotProps={{ textField: { fullWidth: true, size: "small", InputLabelProps: { shrink: true } } }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        size: "small",
+                        InputLabelProps: { shrink: true },
+                        error: !!(recordErrors[idx] && (recordErrors[idx].includes("Start date") || recordErrors[idx].includes("before"))),
+                        helperText: (recordErrors[idx] && recordErrors[idx].includes("Start date")) ? recordErrors[idx] : ""
+                      }
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <DatePicker
                     label="End Date"
                     value={proj.endDate ? dayjs(proj.endDate) : null}
-                    onChange={(val) => updateProjectField(idx, "endDate", val ? val.format("YYYY-MM-DD") : "")}
+                    onChange={(val) => {
+                      updateProjectField(idx, "endDate", val ? val.format("YYYY-MM-DD") : "");
+                      if (recordErrors[idx]) {
+                        setRecordErrors((prev) => ({ ...prev, [idx]: null }));
+                      }
+                    }}
+                    minDate={proj.startDate && dayjs(proj.startDate).isValid() ? dayjs(proj.startDate) : undefined}
                     format="DD/MM/YYYY"
-                    slotProps={{ textField: { fullWidth: true, size: "small", InputLabelProps: { shrink: true } } }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        size: "small",
+                        InputLabelProps: { shrink: true },
+                        error: !!(recordErrors[idx] && (recordErrors[idx].includes("End date") || recordErrors[idx].includes("before"))),
+                        helperText: (recordErrors[idx] && recordErrors[idx].includes("End date")) ? recordErrors[idx] : ""
+                      }
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12}>

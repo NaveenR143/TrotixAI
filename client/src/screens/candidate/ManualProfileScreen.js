@@ -146,6 +146,12 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
   const [verificationError, setVerificationError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (otpSent && !isPhoneVerified && otp.length === 4) {
+      handleVerifyOtp(null, otp);
+    }
+  }, [otp, otpSent, isPhoneVerified]);
+
   const validateStep = (step) => {
     const newErrors = {};
     if (step === 0) {
@@ -237,8 +243,10 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
     }
   };
 
-  const handleVerifyOtp = async () => {
-    if (otp.length !== 4) {
+  const handleVerifyOtp = async (e, otpOverride) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    const otpToVerify = otpOverride || otp;
+    if (otpToVerify.length !== 4) {
       setVerificationError("Enter 4-digit OTP");
       return;
     }
@@ -247,10 +255,11 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
     setVerificationError("");
     try {
       const cleanPhone = formData.phone.replace(/\D/g, '');
-      const resp = await verifyOTP(cleanPhone, otp);
+      const resp = await verifyOTP(cleanPhone, otpToVerify);
       if (!resp.error) {
         setIsPhoneVerified(true);
         setOtpSent(false);
+        setOtp("");
 
         // Save user_id and user_type to Redux
         dispatch(addUserDetails({
@@ -490,6 +499,11 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                       size="small"
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      inputProps={{
+                        autoComplete: 'one-time-code',
+                        inputMode: 'numeric',
+                        pattern: '[0-9]*',
+                      }}
                       sx={{ width: 150 }}
                       autoFocus
                     />

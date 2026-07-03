@@ -72,6 +72,12 @@ origins = [
     "http://127.0.0.1:3001",
     "http://192.168.1.7:3000",
     "http://192.168.1.7:3001",
+    "https://rightnxtai-bkdudpehedfwffgy.centralindia-01.azurewebsites.net",
+    "http://rightnxtai-bkdudpehedfwffgy.centralindia-01.azurewebsites.net",
+    "https://rightnxt.com",
+    "https://www.rightnxt.com",
+    "http://rightnxt.com",
+    "http://www.rightnxt.com"
 ]
 
 app.add_middleware(
@@ -191,56 +197,56 @@ async def run_otp_startup_validation():
         LOGGER.error(error_details)
         print(error_details, file=sys.stderr, flush=True)
 
-@app.on_event("startup")
-async def run_razorpay_startup_validation():
+# @app.on_event("startup")
+# async def run_razorpay_startup_validation():
     
 
-    LOGGER.info("Running startup validation for Razorpay client")
-    print("Running startup validation for Razorpay client", file=sys.stdout, flush=True)
+#     LOGGER.info("Running startup validation for Razorpay client")
+#     print("Running startup validation for Razorpay client", file=sys.stdout, flush=True)
 
-    # Safe validation of Razorpay credentials from environment
-    key_id = os.environ.get("RAZORPAY_KEY_ID")
-    key_secret = os.environ.get("RAZORPAY_KEY_SECRET")
+#     # Safe validation of Razorpay credentials from environment
+#     key_id = os.environ.get("RAZORPAY_KEY_ID")
+#     key_secret = os.environ.get("RAZORPAY_KEY_SECRET")
 
-    # Print configuring details with safe masking
-    if not key_id:
-        LOGGER.info("  - RAZORPAY_KEY_ID: [NOT SET]")
-    else:
-        masked_id = key_id[:6] + "..." + key_id[-3:] if len(key_id) > 9 else "***"
-        LOGGER.info(f"  - RAZORPAY_KEY_ID: [SET] (length={len(key_id)}, value={masked_id})")
+#     # Print configuring details with safe masking
+#     if not key_id:
+#         LOGGER.info("  - RAZORPAY_KEY_ID: [NOT SET]")
+#     else:
+#         masked_id = key_id[:6] + "..." + key_id[-3:] if len(key_id) > 9 else "***"
+#         LOGGER.info(f"  - RAZORPAY_KEY_ID: [SET] (length={len(key_id)}, value={masked_id})")
 
-    if not key_secret:
-        LOGGER.info("  - RAZORPAY_KEY_SECRET: [NOT SET]")
-    else:
-        masked_secret = key_secret[:3] + "..." + key_secret[-3:] if len(key_secret) > 6 else "***"
-        LOGGER.info(f"  - RAZORPAY_KEY_SECRET: [SET] (length={len(key_secret)})")
+#     if not key_secret:
+#         LOGGER.info("  - RAZORPAY_KEY_SECRET: [NOT SET]")
+#     else:
+#         masked_secret = key_secret[:3] + "..." + key_secret[-3:] if len(key_secret) > 6 else "***"
+#         LOGGER.info(f"  - RAZORPAY_KEY_SECRET: [SET] (length={len(key_secret)})")
 
-    if not key_id or not key_secret:
-        error_msg = "Startup validation for Razorpay failed: Credentials are not configured in environment variables."
-        LOGGER.error(error_msg)
-        print(error_msg, file=sys.stderr, flush=True)
-        return
+#     if not key_id or not key_secret:
+#         error_msg = "Startup validation for Razorpay failed: Credentials are not configured in environment variables."
+#         LOGGER.error(error_msg)
+#         print(error_msg, file=sys.stderr, flush=True)
+#         return
 
-    try:
-        client, _ = get_razorpay_client()
-        # Query Razorpay API with a simple list orders request to verify authentication
-        LOGGER.info("Sending test request to Razorpay API...")
-        client.order.all(data={"count": 1})
-        LOGGER.info("Startup validation for Razorpay succeeded (Authentication success)")
-        print("Startup validation for Razorpay succeeded (Authentication success)", file=sys.stdout, flush=True)
-    except Exception as e:
-        exc_type = type(e).__name__
-        exc_message = str(e)
-        stack_trace = traceback.format_exc()
+#     try:
+#         client, _ = get_razorpay_client()
+#         # Query Razorpay API with a simple list orders request to verify authentication
+#         LOGGER.info("Sending test request to Razorpay API...")
+#         client.order.all(data={"count": 1})
+#         LOGGER.info("Startup validation for Razorpay succeeded (Authentication success)")
+#         print("Startup validation for Razorpay succeeded (Authentication success)", file=sys.stdout, flush=True)
+#     except Exception as e:
+#         exc_type = type(e).__name__
+#         exc_message = str(e)
+#         stack_trace = traceback.format_exc()
 
-        error_details = (
-            f"Startup validation for Razorpay failed (Authentication failed):\n"
-            f"Exception Type: {exc_type}\n"
-            f"Exception Message: {exc_message}\n"
-            f"Full Stack Trace:\n{stack_trace}"
-        )
-        LOGGER.error(error_details)
-        print(error_details, file=sys.stderr, flush=True)
+#         error_details = (
+#             f"Startup validation for Razorpay failed (Authentication failed):\n"
+#             f"Exception Type: {exc_type}\n"
+#             f"Exception Message: {exc_message}\n"
+#             f"Full Stack Trace:\n{stack_trace}"
+#         )
+#         LOGGER.error(error_details)
+#         print(error_details, file=sys.stderr, flush=True)
 
 
 

@@ -75,7 +75,16 @@ const PersonalDetailsSection = ({ userId, profile, initialData, onSuccess }) => 
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.date_of_birth) newErrors.date_of_birth = "Date of birth is required";
+    if (!formData.date_of_birth) {
+      newErrors.date_of_birth = "Date of birth is required";
+    } else {
+      const dob = dayjs(formData.date_of_birth);
+      if (!dob.isValid()) {
+        newErrors.date_of_birth = "Date of birth is invalid";
+      } else if (dob.isAfter(dayjs())) {
+        newErrors.date_of_birth = "Date of birth cannot be in the future";
+      }
+    }
     setFormErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -222,6 +231,7 @@ const PersonalDetailsSection = ({ userId, profile, initialData, onSuccess }) => 
               value={formData.date_of_birth ? dayjs(formData.date_of_birth) : null}
               onChange={(newValue) => {
                 setFormData(prev => ({ ...prev, date_of_birth: newValue ? newValue.format("YYYY-MM-DD") : "" }));
+                if (formErrors.date_of_birth) setFormErrors(prev => ({ ...prev, date_of_birth: null }));
               }}
               disableFuture
               format="DD/MM/YYYY"

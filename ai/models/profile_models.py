@@ -2,7 +2,7 @@
 Profile Models - Request/Response schemas using Pydantic V2
 """
 
-from pydantic import BaseModel, Field, EmailStr, field_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
 from datetime import date, datetime
 from typing import List, Optional
 from uuid import UUID
@@ -298,6 +298,12 @@ class WorkExperienceUpdate(BaseModel):
             return None
         return v
 
+    @model_validator(mode="after")
+    def validate_dates(self) -> "WorkExperienceUpdate":
+        if self.start_date and self.end_date and self.start_date > self.end_date:
+            raise ValueError("Start date must be before end date")
+        return self
+
 
 class EducationUpdate(BaseModel):
     """Update education (single entry)"""
@@ -321,6 +327,12 @@ class EducationUpdate(BaseModel):
         if v == "":
             return None
         return v
+
+    @model_validator(mode="after")
+    def validate_years(self) -> "EducationUpdate":
+        if self.start_year and self.end_year and self.start_year > self.end_year:
+            raise ValueError("Start year must be before end year")
+        return self
 
 
 class SkillsUpdate(BaseModel):
@@ -362,6 +374,12 @@ class ProjectUpdate(BaseModel):
         if v == "":
             return None
         return v
+
+    @model_validator(mode="after")
+    def validate_dates(self) -> "ProjectUpdate":
+        if self.start_date and self.end_date and self.start_date > self.end_date:
+            raise ValueError("Start date must be before end date")
+        return self
 
 
 class BlockUpdateResponse(BaseModel):

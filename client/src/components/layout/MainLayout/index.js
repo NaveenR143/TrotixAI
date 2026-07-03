@@ -234,46 +234,51 @@ const NavBar = ({ onLogoClick, membership, isLoggedIn, user, role, onLogout }) =
 
         {isLoggedIn && (
           <Tooltip title="View available credits" placement="top" arrow transitionDuration={300}>
-            {isMobile ? (
-              <IconButton
-                color="secondary"
-                onClick={() => onLogoClick('/membership')}
-                aria-label="Available credits"
-                sx={{
-                  bgcolor: '#faf5ff',
-                  border: '1px solid #ddd6fe',
-                  padding: '6px',
-                  '&:hover': { bgcolor: '#f3e8ff' }
-                }}
-              >
-                <WorkspacePremiumIcon sx={{ fontSize: 20 }} />
-              </IconButton>
-            ) : (
-              <Chip
-                icon={<WorkspacePremiumIcon sx={{ fontSize: '18px !important', color: 'inherit !important' }} />}
-                label={points && points !== 0 ? `${points} Credits` : 'Free Tier'}
-                onClick={() => onLogoClick('/membership')}
-                aria-label="Available credits"
-                sx={{
-                  bgcolor: '#faf5ff',
-                  color: '#6366f1',
-                  border: '1px solid #ddd6fe',
-                  fontWeight: 700,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                  px: 1,
-                  py: 2,
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    bgcolor: '#f3e8ff',
-                    borderColor: '#6366f1',
-                    transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.12)'
-                  },
-                  '& .MuiChip-label': { px: 1.5 }
-                }}
-              />
-            )}
+            <Chip
+              icon={<WorkspacePremiumIcon sx={{ fontSize: { xs: '16px !important', sm: '18px !important' }, color: 'inherit !important' }} />}
+              label={
+                points && points !== 0 ? (
+                  <>
+                    {points}
+                    <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, ml: 0.5 }}>
+                      Credits
+                    </Box>
+                    <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' }, ml: 0.2 }}>
+                      Cr
+                    </Box>
+                  </>
+                ) : (
+                  <>
+                    <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                      Free Tier
+                    </Box>
+                    <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                      Free
+                    </Box>
+                  </>
+                )
+              }
+              onClick={() => onLogoClick('/membership')}
+              aria-label="Available credits"
+              sx={{
+                bgcolor: '#faf5ff',
+                color: '#6366f1',
+                border: '1px solid #ddd6fe',
+                fontWeight: 700,
+                fontSize: { xs: '0.75rem', sm: '0.82rem' },
+                cursor: 'pointer',
+                height: { xs: 28, sm: 32 },
+                px: { xs: 0.5, sm: 1 },
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  bgcolor: '#f3e8ff',
+                  borderColor: '#6366f1',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.12)'
+                },
+                '& .MuiChip-label': { px: { xs: 0.75, sm: 1.5 } }
+              }}
+            />
           </Tooltip>
         )}
 

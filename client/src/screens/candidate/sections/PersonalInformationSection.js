@@ -47,6 +47,12 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
   const [verificationLoading, setVerificationLoading] = useState(false);
   const [verificationError, setVerificationError] = useState("");
 
+  useEffect(() => {
+    if (otpSent && !otpVerified && otp.length === 4) {
+      handleVerifyOtp(null, otp);
+    }
+  }, [otp, otpSent, otpVerified]);
+
   // Sync with profile prop when not editing
   useEffect(() => {
     if (!isEditing && profile) {
@@ -133,8 +139,10 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
     }
   };
 
-  const handleVerifyOtp = async () => {
-    if (otp.length !== 4) {
+  const handleVerifyOtp = async (e, otpOverride) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    const otpToVerify = otpOverride || otp;
+    if (otpToVerify.length !== 4) {
       setVerificationError("Enter 4-digit OTP");
       return;
     }
@@ -142,7 +150,7 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
     setVerificationLoading(true);
     setVerificationError("");
     try {
-      const resp = await verifyOTP(formData.mobile, otp);
+      const resp = await verifyOTP(formData.mobile, otpToVerify);
       if (!resp.error) {
         setOtpVerified(true);
         setOtpSent(false);
@@ -397,6 +405,11 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
                       size="small"
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      inputProps={{
+                        autoComplete: 'one-time-code',
+                        inputMode: 'numeric',
+                        pattern: '[0-9]*',
+                      }}
                       sx={{ width: 150 }}
                       autoFocus
                     />

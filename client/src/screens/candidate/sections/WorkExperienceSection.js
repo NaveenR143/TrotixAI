@@ -131,9 +131,40 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
     setChangedExperience((prev) => new Set([...prev, index]));
   };
 
+  const validateExperience = (exp) => {
+    if (exp.startDate) {
+      const start = dayjs(exp.startDate);
+      if (!start.isValid()) {
+        return "Start date is invalid";
+      }
+    }
+    if (!exp.isCurrent && exp.endDate) {
+      const end = dayjs(exp.endDate);
+      if (!end.isValid()) {
+        return "End date is invalid";
+      }
+    }
+    if (exp.startDate && !exp.isCurrent && exp.endDate) {
+      const start = dayjs(exp.startDate);
+      const end = dayjs(exp.endDate);
+      if (start.isValid() && end.isValid()) {
+        if (start.isAfter(end)) {
+          return "Start date must be before end date";
+        }
+      }
+    }
+    return null;
+  };
+
   const saveIndividualExperience = async (index) => {
     const exp = experiences[index];
     const isNewRecord = newExperienceIndices.has(index);
+
+    const validationError = validateExperience(exp);
+    if (validationError) {
+      setRecordErrors((prev) => ({ ...prev, [index]: validationError }));
+      return false;
+    }
 
     setRecordLoading((prev) => ({ ...prev, [index]: true }));
     setRecordErrors((prev) => ({ ...prev, [index]: null }));
@@ -343,19 +374,47 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
                   <DatePicker
                     label="Start Date"
                     value={exp.startDate ? dayjs(exp.startDate) : null}
-                    onChange={(val) => updateExperience(idx, "startDate", val ? val.format("YYYY-MM-DD") : "")}
+                    onChange={(val) => {
+                      updateExperience(idx, "startDate", val ? val.format("YYYY-MM-DD") : "");
+                      if (recordErrors[idx]) {
+                        setRecordErrors((prev) => ({ ...prev, [idx]: null }));
+                      }
+                    }}
+                    maxDate={exp.endDate && !exp.isCurrent && dayjs(exp.endDate).isValid() ? dayjs(exp.endDate) : undefined}
                     format="DD/MM/YYYY"
-                    slotProps={{ textField: { fullWidth: true, size: "small", InputLabelProps: { shrink: true } } }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        size: "small",
+                        InputLabelProps: { shrink: true },
+                        error: !!(recordErrors[idx] && (recordErrors[idx].includes("Start date") || recordErrors[idx].includes("before"))),
+                        helperText: (recordErrors[idx] && recordErrors[idx].includes("Start date")) ? recordErrors[idx] : ""
+                      }
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <DatePicker
                     label="End Date"
                     value={exp.endDate ? dayjs(exp.endDate) : null}
-                    onChange={(val) => updateExperience(idx, "endDate", val ? val.format("YYYY-MM-DD") : "")}
+                    onChange={(val) => {
+                      updateExperience(idx, "endDate", val ? val.format("YYYY-MM-DD") : "");
+                      if (recordErrors[idx]) {
+                        setRecordErrors((prev) => ({ ...prev, [idx]: null }));
+                      }
+                    }}
+                    minDate={exp.startDate && dayjs(exp.startDate).isValid() ? dayjs(exp.startDate) : undefined}
                     format="DD/MM/YYYY"
                     disabled={exp.isCurrent}
-                    slotProps={{ textField: { fullWidth: true, size: "small", InputLabelProps: { shrink: true } } }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        size: "small",
+                        InputLabelProps: { shrink: true },
+                        error: !!(recordErrors[idx] && (recordErrors[idx].includes("End date") || recordErrors[idx].includes("before"))),
+                        helperText: (recordErrors[idx] && recordErrors[idx].includes("End date")) ? recordErrors[idx] : ""
+                      }
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12}>
