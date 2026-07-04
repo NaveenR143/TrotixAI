@@ -754,6 +754,49 @@ async def update_languages(
 
 
 @router.put(
+    "/update/viewed/{user_id}",
+    response_model=BlockUpdateResponse,
+    responses={
+        400: {"model": ProfileErrorResponse},
+        404: {"model": ProfileErrorResponse},
+        500: {"model": ProfileErrorResponse},
+    },
+    summary="Update Profile Viewed Status",
+    description="Mark user profile as viewed by setting profile_viewed to True",
+)
+async def update_profile_viewed(
+    user_id: UUID,
+    session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+) -> BlockUpdateResponse:
+    try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
+        logger.info(f"Updating profile viewed status for user: {user_id}")
+
+        updated_profile = await ProfileService.update_profile_viewed(user_id, session)
+
+        return BlockUpdateResponse(
+            status="success",
+            message="Profile viewed status updated successfully",
+            data=updated_profile,
+        )
+    except ValueError as e:
+        logger.warning(f"Validation error: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating profile viewed status: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail=f"Internal error: {str(e)}"
+        )
+
+
+@router.put(
     "/update/personal-info/{user_id}",
     response_model=BlockUpdateResponse,
     responses={

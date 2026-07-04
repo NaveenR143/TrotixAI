@@ -20,7 +20,7 @@ import {
 import axios from "axios";
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
 import { updateUserProfile, debitPoints } from "../../redux/user/Action";
-import { fetchAndStoreProfile } from "../../redux/profile/ProfileAction";
+import { fetchAndStoreProfile, updateProfileData } from "../../redux/profile/ProfileAction";
 import { toTitleCase } from "./utils/profileUtils";
 
 // Sections
@@ -85,10 +85,31 @@ const UserProfile = () => {
 
       const result = await dispatch(fetchAndStoreProfile(phone));
 
-      
-
       if (result.success) {
         setUserId(result.data.id);
+        
+        // If profile has not been viewed, mark it as viewed on first visit
+        if (result.data?.personalDetails?.profile_viewed === false) {
+          try {
+            const updateResult = await profileAPI.updateProfileViewed(result.data.id);
+            if (!updateResult.error) {
+              // Update Redux state
+              dispatch(updateUserProfile({ profile_viewed: true }));
+              dispatch(updateProfileData({
+                personalDetails: {
+                  ...result.data.personalDetails,
+                  profile_viewed: true
+                }
+              }));
+              
+              // Update Local & Session Storage to keep client state in sync
+              localStorage.setItem("profile_viewed", "true");
+              sessionStorage.setItem("profile_viewed", "true");
+            }
+          } catch (updateErr) {
+            console.error("Failed to update profile viewed status:", updateErr);
+          }
+        }
       } else {
         setError(result.message || "Failed to load profile");
       }

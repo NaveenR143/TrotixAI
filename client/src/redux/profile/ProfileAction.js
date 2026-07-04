@@ -45,6 +45,11 @@ export const fetchAndStoreProfile = (identifier) => async (dispatch) => {
     const mappedData = mapProfileData(response.data);
     dispatch(fetchProfileSuccess(mappedData));
 
+    // Store in Local & Session Storage for client state synchronization
+    const profileViewedVal = mappedData?.personalDetails?.profile_viewed ? "true" : "false";
+    localStorage.setItem("profile_viewed", profileViewedVal);
+    sessionStorage.setItem("profile_viewed", profileViewedVal);
+
     // Also update UserReducer for backward compatibility with UserProfile.js
     // We flatten the personalDetails for UserReducer as it expects them at the top level
     const flattenedData = {

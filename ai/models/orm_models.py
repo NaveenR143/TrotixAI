@@ -161,6 +161,7 @@ class User(Base):
     resume_url = Column(String, nullable=True)
     is_email_verified = Column(Boolean, default=False)
     is_phone_verified = Column(Boolean, default=False)
+    profile_viewed=Column(Boolean,default=False)
     last_login_at = Column(DateTime(timezone=True), nullable=True)
     industry_id = Column(
         Integer, ForeignKey("industries.id", ondelete="SET NULL"), nullable=True

@@ -24,6 +24,7 @@ export const mapProfileData = (profileData) => {
       maritalStatus: profileData?.marital_status || "",
       gender: toTitleCase(profileData?.gender) || "",
       avatarUrl: profileData?.avatar_url || "",
+      profile_viewed: profileData?.profile_viewed || false,
     },
     experience: profileData?.experience && Array.isArray(profileData.experience)
       ? profileData.experience.map((exp) => ({

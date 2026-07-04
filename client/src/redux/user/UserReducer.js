@@ -26,6 +26,7 @@ const INIT_STATE = {
 	hasEnhancedToday: false, // AI Usage Tracking
 	hasAnalyzedToday: false,
 	hasSuggestedToday: false,
+	profile_viewed: true,
 };
 
 function UserReducer(state = INIT_STATE, action) {

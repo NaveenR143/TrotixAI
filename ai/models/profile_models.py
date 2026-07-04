@@ -154,6 +154,7 @@ class UserProfileResponse(BaseModel):
     resume_url: Optional[str] = None
     is_email_verified: bool = False
     is_phone_verified: bool = False
+    profile_viewed: bool = False
 
     # Jobseeker Profile
     headline: Optional[str] = None

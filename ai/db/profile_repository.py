@@ -149,6 +149,7 @@ class ProfileRepository:
             "industry_name": user.industry.name if user.industry else None,
             "created_at": user.created_at,
             "updated_at": user.updated_at,
+            "profile_viewed":user.profile_viewed,
         }
 
         # Extract profile data
@@ -1136,3 +1137,35 @@ class ProfileRepository:
         except Exception as e:
             await session.rollback()
             raise
+
+    @staticmethod
+    async def update_profile_viewed(user_id: UUID, session: AsyncSession) -> dict:
+        """
+        Update user's profile_viewed status to True
+
+        Args:
+            user_id: User UUID
+            session: Async database session
+
+        Returns:
+            Updated profile data
+        """
+        try:
+            # Fetch user
+            user_query = select(User).where(User.id == user_id)
+            result = await session.execute(user_query)
+            user = result.scalars().first()
+
+            if not user:
+                raise ValueError("User not found")
+
+            # Set profile_viewed to True
+            user.profile_viewed = True
+            await session.commit()
+
+            return await ProfileRepository.get_user_profile_by_id(user_id, session)
+
+        except Exception as e:
+            await session.rollback()
+            raise
+

@@ -17,6 +17,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import ProfileReviewBanner from "./components/ProfileReviewBanner";
 
 const DashboardSection = ({ icon: Icon, title, description, count, accent, onClick }) => {
   return (
@@ -170,6 +171,11 @@ const DashboardScreen = () => {
           </Stack>
         </Container>
       </Box>
+
+      {/* Profile Review Notification */}
+      <Container maxWidth="lg" sx={{ mt: 3, mb: -1 }}>
+        <ProfileReviewBanner />
+      </Container>
 
       {/* Hero Header */}
       <Box sx={{

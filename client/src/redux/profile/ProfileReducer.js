@@ -18,7 +18,8 @@ const INIT_STATE = {
       website: "",
       summary: "",
       location: "",
-      headline: ""
+      headline: "",
+      profile_viewed: true
     },
     experience: [],
     education: [],

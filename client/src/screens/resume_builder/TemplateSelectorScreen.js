@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ProfileReviewBanner from "../candidate/components/ProfileReviewBanner";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
 // Dynamically load all images from the template_selector folder
@@ -297,6 +298,11 @@ const TemplateSelectorScreen = () => {
           </Stack>
         </Container>
       </Box>
+
+      {/* Profile Review Notification */}
+      <Container maxWidth="lg" sx={{ mt: 3, mb: -1 }}>
+        <ProfileReviewBanner />
+      </Container>
 
       {/* Hero Section */}
       <Box

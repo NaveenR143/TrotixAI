@@ -13,6 +13,7 @@ import CreditIcon from "@mui/icons-material/CardGiftcard";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+import ProfileReviewBanner from "../candidate/components/ProfileReviewBanner";
 import { useReactToPrint } from "react-to-print";
 import { fetchAndStoreProfile } from "../../redux/profile/ProfileAction";
 import { updateUserProfile } from "../../redux/user/Action";
@@ -282,6 +283,11 @@ const ResumeBuilderScreen = () => {
           borderBottom: { xs: "1px solid #e2e8f0", md: "none" },
         }}>
           <Container maxWidth="lg">
+            {/* Profile Review Notification */}
+            <Box sx={{ mb: 3 }}>
+              <ProfileReviewBanner />
+            </Box>
+
             <Paper elevation={0} sx={{ p: 4, borderRadius: 4, border: "1px solid #e2e8f0" }}>
               <Button
                 startIcon={<ArrowBackIcon />}

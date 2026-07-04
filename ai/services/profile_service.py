@@ -226,3 +226,22 @@ class ProfileService:
                 total_years += years
         
         return round(total_years, 1)
+
+    @staticmethod
+    async def update_profile_viewed(
+        user_id: UUID, session: AsyncSession
+    ) -> Dict[str, Any]:
+        """
+        Update user's profile_viewed status to True
+
+        Args:
+            user_id: User UUID
+            session: Async database session
+
+        Returns:
+            Dictionary with updated profile data
+        """
+        if not session:
+            raise ValueError("Database session is required")
+
+        return await ProfileRepository.update_profile_viewed(user_id, session)

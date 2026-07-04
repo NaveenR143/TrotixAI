@@ -912,4 +912,28 @@ export const checkUnlockStatus = async (candidateId) => {
     return handleError(error);
   }
 };
+
+/**
+ * Update Profile Viewed Status to True
+ * @param {string} userId - User UUID
+ */
+export const updateProfileViewed = async (userId) => {
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}${API_ENDPOINTS.PROFILE}/update/viewed/${userId}`,
+      {},
+      { headers: getHeaders(), timeout: 10000 }
+    );
+
+    return {
+      error: false,
+      data: response.data,
+      message: response.data?.message || "Profile viewed status updated successfully",
+    };
+  } catch (error) {
+    console.error("Error updating profile viewed status:", error);
+    return handleError(error);
+  }
+};
+
 
