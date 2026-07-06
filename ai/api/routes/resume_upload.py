@@ -181,6 +181,6 @@ async def wait_for_resume_completion(
 
     # Timeout reached - return failed status
     return {
-        "status": "failed",
+        "status": "incomplete",
         "message": "Resume processing did not complete within 90 seconds",
     }

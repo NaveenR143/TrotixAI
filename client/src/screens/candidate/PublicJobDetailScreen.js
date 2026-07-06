@@ -286,7 +286,7 @@ const PublicJobDetailScreen = () => {
         <Typography variant="h5" sx={{ fontWeight: 800, mb: 2, color: '#111827' }}>
           {error || "Job not found"}
         </Typography>
-        <Button variant="contained" onClick={() => navigate('/')} sx={{ borderRadius: '12px', textTransform: 'none', px: 4 }}>
+        <Button variant="contained" onClick={() => navigate('/dashboard')} sx={{ borderRadius: '12px', textTransform: 'none', px: 4 }}>
           Go Back Home
         </Button>
       </Box>

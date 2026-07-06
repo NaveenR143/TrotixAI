@@ -94,11 +94,13 @@ const EntryRoute = () => {
         }
       }}
       onManualEntry={() => {
-        if (user?.mobile && user?.role) {
-          navigate('/manual-profile');
-        } else {
-          navigate({ pathname: '/login', search: '?redirect=%2Fmanual-profile' });
-        }
+
+        navigate('/manual-profile');
+        // if (user?.mobile && user?.role) {
+        //   navigate('/manual-profile');
+        // } else {
+        //   navigate({ pathname: '/login', search: '?redirect=%2Fmanual-profile' });
+        // }
       }}
       onPostJob={() => {
         if (user?.mobile && user?.role) {
@@ -140,7 +142,7 @@ const FeedRoute = () => {
   const profile = useSelector((state) => state.UserReducer);
   const userId = profile?.id || '4bfcd973-7f38-4fd9-80f2-b8c133075fcb';
 
-  return <JobFeedScreen userId={userId} onOpenDetail={(job) => navigate('/detail/' + job.id)} onGoBack={() => navigate('/')} onViewProfile={() => navigate('/profile')} />;
+  return <JobFeedScreen userId={userId} onOpenDetail={(job) => navigate('/detail/' + job.id)} onGoBack={() => navigate('/dashboard')} onViewProfile={() => navigate('/profile')} />;
 };
 
 const DetailRoute = () => {
@@ -177,15 +179,15 @@ const Router = [
           { index: true, element: <HomeRoute /> },
           { path: "login", element: <LoginScreen /> },
           { path: "terms", element: <TermsOfUseLayout /> },
-          
+          { path: "govt-jobs", element: <GovtJobsScreen /> },
           { path: "jobs/:id", element: <PublicJobDetailScreen /> },
           { path: "processing", element: <ProcessingRoute /> },
+          { path: "manual-profile", element: <ManualProfileRoute /> },
           {
             element: <ProtectedRoute><Outlet /></ProtectedRoute>,
             children: [
-              { path: "govt-jobs", element: <GovtJobsScreen /> },
+
               { path: "dashboard", element: <DashboardRoute /> },
-              { path: "manual-profile", element: <ManualProfileRoute /> },
               { path: "profile", element: <ProfileRoute /> },
               { path: "feed", element: <FeedRoute /> },
               { path: "detail/:id", element: <DetailRoute /> },

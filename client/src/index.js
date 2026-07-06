@@ -59,7 +59,7 @@ axios.interceptors.response.use(
 
     if (error.response && error.response.status === 401 && isBackendRequest) {
       console.warn("Unauthorized access - Clearing session");
-      
+
       // 1. Clear all web storage
       localStorage.clear();
       sessionStorage.clear();
@@ -82,6 +82,8 @@ axios.interceptors.response.use(
         currentPath === "/terms" ||
         currentPath.startsWith("/jobs/") ||
         currentPath === "/processing" ||
+        currentPath === "/manual-profile" ||
+        currentPath === "/govt-jobs" ||
         currentPath.startsWith("/error");
 
       if (!isPublicPath) {

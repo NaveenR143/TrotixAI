@@ -92,7 +92,7 @@ const ProcessingScreen = ({ onComplete }) => {
 
   // Track progress after OTP verification
   useEffect(() => {
-    if (!otpVerified || resumeProcessingStatus === "failed" || processingError) return;
+    if (!otpVerified || resumeProcessingStatus === "incomplete" || processingError) return;
 
     if (!processingStartTime) {
       setProcessingStartTime(Date.now());
@@ -109,10 +109,10 @@ const ProcessingScreen = ({ onComplete }) => {
       setProgressPercent(progress);
 
       // Check for timeout
-      if (isProcessingTimeout(elapsed, 60)) {
+      if (isProcessingTimeout(elapsed, 180)) {
         clearInterval(progressInterval);
         if (resumeProcessingStatus !== "completed" && resumeProcessingStatus !== "failed") {
-          setProcessingError("Processing took longer than expected. Please check back shortly.");
+          setProcessingError("Processing took longer than expected. We will notify you once processing is complete. You can close this window.");
         }
       }
     }, 500);
@@ -213,6 +213,8 @@ const ProcessingScreen = ({ onComplete }) => {
       verificationData,
       newUser: verificationData.newUser,
     });
+
+
 
     // Mark OTP as verified to start status tracking in useEffect
     setOtpVerified(true);
@@ -393,19 +395,19 @@ const ProcessingScreen = ({ onComplete }) => {
             {/* Error Alert if Failed during Processing */}
             {processingError && (
               <Fade in timeout={600}>
-                <Alert severity="error" sx={{
+                <Alert severity="warning" sx={{
                   borderRadius: 2.5,
                   p: 2,
                   border: "1px solid #fee2e2",
                   bgcolor: "#fef2f2"
                 }}>
-                  <AlertTitle sx={{ fontWeight: 700, color: "#991b1b" }}>
-                    Processing Failed
+                  <AlertTitle sx={{ fontWeight: 700, }}>
+                    Processing Delay Notice
                   </AlertTitle>
-                  <Typography sx={{ fontSize: "0.85rem", color: "#b91c1c", mb: 1.5, fontWeight: 500 }}>
+                  <Typography sx={{ fontSize: "0.85rem", mb: 1.5, fontWeight: 500 }}>
                     {processingError}
                   </Typography>
-                  <Stack direction="row" spacing={1.5}>
+                  {/* <Stack direction="row" spacing={1.5}>
                     <Button
                       size="small"
                       variant="outlined"
@@ -417,10 +419,10 @@ const ProcessingScreen = ({ onComplete }) => {
                       {activeOtp.loading
                         ? "Resending..."
                         : activeOtp.isCooldownActive
-                        ? `Resend in ${activeOtp.remainingSeconds}s`
-                        : activeOtp.resendAttempts >= 3
-                        ? "Daily Limit Reached"
-                        : "Resend OTP"}
+                          ? `Resend in ${activeOtp.remainingSeconds}s`
+                          : activeOtp.resendAttempts >= 3
+                            ? "Daily Limit Reached"
+                            : "Resend OTP"}
                     </Button>
                     <Button
                       size="small"
@@ -431,7 +433,7 @@ const ProcessingScreen = ({ onComplete }) => {
                     >
                       Cancel & Retry
                     </Button>
-                  </Stack>
+                  </Stack> */}
                 </Alert>
               </Fade>
             )}

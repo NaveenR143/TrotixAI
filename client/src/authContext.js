@@ -48,6 +48,8 @@ export const AuthProvider = ({ children }) => {
           currentPath === "/terms" ||
           currentPath.startsWith("/jobs/") ||
           currentPath === "/processing" ||
+          currentPath === "/manual-profile" ||
+          currentPath === "/govt-jobs" ||
           currentPath.startsWith("/error");
 
         if (!isPublicPath) {

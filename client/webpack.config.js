@@ -31,7 +31,10 @@ module.exports = (env, argv) => {
     entry: path.join(__dirname, "src", "index.js"),
     output: {
       path: path.resolve(__dirname, "dist"),
+      filename: "[name].[contenthash].js",
+      assetModuleFilename: "assets/[name].[contenthash][ext]",
       publicPath: "/",
+      clean: true,
     },
     plugins: [
       new HtmlWebpackPlugin({
@@ -45,13 +48,13 @@ module.exports = (env, argv) => {
           PUBLIC_URL: "/"
         })
       }),
-      ...(isProduction ? [
-        new WorkboxWebpackPlugin.GenerateSW({
-          clientsClaim: true,
-          skipWaiting: true,
-          maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
-        })
-      ] : [])
+      // ...(isProduction ? [
+      //   new WorkboxWebpackPlugin.GenerateSW({
+      //     clientsClaim: true,
+      //     skipWaiting: true,
+      //     maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
+      //   })
+      // ] : [])
     ],
     module: {
       rules: [

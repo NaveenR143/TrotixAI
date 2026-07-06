@@ -95,6 +95,6 @@ export const getProgressMilestones = () => {
  * @param {number} timeoutSeconds - Timeout threshold (default: 60)
  * @returns {boolean} True if timeout exceeded
  */
-export const isProcessingTimeout = (elapsedSeconds, timeoutSeconds = 60) => {
+export const isProcessingTimeout = (elapsedSeconds, timeoutSeconds = 180) => {
   return elapsedSeconds >= timeoutSeconds;
 };

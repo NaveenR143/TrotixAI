@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from ai.api.routes import resume_upload, otp, jobs, profile, credits
+from ai.api.routes import resume_upload, otp, jobs, profile, credits, whatsapp
 
 router = APIRouter()
 router.include_router(otp.router, prefix="/otp", tags=["OTP"])
@@ -8,3 +8,5 @@ router.include_router(resume_upload.router,
 router.include_router(jobs.router, prefix="/jobs", tags=["Jobs"])
 router.include_router(profile.router, prefix="/profile", tags=["User Profile"])
 router.include_router(credits.router, prefix="", tags=["Credits"])
+router.include_router(whatsapp.router, prefix="/whatsapp", tags=["WhatsApp"])
+

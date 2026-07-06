@@ -537,10 +537,10 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                       {otpVerification.loading
                         ? "Resending..."
                         : otpVerification.isCooldownActive
-                        ? `Resend in ${otpVerification.remainingSeconds}s`
-                        : otpVerification.resendAttempts >= 3
-                        ? "Limit Reached"
-                        : "Resend OTP"}
+                          ? `Resend in ${otpVerification.remainingSeconds}s`
+                          : otpVerification.resendAttempts >= 3
+                            ? "Limit Reached"
+                            : "Resend OTP"}
                     </Button>
                   </Stack>
                   {otpVerification.resendAttempts >= 3 && (
@@ -751,12 +751,12 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                 <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>About / Professional Summary *</Typography>
-                <Tooltip title={membership === 'Free' ? "Purchase Credits for AI Improve" : "AI Magic Improve (Credit Benefit)"}>
+                {/* <Tooltip title={membership === 'Free' ? "Purchase Credits for AI Improve" : "AI Magic Improve (Credit Benefit)"}>
                   <Button size="small" startIcon={<AutoAwesomeIcon />} onClick={() => handleAiAssist('about')} disabled={aiLoading}
                     sx={{ textTransform: 'none', color: '#6366f1', fontSize: '0.75rem', '&:hover': { bgcolor: '#f5f3ff' } }}>
                     AI Improve
                   </Button>
-                </Tooltip>
+                </Tooltip> */}
               </Box>
               <TextField id="about" fullWidth multiline rows={4} name="about" value={formData.about} onChange={handleInputChange} placeholder="Tell us about yourself..." error={!!errors.about} helperText={errors.about} />
             </Box>

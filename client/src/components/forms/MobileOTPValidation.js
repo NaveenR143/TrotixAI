@@ -106,7 +106,7 @@ const MobileOTPValidation = ({
         if (digits.length === otpLength) {
             setTimeout(() => {
 
-                
+
                 handleVerify({ preventDefault: () => { } });
             }, 200);
         }
@@ -154,12 +154,15 @@ const MobileOTPValidation = ({
                 userType: newUser ? "New User" : "Existing User"
             });
 
-            setVerificationSuccess(true);
-            setLoading(false);
 
-            // Call success callback after brief delay for UX
+
+            // Wait for 5 seconds so the user has time to read the success message before transition
             setTimeout(() => {
                 if (onSuccess) {
+
+                    // Show success state immediately for instant feedback
+                    setVerificationSuccess(true);
+                    setLoading(false);
                     onSuccess({
                         otp,
                         mobileNumber,
@@ -167,8 +170,12 @@ const MobileOTPValidation = ({
                         newUser,
                         resumeData,
                     });
+                } else {
+                    // Show success state immediately for instant feedback
+                    setVerificationSuccess(true);
+                    setLoading(false);
                 }
-            }, 200);
+            }, 5000);
         } catch (err) {
             setLoading(false);
             const errorMsg = err?.response?.data?.detail || err?.message || "Verification failed. Please try again.";
@@ -441,10 +448,10 @@ const MobileOTPValidation = ({
                                     {activeOtp.loading
                                         ? "Resending..."
                                         : activeOtp.isCooldownActive
-                                        ? `Resend in ${activeOtp.remainingSeconds}s`
-                                        : activeOtp.resendAttempts >= 3
-                                        ? "Daily Limit Reached"
-                                        : "Resend OTP"}
+                                            ? `Resend in ${activeOtp.remainingSeconds}s`
+                                            : activeOtp.resendAttempts >= 3
+                                                ? "Daily Limit Reached"
+                                                : "Resend OTP"}
                                 </Button>
 
                                 {onChangeNumber && (
