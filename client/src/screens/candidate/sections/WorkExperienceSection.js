@@ -44,7 +44,12 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
 
   useEffect(() => {
     if (!isEditing && initialExperiences) {
-      setExperiences(JSON.parse(JSON.stringify(initialExperiences)));
+      const parsed = JSON.parse(JSON.stringify(initialExperiences));
+      const normalized = parsed.map(exp => ({
+        ...exp,
+        company_name: exp.company_name || exp.company || ""
+      }));
+      setExperiences(normalized);
     }
   }, [initialExperiences, isEditing]);
 
@@ -172,6 +177,7 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
     try {
       const experienceData = {
         title: exp.role,
+        company_name: exp.company_name,
         location: exp.location,
         start_date: exp.startDate,
         end_date: exp.endDate,

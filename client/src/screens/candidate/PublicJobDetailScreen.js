@@ -45,7 +45,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
 import { useSelector } from "react-redux";
-import { getJobDetailsById, applyJob, generateTailoredJobEmail } from "../../api/jobpostingAPI";
+import { getJobDetailsById, applyJob, generateTailoredJobEmail, generateATSContent } from "../../api/jobpostingAPI";
 import MatchBadge from "../../components/jobs/MatchBadge";
 import ResumeUpload from "../../components/upload/ResumeUpload";
 
@@ -71,6 +71,8 @@ const PublicJobDetailScreen = () => {
   const [generatingEmail, setGeneratingEmail] = useState(false);
   const [tailoredEmail, setTailoredEmail] = useState({ subject: "", body: "" });
   const [showTailoredEmailDialog, setShowTailoredEmailDialog] = useState(false);
+  const [showATSContentDialog, setShowATSContentDialog] = useState(false);
+  const [atsContent, setAtsContent] = useState({ project_details: "", experience_details: "", skills: "" });
   const [showProviderDialog, setShowProviderDialog] = useState(false);
   const [emailToOpen, setEmailToOpen] = useState({ to: "", subject: "", body: "" });
   const [showPublicApply, setShowPublicApply] = useState(false);
@@ -177,17 +179,18 @@ const PublicJobDetailScreen = () => {
     }
     setGeneratingEmail(true);
     try {
-      const result = await generateTailoredJobEmail(job.id, userid);
+      const result = await generateATSContent(job.id, userid);
       if (!result.error) {
-        setTailoredEmail({
-          subject: result.data.subject || "",
-          body: result.data.body || ""
+        setAtsContent({
+          project_details: result.data.project_details || "",
+          experience_details: result.data.experience_details || "",
+          skills: result.data.skills || ""
         });
-        setShowTailoredEmailDialog(true);
+        setShowATSContentDialog(true);
       } else {
         setSnackbar({
           open: true,
-          message: result.message || "Failed to generate AI email.",
+          message: result.message || "Failed to generate AI content.",
           severity: "error",
         });
       }
@@ -512,6 +515,138 @@ const PublicJobDetailScreen = () => {
             </Box>
           )}
         </DialogContent>
+      </Dialog>
+
+      {/* ATS-Optimized Content Dialog */}
+      <Dialog
+        open={showATSContentDialog}
+        onClose={() => setShowATSContentDialog(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '24px', p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 900, fontSize: '1.5rem', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <AutoAwesomeIcon sx={{ color: '#7C3AED' }} />
+          ATS-Optimized Application Content
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 3, p: 2, bgcolor: '#F0F9FF', borderRadius: '16px', border: '1px solid #BAE6FD', display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ p: 1, bgcolor: '#0EA5E9', borderRadius: '10px', color: 'white' }}>
+              <TrendingUpIcon fontSize="small" />
+            </Box>
+            <Typography sx={{ color: '#0369A1', fontWeight: 600, fontSize: '0.9rem' }}>
+              We've tailored your profile details specifically for this job description to make them highly ATS-friendly. Review, edit, and copy the sections below.
+            </Typography>
+          </Box>
+
+          <Stack spacing={3}>
+            {/* Project Details */}
+            <Box>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                  Project Details
+                </Typography>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    navigator.clipboard.writeText(atsContent.project_details);
+                    setSnackbar({ open: true, message: "Project details copied!", severity: "success" });
+                  }}
+                  startIcon={<ContentCopyIcon sx={{ fontSize: '14px !important' }} />}
+                  sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB' }}
+                >
+                  Copy
+                </Button>
+              </Stack>
+              <TextField
+                fullWidth
+                multiline
+                rows={6}
+                variant="outlined"
+                value={atsContent.project_details}
+                onChange={(e) => setAtsContent({ ...atsContent, project_details: e.target.value })}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '0.95rem', lineHeight: 1.6 } }}
+              />
+            </Box>
+
+            {/* Current Experience Details */}
+            <Box>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                  Current Experience Details
+                </Typography>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    navigator.clipboard.writeText(atsContent.experience_details);
+                    setSnackbar({ open: true, message: "Experience details copied!", severity: "success" });
+                  }}
+                  startIcon={<ContentCopyIcon sx={{ fontSize: '14px !important' }} />}
+                  sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB' }}
+                >
+                  Copy
+                </Button>
+              </Stack>
+              <TextField
+                fullWidth
+                multiline
+                rows={6}
+                variant="outlined"
+                value={atsContent.experience_details}
+                onChange={(e) => setAtsContent({ ...atsContent, experience_details: e.target.value })}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '0.95rem', lineHeight: 1.6 } }}
+              />
+            </Box>
+
+            {/* Skills */}
+            <Box>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                  Skills
+                </Typography>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    navigator.clipboard.writeText(atsContent.skills);
+                    setSnackbar({ open: true, message: "Skills copied!", severity: "success" });
+                  }}
+                  startIcon={<ContentCopyIcon sx={{ fontSize: '14px !important' }} />}
+                  sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB' }}
+                >
+                  Copy
+                </Button>
+              </Stack>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                variant="outlined"
+                value={atsContent.skills}
+                onChange={(e) => setAtsContent({ ...atsContent, skills: e.target.value })}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '0.95rem', lineHeight: 1.6 } }}
+              />
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, gap: 2 }}>
+          <Button
+            variant="contained"
+            onClick={() => setShowATSContentDialog(false)}
+            sx={{
+              py: 1.2,
+              px: 4,
+              borderRadius: '12px',
+              bgcolor: '#111827',
+              fontWeight: 800,
+              textTransform: 'none',
+              boxShadow: '0 8px 20px rgba(17, 24, 39, 0.2)',
+              '&:hover': { bgcolor: '#000000', transform: 'translateY(-2px)' },
+              transition: 'all 0.3s ease'
+            }}
+          >
+            Done Reviewing
+          </Button>
+        </DialogActions>
       </Dialog>
 
       <Snackbar

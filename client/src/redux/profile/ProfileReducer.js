@@ -26,6 +26,7 @@ const INIT_STATE = {
     skills: [],
     projects: [],
     languages: [],
+    user_industries: [],
     wallet_balance: 0
   }
 };

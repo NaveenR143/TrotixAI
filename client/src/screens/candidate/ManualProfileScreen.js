@@ -49,11 +49,23 @@ const STEPS = ["Identity", "Experience & Education", "Summary & Skills"];
 const ManualProfileScreen = ({ onSave, onBack }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const membership = useSelector((state) => state.UserReducer.membership || 'Free');
-  const userPoints = useSelector((state) => state.UserReducer.points ?? 100);
-  const userid = useSelector((state) => state.UserReducer.userid);
+  const user = useSelector((state) => state.UserReducer);
+  const membership = user.membership || 'Free';
+  const userPoints = user.points ?? 100;
+  const userid = user.userid;
 
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(() => {
+    const saved = localStorage.getItem("manual_profile_data");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.activeStep !== undefined) {
+          return parsed.activeStep;
+        }
+      } catch (e) {}
+    }
+    return 0;
+  });
   const [skillsOptions, setSkillsOptions] = useState([]);
   const [languagesOptions, setLanguagesOptions] = useState([]);
   const [skillsLoading, setSkillsLoading] = useState(false);
@@ -116,22 +128,44 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
     }
   };
 
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    preferredLocation: "",
-    about: "",
-    website: "",
-    experience: [],
-    education: [],
-    achievements: [],
-    skills: [],
-    languages: [],
-    dob: "",
-    maritalStatus: "",
-    currentLocation: ""
+  const [formData, setFormData] = useState(() => {
+    const saved = localStorage.getItem("manual_profile_data");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.formData) {
+          return parsed.formData;
+        }
+      } catch (e) {
+        console.error("Error loading manual profile draft", e);
+      }
+    }
+    
+    // Fallback: Populate details from user (Redux) if logged in
+    let firstName = "";
+    let lastName = "";
+    if (user?.fullname) {
+      const parts = user.fullname.trim().split(/\s+/);
+      firstName = parts[0] || "";
+      lastName = parts.slice(1).join(" ") || "";
+    }
+    return {
+      firstName,
+      lastName,
+      email: user?.email || "",
+      phone: user?.mobile || "",
+      preferredLocation: "",
+      about: "",
+      website: "",
+      experience: [],
+      education: [],
+      achievements: [],
+      skills: [],
+      languages: [],
+      dob: "",
+      maritalStatus: "",
+      currentLocation: ""
+    };
   });
 
   const [aiLoading, setAiLoading] = useState(false);
@@ -141,10 +175,30 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
   const otpVerification = useOtp("registration");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(() => {
+    const saved = localStorage.getItem("manual_profile_data");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.isPhoneVerified !== undefined) {
+          return parsed.isPhoneVerified;
+        }
+      } catch (e) {}
+    }
+    return user?.mobile ? true : false;
+  });
   const [verificationLoading, setVerificationLoading] = useState(false);
   const [verificationError, setVerificationError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Save progress to localStorage on any changes
+  useEffect(() => {
+    localStorage.setItem("manual_profile_data", JSON.stringify({
+      formData,
+      activeStep,
+      isPhoneVerified
+    }));
+  }, [formData, activeStep, isPhoneVerified]);
 
   useEffect(() => {
     if (otpSent && !isPhoneVerified && otp.length === 4) {
@@ -416,6 +470,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
       const resp = await submitManualProfile(submissionData);
       if (!resp.error) {
         dispatch(updateUserProfile(submissionData));
+        localStorage.removeItem("manual_profile_data");
         if (onSave) onSave(); // Redirection to dashboard
       } else {
         setVerificationError(resp.message);

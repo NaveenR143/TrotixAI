@@ -39,6 +39,8 @@ from ai.models.job_models import (
 )
 from ai.services.profile_service import ProfileService
 from ai.services.ai_refiner_service import AzureOpenAIResumeRefiner
+from ai.services.ats_optimizer_service import ATSOptimizerService
+from ai.models.ats_models import ATSGenerationResponse, ATSContentResponse
 
 router = APIRouter()
 
@@ -582,6 +584,86 @@ async def tailoring_job_email(
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error generating application email: {str(e)}"
+        )
+
+
+@router.get("/generate-ats-content", response_model=ATSGenerationResponse)
+async def generate_ats_content(
+    job_id: str,
+    user_id: str = None,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
+    if not user_id:
+        user_id = current_user_id
+    try:
+        # 1. Fetch job description
+        try:
+            job_id_int = int(job_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid job_id format")
+
+        job_result = await db.execute(
+            select(JobPosting)
+            .options(
+                joinedload(JobPosting.company),
+                joinedload(JobPosting.industry),
+                joinedload(JobPosting.dept),
+            )
+            .where(JobPosting.id == job_id_int)
+        )
+        job = job_result.scalar_one_or_none()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+
+        # Fetch skills for the job
+        skills_query = (
+            select(Skill.name)
+            .join(JobSkill, Skill.id == JobSkill.skills_id)
+            .where(JobSkill.job_posting_id == job_id_int)
+        )
+        skills_result = await db.execute(skills_query)
+        job_skills = [row[0] for row in skills_result.all()]
+
+        job_data = {
+            "title": job.title,
+            "description": job.description,
+            "summary": job.summary,
+            "company": job.company.name if job.company else None,
+            "location": job.location,
+            "industry": job.industry.name if job.industry else None,
+            "department": job.dept.name if job.dept else None,
+            "skills": job_skills,
+        }
+
+        # 2. Fetch user profile
+        try:
+            user_uuid = uuid.UUID(user_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid user_id format")
+
+        profile_data = await ProfileService.fetch_user_profile(
+            user_id=user_uuid, session=db
+        )
+
+        # 3. Call new isolated generator service
+        optimizer = ATSOptimizerService()
+        content = await optimizer.generate_ats_content(
+            user_profile=profile_data, job_details=job_data
+        )
+        return ATSGenerationResponse(
+            status="success",
+            data=ATSContentResponse(
+                project_details=content.get("project_details", ""),
+                experience_details=content.get("experience_details", ""),
+                skills=content.get("skills", "")
+            )
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate ATS content: {str(e)}"
         )
 
 

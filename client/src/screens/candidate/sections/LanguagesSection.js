@@ -19,6 +19,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import * as profileAPI from "../../../api/profileAPI";
 import { updateUserProfile } from "../../../redux/user/Action";
 import { toTitleCase } from "../../../utils/formUtils";
+import { mapProfileData } from "../../../utils/profileMapping";
 
 const LanguagesSection = ({ userId, profile, initialLanguages, onSuccess, enhancedData }) => {
   const dispatch = useDispatch();
@@ -103,10 +104,19 @@ const LanguagesSection = ({ userId, profile, initialLanguages, onSuccess, enhanc
         setError(result.message);
       } else {
         if (onSuccess) onSuccess("Languages updated successfully!");
-        dispatch(updateUserProfile({
-          ...profile,
-          languages: languages,
-        }));
+        const mappedProfile = mapProfileData(result.data?.data || result.data);
+        if (mappedProfile && mappedProfile.languages) {
+          setLanguages(mappedProfile.languages);
+          dispatch(updateUserProfile({
+            ...profile,
+            languages: mappedProfile.languages,
+          }));
+        } else {
+          dispatch(updateUserProfile({
+            ...profile,
+            languages: languages,
+          }));
+        }
         setIsEditing(false);
         setShowReviewBanner(false);
       }

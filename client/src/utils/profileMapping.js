@@ -19,17 +19,19 @@ export const mapProfileData = (profileData) => {
       preferredLocation: toTitleCase(profileData?.preferred_locations?.[0]) || toTitleCase(profileData?.current_location) || "",
       currentLocation: toTitleCase(profileData?.current_location) || "",
       headline: toTitleCase(profileData?.headline) || "",
-      summary: toTitleCase(profileData?.parsed_summary) || "",
+      summary: profileData?.summary || profileData?.parsed_summary || "",
       date_of_birth: profileData?.date_of_birth || "",
       maritalStatus: profileData?.marital_status || "",
       gender: toTitleCase(profileData?.gender) || "",
       avatarUrl: profileData?.avatar_url || "",
       profile_viewed: profileData?.profile_viewed || false,
     },
+    user_industries: profileData?.user_industries || [],
     experience: profileData?.experience && Array.isArray(profileData.experience)
       ? profileData.experience.map((exp) => ({
         id: exp?.id || Date.now() + Math.random(),
         company: toTitleCase(exp?.company_name || "") || "",
+        company_name: toTitleCase(exp?.company_name || "") || "",
         role: toTitleCase(exp?.title) || "",
         location: toTitleCase(exp?.location) || "",
         description: exp?.description || "",
@@ -40,14 +42,35 @@ export const mapProfileData = (profileData) => {
       }))
       : [],
     education: profileData?.education && Array.isArray(profileData.education)
-      ? profileData.education.map((edu) => ({
-        id: edu?.id || Date.now() + Math.random(),
-        school: toTitleCase(edu?.institution) || "",
-        degree: toTitleCase(edu?.degree) || "",
-        field: toTitleCase(edu?.field_of_study) || "",
-        grade: edu?.grade || "",
-        year: edu?.end_year || "",
-      }))
+      ? profileData.education
+          .map((edu) => ({
+            id: edu?.id || Date.now() + Math.random(),
+            school: toTitleCase(edu?.institution) || "",
+            degree: toTitleCase(edu?.degree) || "",
+            field: toTitleCase(edu?.field_of_study) || "",
+            grade: edu?.grade || "",
+            year: edu?.end_year || "",
+            isCurrent: edu?.is_current || false,
+            startYear: edu?.start_year || "",
+          }))
+          .sort((a, b) => {
+            // Sort criteria:
+            // 1. isCurrent studies first
+            if (a.isCurrent && !b.isCurrent) return -1;
+            if (!a.isCurrent && b.isCurrent) return 1;
+
+            // 2. year (end_year) descending
+            const yearA = parseInt(a.year) || 0;
+            const yearB = parseInt(b.year) || 0;
+            if (yearB !== yearA) {
+              return yearB - yearA;
+            }
+
+            // 3. startYear descending
+            const startA = parseInt(a.startYear) || 0;
+            const startB = parseInt(b.startYear) || 0;
+            return startB - startA;
+          })
       : [],
     projects: profileData?.projects && Array.isArray(profileData.projects)
       ? profileData.projects.map((project) => ({
@@ -67,7 +90,13 @@ export const mapProfileData = (profileData) => {
       ? profileData.skills.map((s) => toTitleCase(typeof s === "string" ? s : s?.name))
       : [],
     languages: profileData?.languages && Array.isArray(profileData.languages)
-      ? profileData.languages.map((l) => toTitleCase(typeof l === "string" ? l : l?.language))
+      ? [...profileData.languages]
+          .sort((a, b) => {
+            const idA = typeof a === "object" && a !== null ? a.id || a.language_id || 0 : 0;
+            const idB = typeof b === "object" && b !== null ? b.id || b.language_id || 0 : 0;
+            return idA - idB;
+          })
+          .map((l) => toTitleCase(typeof l === "string" ? l : l?.language))
       : [],
     achievements: profileData?.achievements && Array.isArray(profileData.achievements)
       ? profileData.achievements.map((l, index) => ({

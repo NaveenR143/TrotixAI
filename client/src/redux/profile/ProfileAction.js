@@ -50,6 +50,10 @@ export const fetchAndStoreProfile = (identifier) => async (dispatch) => {
     localStorage.setItem("profile_viewed", profileViewedVal);
     sessionStorage.setItem("profile_viewed", profileViewedVal);
 
+    // Save industries and profile data explicitly in local storage
+    localStorage.setItem("user_industries", JSON.stringify(mappedData.user_industries || []));
+    localStorage.setItem("profile_data", JSON.stringify(mappedData));
+
     // Also update UserReducer for backward compatibility with UserProfile.js
     // We flatten the personalDetails for UserReducer as it expects them at the top level
     const flattenedData = {
@@ -64,6 +68,7 @@ export const fetchAndStoreProfile = (identifier) => async (dispatch) => {
       mobile: mappedData.personalDetails.phone, // UserReducer uses mobile
       points: mappedData.wallet_balance, // Add points to UserReducer
       achievements: mappedData.achievements,
+      user_industries: mappedData.user_industries || [],
     };
 
 

@@ -1,5 +1,5 @@
 // screens/candidate/JobDetailScreen.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -21,7 +21,10 @@ import {
   DialogContent,
   DialogActions,
   Tooltip,
+  CircularProgress,
 } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+import PhoneIcon from "@mui/icons-material/Phone";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
@@ -39,12 +42,27 @@ import EmailIcon from "@mui/icons-material/Email";
 import MatchBadge from "../../components/jobs/MatchBadge";
 import { getWorkModeIcon } from "../../utils/themeUtils";
 import { useSelector, useDispatch } from "react-redux";
-import { applyJob, generateTailoredJobEmail } from "../../api/jobpostingAPI";
+import { applyJob, generateTailoredJobEmail, generateATSContent } from "../../api/jobpostingAPI";
 import * as profileAPI from "../../api/profileAPI";
 import { updateUserProfile } from "../../redux/user/Action";
 import InsufficientCreditsDialog from "./components/dialogs/InsufficientCreditsDialog";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import SendIcon from "@mui/icons-material/Send";
+
+const formatEducation = (educationList) => {
+  if (!educationList || !Array.isArray(educationList) || educationList.length === 0) return "";
+  return educationList
+    .map((edu) => {
+      const parts = [];
+      if (edu.degree) parts.push(edu.degree);
+      if (edu.field) parts.push(edu.field);
+      if (edu.school) parts.push(`at ${edu.school}`);
+      if (edu.year) parts.push(`(${edu.year})`);
+      if (edu.grade) parts.push(`Grade: ${edu.grade}`);
+      return parts.join(" ");
+    })
+    .join("\n\n");
+};
 
 const JobDetailScreen = ({
   job,
@@ -65,15 +83,70 @@ const JobDetailScreen = ({
     severity: "success",
   });
   const [generatingEmail, setGeneratingEmail] = useState(false);
+  const [generatingATS, setGeneratingATS] = useState(false);
   const [tailoredEmail, setTailoredEmail] = useState({ subject: "", body: "" });
   const [showTailoredEmailDialog, setShowTailoredEmailDialog] = useState(false);
+  const [showATSContentDialog, setShowATSContentDialog] = useState(false);
+  const [atsContent, setAtsContent] = useState({ project_details: "", experience_details: "", skills: "" });
   const [showProviderDialog, setShowProviderDialog] = useState(false);
   const [emailToOpen, setEmailToOpen] = useState({ to: "", subject: "", body: "" });
 
-  const { userid } = useSelector((state) => state.UserReducer);
+  const user = useSelector((state) => state.UserReducer);
+  const { userid } = user;
   const userPoints = useSelector((state) => state.UserReducer.points) || 0;
+  const profile = useSelector((state) => state.ProfileReducer?.data);
   const dispatch = useDispatch();
   const [insufficientCreditsDialogOpen, setInsufficientCreditsDialogOpen] = useState(false);
+  const [dialogProfile, setDialogProfile] = useState({ fullName: "", email: "", mobile: "" });
+  const [dialogExperiences, setDialogExperiences] = useState([]);
+  const [dialogEducation, setDialogEducation] = useState([]);
+
+  useEffect(() => {
+    if (showATSContentDialog) {
+      setDialogProfile({
+        fullName: user?.fullname || profile?.personalDetails?.fullName || "",
+        email: user?.email || profile?.personalDetails?.email || "",
+        mobile: user?.mobile || profile?.personalDetails?.phone || ""
+      });
+
+      // Experience sync
+      const sortedExps = [...(profile?.experience || [])].sort((a, b) => {
+        if (a.isCurrent && !b.isCurrent) return -1;
+        if (!a.isCurrent && b.isCurrent) return 1;
+        const dateA = new Date(a.startDate || 0);
+        const dateB = new Date(b.startDate || 0);
+        return dateB - dateA;
+      });
+
+      const mappedExps = sortedExps.map((exp, idx) => {
+        const summary = idx === 0 ? (atsContent.experience_details || exp.description) : exp.description;
+        return {
+          ...exp,
+          summary: summary || ""
+        };
+      });
+      setDialogExperiences(mappedExps);
+
+      // Education sync
+      const mappedEdus = (profile?.education || []).map((edu) => ({
+        ...edu,
+        school: (edu.school || "").toUpperCase(),
+        degree: (edu.degree || "").toUpperCase(),
+        field: (edu.field || "").toUpperCase(),
+        year: (edu.year || "").toUpperCase(),
+        grade: (edu.grade || "").toUpperCase()
+      }));
+      setDialogEducation(mappedEdus);
+    }
+  }, [showATSContentDialog, user, profile, atsContent]);
+
+  const handleExperienceSummaryChange = (index, value) => {
+    setDialogExperiences(prev => prev.map((exp, idx) => idx === index ? { ...exp, summary: value } : exp));
+  };
+
+  const handleEducationChange = (index, field, value) => {
+    setDialogEducation(prev => prev.map((edu, idx) => idx === index ? { ...edu, [field]: value.toUpperCase() } : edu));
+  };
 
   const handleApply = async () => {
     if (job.recruiter_id) {
@@ -130,7 +203,7 @@ const JobDetailScreen = ({
     }
   };
 
-  const handleApplyWithAI = async () => {
+  const handleEmailApplyWithAI = async () => {
     // Charge 5 credits for AI email generation (apply_with_ai)
     if (!userid) {
       setSnackbar({ open: true, message: "User ID not found. Please refresh.", severity: "error" });
@@ -145,7 +218,7 @@ const JobDetailScreen = ({
 
     setGeneratingEmail(true);
     try {
-      const creditResult = await profileAPI.deductFeatureCredits(userid, "apply_with_ai");
+      const creditResult = await profileAPI.deductFeatureCredits(userid, "apply_with_ai_email");
 
       if (!creditResult || creditResult.error || creditResult.success === false) {
         // Show insufficient or failed dialog
@@ -175,6 +248,59 @@ const JobDetailScreen = ({
       setSnackbar({ open: true, message: "An unexpected error occurred.", severity: "error" });
     } finally {
       setGeneratingEmail(false);
+    }
+  };
+
+  const handleApplyWithAI = async () => {
+    // Charge 10 credits for ATS optimization (apply_with_ai)
+    if (!userid) {
+      setSnackbar({ open: true, message: "User ID not found. Please refresh.", severity: "error" });
+      return;
+    }
+
+    // Check local balance first (10 credits required)
+    if (!userPoints || userPoints < 10) {
+      setInsufficientCreditsDialogOpen(true);
+      return;
+    }
+
+    setGeneratingATS(true);
+    try {
+      const creditResult = await profileAPI.deductFeatureCredits(userid, "apply_with_ai");
+
+      if (!creditResult || creditResult.error || creditResult.success === false) {
+        // Show insufficient or failed dialog
+        setInsufficientCreditsDialogOpen(true);
+        return;
+      }
+
+      // Update local Redux balance if returned
+      if (creditResult.balance !== undefined) {
+        dispatch(updateUserProfile({ points: creditResult.balance }));
+      }
+
+      // Proceed to generate tailored ATS content
+      const result = await generateATSContent(job.id, userid);
+      if (!result.error) {
+        setAtsContent({
+          project_details: result.data.project_details || "",
+          experience_details: result.data.experience_details || "",
+          skills: result.data.skills || ""
+        });
+        setShowATSContentDialog(true);
+
+        const companyName = (typeof job.company === "object" ? job.company?.name : job.company) || "";
+        const searchQuery = `${companyName} jobs careers`;
+        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+        window.open(searchUrl, "_blank");
+      } else {
+        setSnackbar({ open: true, message: result.message || "Failed to generate AI content.", severity: "error" });
+      }
+    } catch (error) {
+      console.error("Apply with AI error:", error);
+      setSnackbar({ open: true, message: "An unexpected error occurred.", severity: "error" });
+    } finally {
+      setGeneratingATS(false);
     }
   };
 
@@ -398,7 +524,8 @@ const JobDetailScreen = ({
                   variant="contained"
                   fullWidth
                   onClick={handleApply}
-                  disabled={applying}
+                  disabled={applying || generatingEmail || generatingATS}
+                  startIcon={applying ? <CircularProgress size={20} color="inherit" /> : null}
                   sx={{
                     py: 1.5, borderRadius: '12px', fontWeight: 800, fontSize: '1rem',
                     bgcolor: '#2563EB',
@@ -412,14 +539,65 @@ const JobDetailScreen = ({
                 >
                   {applying ? "Applying..." : "Apply Now"}
                 </Button>
+                {job && (
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    startIcon={generatingATS ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
+                    onClick={handleApplyWithAI}
+                    disabled={applying || generatingEmail || generatingATS}
+                    sx={{
+                      mt: 2,
+                      py: 1.5,
+                      borderRadius: '12px',
+                      fontWeight: 800,
+                      fontSize: '1rem',
+                      background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
+                      boxShadow: '0 10px 25px rgba(124, 58, 237, 0.2)',
+                      textTransform: 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 0.2,
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #6D28D9 0%, #1E40AF 100%)',
+                        boxShadow: '0 12px 30px rgba(124, 58, 237, 0.3)',
+                        transform: 'translateY(-2px)'
+                      },
+                      transition: 'all 0.3s ease',
+                      "&.Mui-disabled": {
+                        background: "#E2E8F0",
+                        color: "#475569"
+                      }
+                    }}
+                  >
+                    {generatingATS ? (
+                      "Generating..."
+                    ) : (
+                      <>
+                        <span>Generate with AI</span>
+                        <span
+                          style={{
+                            fontSize: '0.75rem',
+                            fontWeight: 500,
+                            opacity: 0.9
+                          }}
+                        >
+                          Uses 10 credits
+                        </span>
+                      </>
+                    )}
+                  </Button>
+                )}
 
                 {job.hiring_email && (
                   <Button
                     variant="contained"
                     fullWidth
-                    startIcon={<AutoAwesomeIcon />}
-                    onClick={handleApplyWithAI}
-                    disabled={generatingEmail}
+                    startIcon={generatingEmail ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
+                    onClick={handleEmailApplyWithAI}
+                    disabled={applying || generatingEmail || generatingATS}
                     sx={{
                       mt: 2,
                       py: 1.5,
@@ -710,6 +888,552 @@ const JobDetailScreen = ({
             }}
           >
             Send Email
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ATS-Optimized Content Dialog */}
+      <Dialog
+        open={showATSContentDialog}
+        onClose={() => setShowATSContentDialog(false)}
+        maxWidth="md"
+        fullWidth
+        scroll="paper"
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+            p: 1,
+            maxHeight: { xs: '92vh', sm: '88vh' },
+            display: 'flex',
+            flexDirection: 'column'
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 900, fontSize: '1.5rem', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
+          <AutoAwesomeIcon sx={{ color: '#7C3AED' }} />
+          ATS-Optimized Application Content
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 3 }}>
+          <Box sx={{ mb: 3, p: 2, bgcolor: '#F0F9FF', borderRadius: '16px', border: '1px solid #BAE6FD', display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ p: 1, bgcolor: '#0EA5E9', borderRadius: '10px', color: 'white' }}>
+              <TrendingUpIcon fontSize="small" />
+            </Box>
+            <Stack spacing={0.5}>
+              <Typography sx={{ color: '#0369A1', fontWeight: 700, fontSize: '0.9rem' }}>
+                Job reference is opened in a new tab, please use the below content to copy and paste in the job application form
+              </Typography>
+              <Typography sx={{ color: '#0369A1', fontWeight: 500, fontSize: '0.85rem', opacity: 0.9 }}>
+                We've tailored your profile details specifically for this job description to make them highly ATS-friendly. Review, edit, and copy the sections below.
+              </Typography>
+            </Stack>
+          </Box>
+
+          <Stack spacing={4}>
+            {/* Section 1: Contact Details */}
+            <Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: '#1E293B', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PersonIcon sx={{ color: '#2563EB' }} />
+                  Contact Information
+                </Typography>
+              </Box>
+              <Grid container spacing={2}>
+                {/* Full Name */}
+                {dialogProfile.fullName?.trim() && (
+                  <Grid item xs={12} sm={4}>
+                    <Box>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#64748B', textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.05em' }}>
+                          Full Name
+                        </Typography>
+                        <Button
+                          size="small"
+                          onClick={() => {
+                            navigator.clipboard.writeText(dialogProfile.fullName);
+                            setSnackbar({ open: true, message: "Full Name copied!", severity: "success" });
+                          }}
+                          startIcon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
+                          sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0, fontSize: '0.75rem' }}
+                        >
+                          Copy
+                        </Button>
+                      </Stack>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        variant="outlined"
+                        value={dialogProfile.fullName}
+                        onChange={(e) => setDialogProfile({ ...dialogProfile, fullName: e.target.value })}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '0.9rem' } }}
+                      />
+                    </Box>
+                  </Grid>
+                )}
+
+                {/* Email */}
+                {dialogProfile.email?.trim() && (
+                  <Grid item xs={12} sm={4}>
+                    <Box>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#64748B', textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.05em' }}>
+                          Email
+                        </Typography>
+                        <Button
+                          size="small"
+                          onClick={() => {
+                            navigator.clipboard.writeText(dialogProfile.email);
+                            setSnackbar({ open: true, message: "Email copied!", severity: "success" });
+                          }}
+                          startIcon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
+                          sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0, fontSize: '0.75rem' }}
+                        >
+                          Copy
+                        </Button>
+                      </Stack>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        variant="outlined"
+                        value={dialogProfile.email}
+                        onChange={(e) => setDialogProfile({ ...dialogProfile, email: e.target.value })}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '0.9rem' } }}
+                      />
+                    </Box>
+                  </Grid>
+                )}
+
+                {/* Mobile */}
+                {dialogProfile.mobile && (
+                  <Grid item xs={12} sm={4}>
+                    <Box>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#64748B', textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.05em' }}>
+                          Mobile
+                        </Typography>
+                        <Button
+                          size="small"
+                          onClick={() => {
+                            navigator.clipboard.writeText(dialogProfile.mobile);
+                            setSnackbar({ open: true, message: "Mobile copied!", severity: "success" });
+                          }}
+                          startIcon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
+                          sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0, fontSize: '0.75rem' }}
+                        >
+                          Copy
+                        </Button>
+                      </Stack>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        variant="outlined"
+                        value={dialogProfile.mobile}
+                        onChange={(e) => setDialogProfile({ ...dialogProfile, mobile: e.target.value })}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#F8FAFC', fontSize: '0.9rem' } }}
+                      />
+                    </Box>
+                  </Grid>
+                )}
+              </Grid>
+            </Box>
+
+            {/* Section 2: Education Information */}
+            <Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: '#1E293B', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <SchoolIcon sx={{ color: '#2563EB' }} />
+                  Education History
+                </Typography>
+              </Box>
+              {dialogEducation.length === 0 ? (
+                <Typography variant="body2" sx={{ color: '#64748B', fontStyle: 'italic' }}>
+                  No education details found in profile.
+                </Typography>
+              ) : (
+                dialogEducation.map((edu, idx) => (
+                  <Paper key={edu.id || idx} variant="outlined" sx={{ p: 2.5, borderRadius: '16px', borderColor: '#E2E8F0', bgcolor: '#F8FAFC', mb: 2 }}>
+                    <Grid container spacing={2}>
+                      {/* Degree Field */}
+                      <Grid item xs={12} sm={6}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', textTransform: 'uppercase', fontSize: '0.7rem' }}>
+                            Degree & Field
+                          </Typography>
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              navigator.clipboard.writeText(edu.degree || "");
+                              setSnackbar({ open: true, message: "Degree copied!", severity: "success" });
+                            }}
+                            startIcon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
+                            sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0, fontSize: '0.75rem' }}
+                          >
+                            Copy
+                          </Button>
+                        </Stack>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          value={edu.degree || ""}
+                          onChange={(e) => handleEducationChange(idx, 'degree', e.target.value)}
+                          placeholder="Degree (e.g. B.Tech)"
+                          inputProps={{ style: { textTransform: 'uppercase' } }}
+                          sx={{ mt: 0.5, '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#FFFFFF', fontSize: '0.9rem' } }}
+                        />
+                      </Grid>
+
+                      {/* Field of Study */}
+                      <Grid item xs={12} sm={6}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', textTransform: 'uppercase', fontSize: '0.7rem' }}>
+                            Field of Study
+                          </Typography>
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              navigator.clipboard.writeText(edu.field || "");
+                              setSnackbar({ open: true, message: "Field copied!", severity: "success" });
+                            }}
+                            startIcon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
+                            sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0, fontSize: '0.75rem' }}
+                          >
+                            Copy
+                          </Button>
+                        </Stack>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          value={edu.field || ""}
+                          onChange={(e) => handleEducationChange(idx, 'field', e.target.value)}
+                          placeholder="Field of Study (e.g. Computer Science)"
+                          inputProps={{ style: { textTransform: 'uppercase' } }}
+                          sx={{ mt: 0.5, '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#FFFFFF', fontSize: '0.9rem' } }}
+                        />
+                      </Grid>
+
+                      {/* School / Institution */}
+                      <Grid item xs={12} sm={6}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', textTransform: 'uppercase', fontSize: '0.7rem' }}>
+                            School / Institution
+                          </Typography>
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              navigator.clipboard.writeText(edu.school || "");
+                              setSnackbar({ open: true, message: "School copied!", severity: "success" });
+                            }}
+                            startIcon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
+                            sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0, fontSize: '0.75rem' }}
+                          >
+                            Copy
+                          </Button>
+                        </Stack>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          value={edu.school || ""}
+                          onChange={(e) => handleEducationChange(idx, 'school', e.target.value)}
+                          placeholder="School Name"
+                          inputProps={{ style: { textTransform: 'uppercase' } }}
+                          sx={{ mt: 0.5, '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#FFFFFF', fontSize: '0.9rem' } }}
+                        />
+                      </Grid>
+
+                      {/* Year */}
+                      <Grid item xs={6} sm={3}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', textTransform: 'uppercase', fontSize: '0.7rem' }}>
+                            Year
+                          </Typography>
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              navigator.clipboard.writeText(edu.year || "");
+                              setSnackbar({ open: true, message: "Year copied!", severity: "success" });
+                            }}
+                            startIcon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
+                            sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0, fontSize: '0.75rem' }}
+                          >
+                            Copy
+                          </Button>
+                        </Stack>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          value={edu.year || ""}
+                          onChange={(e) => handleEducationChange(idx, 'year', e.target.value)}
+                          placeholder="Year of passing"
+                          inputProps={{ style: { textTransform: 'uppercase' } }}
+                          sx={{ mt: 0.5, '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#FFFFFF', fontSize: '0.9rem' } }}
+                        />
+                      </Grid>
+
+                      {/* Grade */}
+                      <Grid item xs={6} sm={3}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', textTransform: 'uppercase', fontSize: '0.7rem' }}>
+                            Grade / GPA
+                          </Typography>
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              navigator.clipboard.writeText(edu.grade || "");
+                              setSnackbar({ open: true, message: "Grade copied!", severity: "success" });
+                            }}
+                            startIcon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
+                            sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0, fontSize: '0.75rem' }}
+                          >
+                            Copy
+                          </Button>
+                        </Stack>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          value={edu.grade || ""}
+                          onChange={(e) => handleEducationChange(idx, 'grade', e.target.value)}
+                          placeholder="Grade"
+                          inputProps={{ style: { textTransform: 'uppercase' } }}
+                          sx={{ mt: 0.5, '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#FFFFFF', fontSize: '0.9rem' } }}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                ))
+              )}
+            </Box>
+
+            {/* Section 3: Experience Details */}
+            <Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: '#1E293B', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <WorkIcon sx={{ color: '#2563EB' }} />
+                  Work Experience
+                </Typography>
+              </Box>
+              {dialogExperiences.length === 0 ? (
+                <Typography variant="body2" sx={{ color: '#64748B', fontStyle: 'italic' }}>
+                  No experience details found in profile.
+                </Typography>
+              ) : (
+                dialogExperiences.map((exp, idx) => (
+                  <Paper key={exp.id || idx} variant="outlined" sx={{ p: 2.5, borderRadius: '16px', borderColor: '#E2E8F0', bgcolor: '#F8FAFC', mb: 2 }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+                      <Box>
+                        {/* Role with Copy */}
+                        <Stack direction="row" alignItems="center" spacing={1.5}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1E293B', lineHeight: 1.2 }}>
+                            {exp.role}
+                          </Typography>
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              navigator.clipboard.writeText(exp.role || "");
+                              setSnackbar({ open: true, message: "Role copied!", severity: "success" });
+                            }}
+                            startIcon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
+                            sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0, fontSize: '0.75rem' }}
+                          >
+                            Copy
+                          </Button>
+                        </Stack>
+
+                        {/* Company with Copy */}
+                        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mt: 0.5 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 700, color: '#2563EB' }}>
+                            {exp.company}
+                          </Typography>
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              navigator.clipboard.writeText(exp.company || "");
+                              setSnackbar({ open: true, message: "Company copied!", severity: "success" });
+                            }}
+                            startIcon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
+                            sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0, fontSize: '0.75rem' }}
+                          >
+                            Copy
+                          </Button>
+                        </Stack>
+
+                        {/* Duration with Copy */}
+                        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mt: 0.5 }}>
+                          <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>
+                            {exp.isCurrent ? `${exp.startDate} - Present` : `${exp.startDate} - ${exp.endDate}`}
+                          </Typography>
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              const duration = exp.isCurrent ? `${exp.startDate} - Present` : `${exp.startDate} - ${exp.endDate}`;
+                              navigator.clipboard.writeText(duration);
+                              setSnackbar({ open: true, message: "Duration copied!", severity: "success" });
+                            }}
+                            startIcon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
+                            sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0, fontSize: '0.75rem' }}
+                          >
+                            Copy
+                          </Button>
+                        </Stack>
+
+                        {idx === 0 && (
+                          <Chip
+                            label="Latest Experience (AI Tailored Summary)"
+                            size="small"
+                            color="secondary"
+                            sx={{ mt: 1, fontWeight: 700, height: '20px', fontSize: '0.65rem', background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)', color: '#FFF' }}
+                          />
+                        )}
+                      </Box>
+                    </Stack>
+
+                    {/* Summary Header with Copy */}
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2, mb: 0.5 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B', textTransform: 'uppercase', fontSize: '0.7rem' }}>
+                        {idx === 0 ? "Tailored Summary" : "Experience Description"}
+                      </Typography>
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          const cleanText = idx === 0
+                            ? exp.summary
+                            : exp.summary.replace(/<\/p>/gi, "\n").replace(/<li>/gi, "• ").replace(/<\/li>/gi, "\n").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "").trim();
+                          navigator.clipboard.writeText(cleanText || "");
+                          setSnackbar({ open: true, message: "Summary copied!", severity: "success" });
+                        }}
+                        startIcon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
+                        sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0, fontSize: '0.75rem' }}
+                      >
+                        Copy
+                      </Button>
+                    </Stack>
+
+                    {idx === 0 ? (
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={5}
+                        variant="outlined"
+                        value={exp.summary}
+                        onChange={(e) => handleExperienceSummaryChange(idx, e.target.value)}
+                        placeholder="Summary..."
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#FFFFFF', fontSize: '0.9rem', lineHeight: 1.5 } }}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          p: 2,
+                          borderRadius: '12px',
+                          border: '1px solid #E2E8F0',
+                          bgcolor: '#FFFFFF',
+                          minHeight: '100px',
+                          color: '#475569',
+                          lineHeight: 1.6,
+                          fontSize: '0.9rem',
+                          wordBreak: 'break-word',
+                          overflowWrap: 'anywhere',
+                          '& p': { mb: 1 },
+                          '& ul, & ol': { mb: 1, pl: 2 },
+                          '& li': { mb: 0.5 }
+                        }}
+                        dangerouslySetInnerHTML={{ __html: exp.summary }}
+                      />
+                    )}
+                  </Paper>
+                ))
+              )}
+            </Box>
+
+            {/* Section 4: Tailored Resume Content */}
+            {(atsContent.project_details?.trim() || atsContent.skills?.trim()) && (
+              <Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: '#1E293B', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AutoAwesomeIcon sx={{ color: '#7C3AED' }} />
+                    Tailored Resume Content
+                  </Typography>
+                </Box>
+
+                {/* Project Details */}
+                {atsContent.project_details?.trim() && (
+                  <Paper variant="outlined" sx={{ p: 2.5, borderRadius: '16px', borderColor: '#E2E8F0', bgcolor: '#F8FAFC', mb: 2 }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                        Project Details (AI Generated)
+                      </Typography>
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          navigator.clipboard.writeText(atsContent.project_details);
+                          setSnackbar({ open: true, message: "Project details copied!", severity: "success" });
+                        }}
+                        startIcon={<ContentCopyIcon sx={{ fontSize: '14px !important' }} />}
+                        sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0 }}
+                      >
+                        Copy
+                      </Button>
+                    </Stack>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={6}
+                      variant="outlined"
+                      value={atsContent.project_details}
+                      onChange={(e) => setAtsContent({ ...atsContent, project_details: e.target.value })}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#FFFFFF', fontSize: '0.95rem', lineHeight: 1.6 } }}
+                    />
+                  </Paper>
+                )}
+
+                {/* Skills */}
+                {atsContent.skills?.trim() && (
+                  <Paper variant="outlined" sx={{ p: 2.5, borderRadius: '16px', borderColor: '#E2E8F0', bgcolor: '#F8FAFC' }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                        Skills (AI Generated)
+                      </Typography>
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          navigator.clipboard.writeText(atsContent.skills);
+                          setSnackbar({ open: true, message: "Skills copied!", severity: "success" });
+                        }}
+                        startIcon={<ContentCopyIcon sx={{ fontSize: '14px !important' }} />}
+                        sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB', minWidth: 'auto', p: 0 }}
+                      >
+                        Copy
+                      </Button>
+                    </Stack>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      variant="outlined"
+                      value={atsContent.skills}
+                      onChange={(e) => setAtsContent({ ...atsContent, skills: e.target.value })}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#FFFFFF', fontSize: '0.95rem', lineHeight: 1.6 } }}
+                    />
+                  </Paper>
+                )}
+              </Box>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, gap: 2 }}>
+          <Button
+            variant="contained"
+            onClick={() => setShowATSContentDialog(false)}
+            sx={{
+              py: 1.2,
+              px: 4,
+              borderRadius: '12px',
+              bgcolor: '#111827',
+              fontWeight: 800,
+              textTransform: 'none',
+              boxShadow: '0 8px 20px rgba(17, 24, 39, 0.2)',
+              '&:hover': { bgcolor: '#000000', transform: 'translateY(-2px)' },
+              transition: 'all 0.3s ease'
+            }}
+          >
+            Done Reviewing
           </Button>
         </DialogActions>
       </Dialog>

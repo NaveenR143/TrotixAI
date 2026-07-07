@@ -27,6 +27,7 @@ const INIT_STATE = {
 	hasAnalyzedToday: false,
 	hasSuggestedToday: false,
 	profile_viewed: true,
+	user_industries: [],
 };
 
 function UserReducer(state = INIT_STATE, action) {

@@ -4,7 +4,7 @@ Handles all database operations related to user profiles
 """
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, text
+from sqlalchemy import select, desc, text, func
 from sqlalchemy.orm import joinedload, selectinload
 from uuid import UUID
 from typing import Optional
@@ -22,6 +22,7 @@ from ai.models.orm_models import (
     Industry,
     Achievement,
     Resume,
+    Company,
 )
 
 
@@ -260,6 +261,22 @@ class ProfileRepository:
                         "description": edu.description,
                     }
                 )
+
+        # Sort by most recent education:
+        #   1. is_current=True studies first
+        #   2. end_year descending (most recent completion)
+        #   3. Fallback to start_year descending when end_year is null/unavailable
+        def _education_sort_key(edu: dict) -> tuple:
+            is_current = bool(edu.get("is_current"))
+            end_year = edu.get("end_year") or 0
+            start_year = edu.get("start_year") or 0
+            return (
+                0 if is_current else 1,          # current studies first
+                -end_year,                        # end_year descending
+                -start_year,                      # start_year descending as tiebreaker
+            )
+
+        education_list.sort(key=_education_sort_key)
         user_data["education"] = education_list
 
         # Extract certifications
@@ -316,10 +333,16 @@ class ProfileRepository:
         # Extract languages
         languages_list = []
         if hasattr(user, "user_languages"):
-            for user_lang in user.user_languages:
+            # Sort user_languages by language_id ascending
+            sorted_user_languages = sorted(
+                user.user_languages,
+                key=lambda ul: ul.language_id if ul.language_id is not None else 0
+            )
+            for user_lang in sorted_user_languages:
                 if user_lang.language:
                     languages_list.append(
                         {
+                            "id": user_lang.language_id,
                             "language": user_lang.language.language,
                         }
                     )
@@ -484,6 +507,27 @@ class ProfileRepository:
             if "description" in experience_data and experience_data["description"]:
                 from ai.utils.html_sanitizer import sanitize_html
                 experience_data["description"] = sanitize_html(experience_data["description"])
+
+            # Resolve company_name to company_id if provided
+            if "company_name" in experience_data:
+                company_name = experience_data.pop("company_name")
+                if company_name:
+                    company_name_stripped = company_name.strip()
+                    if company_name_stripped:
+                        company_result = await session.execute(
+                            select(Company).where(func.lower(Company.name) == company_name_stripped.lower())
+                        )
+                        company = company_result.scalar_one_or_none()
+                        if not company:
+                            company = Company(name=company_name_stripped)
+                            session.add(company)
+                            await session.flush()
+                        experience_data["company_id"] = company.id
+                    else:
+                        experience_data["company_id"] = None
+                else:
+                    experience_data["company_id"] = None
+
             if experience_id:
                 # Update existing experience
                 query = select(WorkExperience).where(
@@ -798,7 +842,7 @@ class ProfileRepository:
         user_id: UUID, update_data: dict, session: AsyncSession
     ) -> dict:
         """
-        Update user parsed summary (User + Resumes)
+        Update user summary in jobseeker profile and parsed summary in resumes (User + JobseekerProfile + Resumes)
 
         Args:
             user_id: User UUID
@@ -812,7 +856,10 @@ class ProfileRepository:
             # Fetch user
             user_query = (
                 select(User)
-                .options(selectinload(User.resumes))
+                .options(
+                    selectinload(User.resumes),
+                    selectinload(User.jobseeker_profile)
+                )
                 .where(User.id == user_id)
             )
             result = await session.execute(user_query)
@@ -821,10 +868,17 @@ class ProfileRepository:
             if not user:
                 raise ValueError("User not found")
 
+            # Ensure jobseeker profile exists
+            if not user.jobseeker_profile:
+                jobseeker_profile = JobseekerProfile(user_id=user_id)
+                session.add(jobseeker_profile)
+                user.jobseeker_profile = jobseeker_profile
+
             resume_id = user.resumes[0].id if user.resumes else None
 
-            # Update parsed_summary in the resume if it exists
+            # Update summary in jobseeker_profile and parsed_summary in the resume if it exists
             if "summary" in update_data and update_data["summary"] is not None:
+                user.jobseeker_profile.summary = update_data["summary"]
                 if hasattr(user, "resumes") and user.resumes:
                     user.resumes[0].parsed_summary = update_data["summary"]
 
@@ -907,10 +961,27 @@ class ProfileRepository:
                 if desc:
                     from ai.utils.html_sanitizer import sanitize_html
                     desc = sanitize_html(desc)
+
+                # Resolve company_name to company_id
+                company_id = None
+                company_name = exp_data.get("company_name")
+                if company_name:
+                    company_name_stripped = company_name.strip()
+                    if company_name_stripped:
+                        company_result = await session.execute(
+                            select(Company).where(func.lower(Company.name) == company_name_stripped.lower())
+                        )
+                        company = company_result.scalar_one_or_none()
+                        if not company:
+                            company = Company(name=company_name_stripped)
+                            session.add(company)
+                            await session.flush()
+                        company_id = company.id
+
                 exp = WorkExperience(
                     user_id=user_id,
                     title=exp_data["title"],
-                    company_name=exp_data.get("company_name"),
+                    company_id=company_id,
                     location=exp_data.get("location"),
                     start_date=exp_data["start_date"],
                     end_date=exp_data.get("end_date"),

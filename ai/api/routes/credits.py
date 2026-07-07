@@ -77,10 +77,15 @@ FEATURE_CONFIG = {
         "description": "Premium Resume Template Download",
         "cost": 10,
     },
-    "apply_with_ai": {
+    "apply_with_ai_email": {
         "tx_type": CreditTxTypeEnum.ai_email_write,
         "description": "AI Apply (Generate Email)",
         "cost": 5,
+    },
+    "apply_with_ai": {
+        "tx_type": CreditTxTypeEnum.ai_email_write,
+        "description": "AI Apply (Generate Email)",
+        "cost": 10,
     },
     "unlock_candidate": {
         "tx_type": CreditTxTypeEnum.purchase,

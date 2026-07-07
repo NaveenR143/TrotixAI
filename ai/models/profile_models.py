@@ -89,6 +89,7 @@ class SkillResponse(BaseModel):
 
 
 class LanguageResponse(BaseModel):
+    id: Optional[int] = None
     language: str
 
     class Config:
@@ -132,6 +133,19 @@ class AchievementResponse(BaseModel):
 class AchievementUpdate(BaseModel):
     id: Optional[int] = None
     achievement: str
+
+    class Config:
+        from_attributes = True
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Industry Models
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class UserIndustryResponse(BaseModel):
+    id: int
+    name: str
 
     class Config:
         from_attributes = True
@@ -186,6 +200,7 @@ class UserProfileResponse(BaseModel):
     languages: List[LanguageResponse] = []
     projects: List[ProjectResponse] = []
     achievements: List[AchievementResponse] = []
+    user_industries: List[UserIndustryResponse] = []
 
     # Timestamps
     created_at: datetime
@@ -280,6 +295,7 @@ class WorkExperienceUpdate(BaseModel):
 
     title: str = Field(..., description="Job title")
     company_id: Optional[int] = Field(None, description="Company ID")
+    company_name: Optional[str] = Field(None, description="Company Name")
     location: Optional[str] = Field(None, description="Work location")
     start_date: date = Field(..., description="Start date")
     end_date: Optional[date] = Field(None, description="End date")

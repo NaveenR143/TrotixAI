@@ -21,6 +21,7 @@ import AddIcon from "@mui/icons-material/Add";
 import SchoolIcon from "@mui/icons-material/School";
 import * as profileAPI from "../../../api/profileAPI";
 import { updateUserProfile } from "../../../redux/user/Action";
+import { mapProfileData } from "../../../utils/profileMapping";
 
 const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhancedData }) => {
   const dispatch = useDispatch();
@@ -159,10 +160,14 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhanc
           });
         }
 
-        dispatch(updateUserProfile({
-          ...profile,
-          education: education,
-        }));
+        const mappedProfile = mapProfileData(result.data?.data);
+        if (mappedProfile && mappedProfile.education) {
+          setEducation(mappedProfile.education);
+          dispatch(updateUserProfile({
+            ...profile,
+            education: mappedProfile.education,
+          }));
+        }
       }
     } catch (error) {
       setRecordErrors((prev) => ({ ...prev, [index]: error.message || "Failed to save" }));
