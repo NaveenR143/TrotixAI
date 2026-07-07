@@ -1,6 +1,7 @@
 import React from "react";
 import "./template3.css";
 import DescriptionRenderer from "./descriptionRenderer";
+import PersonalDetailsGrid from "./personalDetailsGrid";
 
 export default function Template3({ data }) {
     if (!data) return null;
@@ -15,7 +16,7 @@ export default function Template3({ data }) {
                 {/* COLORED HEADER */}
                 <header className="t3-header">
                     <h1>{user.fullName || "Your Name"}</h1>
-                    <div className="t3-job-title">{user.headline || "Professional Title"}</div>
+                    <div className="t3-job-title">{user.headline} </div>
                     <div className="t3-contact-info">
                         {user.phone && <span>{user.phone}</span>}
                         {user.phone && user.email && <span>|</span>}
@@ -108,7 +109,7 @@ export default function Template3({ data }) {
 
                     {/* LANGUAGES */}
                     {languages && languages.length > 0 && (
-                        <div className="t3-section" style={{ marginBottom: 0 }}>
+                        <div className="t3-section" >
                             <div className="t3-section-title">Languages</div>
                             <div className="t3-languages">
                                 {languages.map((lang, i) => (
@@ -117,6 +118,13 @@ export default function Template3({ data }) {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
+                        <div className="t3-section" style={{ marginBottom: 0 }}>
+                            <div className="t3-section-title">Personal Details</div>
+                            <PersonalDetailsGrid user={user} />
                         </div>
                     )}
                 </div>

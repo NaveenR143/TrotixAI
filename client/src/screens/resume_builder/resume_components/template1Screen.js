@@ -1,12 +1,13 @@
 import React from "react";
 import "./template1.css";
 import DescriptionRenderer from "./descriptionRenderer";
+import PersonalDetailsGrid from "./personalDetailsGrid";
 
 export default function Template1({ data }) {
     if (!data) return null;
 
     // Mapping from Redux state structure
-    const { personalDetails, education, experience, skills, languages, projects } = data;
+    const { personalDetails, education, experience, skills, languages, projects, references } = data;
     const user = personalDetails || {};
 
     return (
@@ -15,7 +16,7 @@ export default function Template1({ data }) {
                 {/* Header Section */}
                 <div className="header">
                     <h1>{user.fullName || "Your Name"}</h1>
-                    <h3>{user.headline || "Professional Title"}</h3>
+                    <h3>{user.headline}</h3>
                     <div className="header-divider"></div>
                     <div className="contact-info">
                         {user.location && <span>{user.location}</span>}
@@ -115,23 +116,32 @@ export default function Template1({ data }) {
                         )}
 
                         {/* References Section (Design matching template) */}
-                        <section className="section">
-                            <h4>REFERENCES:</h4>
-                            <div className="references-grid">
-                                <div className="ref-item">
-                                    <strong>HARUMI KOBAYASHI</strong>
-                                    <p>Wardiere Inc. / CEO</p>
-                                    <p>Phone: 123-456-7890</p>
-                                    <p>Email: hello@reallygreatsite.com</p>
+                        {references && references.length > 0 && (
+                            <section className="section">
+                                <h4>REFERENCES:</h4>
+                                <div className="references-grid">
+                                    {references.map((ref, i) => (
+                                        <div key={i} className="ref-item">
+                                            <strong>{ref.name || ref.fullName}</strong>
+                                            {(ref.company || ref.role) && (
+                                                <p>
+                                                    {ref.company}{ref.company && ref.role ? " / " : ""}{ref.role}
+                                                </p>
+                                            )}
+                                            {ref.phone && <p>Phone: {ref.phone}</p>}
+                                            {ref.email && <p>Email: {ref.email}</p>}
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="ref-item">
-                                    <strong>BAILEY DUPONT</strong>
-                                    <p>Wardiere Inc. / CEO</p>
-                                    <p>Phone: 123-456-7890</p>
-                                    <p>Email: hello@reallygreatsite.com</p>
-                                </div>
-                            </div>
-                        </section>
+                            </section>
+                        )}
+
+                        {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
+                            <section className="section">
+                                <h4>PERSONAL DETAILS:</h4>
+                                <PersonalDetailsGrid user={user} />
+                            </section>
+                        )}
                     </div>
                 </div>
             </div>

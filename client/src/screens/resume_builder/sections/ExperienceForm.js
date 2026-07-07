@@ -1,11 +1,27 @@
 import React from "react";
-import { TextField, Grid, Stack, Typography, Button, IconButton, Paper, Checkbox, Checkbox as MuiCheckbox, FormControlLabel, Box } from "@mui/material";
+import { TextField, Grid, Stack, Typography, Button, IconButton, Paper, Checkbox, FormControlLabel, Box } from "@mui/material";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { useDispatch, useSelector } from "react-redux";
 import { updateProfileData } from "../../../redux/profile/ProfileAction";
+
+const QUILL_MODULES = {
+  toolbar: [
+    [{ 'header': [1, 2, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ['link', 'clean'],
+  ],
+};
+
+const QUILL_FORMATS = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'list',
+  'link'
+];
 
 const ExperienceForm = () => {
   const dispatch = useDispatch();
@@ -136,20 +152,8 @@ const ExperienceForm = () => {
                   theme="snow"
                   value={exp.description || ""}
                   onChange={(content) => handleChange(exp.id, "description", content)}
-                  modules={{
-                    toolbar: [
-                      [{ 'header': [1, 2, false] }],
-                      ['bold', 'italic', 'underline', 'strike'],
-                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                      ['link', 'clean'],
-                    ],
-                  }}
-                  formats={[
-                    'header',
-                    'bold', 'italic', 'underline', 'strike',
-                    'list',
-                    'link'
-                  ]}
+                  modules={QUILL_MODULES}
+                  formats={QUILL_FORMATS}
                   placeholder="Describe your role, responsibilities, and achievements..."
                 />
               </Box>

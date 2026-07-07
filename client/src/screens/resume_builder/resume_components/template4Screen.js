@@ -1,6 +1,7 @@
 import React from "react";
 import "./template4.css";
 import DescriptionRenderer from "./descriptionRenderer";
+import PersonalDetailsGrid from "./personalDetailsGrid";
 
 export default function Template4({ data }) {
     if (!data) return null;
@@ -20,7 +21,7 @@ export default function Template4({ data }) {
                     <div className="t4-header-content">
                         <div className="t4-header-left">
                             <h1>{user.fullName || "Your Name"}</h1>
-                            <div className="t4-job-title">{user.headline || "Professional Title"}</div>
+                            <div className="t4-job-title">{user.headline} </div>
                         </div>
                         <div className="t4-header-right">
                             {user.phone && <div>{user.phone}</div>}
@@ -39,6 +40,7 @@ export default function Template4({ data }) {
                             <p className="t4-summary-text">{user.summary}</p>
                         </div>
                     )}
+
 
                     {/* CORE COMPETENCIES (SKILLS) */}
                     {skills && skills.length > 0 && (
@@ -112,7 +114,7 @@ export default function Template4({ data }) {
 
                     {/* LANGUAGES */}
                     {languages && languages.length > 0 && (
-                        <div className="t4-section" style={{ marginBottom: 0 }}>
+                        <div className="t4-section" >
                             <div className="t4-section-title">Languages</div>
                             <div className="t4-languages">
                                 {languages.map((lang, i) => (
@@ -121,6 +123,13 @@ export default function Template4({ data }) {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
+                        <div className="t4-section" style={{ marginBottom: 0 }}>
+                            <div className="t4-section-title">Personal Details</div>
+                            <PersonalDetailsGrid user={user} />
                         </div>
                     )}
                 </div>

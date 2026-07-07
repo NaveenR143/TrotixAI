@@ -19,6 +19,9 @@ const INIT_STATE = {
       summary: "",
       location: "",
       headline: "",
+      date_of_birth: "",
+      maritalStatus: "",
+      gender: "",
       profile_viewed: true
     },
     experience: [],

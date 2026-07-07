@@ -1,6 +1,7 @@
 import React from "react";
 import "./template14.css";
 import DescriptionRenderer from "./descriptionRenderer";
+import PersonalDetailsGrid from "./personalDetailsGrid";
 
 export default function Template14({ data }) {
     if (!data) return null;
@@ -11,7 +12,8 @@ export default function Template14({ data }) {
         experience,
         skills,
         languages,
-        projects
+        projects,
+        references
     } = data;
 
     const user = personalDetails || {};
@@ -46,7 +48,7 @@ export default function Template14({ data }) {
                     <div className="t14-header-row">
                         <div>
                             <div className="t14-header-name">{renderName(user.fullName)}</div>
-                            <div className="t14-header-title">{user.headline || "Professional Title"}</div>
+                            <div className="t14-header-title">{user.headline} </div>
                         </div>
                         <div className="t14-header-monogram">{getInitials(user.fullName)}</div>
                     </div>
@@ -127,6 +129,13 @@ export default function Template14({ data }) {
                                 ))}
                             </div>
                         )}
+
+                        {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
+                            <div className="t14-section">
+                                <div className="t14-section-title"><div className="t14-section-dot"></div>Personal Details<div className="t14-section-line"></div></div>
+                                <PersonalDetailsGrid user={user} />
+                            </div>
+                        )}
                     </div>
 
                     {/* RIGHT SIDEBAR */}
@@ -172,13 +181,22 @@ export default function Template14({ data }) {
                             </div>
                         )}
 
-                        <div className="t14-section">
-                            <div className="t14-section-title"><div className="t14-section-dot"></div>References<div className="t14-section-line"></div></div>
-                            <div className="t14-ref-item">
-                                <div className="t14-ref-name">Available on Request</div>
-                                <div className="t14-ref-role">Professional references can be provided.</div>
+                        {references && references.length > 0 && (
+                            <div className="t14-section">
+                                <div className="t14-section-title"><div className="t14-section-dot"></div>References<div className="t14-section-line"></div></div>
+                                {references.map((ref, i) => (
+                                    <div key={i} className="t14-ref-item">
+                                        <div className="t14-ref-name">{ref.name}</div>
+                                        <div className="t14-ref-role">
+                                            {ref.designation || ref.role}
+                                            {ref.company && ` at ${ref.company}`}
+                                        </div>
+                                        {ref.phone && <div className="t14-ref-contact">Phone: {ref.phone}</div>}
+                                        {ref.email && <div className="t14-ref-contact">Email: {ref.email}</div>}
+                                    </div>
+                                ))}
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>

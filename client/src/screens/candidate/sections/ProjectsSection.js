@@ -29,6 +29,22 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { sanitizeHtml } from "../../../utils/htmlSanitizer";
 
+const QUILL_MODULES = {
+  toolbar: [
+    [{ 'header': [1, 2, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ['link', 'clean'],
+  ],
+};
+
+const QUILL_FORMATS = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'list',
+  'link'
+];
+
 const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhancedData }) => {
   const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
@@ -453,20 +469,8 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
                       theme="snow"
                       value={proj.description || ""}
                       onChange={(content) => updateProjectField(idx, "description", content)}
-                      modules={{
-                        toolbar: [
-                          [{ 'header': [1, 2, false] }],
-                          ['bold', 'italic', 'underline', 'strike'],
-                          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                          ['link', 'clean'],
-                        ],
-                      }}
-                      formats={[
-                        'header',
-                        'bold', 'italic', 'underline', 'strike',
-                        'list',
-                        'link'
-                      ]}
+                      modules={QUILL_MODULES}
+                      formats={QUILL_FORMATS}
                       placeholder="Describe the project, technologies used, and your contribution..."
                     />
                   </Box>

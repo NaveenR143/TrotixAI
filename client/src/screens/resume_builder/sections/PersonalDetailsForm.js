@@ -1,5 +1,5 @@
 import React from "react";
-import { TextField, Grid, Stack, Typography } from "@mui/material";
+import { TextField, Grid, Stack, Typography, MenuItem, Checkbox, FormControlLabel } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { updateProfileData } from "../../../redux/profile/ProfileAction";
 
@@ -9,11 +9,15 @@ const PersonalDetailsForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    const updated = {
+      ...personalDetails,
+      [name]: value
+    };
+    if (name === "location") {
+      updated.currentLocation = value;
+    }
     dispatch(updateProfileData({
-      personalDetails: {
-        ...personalDetails,
-        [name]: value
-      }
+      personalDetails: updated
     }));
   };
 
@@ -56,6 +60,79 @@ const PersonalDetailsForm = () => {
             value={personalDetails.website || ""}
             onChange={handleChange}
           />
+        </Grid>
+        <Grid item xs={12}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={personalDetails.showPersonalDetails !== false}
+                onChange={(e) => {
+                  dispatch(updateProfileData({
+                    personalDetails: {
+                      ...personalDetails,
+                      showPersonalDetails: e.target.checked
+                    }
+                  }));
+                }}
+                color="primary"
+              />
+            }
+            label={
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                Show Date of Birth, Gender, Marital Status & Location on Resume
+              </Typography>
+            }
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Location"
+            name="location"
+            value={personalDetails.location || ""}
+            onChange={handleChange}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Date of Birth"
+            name="date_of_birth"
+            type="date"
+            value={personalDetails.date_of_birth || ""}
+            onChange={handleChange}
+            InputLabelProps={{ shrink: true }}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            select
+            label="Gender"
+            name="gender"
+            value={personalDetails.gender || ""}
+            onChange={handleChange}
+          >
+            <MenuItem value="Male">Male</MenuItem>
+            <MenuItem value="Female">Female</MenuItem>
+            <MenuItem value="Other">Other</MenuItem>
+            <MenuItem value="Prefer not to say">Prefer not to say</MenuItem>
+          </TextField>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            select
+            label="Marital Status"
+            name="maritalStatus"
+            value={personalDetails.maritalStatus || ""}
+            onChange={handleChange}
+          >
+            <MenuItem value="Single">Single</MenuItem>
+            <MenuItem value="Married">Married</MenuItem>
+            <MenuItem value="Divorced">Divorced</MenuItem>
+            <MenuItem value="Widowed">Widowed</MenuItem>
+          </TextField>
         </Grid>
         <Grid item xs={12}>
           <TextField

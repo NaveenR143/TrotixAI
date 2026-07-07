@@ -18,6 +18,7 @@ export const mapProfileData = (profileData) => {
       website: profileData?.portfolio_url || profileData?.github_url || "",
       preferredLocation: toTitleCase(profileData?.preferred_locations?.[0]) || toTitleCase(profileData?.current_location) || "",
       currentLocation: toTitleCase(profileData?.current_location) || "",
+      location: toTitleCase(profileData?.current_location) || toTitleCase(profileData?.preferred_locations?.[0]) || "",
       headline: toTitleCase(profileData?.headline) || "",
       summary: profileData?.summary || profileData?.parsed_summary || "",
       date_of_birth: profileData?.date_of_birth || "",
@@ -73,18 +74,31 @@ export const mapProfileData = (profileData) => {
           })
       : [],
     projects: profileData?.projects && Array.isArray(profileData.projects)
-      ? profileData.projects.map((project) => ({
-        id: project?.id || Date.now() + Math.random(),
-        title: toTitleCase(project?.title || "") || "",
-        description: project?.description || "",
-        url: project?.url || "",
-        repoUrl: project?.repo_url || "",
-        startDate: project?.start_date || "",
-        endDate: project?.end_date || "",
-        skills: project?.skills_used && Array.isArray(project.skills_used)
-          ? project.skills_used.map((s) => toTitleCase(typeof s === "string" ? s : s?.name))
-          : [],
-      }))
+      ? profileData.projects.map((project) => {
+          const titleVal = toTitleCase(project?.title || "") || "";
+          const urlVal = project?.url || "";
+          
+          // Safely extract the year from end_date, falling back to start_date
+          const dateStr = project?.end_date || project?.start_date || "";
+          const yearMatch = dateStr.match(/\d{4}/);
+          const yearVal = yearMatch ? yearMatch[0] : "";
+
+          return {
+            id: project?.id || Date.now() + Math.random(),
+            title: titleVal,
+            name: titleVal,
+            description: project?.description || "",
+            url: urlVal,
+            link: urlVal,
+            repoUrl: project?.repo_url || "",
+            startDate: project?.start_date || "",
+            endDate: project?.end_date || "",
+            year: yearVal,
+            skills: project?.skills_used && Array.isArray(project.skills_used)
+              ? project.skills_used.map((s) => toTitleCase(typeof s === "string" ? s : s?.name))
+              : [],
+          };
+        })
       : [],
     skills: profileData?.skills && Array.isArray(profileData.skills)
       ? profileData.skills.map((s) => toTitleCase(typeof s === "string" ? s : s?.name))

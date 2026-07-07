@@ -1,6 +1,7 @@
 import React from "react";
 import "./template7.css";
 import DescriptionRenderer from "./descriptionRenderer";
+import PersonalDetailsGrid from "./personalDetailsGrid";
 
 export default function Template7({ data }) {
     if (!data) return null;
@@ -19,7 +20,7 @@ export default function Template7({ data }) {
                 <header className="t7-header">
                     <div className="t7-header-left">
                         <h1>{user.fullName || "Your Name"}</h1>
-                        <div className="t7-job-title">{user.headline || "Professional Title"}</div>
+                        <div className="t7-job-title">{user.headline} </div>
                     </div>
                     <div className="t7-header-right">
                         {user.phone && <div>{user.phone}</div>}
@@ -111,7 +112,7 @@ export default function Template7({ data }) {
 
                     {/* LANGUAGES */}
                     {languages && languages.length > 0 && (
-                        <div className="t7-section" style={{ marginBottom: 0 }}>
+                        <div className="t7-section">
                             <div className="t7-section-title">Languages</div>
                             <div className="t7-languages">
                                 {languages.map((lang, i) => (
@@ -120,6 +121,13 @@ export default function Template7({ data }) {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
+                        <div className="t7-section" style={{ marginBottom: 0 }}>
+                            <div className="t7-section-title">Personal Details</div>
+                            <PersonalDetailsGrid user={user} />
                         </div>
                     )}
                 </div>

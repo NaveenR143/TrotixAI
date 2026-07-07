@@ -29,6 +29,22 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { sanitizeHtml } from "../../../utils/htmlSanitizer";
 
+const QUILL_MODULES = {
+  toolbar: [
+    [{ 'header': [1, 2, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ['link', 'clean'],
+  ],
+};
+
+const QUILL_FORMATS = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'list',
+  'link'
+];
+
 const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess, enhancedData }) => {
   const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
@@ -456,20 +472,8 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
                       theme="snow"
                       value={exp.description || ""}
                       onChange={(content) => updateExperience(idx, "description", content)}
-                      modules={{
-                        toolbar: [
-                          [{ 'header': [1, 2, false] }],
-                          ['bold', 'italic', 'underline', 'strike'],
-                          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                          ['link', 'clean'],
-                        ],
-                      }}
-                      formats={[
-                        'header',
-                        'bold', 'italic', 'underline', 'strike',
-                        'list',
-                        'link'
-                      ]}
+                      modules={QUILL_MODULES}
+                      formats={QUILL_FORMATS}
                       placeholder="Describe your role, responsibilities, and achievements..."
                     />
                   </Box>

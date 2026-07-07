@@ -465,12 +465,14 @@ class ManualProfileSubmission(BaseModel):
     preferred_locations: Optional[List[str]] = []
     date_of_birth: Optional[date] = None
     marital_status: Optional[str] = None
+    gender: Optional[str] = None
     about: Optional[str] = None
     website: Optional[str] = None
     experience: List[WorkExperienceUpdate] = []
     education: List[EducationUpdate] = []
     skills: List[str] = []
     languages: List[str] = []
+    achievements: Optional[List[AchievementUpdate]] = []
 
     class Config:
         from_attributes = True

@@ -1,6 +1,7 @@
 import React from "react";
 import "./template9.css";
 import DescriptionRenderer from "./descriptionRenderer";
+import PersonalDetailsGrid from "./personalDetailsGrid";
 
 export default function Template9({ data }) {
     if (!data) return null;
@@ -18,8 +19,8 @@ export default function Template9({ data }) {
                 {/* HEADER */}
                 <header className="t9-header">
                     <h1>{user.fullName || "Your Name"}</h1>
-                    <div className="t9-job-title">{user.headline || "Professional Title"}</div>
-                    
+                    <div className="t9-job-title">{user.headline} </div>
+
                     <div className="t9-contact-info">
                         {user.phone && (
                             <div className="t9-contact-item">
@@ -125,7 +126,7 @@ export default function Template9({ data }) {
 
                     {/* LANGUAGES */}
                     {languages && languages.length > 0 && (
-                        <div className="t9-section" style={{ marginBottom: 0 }}>
+                        <div className="t9-section">
                             <div className="t9-section-title">Languages</div>
                             <div className="t9-languages">
                                 {languages.map((lang, i) => (
@@ -134,6 +135,13 @@ export default function Template9({ data }) {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
+                        <div className="t9-section" style={{ marginBottom: 0 }}>
+                            <div className="t9-section-title">Personal Details</div>
+                            <PersonalDetailsGrid user={user} />
                         </div>
                     )}
                 </div>

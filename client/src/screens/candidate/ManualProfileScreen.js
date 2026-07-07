@@ -31,6 +31,22 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { useOtp } from "../../hooks/useOtp";
 
+const QUILL_MODULES = {
+  toolbar: [
+    [{ 'header': [1, 2, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ['link', 'clean'],
+  ],
+};
+
+const QUILL_FORMATS = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'list',
+  'link'
+];
+
 const STEPS = ["Identity", "Experience & Education", "Summary & Skills"];
 // const SKILLS_OPTIONS = [
 //   "React", "Node.js", "JavaScript", "TypeScript", "Python", "Java", "C++", "AWS", "Docker",
@@ -164,6 +180,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
       languages: [],
       dob: "",
       maritalStatus: "",
+      gender: "",
       currentLocation: ""
     };
   });
@@ -221,6 +238,34 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
       }
       if (!formData.preferredLocation.trim()) newErrors.preferredLocation = "Preferred Location is required";
     } else if (step === 1) {
+      if (formData.experience.length > 0) {
+        let expError = "";
+        for (let i = 0; i < formData.experience.length; i++) {
+          const exp = formData.experience[i];
+          if (!exp.company_name.trim() || !exp.role.trim()) {
+            expError = "Company and Role are required for all experience entries";
+            break;
+          }
+          if (!exp.startDate) {
+            expError = "Start Date is required for all experience entries";
+            break;
+          }
+          if (!exp.isCurrent && !exp.endDate) {
+            expError = "End Date is required for non-current experience entries";
+            break;
+          }
+          if (exp.startDate && !exp.isCurrent && exp.endDate) {
+            const start = new Date(exp.startDate);
+            const end = new Date(exp.endDate);
+            if (start > end) {
+              expError = "Start Date must be before End Date";
+              break;
+            }
+          }
+        }
+        if (expError) newErrors.experience = expError;
+      }
+
       if (formData.education.length === 0) {
         newErrors.education = "At least one education entry is required";
       } else {
@@ -244,7 +289,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
     } else {
       const fieldOrder = activeStep === 0
         ? ['firstName', 'lastName', 'email', 'phone', 'preferredLocation']
-        : activeStep === 1 ? ['education'] : ['skills', 'languages', 'dob', 'about'];
+        : activeStep === 1 ? ['experience', 'education'] : ['skills', 'languages', 'dob', 'about'];
       scrollToFirstError(stepErrors, fieldOrder);
     }
   };
@@ -362,7 +407,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
   const addExperience = () => {
     setFormData(prev => ({
       ...prev,
-      experience: [...prev.experience, { company_name: "", role: "", duration: "", description: "" }]
+      experience: [...prev.experience, { company_name: "", role: "", startDate: "", endDate: "", isCurrent: false, description: "" }]
     }));
   };
 
@@ -445,6 +490,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
       preferred_locations: [formData.preferredLocation],
       date_of_birth: formData.dob || null,
       marital_status: formData.maritalStatus || null,
+      gender: formData.gender || null,
       about: formData.about,
       website: formData.website,
       skills: formData.skills,
@@ -453,8 +499,9 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
         title: exp.role || "Role",
         company_name: exp.company_name,
         description: exp.description,
-        start_date: "2020-01-01", // Default as it's required by backend model
-        is_current: true
+        start_date: exp.startDate || null,
+        end_date: exp.isCurrent ? null : (exp.endDate || null),
+        is_current: exp.isCurrent || false
       })),
       achievements: formData.achievements.filter(a => a.achievement.trim()).map(a => ({
         achievement: a.achievement
@@ -630,13 +677,55 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                 <Typography variant="h6" sx={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 1 }}><BusinessIcon color="primary" /> WORK EXPERIENCE</Typography>
                 <Button size="small" startIcon={<AddIcon />} onClick={addExperience} sx={{ textTransform: 'none' }}>Add Entry</Button>
               </Box>
+              <Box id="experience">
+                {errors.experience && <Alert severity="error" sx={{ mb: 2 }}>{errors.experience}</Alert>}
+              </Box>
               {formData.experience.length === 0 && <Typography sx={{ fontSize: '0.85rem', color: '#94a3b8', fontStyle: 'italic' }}>No experience entries added yet.</Typography>}
               {formData.experience.map((exp, idx) => (
                 <Paper key={idx} variant="outlined" sx={{ p: 2, mb: 2, position: 'relative', bgcolor: '#f8fafc', borderStyle: 'dashed' }}>
                   <IconButton size="small" onClick={() => removeExperience(idx)} sx={{ position: 'absolute', top: 8, right: 8, color: '#f43f5e' }}><DeleteIcon fontSize="inherit" /></IconButton>
                   <Grid container spacing={2}>
-                    <Grid item xs={6}><TextField fullWidth label="Company" value={exp.company_name} onChange={(e) => updateExperience(idx, 'company_name', e.target.value)} size="small" /></Grid>
-                    <Grid item xs={6}><TextField fullWidth label="Role" value={exp.role} onChange={(e) => updateExperience(idx, 'role', e.target.value)} size="small" /></Grid>
+                    <Grid item xs={12} sm={6}><TextField fullWidth label="Company *" value={exp.company_name} onChange={(e) => updateExperience(idx, 'company_name', e.target.value)} size="small" /></Grid>
+                    <Grid item xs={12} sm={6}><TextField fullWidth label="Role *" value={exp.role} onChange={(e) => updateExperience(idx, 'role', e.target.value)} size="small" /></Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        type="date"
+                        label="Start Date *"
+                        value={exp.startDate || ""}
+                        onChange={(e) => updateExperience(idx, 'startDate', e.target.value)}
+                        size="small"
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        type="date"
+                        label="End Date *"
+                        value={exp.isCurrent ? "" : (exp.endDate || "")}
+                        onChange={(e) => updateExperience(idx, 'endDate', e.target.value)}
+                        disabled={exp.isCurrent}
+                        size="small"
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <input
+                          type="checkbox"
+                          checked={exp.isCurrent || false}
+                          onChange={(e) => {
+                            updateExperience(idx, 'isCurrent', e.target.checked);
+                            if (e.target.checked) {
+                              updateExperience(idx, 'endDate', '');
+                            }
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        <Typography sx={{ fontSize: '0.9rem', color: '#475569' }}>Currently Working Here</Typography>
+                      </Box>
+                    </Grid>
                     <Grid item xs={12}>
                       <Typography sx={{ fontSize: "0.85rem", color: "text.secondary", mb: 1 }}>Description</Typography>
                       <Box sx={{
@@ -664,20 +753,8 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                           theme="snow"
                           value={exp.description || ""}
                           onChange={(content) => updateExperience(idx, "description", content)}
-                          modules={{
-                            toolbar: [
-                              [{ 'header': [1, 2, false] }],
-                              ['bold', 'italic', 'underline', 'strike'],
-                              [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                              ['link', 'clean'],
-                            ],
-                          }}
-                          formats={[
-                            'header',
-                            'bold', 'italic', 'underline', 'strike',
-                            'list',
-                            'link'
-                          ]}
+                          modules={QUILL_MODULES}
+                          formats={QUILL_FORMATS}
                           placeholder="Describe your role, responsibilities, and achievements..."
                         />
                       </Box>
@@ -823,10 +900,18 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                 <PersonIcon sx={{ fontSize: 18, color: '#64748b' }} /> PERSONAL DETAILS
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={3}>
                   <TextField id="dob" fullWidth label="Date of Birth *" name="dob" type="date" value={formData.dob} onChange={handleInputChange} error={!!errors.dob} helperText={errors.dob} size="small" InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <CakeIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={3}>
+                  <TextField fullWidth select label="Gender" name="gender" value={formData.gender} onChange={handleInputChange} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }}>
+                    <MenuItem value="male">Male</MenuItem>
+                    <MenuItem value="female">Female</MenuItem>
+                    <MenuItem value="other">Other</MenuItem>
+                    <MenuItem value="prefer not to say">Prefer not to say</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} sm={3}>
                   <TextField fullWidth select label="Marital Status" name="maritalStatus" value={formData.maritalStatus} onChange={handleInputChange} size="small" InputProps={{ startAdornment: <FamilyRestroomIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }}>
                     <MenuItem value="Single">Single</MenuItem>
                     <MenuItem value="Married">Married</MenuItem>
@@ -834,7 +919,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                     <MenuItem value="Widowed">Widowed</MenuItem>
                   </TextField>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={3}>
                   <TextField fullWidth label="Current Location" name="currentLocation" value={formData.currentLocation} onChange={handleInputChange} size="small" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
                 </Grid>
               </Grid>
@@ -876,6 +961,12 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
           <Box sx={{ minHeight: 400 }}>
             {renderStepContent(activeStep)}
           </Box>
+
+          {verificationError && activeStep > 0 && (
+            <Alert severity="error" sx={{ mt: 4, mb: 1, borderRadius: 2 }}>
+              {verificationError}
+            </Alert>
+          )}
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 6 }}>
             <Button disabled={activeStep === 0} onClick={handleBack} sx={{ color: '#64748b' }}>Previous</Button>

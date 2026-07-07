@@ -1,6 +1,7 @@
 import React from "react";
 import "./template12.css";
 import DescriptionRenderer from "./descriptionRenderer";
+import PersonalDetailsGrid from "./personalDetailsGrid";
 
 export default function Template12({ data }) {
     if (!data) return null;
@@ -11,7 +12,8 @@ export default function Template12({ data }) {
         experience,
         skills,
         languages,
-        projects
+        projects,
+        references
     } = data;
 
     const user = personalDetails || {};
@@ -34,7 +36,7 @@ export default function Template12({ data }) {
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <div className="t12-profile-initials">{getInitials(user.fullName)}</div>
                         <div className="t12-sidebar-name">{user.fullName || "Your Name"}</div>
-                        <div className="t12-sidebar-title">{user.headline || "Professional Title"}</div>
+                        <div className="t12-sidebar-title">{user.headline}</div>
                     </div>
 
                     {/* Contact */}
@@ -114,7 +116,7 @@ export default function Template12({ data }) {
                     {/* Header */}
                     <div className="t12-main-header">
                         <div className="t12-main-name">{user.fullName || "Your Name"}</div>
-                        <div className="t12-main-jobtitle">{user.headline || "Professional Title"}</div>
+                        <div className="t12-main-jobtitle">{user.headline} </div>
                     </div>
 
                     {/* Profile */}
@@ -158,15 +160,31 @@ export default function Template12({ data }) {
                     )}
 
                     {/* References */}
-                    <div className="t12-main-section">
-                        <div className="t12-section-heading">References</div>
-                        <div className="t12-ref-grid">
-                            <div className="t12-ref-block">
-                                <div className="t12-ref-name">Available upon request</div>
-                                <div className="t12-ref-role">Professional references can be provided.</div>
+                    {references && references.length > 0 && (
+                        <div className="t12-main-section">
+                            <div className="t12-section-heading">References</div>
+                            <div className="t12-ref-grid">
+                                {references.map((ref, i) => (
+                                    <div key={i} className="t12-ref-block">
+                                        <div className="t12-ref-name">{ref.name}</div>
+                                        <div className="t12-ref-role">
+                                            {ref.designation || ref.role}
+                                            {ref.company && ` at ${ref.company}`}
+                                        </div>
+                                        {ref.phone && <div className="t12-ref-contact">Phone: {ref.phone}</div>}
+                                        {ref.email && <div className="t12-ref-contact">Email: {ref.email}</div>}
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    </div>
+                    )}
+
+                    {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
+                        <div className="t12-main-section">
+                            <div className="t12-section-heading">Personal Details</div>
+                            <PersonalDetailsGrid user={user} />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

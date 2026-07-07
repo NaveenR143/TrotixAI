@@ -698,9 +698,19 @@ class ProfileRepository:
                 await session.delete(existing)
 
             # Add new skills
+            unique_skills = []
+            seen_skills = set()
             for skill_name in skill_names:
+                if skill_name:
+                    s_stripped = skill_name.strip()
+                    s_lower = s_stripped.lower()
+                    if s_stripped and s_lower not in seen_skills:
+                        seen_skills.add(s_lower)
+                        unique_skills.append(s_stripped)
+
+            for skill_name in unique_skills:
                 # Get or create skill
-                skill_query = select(Skill).where(Skill.name == skill_name)
+                skill_query = select(Skill).where(func.lower(Skill.name) == skill_name.lower())
                 result = await session.execute(skill_query)
                 skill = result.scalars().first()
 
@@ -756,9 +766,19 @@ class ProfileRepository:
                 await session.delete(existing)
 
             # Add new languages
+            unique_languages = []
+            seen_languages = set()
             for language_name in language_names:
+                if language_name:
+                    l_stripped = language_name.strip()
+                    l_lower = l_stripped.lower()
+                    if l_stripped and l_lower not in seen_languages:
+                        seen_languages.add(l_lower)
+                        unique_languages.append(l_stripped)
+
+            for language_name in unique_languages:
                 # Get or create language
-                lang_query = select(Language).where(Language.language == language_name)
+                lang_query = select(Language).where(func.lower(Language.language) == language_name.lower())
                 result = await session.execute(lang_query)
                 language = result.scalars().first()
 
@@ -947,6 +967,7 @@ class ProfileRepository:
             )
             profile.date_of_birth = submission_data.get("date_of_birth")
             profile.marital_status = submission_data.get("marital_status")
+            profile.gender = submission_data.get("gender")
             profile.summary = submission_data.get("about")
             profile.portfolio_url = submission_data.get("website")
             profile.profile_completion = 100
@@ -1012,8 +1033,18 @@ class ProfileRepository:
                 text("DELETE FROM jobseeker_skills WHERE user_id = :uid"),
                 {"uid": user_id},
             )
+            unique_skills = []
+            seen_skills = set()
             for skill_name in submission_data.get("skills") or []:
-                skill_query = select(Skill).where(Skill.name == skill_name)
+                if skill_name:
+                    s_stripped = skill_name.strip()
+                    s_lower = s_stripped.lower()
+                    if s_stripped and s_lower not in seen_skills:
+                        seen_skills.add(s_lower)
+                        unique_skills.append(s_stripped)
+
+            for skill_name in unique_skills:
+                skill_query = select(Skill).where(func.lower(Skill.name) == skill_name.lower())
                 result = await session.execute(skill_query)
                 skill = result.scalars().first()
 
@@ -1032,8 +1063,18 @@ class ProfileRepository:
                 text("DELETE FROM user_languages WHERE user_id = :uid"),
                 {"uid": user_id},
             )
+            unique_languages = []
+            seen_languages = set()
             for lang_name in submission_data.get("languages") or []:
-                lang_query = select(Language).where(Language.language == lang_name)
+                if lang_name:
+                    l_stripped = lang_name.strip()
+                    l_lower = l_stripped.lower()
+                    if l_stripped and l_lower not in seen_languages:
+                        seen_languages.add(l_lower)
+                        unique_languages.append(l_stripped)
+
+            for lang_name in unique_languages:
+                lang_query = select(Language).where(func.lower(Language.language) == lang_name.lower())
                 result = await session.execute(lang_query)
                 language = result.scalars().first()
 
@@ -1044,6 +1085,20 @@ class ProfileRepository:
 
                 u_lang = UserLanguage(user_id=user_id, language_id=language.id)
                 session.add(u_lang)
+
+            # 7. Handle Achievements (Replace all)
+            await session.execute(
+                text("DELETE FROM achievements WHERE user_id = :uid"),
+                {"uid": user_id},
+            )
+            for ach_data in submission_data.get("achievements") or []:
+                ach_text = ach_data.get("achievement")
+                if ach_text and ach_text.strip():
+                    ach = Achievement(
+                        user_id=user_id,
+                        achievement=ach_text.strip(),
+                    )
+                    session.add(ach)
 
             await session.commit()
             return await ProfileRepository.get_user_profile_by_id(user_id, session)

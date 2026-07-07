@@ -7,6 +7,22 @@ import AddIcon from "@mui/icons-material/Add";
 import { useDispatch, useSelector } from "react-redux";
 import { updateProfileData } from "../../../redux/profile/ProfileAction";
 
+const QUILL_MODULES = {
+  toolbar: [
+    [{ 'header': [1, 2, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ['link', 'clean'],
+  ],
+};
+
+const QUILL_FORMATS = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'list',
+  'link'
+];
+
 const ProjectsForm = () => {
   const dispatch = useDispatch();
   const projects = useSelector((state) => state.ProfileReducer.data.projects || []);
@@ -103,20 +119,8 @@ const ProjectsForm = () => {
                   theme="snow"
                   value={proj.description || ""}
                   onChange={(content) => handleChange(proj.id, "description", content)}
-                  modules={{
-                    toolbar: [
-                      [{ 'header': [1, 2, false] }],
-                      ['bold', 'italic', 'underline', 'strike'],
-                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                      ['link', 'clean'],
-                    ],
-                  }}
-                  formats={[
-                    'header',
-                    'bold', 'italic', 'underline', 'strike',
-                    'list',
-                    'link'
-                  ]}
+                  modules={QUILL_MODULES}
+                  formats={QUILL_FORMATS}
                   placeholder="Describe the project, technologies used, and your contribution..."
                 />
               </Box>

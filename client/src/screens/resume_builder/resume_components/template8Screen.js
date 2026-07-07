@@ -1,6 +1,7 @@
 import React from "react";
 import "./template8.css";
 import DescriptionRenderer from "./descriptionRenderer";
+import PersonalDetailsGrid from "./personalDetailsGrid";
 
 export default function Template8({ data }) {
     if (!data) return null;
@@ -16,7 +17,7 @@ export default function Template8({ data }) {
                 <header className="t8-header">
                     <div className="t8-header-left">
                         <h1>{user.fullName || "Your Name"}</h1>
-                        <div className="t8-job-title">{user.headline || "Professional Title"}</div>
+                        <div className="t8-job-title">{user.headline} </div>
                     </div>
                     <div className="t8-header-right">
                         {user.phone && <div>{user.phone}</div>}
@@ -107,7 +108,7 @@ export default function Template8({ data }) {
 
                     {/* LANGUAGES */}
                     {languages && languages.length > 0 && (
-                        <div className="t8-section" style={{ marginBottom: 0 }}>
+                        <div className="t8-section">
                             <div className="t8-section-title">Languages</div>
                             <div className="t8-languages">
                                 {languages.map((lang, i) => (
@@ -116,6 +117,13 @@ export default function Template8({ data }) {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
+                        <div className="t8-section" style={{ marginBottom: 0 }}>
+                            <div className="t8-section-title">Personal Details</div>
+                            <PersonalDetailsGrid user={user} />
                         </div>
                     )}
                 </div>

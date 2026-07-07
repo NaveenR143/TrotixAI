@@ -1,6 +1,7 @@
 import React from "react";
 import "./template11.css";
 import DescriptionRenderer from "./descriptionRenderer";
+import PersonalDetailsGrid from "./personalDetailsGrid";
 
 export default function Template11({ data }) {
     if (!data) return null;
@@ -15,7 +16,7 @@ export default function Template11({ data }) {
                 {/* HEADER */}
                 <header className="t11-header">
                     <h1>{user.fullName || "Your Name"}</h1>
-                    <div className="t11-job-title">{user.headline || "Professional Title"}</div>
+                    <div className="t11-job-title">{user.headline}</div>
                     <div className="t11-contact-info">
                         {user.phone && <span>{user.phone}</span>}
                         {user.phone && user.email && <span>|</span>}
@@ -116,6 +117,13 @@ export default function Template11({ data }) {
                                 </div>
                             ))}
                         </div>
+                    </div>
+                )}
+
+                {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
+                    <div className="t11-section" style={{ marginBottom: 0 }}>
+                        <div className="t11-section-title">Personal Details</div>
+                        <PersonalDetailsGrid user={user} />
                     </div>
                 )}
             </div>
