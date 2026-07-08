@@ -13,7 +13,7 @@ from collections import defaultdict
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, text, or_, not_, desc, cast, String, and_, table, column
+from sqlalchemy import select, func, text, or_, not_, desc, cast, String, and_, table, column, exists
 from sqlalchemy.orm import selectinload
 
 from ai.models.orm_models import (
@@ -34,6 +34,8 @@ from ai.models.orm_models import (
 )
 
 from sqlalchemy.dialects import postgresql
+from ai.utils.industry_utils import get_related_industries, INDUSTRY_MAPPING
+
 
 
 class JobMatcherService:
@@ -67,6 +69,25 @@ class JobMatcherService:
         # Remove extra spaces
         s = re.sub(r"\s+", " ", s).strip()
         return s
+
+    @staticmethod
+    def _get_matching_industries(industries: List[str]) -> List[str]:
+        """
+        Given a list of seed industries, returns all candidate/job industries that match
+        them bidirectionally using INDUSTRY_MAPPING.
+        """
+        matching = set()
+        for ind in industries:
+            if not ind:
+                continue
+            ind_lower = ind.strip().lower()
+            # 1. Add direct related industries
+            matching.update(get_related_industries(ind))
+            # 2. Add industries that map to this industry case-insensitively
+            for k, related in INDUSTRY_MAPPING.items():
+                if any(ind_lower == item.lower() or ind_lower in item.lower() for item in related):
+                    matching.add(k)
+        return list(matching)
 
     @staticmethod
     def _compute_title_similarities(anchor_title: str, comparison_titles: List[str]) -> List[float]:
@@ -485,6 +506,9 @@ class JobMatcherService:
             if not user_industries:
                 return []
 
+            # Expand user industries bidirectionally
+            matching_industries = JobMatcherService._get_matching_industries(user_industries)
+
             # Subquery to get jobs the user has already applied for
             applied_jobs_subquery = (
                 select(JobApplication.job_posting_id).where(
@@ -522,7 +546,7 @@ class JobMatcherService:
 
             # Matching criteria: Industry, Experience, and Seniority
             other_criteria = [
-                Industry.name.in_(user_industries)
+                Industry.name.in_(matching_industries)
             ]
 
             # Limit jobs based on experience requirements
@@ -552,10 +576,16 @@ class JobMatcherService:
                     )
                 )
 
-            # Optional Job Posting Title match condition (case-insensitive LIKE match)
+            # Optional fuzzy title match using pg_trgm
             title_match_cond = None
+
             if recent_title:
-                title_match_cond = func.lower(JobPosting.title).like(f"%{recent_title}%")
+                title_match_cond = (
+                    func.similarity(
+                        func.lower(JobPosting.title),
+                        recent_title.lower()
+                    ) >= 0.15
+                )
 
             # Combine title match condition with other filter criteria using OR operator
             if title_match_cond is not None:
@@ -608,6 +638,26 @@ class JobMatcherService:
                     .limit(limit)
                 )
                 jobs_query = jobs_query.params(user_embedding=user_data["embedding"])
+
+            # Print convert jobs_query to postgres query to test it
+            # try:
+            #     compiled = jobs_query.compile(
+            #         dialect=postgresql.dialect(),
+            #         compile_kwargs={"literal_binds": True}
+            #     )
+            #     print("=== COMPILED POSTGRESQL QUERY WITH LITERAL BINDS ===")
+            #     print(str(compiled))
+            #     print("====================================================")
+            # except Exception as e:
+            #     print(f"Error compiling query with literal_binds: {e}")
+            #     try:
+            #         compiled = jobs_query.compile(dialect=postgresql.dialect())
+            #         print("=== COMPILED POSTGRESQL QUERY (RAW) ===")
+            #         print(str(compiled))
+            #         print("Parameters:", compiled.params)
+            #         print("=======================================")
+            #     except Exception as e2:
+            #         print(f"Failed to compile raw query: {e2}")
 
             jobs_result = await session.execute(jobs_query)
             jobs_rows = jobs_result.all()
@@ -807,13 +857,19 @@ class JobMatcherService:
         try:
             job_id_int = int(job_id)
 
-            # Fetch job posting
-            job_query = select(JobPosting).where(JobPosting.id == job_id_int)
+            # Fetch job posting and its industry name
+            job_query = (
+                select(JobPosting, Industry.name)
+                .join(Industry, JobPosting.industry_id == Industry.id, isouter=True)
+                .where(JobPosting.id == job_id_int)
+            )
             job_result = await session.execute(job_query)
-            job = job_result.scalar_one_or_none()
+            row = job_result.first()
 
-            if not job:
+            if not row:
                 return None
+
+            job, industry_name = row
 
             # Fetch job skills
             skills_query = (
@@ -835,6 +891,7 @@ class JobMatcherService:
                 "experience_max_yrs": job.experience_max_yrs or 0,
                 "embedding": job.job_embedding,
                 "skills": job_skills,
+                "industry": industry_name or "",
             }
 
         except Exception as e:
@@ -897,6 +954,20 @@ class JobMatcherService:
             candidate_filters = []
             job_min_exp = job_data.get("experience_min_yrs") or 0
             job_exp_level = job_data.get("experience_level")
+            job_industry = job_data.get("industry")
+
+            # Industry filter: candidate must have a matching industry bidirectionally
+            if job_industry:
+                matching_industries = JobMatcherService._get_matching_industries([job_industry])
+                candidate_filters.append(
+                    exists().where(
+                        and_(
+                            user_industries.c.user_id == Resume.user_id,
+                            user_industries.c.industry_id == Industry.id,
+                            Industry.name.in_(matching_industries)
+                        )
+                    )
+                )
 
             # 1. Experience filter: candidate experience should be within reasonable range of job min experience
             if job_min_exp > 0:
