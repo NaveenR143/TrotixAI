@@ -454,6 +454,19 @@ class DropdownResponse(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
+class IndustriesUpdate(BaseModel):
+    """Update user industries model"""
+    
+    industry_ids: List[int] = Field(..., description="List of industry IDs")
+
+    @field_validator("industry_ids")
+    @classmethod
+    def validate_industry_ids(cls, v):
+        if not v or len(v) < 1:
+            raise ValueError("At least one industry must be selected")
+        return v
+
+
 class ManualProfileSubmission(BaseModel):
     """Complete manual profile submission model"""
 

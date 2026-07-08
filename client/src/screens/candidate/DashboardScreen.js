@@ -18,6 +18,7 @@ import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ProfileReviewBanner from "./components/ProfileReviewBanner";
+import IndustriesBanner from "./components/IndustriesBanner";
 
 const DashboardSection = ({ icon: Icon, title, description, count, accent, onClick }) => {
   return (
@@ -86,7 +87,7 @@ const DashboardSection = ({ icon: Icon, title, description, count, accent, onCli
 const DashboardScreen = () => {
   const navigate = useNavigate();
   const theme = useTheme();
-  const { mobile, fullname } = useSelector((state) => state.UserReducer);
+  const { mobile, fullname, user_industries } = useSelector((state) => state.UserReducer);
 
   const dashboardSections = [
     {
@@ -174,7 +175,10 @@ const DashboardScreen = () => {
 
       {/* Profile Review Notification */}
       <Container maxWidth="lg" sx={{ mt: 3, mb: -1 }}>
-        <ProfileReviewBanner />
+        <Stack spacing={2}>
+          <ProfileReviewBanner />
+          {(!user_industries || user_industries.length === 0) && <IndustriesBanner />}
+        </Stack>
       </Container>
 
       {/* Hero Header */}

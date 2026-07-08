@@ -2,19 +2,20 @@ import React from "react";
 import "./template5.css";
 import DescriptionRenderer from "./descriptionRenderer";
 import PersonalDetailsGrid from "./personalDetailsGrid";
+import { getSpacingStyle } from "./spacingHelper";
 
 export default function Template5({ data }) {
     if (!data) return null;
 
     // Mapping from Redux state structure
-    const { personalDetails, education, experience, skills, languages, projects } = data;
+    const { personalDetails, education, experience, skills, languages, projects, references, spacingConfig } = data;
     const user = personalDetails || {};
 
     return (
         <div className="t5-resume-container">
             <div className="t5-resume">
                 {/* DARK CORPORATE HEADER */}
-                <header className="t5-header">
+                <header className="t5-header" style={getSpacingStyle(spacingConfig, 'header')}>
                     <div className="t5-header-left">
                         <h1>{user.fullName || "Your Name"}</h1>
                         <div className="t5-job-title">{user.headline}</div>
@@ -30,7 +31,7 @@ export default function Template5({ data }) {
                 <div className="t5-content">
                     {/* PROFESSIONAL SUMMARY */}
                     {user.summary && (
-                        <div className="t5-section">
+                        <div className="t5-section" style={getSpacingStyle(spacingConfig, 'summary')}>
                             <div className="t5-section-title">Professional Summary</div>
                             <p className="t5-summary-text">{user.summary}</p>
                         </div>
@@ -38,7 +39,7 @@ export default function Template5({ data }) {
 
                     {/* CORE COMPETENCIES (SKILLS) */}
                     {skills && skills.length > 0 && (
-                        <div className="t5-section">
+                        <div className="t5-section" style={getSpacingStyle(spacingConfig, 'skills')}>
                             <div className="t5-section-title">Core Competencies</div>
                             <div className="t5-skills-container">
                                 {skills.map((skill, i) => (
@@ -52,7 +53,7 @@ export default function Template5({ data }) {
 
                     {/* PROFESSIONAL EXPERIENCE */}
                     {experience && experience.length > 0 && (
-                        <div className="t5-section">
+                        <div className="t5-section" style={getSpacingStyle(spacingConfig, 'experience')}>
                             <div className="t5-section-title">Professional Experience</div>
                             {experience.map((exp, i) => (
                                 <div key={i} className="t5-exp-item">
@@ -71,7 +72,7 @@ export default function Template5({ data }) {
 
                     {/* KEY PROJECTS */}
                     {projects && projects.length > 0 && (
-                        <div className="t5-section">
+                        <div className="t5-section" style={getSpacingStyle(spacingConfig, 'projects')}>
                             <div className="t5-section-title">Key Projects</div>
                             {projects.map((proj, i) => (
                                 <div key={i} className="t5-proj-item">
@@ -92,7 +93,7 @@ export default function Template5({ data }) {
 
                     {/* EDUCATION */}
                     {education && education.length > 0 && (
-                        <div className="t5-section">
+                        <div className="t5-section" style={getSpacingStyle(spacingConfig, 'education')}>
                             <div className="t5-section-title">Education</div>
                             {education.map((edu, i) => (
                                 <div key={i} className="t5-edu-item">
@@ -108,7 +109,7 @@ export default function Template5({ data }) {
 
                     {/* LANGUAGES */}
                     {languages && languages.length > 0 && (
-                        <div className="t5-section">
+                        <div className="t5-section" style={getSpacingStyle(spacingConfig, 'languages')}>
                             <div className="t5-section-title">Languages</div>
                             <div className="t5-languages">
                                 {languages.map((lang, i) => (
@@ -121,7 +122,7 @@ export default function Template5({ data }) {
                     )}
 
                     {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
-                        <div className="t5-section" style={{ marginBottom: 0 }}>
+                        <div className="t5-section" style={getSpacingStyle(spacingConfig, 'personalDetails')}>
                             <div className="t5-section-title">Personal Details</div>
                             <PersonalDetailsGrid user={user} />
                         </div>

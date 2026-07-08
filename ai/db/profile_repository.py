@@ -1295,3 +1295,62 @@ class ProfileRepository:
             await session.rollback()
             raise
 
+    @staticmethod
+    async def get_industries_dropdown(
+        session: AsyncSession, search: Optional[str] = None, limit: int = 100
+    ) -> list:
+        """
+        Get available industries for dropdown with optional search filtering
+        """
+        try:
+            # Subquery to select the minimum (first) ID for each unique case-insensitive industry name
+            subquery = select(func.min(Industry.id)).group_by(func.lower(Industry.name))
+            if search:
+                subquery = subquery.where(Industry.name.ilike(f"%{search}%"))
+
+            # Fetch the actual industry records for those IDs
+            query = (
+                select(Industry)
+                .where(Industry.id.in_(subquery))
+                .order_by(Industry.name)
+                .limit(limit)
+            )
+            result = await session.execute(query)
+            industries = result.scalars().all()
+            return [
+                {"id": str(ind.id), "name": ind.name} for ind in industries
+            ]
+        except Exception as e:
+            print(f"Error fetching industries dropdown: {str(e)}")
+            raise
+
+    @staticmethod
+    async def update_user_industries(
+        user_id: UUID, industry_ids: list, session: AsyncSession
+    ) -> dict:
+        """
+        Update user industries (replace all existing user industries)
+        """
+        try:
+            # Delete existing
+            delete_query = text("DELETE FROM user_industries WHERE user_id = :user_id")
+            await session.execute(delete_query, {"user_id": str(user_id)})
+            
+            # Insert new
+            if industry_ids:
+                for ind_id in industry_ids:
+                    insert_query = text(
+                        "INSERT INTO user_industries (user_id, industry_id) VALUES (:user_id, :industry_id)"
+                    )
+                    await session.execute(
+                        insert_query, 
+                        {"user_id": str(user_id), "industry_id": int(ind_id)}
+                    )
+            
+            await session.commit()
+            return await ProfileRepository.get_user_profile_by_id(user_id, session)
+        except Exception as e:
+            await session.rollback()
+            raise
+
+

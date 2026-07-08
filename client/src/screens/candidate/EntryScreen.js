@@ -747,7 +747,6 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                       <Typography variant="caption" sx={{ color: "#FFF", fontWeight: 600, display: "block", mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mailing Address</Typography>
                       <Typography variant="body2" sx={{ color: "#94A3B8", lineHeight: 1.5 }}>
                         THANISH AI INNOVATIONS (OPC) PRIVATE LIMITED<br />
-                        C/O R SATHYAPREMA, SRI LAKSHMI VENKATESHWAR, Krishnarajapuram, Bangalore North, Bangalore- 560036, Karnataka
                       </Typography>
                     </Box>
                     <Box>
@@ -761,7 +760,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                 <Grid item xs={12} sm={3}>
                   <Typography variant="subtitle2" sx={{ color: "#FFF", fontWeight: 700, mb: 3 }}>Follow Us</Typography>
                   <Stack direction="row" spacing={2}>
-                    <IconButton 
+                    <IconButton
                       component="a"
                       href="https://www.linkedin.com/company/rightnxt"
                       target="_blank"

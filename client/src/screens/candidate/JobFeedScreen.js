@@ -16,6 +16,7 @@ import JobFilters from "../../components/jobs/JobFilters";
 import { useSelector } from "react-redux";
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
 import { recordJobView } from "../../api/profileAPI";
+import IndustriesBanner from "./components/IndustriesBanner";
 
 // Utility function to convert strings to title case
 const titleCase = (str) => {
@@ -54,6 +55,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
     hideViewed: false,
   });
   const profile = useSelector((state) => state.UserReducer);
+  const hasNoIndustries = !profile?.user_industries || profile.user_industries.length === 0;
 
   // Touch handling for swipe
   const touchStartX = useRef(0);
@@ -273,78 +275,85 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
     }
 
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 2, px: 4, textAlign: 'center' }}>
-        <Typography sx={{ fontSize: '3rem' }}>{filteredJobs.length === 0 && activeFilterCount > 0 ? '🔍' : '✨'}</Typography>
-        <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#0f172a', mb: 0.5 }}>
-          {filteredJobs.length === 0 && activeFilterCount > 0 ? 'No matches found' : "You're all caught up!"}
-        </Typography>
-        <Typography sx={{ color: '#64748b', fontSize: '1rem', maxWidth: 400, mb: 2, lineHeight: 1.6 }}>
-          {filteredJobs.length === 0 && activeFilterCount > 0
-            ? 'Try adjusting your filters or clearing them to see more opportunities.'
-            : 'We couldn\'t find any more jobs matching your current profile. Update your details to get better recommendations.'}
-        </Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)', overflow: 'hidden' }}>
+        {hasNoIndustries && (
+          <Box sx={{ p: 2, borderBottom: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+            <IndustriesBanner autoNavigate={true} onNavigate={onViewProfile} />
+          </Box>
+        )}
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 2, px: 4, textAlign: 'center' }}>
+          <Typography sx={{ fontSize: '3rem' }}>{filteredJobs.length === 0 && activeFilterCount > 0 ? '🔍' : '✨'}</Typography>
+          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#0f172a', mb: 0.5 }}>
+            {filteredJobs.length === 0 && activeFilterCount > 0 ? 'No matches found' : "You're all caught up!"}
+          </Typography>
+          <Typography sx={{ color: '#64748b', fontSize: '1rem', maxWidth: 400, mb: 2, lineHeight: 1.6 }}>
+            {filteredJobs.length === 0 && activeFilterCount > 0
+              ? 'Try adjusting your filters or clearing them to see more opportunities.'
+              : 'We couldn\'t find any more jobs matching your current profile. Update your details to get better recommendations.'}
+          </Typography>
 
-        <Stack spacing={2} sx={{ width: '100%', maxWidth: 280 }}>
-          {activeFilterCount > 0 ? (
+          <Stack spacing={2} sx={{ width: '100%', maxWidth: 280 }}>
+            {activeFilterCount > 0 ? (
+              <Button
+                variant="contained"
+                onClick={() => setFilters({
+                  locations: [],
+                  types: [],
+                  workModes: [],
+                  experiences: [],
+                  departments: [],
+                  salaryRange: null,
+                  matchScore: 0,
+                  hideViewed: false,
+                })}
+                sx={{
+                  py: 1.5,
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  '&:hover': { background: 'linear-gradient(135deg, #4f46e5, #4338ca)' }
+                }}
+              >
+                Clear All Filters
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={onViewProfile}
+                sx={{
+                  py: 1.5,
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  '&:hover': { background: 'linear-gradient(135deg, #4f46e5, #4338ca)' }
+                }}
+              >
+                Update My Profile
+              </Button>
+            )}
+
             <Button
-              variant="contained"
-              onClick={() => setFilters({
-                locations: [],
-                types: [],
-                workModes: [],
-                experiences: [],
-                departments: [],
-                salaryRange: null,
-                matchScore: 0,
-                hideViewed: false,
-              })}
+              variant="outlined"
+              onClick={onGoBack}
+              startIcon={<ArrowBackIcon />}
               sx={{
                 py: 1.5,
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
+                borderColor: '#e2e8f0',
+                color: '#475569',
                 textTransform: 'none',
-                fontWeight: 700,
-                '&:hover': { background: 'linear-gradient(135deg, #4f46e5, #4338ca)' }
+                fontWeight: 600,
+                '&:hover': { borderColor: '#cbd5e1', bgcolor: '#f8fafc' }
               }}
             >
-              Clear All Filters
+              Back to Search
             </Button>
-          ) : (
-            <Button
-              variant="contained"
-              onClick={onViewProfile}
-              sx={{
-                py: 1.5,
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
-                textTransform: 'none',
-                fontWeight: 700,
-                '&:hover': { background: 'linear-gradient(135deg, #4f46e5, #4338ca)' }
-              }}
-            >
-              Update My Profile
-            </Button>
-          )}
-
-          <Button
-            variant="outlined"
-            onClick={onGoBack}
-            startIcon={<ArrowBackIcon />}
-            sx={{
-              py: 1.5,
-              borderRadius: '12px',
-              borderColor: '#e2e8f0',
-              color: '#475569',
-              textTransform: 'none',
-              fontWeight: 600,
-              '&:hover': { borderColor: '#cbd5e1', bgcolor: '#f8fafc' }
-            }}
-          >
-            Back to Search
-          </Button>
-        </Stack>
+          </Stack>
+        </Box>
       </Box>
     );
   }
@@ -392,6 +401,11 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
 
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)', position: 'relative', overflow: 'hidden' }}>
+        {hasNoIndustries && (
+          <Box sx={{ p: 2, borderBottom: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+            <IndustriesBanner autoNavigate={true} onNavigate={onViewProfile} />
+          </Box>
+        )}
         {/* Mobile Filter Header */}
         <Box sx={{
           p: 2,
@@ -547,125 +561,132 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
   }
 
   return (
-    <Box sx={{ display: 'flex', height: 'calc(100vh - 64px)', overflow: 'hidden' }}>
-      <Box sx={{ width: 340, flexShrink: 0, borderRight: '1px solid #e2e8f0', bgcolor: '#f8fafc', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <Box sx={{ p: 2.5, borderBottom: '1px solid #e2e8f0', bgcolor: '#fff' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>
-              {filteredJobs.length === 0 ? 'No matches' : 'Recommended'}
-              <Box component="span" sx={{ ml: 1, px: 1, py: 0.25, bgcolor: '#ede9fe', color: '#4f46e5', borderRadius: 100, fontSize: '0.72rem', fontWeight: 700 }}>{filteredJobs.length}</Box>
-            </Typography>
-            <Stack direction="row" spacing={1}>
-              <Tooltip title="AI Career Coach">
-                <IconButton size="small" onClick={() => setShowCoach(true)} sx={{ color: '#6366f1', bgcolor: '#f5f3ff', border: '1px solid #c4b5fd', '&:hover': { bgcolor: '#ede9fe' } }}>
-                  <AutoAwesomeIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Filters">
-                <Badge badgeContent={activeFilterCount > 0 ? activeFilterCount : 0} color="error">
-                  <IconButton size="small" onClick={() => setShowFilters(true)} sx={{ color: '#64748b', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', '&:hover': { bgcolor: '#f1f5f9' } }}>
-                    <TuneIcon fontSize="small" />
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)' }}>
+      {hasNoIndustries && (
+        <Box sx={{ p: 2, borderBottom: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+          <IndustriesBanner autoNavigate={true} onNavigate={onViewProfile} />
+        </Box>
+      )}
+      <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        <Box sx={{ width: 340, flexShrink: 0, borderRight: '1px solid #e2e8f0', bgcolor: '#f8fafc', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <Box sx={{ p: 2.5, borderBottom: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>
+                {filteredJobs.length === 0 ? 'No matches' : 'Recommended'}
+                <Box component="span" sx={{ ml: 1, px: 1, py: 0.25, bgcolor: '#ede9fe', color: '#4f46e5', borderRadius: 100, fontSize: '0.72rem', fontWeight: 700 }}>{filteredJobs.length}</Box>
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                <Tooltip title="AI Career Coach">
+                  <IconButton size="small" onClick={() => setShowCoach(true)} sx={{ color: '#6366f1', bgcolor: '#f5f3ff', border: '1px solid #c4b5fd', '&:hover': { bgcolor: '#ede9fe' } }}>
+                    <AutoAwesomeIcon fontSize="small" />
                   </IconButton>
-                </Badge>
-              </Tooltip>
+                </Tooltip>
+                <Tooltip title="Filters">
+                  <Badge badgeContent={activeFilterCount > 0 ? activeFilterCount : 0} color="error">
+                    <IconButton size="small" onClick={() => setShowFilters(true)} sx={{ color: '#64748b', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', '&:hover': { bgcolor: '#f1f5f9' } }}>
+                      <TuneIcon fontSize="small" />
+                    </IconButton>
+                  </Badge>
+                </Tooltip>
+              </Stack>
+            </Box>
+            <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
+              {['all', 'remote', '90%+'].map((f) => (
+                <Chip key={f} label={f === 'all' ? 'All Jobs' : f === 'remote' ? '🌐 Remote' : '⚡ 90%+ Match'} size="small" onClick={() => {
+                  if (f === 'all') {
+                    setFilters({
+                      locations: [],
+                      types: [],
+                      workModes: [],
+                      experiences: [],
+                      departments: [],
+                      salaryRange: null,
+                      matchScore: 0,
+                      hideViewed: false,
+                    });
+                  } else if (f === 'remote') {
+                    setFilters(prev => ({
+                      ...prev,
+                      workModes: prev.workModes.includes('Remote') ? [] : ['Remote']
+                    }));
+                  } else if (f === '90%+') {
+                    setFilters(prev => ({
+                      ...prev,
+                      matchScore: prev.matchScore === 90 ? 0 : 90
+                    }));
+                  }
+                }}
+                  sx={{ cursor: 'pointer', flexShrink: 0, bgcolor: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#ede9fe' : '#f8fafc', color: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#4f46e5' : '#64748b', border: `1px solid ${(f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#c4b5fd' : '#e2e8f0'}`, fontWeight: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? 600 : 400, '&:hover': { bgcolor: '#ede9fe' } }} />
+              ))}
+              {jobs.some(j => j.is_viewed) && (
+                <Chip
+                  label="👁️ Hide Viewed"
+                  size="small"
+                  onClick={() => setFilters(prev => ({ ...prev, hideViewed: !prev.hideViewed }))}
+                  sx={{
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    bgcolor: filters.hideViewed ? '#ede9fe' : '#f8fafc',
+                    color: filters.hideViewed ? '#4f46e5' : '#64748b',
+                    border: `1px solid ${filters.hideViewed ? '#c4b5fd' : '#e2e8f0'}`,
+                    fontWeight: filters.hideViewed ? 600 : 400,
+                    '&:hover': { bgcolor: '#ede9fe' }
+                  }}
+                />
+              )}
             </Stack>
           </Box>
-          <Stack direction="row" spacing={0.75} sx={{ overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' } }}>
-            {['all', 'remote', '90%+'].map((f) => (
-              <Chip key={f} label={f === 'all' ? 'All Jobs' : f === 'remote' ? '🌐 Remote' : '⚡ 90%+ Match'} size="small" onClick={() => {
-                if (f === 'all') {
-                  setFilters({
-                    locations: [],
-                    types: [],
-                    workModes: [],
-                    experiences: [],
-                    departments: [],
-                    salaryRange: null,
-                    matchScore: 0,
-                    hideViewed: false,
-                  });
-                } else if (f === 'remote') {
-                  setFilters(prev => ({
-                    ...prev,
-                    workModes: prev.workModes.includes('Remote') ? [] : ['Remote']
-                  }));
-                } else if (f === '90%+') {
-                  setFilters(prev => ({
-                    ...prev,
-                    matchScore: prev.matchScore === 90 ? 0 : 90
-                  }));
-                }
-              }}
-                sx={{ cursor: 'pointer', flexShrink: 0, bgcolor: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#ede9fe' : '#f8fafc', color: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#4f46e5' : '#64748b', border: `1px solid ${(f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#c4b5fd' : '#e2e8f0'}`, fontWeight: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? 600 : 400, '&:hover': { bgcolor: '#ede9fe' } }} />
-            ))}
-            {jobs.some(j => j.is_viewed) && (
-              <Chip
-                label="👁️ Hide Viewed"
-                size="small"
-                onClick={() => setFilters(prev => ({ ...prev, hideViewed: !prev.hideViewed }))}
-                sx={{
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  bgcolor: filters.hideViewed ? '#ede9fe' : '#f8fafc',
-                  color: filters.hideViewed ? '#4f46e5' : '#64748b',
-                  border: `1px solid ${filters.hideViewed ? '#c4b5fd' : '#e2e8f0'}`,
-                  fontWeight: filters.hideViewed ? 600 : 400,
-                  '&:hover': { bgcolor: '#ede9fe' }
-                }}
-              />
+          <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5, display: 'flex', flexDirection: 'column', gap: 1, '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: 100 } }}>
+            {filteredJobs.length === 0 ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                <Typography sx={{ color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center' }}>No jobs match your filters</Typography>
+              </Box>
+            ) : (
+              filteredJobs.map((job) => (
+                <JobListItem key={job.id} job={job} isSelected={selectedDesktopJob?.id === job.id} onClick={() => setSelectedDesktopJob(job)} />
+              ))
             )}
-          </Stack>
+          </Box>
         </Box>
-        <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5, display: 'flex', flexDirection: 'column', gap: 1, '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: 100 } }}>
-          {filteredJobs.length === 0 ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-              <Typography sx={{ color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center' }}>No jobs match your filters</Typography>
-            </Box>
+
+        {/* Filters Drawer for Desktop */}
+        <Drawer
+          anchor="right"
+          open={showFilters}
+          onClose={() => setShowFilters(false)}
+          PaperProps={{ sx: { width: { xs: '100vw', sm: 420 }, borderLeft: '1px solid #e2e8f0', boxShadow: '-4px 0 20px rgba(0,0,0,0.05)' } }}
+        >
+          <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0' }}>
+            <Typography sx={{ fontWeight: 700, color: '#0f172a' }}>Job Filters</Typography>
+            <IconButton onClick={() => setShowFilters(false)} size="small"><CloseIcon /></IconButton>
+          </Box>
+          <Box sx={{ p: 2, overflowY: 'auto', maxHeight: 'calc(100vh - 120px)' }}>
+            <JobFilters jobs={jobs} filters={filters} onFiltersChange={setFilters} compact={true} />
+          </Box>
+        </Drawer>
+
+        <Box sx={{ flex: 1, overflowY: 'auto', bgcolor: '#fff', '&::-webkit-scrollbar': { width: 6 }, '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: 100 } }}>
+          {selectedDesktopJob ? (
+            <JobDetailScreen job={selectedDesktopJob} isEmbedded savedJobs={savedJobs} onToggleSave={toggleSave} />
           ) : (
-            filteredJobs.map((job) => (
-              <JobListItem key={job.id} job={job} isSelected={selectedDesktopJob?.id === job.id} onClick={() => setSelectedDesktopJob(job)} />
-            ))
+            <Box sx={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}><Typography sx={{ color: '#94a3b8', fontSize: '0.9rem' }}>Select a job to view details</Typography></Box>
           )}
         </Box>
+
+        {/* AI Career Coach Drawer */}
+        <Drawer
+          anchor="right"
+          open={showCoach}
+          onClose={() => setShowCoach(false)}
+          PaperProps={{ sx: { width: { xs: '100vw', sm: 400 }, borderLeft: '1px solid #e2e8f0', boxShadow: '-4px 0 20px rgba(0,0,0,0.05)' } }}
+        >
+          <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0' }}>
+            <Typography sx={{ fontWeight: 700, color: '#0f172a' }}>AI Career Assistant</Typography>
+            <IconButton onClick={() => setShowCoach(false)} size="small"><CloseIcon /></IconButton>
+          </Box>
+          <CareerCoach profile={profile} />
+        </Drawer>
       </Box>
-
-      {/* Filters Drawer for Desktop */}
-      <Drawer
-        anchor="right"
-        open={showFilters}
-        onClose={() => setShowFilters(false)}
-        PaperProps={{ sx: { width: { xs: '100vw', sm: 420 }, borderLeft: '1px solid #e2e8f0', boxShadow: '-4px 0 20px rgba(0,0,0,0.05)' } }}
-      >
-        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0' }}>
-          <Typography sx={{ fontWeight: 700, color: '#0f172a' }}>Job Filters</Typography>
-          <IconButton onClick={() => setShowFilters(false)} size="small"><CloseIcon /></IconButton>
-        </Box>
-        <Box sx={{ p: 2, overflowY: 'auto', maxHeight: 'calc(100vh - 120px)' }}>
-          <JobFilters jobs={jobs} filters={filters} onFiltersChange={setFilters} compact={true} />
-        </Box>
-      </Drawer>
-
-      <Box sx={{ flex: 1, overflowY: 'auto', bgcolor: '#fff', '&::-webkit-scrollbar': { width: 6 }, '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: 100 } }}>
-        {selectedDesktopJob ? (
-          <JobDetailScreen job={selectedDesktopJob} isEmbedded savedJobs={savedJobs} onToggleSave={toggleSave} />
-        ) : (
-          <Box sx={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}><Typography sx={{ color: '#94a3b8', fontSize: '0.9rem' }}>Select a job to view details</Typography></Box>
-        )}
-      </Box>
-
-      {/* AI Career Coach Drawer */}
-      <Drawer
-        anchor="right"
-        open={showCoach}
-        onClose={() => setShowCoach(false)}
-        PaperProps={{ sx: { width: { xs: '100vw', sm: 400 }, borderLeft: '1px solid #e2e8f0', boxShadow: '-4px 0 20px rgba(0,0,0,0.05)' } }}
-      >
-        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0' }}>
-          <Typography sx={{ fontWeight: 700, color: '#0f172a' }}>AI Career Assistant</Typography>
-          <IconButton onClick={() => setShowCoach(false)} size="small"><CloseIcon /></IconButton>
-        </Box>
-        <CareerCoach profile={profile} />
-      </Drawer>
     </Box>
   );
 };

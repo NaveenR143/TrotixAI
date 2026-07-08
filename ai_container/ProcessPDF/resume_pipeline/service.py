@@ -208,6 +208,29 @@ class ResumeProcessor:
                         }
                     )
 
+            # If any matched industry is software-related, ensure IT and IT & Services are also included
+            has_software = any("software" in res["name"].lower() for res in results)
+            if has_software:
+                # Find the score of the software industry to assign to IT/IT & Services
+                software_score = max(
+                    [res["score"] for res in results if "software" in res["name"].lower()],
+                    default=0.3
+                )
+                
+                existing_ids = {res["id"] for res in results}
+                for ind in _INDUSTRIES_CACHE:
+                    name_lower = ind["name"].lower()
+                    if "it services" in name_lower:
+                        if ind["id"] not in existing_ids:
+                            results.append(
+                                {
+                                    "id": ind["id"],
+                                    "name": ind["name"],
+                                    "score": software_score,
+                                }
+                            )
+                            existing_ids.add(ind["id"])
+
             return results
         except Exception as e:
             LOGGER.error(f"Error determining industries: {e}")

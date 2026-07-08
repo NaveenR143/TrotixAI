@@ -2,6 +2,7 @@ import React from "react";
 import "./template2.css";
 import DescriptionRenderer from "./descriptionRenderer";
 import PersonalDetailsGrid from "./personalDetailsGrid";
+import { getSpacingStyle } from "./spacingHelper";
 
 export default function Template2({ data }) {
     if (!data) return null;
@@ -13,7 +14,8 @@ export default function Template2({ data }) {
         skills,
         languages,
         projects,
-        references
+        references,
+        spacingConfig
     } = data;
 
     const user = personalDetails || {};
@@ -70,7 +72,7 @@ export default function Template2({ data }) {
 
                     {/* Education */}
                     {education && education.length > 0 && (
-                        <div className="t2-sidebar-section">
+                        <div className="t2-sidebar-section" style={getSpacingStyle(spacingConfig, 'education')}>
                             <div className="t2-sidebar-heading">Education</div>
                             {education.map((edu, i) => (
                                 <div key={i} className="t2-edu-block">
@@ -84,7 +86,7 @@ export default function Template2({ data }) {
 
                     {/* Skills */}
                     {skills && skills.length > 0 && (
-                        <div className="t2-sidebar-section">
+                        <div className="t2-sidebar-section" style={getSpacingStyle(spacingConfig, 'skills')}>
                             <div className="t2-sidebar-heading">Skills</div>
                             {skills.map((skill, i) => (
                                 <div key={i} className="t2-skill-item">
@@ -99,7 +101,7 @@ export default function Template2({ data }) {
 
                     {/* Languages */}
                     {languages && languages.length > 0 && (
-                        <div className="t2-sidebar-section">
+                        <div className="t2-sidebar-section" style={getSpacingStyle(spacingConfig, 'languages')}>
                             <div className="t2-sidebar-heading">Languages</div>
                             {languages.map((lang, i) => (
                                 <div key={i} className="t2-lang-item">
@@ -114,14 +116,14 @@ export default function Template2({ data }) {
                 {/* RIGHT MAIN */}
                 <div className="t2-main-content">
                     {/* Header */}
-                    <div className="t2-main-header">
+                    <div className="t2-main-header" style={getSpacingStyle(spacingConfig, 'header')}>
                         <div className="t2-main-name">{user.fullName || "Your Name"}</div>
                         <div className="t2-main-jobtitle">{user.headline}</div>
                     </div>
 
                     {/* Profile */}
                     {user.summary && (
-                        <div className="t2-main-section">
+                        <div className="t2-main-section" style={getSpacingStyle(spacingConfig, 'summary')}>
                             <div className="t2-section-heading">Profile</div>
                             <p className="t2-profile-text">{user.summary}</p>
                         </div>
@@ -129,7 +131,7 @@ export default function Template2({ data }) {
 
                     {/* Work Experience */}
                     {experience && experience.length > 0 && (
-                        <div className="t2-main-section">
+                        <div className="t2-main-section" style={getSpacingStyle(spacingConfig, 'experience')}>
                             <div className="t2-section-heading">Work Experience</div>
                             {experience.map((exp, i) => (
                                 <div key={i} className="t2-exp-block">
@@ -148,7 +150,7 @@ export default function Template2({ data }) {
 
                     {/* Projects */}
                     {projects && projects.length > 0 && (
-                        <div className="t2-main-section">
+                        <div className="t2-main-section" style={getSpacingStyle(spacingConfig, 'projects')}>
                             <div className="t2-section-heading">Key Projects</div>
                             {projects.map((proj, i) => (
                                 <div key={i} className="t2-exp-block">
@@ -165,7 +167,7 @@ export default function Template2({ data }) {
 
                     {/* References */}
                     {references && references.length > 0 && (
-                        <div className="t2-main-section">
+                        <div className="t2-main-section" style={getSpacingStyle(spacingConfig, 'references')}>
                             <div className="t2-section-heading">References</div>
                             <div className="t2-ref-grid">
                                 {references.map((ref, i) => (
@@ -184,7 +186,7 @@ export default function Template2({ data }) {
                     )}
 
                     {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
-                        <div className="t2-main-section">
+                        <div className="t2-main-section" style={getSpacingStyle(spacingConfig, 'personalDetails')}>
                             <div className="t2-section-heading">Personal Details</div>
                             <PersonalDetailsGrid user={user} />
                         </div>

@@ -3,11 +3,13 @@ import {
   Box, Grid, Stepper, Step, StepLabel, Button, Typography, Paper,
   Container, Divider, Stack, Slider, IconButton, useTheme, useMediaQuery,
   Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert, Chip,
+  Accordion, AccordionSummary, AccordionDetails, Select, MenuItem, FormControl, InputLabel
 } from "@mui/material";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CircularProgress from "@mui/material/CircularProgress";
 import CreditIcon from "@mui/icons-material/CardGiftcard";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -15,7 +17,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import ProfileReviewBanner from "../candidate/components/ProfileReviewBanner";
 import { useReactToPrint } from "react-to-print";
-import { fetchAndStoreProfile } from "../../redux/profile/ProfileAction";
+import { fetchAndStoreProfile, updateProfileData } from "../../redux/profile/ProfileAction";
 import { updateUserProfile } from "../../redux/user/Action";
 import * as profileAPI from "../../api/profileAPI";
 import InsufficientCreditsDialog from "../candidate/components/dialogs/InsufficientCreditsDialog";
@@ -134,6 +136,42 @@ const ResumeBuilderScreen = () => {
     if (!profile?.id) fetchUserProfileData();
   }, [dispatch, profile, user?.mobile]);
 
+  // ── Spacing config load & save ──────────────────────────────────────────
+  useEffect(() => {
+    if (profile?.id) {
+      const storageKey = `resume_spacing_${userid || "default"}_${templateId}`;
+      const savedSpacing = JSON.parse(localStorage.getItem(storageKey) || "{}");
+      dispatch(updateProfileData({
+        spacingConfig: savedSpacing
+      }));
+    }
+  }, [profile?.id, templateId, userid, dispatch]);
+
+  const handleSpacingChange = (blockKey, val) => {
+    const currentConfig = profile?.spacingConfig || {};
+    const newConfig = {
+      ...currentConfig,
+      [blockKey]: val
+    };
+    dispatch(updateProfileData({
+      spacingConfig: newConfig
+    }));
+    const storageKey = `resume_spacing_${userid || "default"}_${templateId}`;
+    localStorage.setItem(storageKey, JSON.stringify(newConfig));
+  };
+
+  const spacingBlocks = [
+    { key: "header", label: "Header" },
+    { key: "summary", label: "Professional Summary" },
+    { key: "experience", label: "Work Experience" },
+    { key: "projects", label: "Key Projects" },
+    { key: "education", label: "Education" },
+    { key: "skills", label: "Skills" },
+    { key: "languages", label: "Languages" },
+    { key: "references", label: "References" },
+    { key: "personalDetails", label: "Personal Details" },
+  ];
+
   // ── Step helpers ────────────────────────────────────────────────────────
   const handleNext = () => setActiveStep((p) => p + 1);
   const handleBack = () => setActiveStep((p) => p - 1);
@@ -222,11 +260,11 @@ const ResumeBuilderScreen = () => {
       });
 
       const imgData = canvas.toDataURL("image/jpeg", 0.8);
-      
+
       if (i > 0) {
         pdf.addPage();
       }
-      
+
       pdf.addImage(imgData, "JPEG", 0, 0, 210, 297, undefined, 'FAST');
     }
 
@@ -308,6 +346,48 @@ const ResumeBuilderScreen = () => {
               <Typography variant="body2" sx={{ color: "text.secondary", mb: 4 }}>
                 Fill in your details below. Your preview updates in real time.
               </Typography>
+
+              {/* Spacing Controls accordion */}
+              {/* <Accordion 
+                sx={{ 
+                  mb: 4, 
+                  borderRadius: "12px !important", 
+                  border: "1px solid #e2e8f0", 
+                  boxShadow: "none", 
+                  "&:before": { display: "none" },
+                  overflow: "hidden"
+                }}
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "text.primary" }}>
+                    ↕ Page & Section Spacing
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ bgcolor: "#f8fafc", borderTop: "1px solid #e2e8f0", p: 3 }}>
+                  <Grid container spacing={2}>
+                    {spacingBlocks.map((block) => (
+                      <Grid item xs={12} sm={4} key={block.key}>
+                        <FormControl fullWidth size="small">
+                          <InputLabel id={`spacing-label-${block.key}`}>{block.label}</InputLabel>
+                          <Select
+                            labelId={`spacing-label-${block.key}`}
+                            label={block.label}
+                            value={profile?.spacingConfig?.[block.key] ?? 0}
+                            onChange={(e) => handleSpacingChange(block.key, e.target.value)}
+                            sx={{ bgcolor: "#fff", borderRadius: 2 }}
+                          >
+                            {[0, 1, 2, 3, 4, 5].map((val) => (
+                              <MenuItem key={val} value={val}>
+                                {val} ({val * 5}px)
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </AccordionDetails>
+              </Accordion> */}
 
               <Stepper
                 activeStep={activeStep}
@@ -593,7 +673,7 @@ const ResumeBuilderScreen = () => {
           - NO transform/scale — always captured at true 1:1 A4 size
           - pagesRef attached here — react-to-print reads from this container
       ──────────────────────────────────────────────────────────────────── */}
-      <div 
+      <div
         id="pdf-export-container"
         style={{
           position: "fixed",

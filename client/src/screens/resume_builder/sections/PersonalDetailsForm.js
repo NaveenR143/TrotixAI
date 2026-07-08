@@ -44,13 +44,14 @@ const PersonalDetailsForm = () => {
           />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Phone"
-            name="phone"
-            value={personalDetails.phone || ""}
-            onChange={handleChange}
-          />
+          <Stack justifyContent="center" sx={{ minHeight: 56 }}>
+            <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600 }}>
+              Phone
+            </Typography>
+            <Typography variant="body1" sx={{ color: "text.primary", mt: 0.5 }}>
+              {personalDetails.phone || "—"}
+            </Typography>
+          </Stack>
         </Grid>
         <Grid item xs={12} sm={6}>
           <TextField

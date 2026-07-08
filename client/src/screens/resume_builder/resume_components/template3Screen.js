@@ -2,19 +2,20 @@ import React from "react";
 import "./template3.css";
 import DescriptionRenderer from "./descriptionRenderer";
 import PersonalDetailsGrid from "./personalDetailsGrid";
+import { getSpacingStyle } from "./spacingHelper";
 
 export default function Template3({ data }) {
     if (!data) return null;
 
     // Mapping from Redux state structure
-    const { personalDetails, education, experience, skills, languages, projects } = data;
+    const { personalDetails, education, experience, skills, languages, projects, references, spacingConfig } = data;
     const user = personalDetails || {};
 
     return (
         <div className="t3-resume-container">
             <div className="t3-resume">
                 {/* COLORED HEADER */}
-                <header className="t3-header">
+                <header className="t3-header" style={getSpacingStyle(spacingConfig, 'header')}>
                     <h1>{user.fullName || "Your Name"}</h1>
                     <div className="t3-job-title">{user.headline} </div>
                     <div className="t3-contact-info">
@@ -31,7 +32,7 @@ export default function Template3({ data }) {
                 <div className="t3-content">
                     {/* PROFESSIONAL SUMMARY */}
                     {user.summary && (
-                        <div className="t3-section">
+                        <div className="t3-section" style={getSpacingStyle(spacingConfig, 'summary')}>
                             <div className="t3-section-title">Professional Summary</div>
                             <p className="t3-summary-text">{user.summary}</p>
                         </div>
@@ -39,7 +40,7 @@ export default function Template3({ data }) {
 
                     {/* CORE COMPETENCIES (SKILLS) */}
                     {skills && skills.length > 0 && (
-                        <div className="t3-section">
+                        <div className="t3-section" style={getSpacingStyle(spacingConfig, 'skills')}>
                             <div className="t3-section-title">Core Competencies</div>
                             <div className="t3-skills-grid">
                                 {skills.map((skill, i) => (
@@ -53,7 +54,7 @@ export default function Template3({ data }) {
 
                     {/* PROFESSIONAL EXPERIENCE */}
                     {experience && experience.length > 0 && (
-                        <div className="t3-section">
+                        <div className="t3-section" style={getSpacingStyle(spacingConfig, 'experience')}>
                             <div className="t3-section-title">Professional Experience</div>
                             {experience.map((exp, i) => (
                                 <div key={i} className="t3-exp-item">
@@ -72,7 +73,7 @@ export default function Template3({ data }) {
 
                     {/* PROJECTS */}
                     {projects && projects.length > 0 && (
-                        <div className="t3-section">
+                        <div className="t3-section" style={getSpacingStyle(spacingConfig, 'projects')}>
                             <div className="t3-section-title">Key Projects</div>
                             {projects.map((proj, i) => (
                                 <div key={i} className="t3-proj-item">
@@ -93,7 +94,7 @@ export default function Template3({ data }) {
 
                     {/* EDUCATION */}
                     {education && education.length > 0 && (
-                        <div className="t3-section">
+                        <div className="t3-section" style={getSpacingStyle(spacingConfig, 'education')}>
                             <div className="t3-section-title">Education</div>
                             {education.map((edu, i) => (
                                 <div key={i} className="t3-edu-item">
@@ -109,7 +110,7 @@ export default function Template3({ data }) {
 
                     {/* LANGUAGES */}
                     {languages && languages.length > 0 && (
-                        <div className="t3-section" >
+                        <div className="t3-section" style={getSpacingStyle(spacingConfig, 'languages')}>
                             <div className="t3-section-title">Languages</div>
                             <div className="t3-languages">
                                 {languages.map((lang, i) => (
@@ -122,7 +123,7 @@ export default function Template3({ data }) {
                     )}
 
                     {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
-                        <div className="t3-section" style={{ marginBottom: 0 }}>
+                        <div className="t3-section" style={getSpacingStyle(spacingConfig, 'personalDetails')}>
                             <div className="t3-section-title">Personal Details</div>
                             <PersonalDetailsGrid user={user} />
                         </div>

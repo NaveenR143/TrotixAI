@@ -33,6 +33,7 @@ from ai.models.profile_models import (
     DropdownResponse,
     ManualProfileSubmission,
     SummaryUpdate,
+    IndustriesUpdate,
 )
 from ai.models.career_models import (
     CareerAdvisorResponse,
@@ -1089,6 +1090,78 @@ async def get_languages_dropdown(
     except Exception as e:
         logger.error(
             f"Error fetching languages dropdown: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail=f"Internal error: {str(e)}")
+
+
+@router.get(
+    "/dropdowns/industries",
+    response_model=DropdownResponse,
+    responses={500: {"model": ProfileErrorResponse}},
+    summary="Get Industries Dropdown",
+    description="Fetch all available industries for dropdown selection",
+)
+async def get_industries_dropdown(
+    search: str = Query(None, description="Search term for industries"),
+    limit: int = Query(100, description="Maximum number of results"),
+    session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+) -> DropdownResponse:
+    try:
+        logger.info(
+            f"Fetching industries dropdown (search: {search}, limit: {limit})")
+
+        industries = await ProfileRepository.get_industries_dropdown(
+            session, search=search, limit=limit
+        )
+
+        return DropdownResponse(status="success", data=industries)
+
+    except Exception as e:
+        logger.error(
+            f"Error fetching industries dropdown: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail=f"Internal error: {str(e)}")
+
+
+@router.put(
+    "/update/industries/{user_id}",
+    response_model=BlockUpdateResponse,
+    responses={
+        400: {"model": ProfileErrorResponse},
+        404: {"model": ProfileErrorResponse},
+        500: {"model": ProfileErrorResponse},
+    },
+    summary="Update User Industries",
+    description="Update user selected industries",
+)
+async def update_user_industries(
+    user_id: UUID,
+    industries_data: IndustriesUpdate,
+    session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+) -> BlockUpdateResponse:
+    try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
+        logger.info(f"Updating industries for user: {user_id}")
+
+        updated_profile = await ProfileRepository.update_user_industries(
+            user_id, industries_data.industry_ids, session
+        )
+
+        return BlockUpdateResponse(
+            status="success",
+            message="Industries updated successfully",
+            data=updated_profile,
+        )
+
+    except Exception as e:
+        logger.error(
+            f"Error updating industries: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500, detail=f"Internal error: {str(e)}")
 

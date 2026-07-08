@@ -153,7 +153,7 @@ const ProcessingScreen = ({ onComplete }) => {
           setTimeout(() => handleContinue(), 1500);
         }
       }, 500);
-    } else if (newStatus === "failed") {
+    } else if (newStatus === "incomplete") {
       const displayMessage = statusData.message === "Resume processing did not complete within 90 seconds"
         ? "Resume processing did not complete within 90 seconds. Please try to login after some time."
         : (statusData.message || "Resume processing failed or timed out.");

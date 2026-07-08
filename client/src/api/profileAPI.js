@@ -936,4 +936,53 @@ export const updateProfileViewed = async (userId) => {
   }
 };
 
+
+/**
+ * Fetch Industries Dropdown
+ */
+export const fetchIndustriesDropdown = async (search = "") => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}${API_ENDPOINTS.PROFILE}/dropdowns/industries`,
+      {
+        params: { search, limit: 100 },
+        headers: getHeaders(),
+        timeout: 10000
+      }
+    );
+
+    return {
+      error: false,
+      data: response.data?.data || [],
+      message: "Industries dropdown fetched successfully",
+    };
+  } catch (error) {
+    console.error("Error fetching industries dropdown:", error);
+    return handleError(error);
+  }
+};
+
+/**
+ * Update User Industries
+ */
+export const updateUserIndustries = async (userId, industryIds) => {
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}${API_ENDPOINTS.PROFILE}/update/industries/${userId}`,
+      { industry_ids: industryIds },
+      { headers: getHeaders(), timeout: 10000 }
+    );
+
+    return {
+      error: false,
+      data: response.data,
+      message: response.data?.message || "Industries updated successfully",
+    };
+  } catch (error) {
+    console.error("Error updating industries:", error);
+    return handleError(error);
+  }
+};
+
+
 

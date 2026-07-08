@@ -2,19 +2,20 @@ import React from "react";
 import "./template1.css";
 import DescriptionRenderer from "./descriptionRenderer";
 import PersonalDetailsGrid from "./personalDetailsGrid";
+import { getSpacingStyle } from "./spacingHelper";
 
 export default function Template1({ data }) {
     if (!data) return null;
 
     // Mapping from Redux state structure
-    const { personalDetails, education, experience, skills, languages, projects, references } = data;
+    const { personalDetails, education, experience, skills, languages, projects, references, spacingConfig } = data;
     const user = personalDetails || {};
 
     return (
         <div className="resume-container">
             <div className="resume-page">
                 {/* Header Section */}
-                <div className="header">
+                <div className="header" style={getSpacingStyle(spacingConfig, 'header')}>
                     <h1>{user.fullName || "Your Name"}</h1>
                     <h3>{user.headline}</h3>
                     <div className="header-divider"></div>
@@ -31,7 +32,7 @@ export default function Template1({ data }) {
                     {/* LEFT PANEL (Grey Background) */}
                     <div className="left">
                         {education && education.length > 0 && (
-                            <section className="section">
+                            <section className="section" style={getSpacingStyle(spacingConfig, 'education')}>
                                 <h4>EDUCATION:</h4>
                                 {education.map((edu, i) => (
                                     <div key={i} className="block">
@@ -44,7 +45,7 @@ export default function Template1({ data }) {
                         )}
 
                         {skills && skills.length > 0 && (
-                            <section className="section">
+                            <section className="section" style={getSpacingStyle(spacingConfig, 'skills')}>
                                 <h4>SKILLS:</h4>
                                 <ul className="skill-list">
                                     {skills.map((skill, i) => (
@@ -55,7 +56,7 @@ export default function Template1({ data }) {
                         )}
 
                         {languages && languages.length > 0 && (
-                            <section className="section">
+                            <section className="section" style={getSpacingStyle(spacingConfig, 'languages')}>
                                 <h4>LANGUAGE:</h4>
                                 <ul className="skill-list">
                                     {languages.map((lang, i) => (
@@ -69,7 +70,7 @@ export default function Template1({ data }) {
                     {/* RIGHT PANEL (White Background) */}
                     <div className="right">
                         {user.summary && (
-                            <section className="section">
+                            <section className="section" style={getSpacingStyle(spacingConfig, 'summary')}>
                                 <h4>SUMMARY:</h4>
                                 <p className="t2-profile-text" style={{ fontSize: '11px', textAlign: 'justify', lineHeight: 1.6 }}>
                                     {user.summary}
@@ -78,7 +79,7 @@ export default function Template1({ data }) {
                         )}
 
                         {experience && experience.length > 0 && (
-                            <section className="section">
+                            <section className="section" style={getSpacingStyle(spacingConfig, 'experience')}>
                                 <h4>EXPERIENCE:</h4>
                                 {experience.map((exp, i) => (
                                     <div key={i} className="block">
@@ -96,7 +97,7 @@ export default function Template1({ data }) {
                         )}
 
                         {projects && projects.length > 0 && (
-                            <section className="section">
+                            <section className="section" style={getSpacingStyle(spacingConfig, 'projects')}>
                                 <h4>PROJECTS:</h4>
                                 {projects.map((proj, i) => (
                                     <div key={i} className="block">
@@ -117,7 +118,7 @@ export default function Template1({ data }) {
 
                         {/* References Section (Design matching template) */}
                         {references && references.length > 0 && (
-                            <section className="section">
+                            <section className="section" style={getSpacingStyle(spacingConfig, 'references')}>
                                 <h4>REFERENCES:</h4>
                                 <div className="references-grid">
                                     {references.map((ref, i) => (
@@ -137,7 +138,7 @@ export default function Template1({ data }) {
                         )}
 
                         {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
-                            <section className="section">
+                            <section className="section" style={getSpacingStyle(spacingConfig, 'personalDetails')}>
                                 <h4>PERSONAL DETAILS:</h4>
                                 <PersonalDetailsGrid user={user} />
                             </section>

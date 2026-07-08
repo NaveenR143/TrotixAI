@@ -2,6 +2,7 @@ import React from "react";
 import "./template12.css";
 import DescriptionRenderer from "./descriptionRenderer";
 import PersonalDetailsGrid from "./personalDetailsGrid";
+import { getSpacingStyle } from "./spacingHelper";
 
 export default function Template12({ data }) {
     if (!data) return null;
@@ -13,7 +14,8 @@ export default function Template12({ data }) {
         skills,
         languages,
         projects,
-        references
+        references,
+        spacingConfig
     } = data;
 
     const user = personalDetails || {};
@@ -70,7 +72,7 @@ export default function Template12({ data }) {
 
                     {/* Education */}
                     {education && education.length > 0 && (
-                        <div className="t12-sidebar-section">
+                        <div className="t12-sidebar-section" style={getSpacingStyle(spacingConfig, 'education')}>
                             <div className="t12-sidebar-heading">Education</div>
                             {education.map((edu, i) => (
                                 <div key={i} className="t12-edu-block">
@@ -84,7 +86,7 @@ export default function Template12({ data }) {
 
                     {/* Skills */}
                     {skills && skills.length > 0 && (
-                        <div className="t12-sidebar-section">
+                        <div className="t12-sidebar-section" style={getSpacingStyle(spacingConfig, 'skills')}>
                             <div className="t12-sidebar-heading">Skills</div>
                             {skills.map((skill, i) => (
                                 <div key={i} className="t12-skill-item">
@@ -99,7 +101,7 @@ export default function Template12({ data }) {
 
                     {/* Languages */}
                     {languages && languages.length > 0 && (
-                        <div className="t12-sidebar-section">
+                        <div className="t12-sidebar-section" style={getSpacingStyle(spacingConfig, 'languages')}>
                             <div className="t12-sidebar-heading">Languages</div>
                             {languages.map((lang, i) => (
                                 <div key={i} className="t12-lang-item">
@@ -114,14 +116,14 @@ export default function Template12({ data }) {
                 {/* RIGHT MAIN */}
                 <div className="t12-main-content">
                     {/* Header */}
-                    <div className="t12-main-header">
+                    <div className="t12-main-header" style={getSpacingStyle(spacingConfig, 'header')}>
                         <div className="t12-main-name">{user.fullName || "Your Name"}</div>
                         <div className="t12-main-jobtitle">{user.headline} </div>
                     </div>
 
                     {/* Profile */}
                     {user.summary && (
-                        <div className="t12-main-section">
+                        <div className="t12-main-section" style={getSpacingStyle(spacingConfig, 'summary')}>
                             <div className="t12-section-heading">Profile</div>
                             <p className="t12-profile-text">{user.summary}</p>
                         </div>
@@ -129,7 +131,7 @@ export default function Template12({ data }) {
 
                     {/* Work Experience */}
                     {experience && experience.length > 0 && (
-                        <div className="t12-main-section">
+                        <div className="t12-main-section" style={getSpacingStyle(spacingConfig, 'experience')}>
                             <div className="t12-section-heading">Work Experience</div>
                             {experience.map((exp, i) => (
                                 <div key={i} className="t12-exp-block">
@@ -146,7 +148,7 @@ export default function Template12({ data }) {
 
                     {/* Projects */}
                     {projects && projects.length > 0 && (
-                        <div className="t12-main-section">
+                        <div className="t12-main-section" style={getSpacingStyle(spacingConfig, 'projects')}>
                             <div className="t12-section-heading">Key Projects</div>
                             {projects.map((proj, i) => (
                                 <div key={i} className="t12-exp-block">
@@ -161,7 +163,7 @@ export default function Template12({ data }) {
 
                     {/* References */}
                     {references && references.length > 0 && (
-                        <div className="t12-main-section">
+                        <div className="t12-main-section" style={getSpacingStyle(spacingConfig, 'references')}>
                             <div className="t12-section-heading">References</div>
                             <div className="t12-ref-grid">
                                 {references.map((ref, i) => (
@@ -180,7 +182,7 @@ export default function Template12({ data }) {
                     )}
 
                     {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
-                        <div className="t12-main-section">
+                        <div className="t12-main-section" style={getSpacingStyle(spacingConfig, 'personalDetails')}>
                             <div className="t12-section-heading">Personal Details</div>
                             <PersonalDetailsGrid user={user} />
                         </div>

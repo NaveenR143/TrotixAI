@@ -26,6 +26,7 @@ import { toTitleCase } from "./utils/profileUtils";
 // Sections
 import * as profileAPI from "../../api/profileAPI";
 import PersonalInformationSection from "./sections/PersonalInformationSection";
+import IndustriesSection from "./sections/IndustriesSection";
 import ProfilePhotoSection from "./sections/ProfilePhotoSection";
 import WorkExperienceSection from "./sections/WorkExperienceSection";
 import EducationSection from "./sections/EducationSection";
@@ -260,6 +261,12 @@ const UserProfile = () => {
             />
 
             {/* Profile Sections */}
+            <IndustriesSection
+              userId={userId}
+              profile={profile}
+              onSuccess={handleSuccess}
+            />
+
             <ProfilePhotoSection
               userId={userId}
               avatarUrl={profile?.avatarUrl}

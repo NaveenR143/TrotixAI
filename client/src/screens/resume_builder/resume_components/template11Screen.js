@@ -2,19 +2,20 @@ import React from "react";
 import "./template11.css";
 import DescriptionRenderer from "./descriptionRenderer";
 import PersonalDetailsGrid from "./personalDetailsGrid";
+import { getSpacingStyle } from "./spacingHelper";
 
 export default function Template11({ data }) {
     if (!data) return null;
 
     // Mapping from Redux state structure
-    const { personalDetails, education, experience, skills, languages, projects } = data;
+    const { personalDetails, education, experience, skills, languages, projects, references, spacingConfig } = data;
     const user = personalDetails || {};
 
     return (
         <div className="t11-resume-container">
             <div className="t11-resume">
                 {/* HEADER */}
-                <header className="t11-header">
+                <header className="t11-header" style={getSpacingStyle(spacingConfig, 'header')}>
                     <h1>{user.fullName || "Your Name"}</h1>
                     <div className="t11-job-title">{user.headline}</div>
                     <div className="t11-contact-info">
@@ -30,7 +31,7 @@ export default function Template11({ data }) {
 
                 {/* SUMMARY */}
                 {user.summary && (
-                    <div className="t11-section">
+                    <div className="t11-section" style={getSpacingStyle(spacingConfig, 'summary')}>
                         <div className="t11-section-title">Professional Summary</div>
                         <p className="t11-summary-text">{user.summary}</p>
                     </div>
@@ -38,7 +39,7 @@ export default function Template11({ data }) {
 
                 {/* SKILLS */}
                 {skills && skills.length > 0 && (
-                    <div className="t11-section">
+                    <div className="t11-section" style={getSpacingStyle(spacingConfig, 'skills')}>
                         <div className="t11-section-title">Core Competencies</div>
                         <div className="t11-skills-list">
                             {skills.map((skill, i) => (
@@ -52,7 +53,7 @@ export default function Template11({ data }) {
 
                 {/* EXPERIENCE */}
                 {experience && experience.length > 0 && (
-                    <div className="t11-section">
+                    <div className="t11-section" style={getSpacingStyle(spacingConfig, 'experience')}>
                         <div className="t11-section-title">Professional Experience</div>
                         {experience.map((exp, i) => (
                             <div key={i} className="t11-exp-item">
@@ -71,7 +72,7 @@ export default function Template11({ data }) {
 
                 {/* PROJECTS */}
                 {projects && projects.length > 0 && (
-                    <div className="t11-section">
+                    <div className="t11-section" style={getSpacingStyle(spacingConfig, 'projects')}>
                         <div className="t11-section-title">Key Projects</div>
                         {projects.map((proj, i) => (
                             <div key={i} className="t11-exp-item">
@@ -92,7 +93,7 @@ export default function Template11({ data }) {
 
                 {/* EDUCATION */}
                 {education && education.length > 0 && (
-                    <div className="t11-section">
+                    <div className="t11-section" style={getSpacingStyle(spacingConfig, 'education')}>
                         <div className="t11-section-title">Education</div>
                         {education.map((edu, i) => (
                             <div key={i} className="t11-edu-item">
@@ -108,7 +109,7 @@ export default function Template11({ data }) {
 
                 {/* LANGUAGES */}
                 {languages && languages.length > 0 && (
-                    <div className="t11-section">
+                    <div className="t11-section" style={getSpacingStyle(spacingConfig, 'languages')}>
                         <div className="t11-section-title">Languages</div>
                         <div className="t11-languages">
                             {languages.map((lang, i) => (
@@ -121,7 +122,7 @@ export default function Template11({ data }) {
                 )}
 
                 {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
-                    <div className="t11-section" style={{ marginBottom: 0 }}>
+                    <div className="t11-section" style={getSpacingStyle(spacingConfig, 'personalDetails')}>
                         <div className="t11-section-title">Personal Details</div>
                         <PersonalDetailsGrid user={user} />
                     </div>

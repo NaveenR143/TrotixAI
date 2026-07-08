@@ -2,6 +2,7 @@ import React from "react";
 import "./template14.css";
 import DescriptionRenderer from "./descriptionRenderer";
 import PersonalDetailsGrid from "./personalDetailsGrid";
+import { getSpacingStyle } from "./spacingHelper";
 
 export default function Template14({ data }) {
     if (!data) return null;
@@ -13,7 +14,8 @@ export default function Template14({ data }) {
         skills,
         languages,
         projects,
-        references
+        references,
+        spacingConfig
     } = data;
 
     const user = personalDetails || {};
@@ -44,7 +46,7 @@ export default function Template14({ data }) {
         <div className="t14-resume-container">
             <div className="t14-resume-page">
                 {/* HEADER */}
-                <div className="t14-header">
+                <div className="t14-header" style={getSpacingStyle(spacingConfig, 'header')}>
                     <div className="t14-header-row">
                         <div>
                             <div className="t14-header-name">{renderName(user.fullName)}</div>
@@ -90,14 +92,14 @@ export default function Template14({ data }) {
                     {/* LEFT COLUMN */}
                     <div className="t14-left-col">
                         {user.summary && (
-                            <div className="t14-section">
+                            <div className="t14-section" style={getSpacingStyle(spacingConfig, 'summary')}>
                                 <div className="t14-section-title"><div className="t14-section-dot"></div>Profile<div className="t14-section-line"></div></div>
                                 <p className="t14-profile-text">{user.summary}</p>
                             </div>
                         )}
 
                         {experience && experience.length > 0 && (
-                            <div className="t14-section">
+                            <div className="t14-section" style={getSpacingStyle(spacingConfig, 'experience')}>
                                 <div className="t14-section-title"><div className="t14-section-dot"></div>Work Experience<div className="t14-section-line"></div></div>
                                 {experience.map((exp, i) => (
                                     <div key={i} className="t14-exp-card">
@@ -115,7 +117,7 @@ export default function Template14({ data }) {
                         )}
 
                         {projects && projects.length > 0 && (
-                            <div className="t14-section">
+                            <div className="t14-section" style={getSpacingStyle(spacingConfig, 'projects')}>
                                 <div className="t14-section-title"><div className="t14-section-dot"></div>Key Projects<div className="t14-section-line"></div></div>
                                 {projects.map((proj, i) => (
                                     <div key={i} className="t14-exp-card">
@@ -131,7 +133,7 @@ export default function Template14({ data }) {
                         )}
 
                         {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
-                            <div className="t14-section">
+                            <div className="t14-section" style={getSpacingStyle(spacingConfig, 'personalDetails')}>
                                 <div className="t14-section-title"><div className="t14-section-dot"></div>Personal Details<div className="t14-section-line"></div></div>
                                 <PersonalDetailsGrid user={user} />
                             </div>
@@ -141,7 +143,7 @@ export default function Template14({ data }) {
                     {/* RIGHT SIDEBAR */}
                     <div className="t14-sidebar-col">
                         {education && education.length > 0 && (
-                            <div className="t14-section">
+                            <div className="t14-section" style={getSpacingStyle(spacingConfig, 'education')}>
                                 <div className="t14-section-title"><div className="t14-section-dot"></div>Education<div className="t14-section-line"></div></div>
                                 {education.map((edu, i) => (
                                     <div key={i} className="t14-edu-item">
@@ -154,7 +156,7 @@ export default function Template14({ data }) {
                         )}
 
                         {skills && skills.length > 0 && (
-                            <div className="t14-section">
+                            <div className="t14-section" style={getSpacingStyle(spacingConfig, 'skills')}>
                                 <div className="t14-section-title"><div className="t14-section-dot"></div>Skills<div className="t14-section-line"></div></div>
                                 {skills.map((skill, i) => (
                                     <div key={i} className="t14-skill-item">
@@ -166,7 +168,7 @@ export default function Template14({ data }) {
                         )}
 
                         {languages && languages.length > 0 && (
-                            <div className="t14-section">
+                            <div className="t14-section" style={getSpacingStyle(spacingConfig, 'languages')}>
                                 <div className="t14-section-title"><div className="t14-section-dot"></div>Languages<div className="t14-section-line"></div></div>
                                 {languages.map((lang, i) => (
                                     <div key={i} className="t14-lang-item">
@@ -182,7 +184,7 @@ export default function Template14({ data }) {
                         )}
 
                         {references && references.length > 0 && (
-                            <div className="t14-section">
+                            <div className="t14-section" style={getSpacingStyle(spacingConfig, 'references')}>
                                 <div className="t14-section-title"><div className="t14-section-dot"></div>References<div className="t14-section-line"></div></div>
                                 {references.map((ref, i) => (
                                     <div key={i} className="t14-ref-item">

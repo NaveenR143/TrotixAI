@@ -2,6 +2,7 @@ import React from "react";
 import "./template13.css";
 import DescriptionRenderer from "./descriptionRenderer";
 import PersonalDetailsGrid from "./personalDetailsGrid";
+import { getSpacingStyle } from "./spacingHelper";
 
 export default function Template13({ data }) {
     if (!data) return null;
@@ -13,7 +14,8 @@ export default function Template13({ data }) {
         skills,
         languages,
         projects,
-        references
+        references,
+        spacingConfig
     } = data;
 
     const user = personalDetails || {};
@@ -32,7 +34,7 @@ export default function Template13({ data }) {
         <div className="t13-resume-container">
             <div className="t13-resume-page">
                 {/* HEADER */}
-                <div className="t13-header">
+                <div className="t13-header" style={getSpacingStyle(spacingConfig, 'header')}>
                     <div className="t13-header-top">
                         <div>
                             <div className="t13-header-name">{user.fullName || "Your Name"}</div>
@@ -73,14 +75,14 @@ export default function Template13({ data }) {
                     {/* LEFT COLUMN */}
                     <div className="t13-left-col">
                         {user.summary && (
-                            <div className="t13-section">
+                            <div className="t13-section" style={getSpacingStyle(spacingConfig, 'summary')}>
                                 <div className="t13-section-title">Profile</div>
                                 <p className="t13-profile-text">{user.summary}</p>
                             </div>
                         )}
 
                         {experience && experience.length > 0 && (
-                            <div className="t13-section">
+                            <div className="t13-section" style={getSpacingStyle(spacingConfig, 'experience')}>
                                 <div className="t13-section-title">Work Experience</div>
                                 {experience.map((exp, i) => (
                                     <div key={i} className="t13-exp-item">
@@ -100,7 +102,7 @@ export default function Template13({ data }) {
                         )}
 
                         {projects && projects.length > 0 && (
-                            <div className="t13-section">
+                            <div className="t13-section" style={getSpacingStyle(spacingConfig, 'projects')}>
                                 <div className="t13-section-title">Key Projects</div>
                                 {projects.map((proj, i) => (
                                     <div key={i} className="t13-exp-item">
@@ -118,7 +120,7 @@ export default function Template13({ data }) {
                         )}
 
                         {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
-                            <div className="t13-section">
+                            <div className="t13-section" style={getSpacingStyle(spacingConfig, 'personalDetails')}>
                                 <div className="t13-section-title">Personal Details</div>
                                 <PersonalDetailsGrid user={user} />
                             </div>
@@ -128,7 +130,7 @@ export default function Template13({ data }) {
                     {/* RIGHT COLUMN */}
                     <div className="t13-right-col">
                         {education && education.length > 0 && (
-                            <div className="t13-section">
+                            <div className="t13-section" style={getSpacingStyle(spacingConfig, 'education')}>
                                 <div className="t13-section-title">Education</div>
                                 {education.map((edu, i) => (
                                     <div key={i} className="t13-edu-item">
@@ -141,7 +143,7 @@ export default function Template13({ data }) {
                         )}
 
                         {skills && skills.length > 0 && (
-                            <div className="t13-section">
+                            <div className="t13-section" style={getSpacingStyle(spacingConfig, 'skills')}>
                                 <div className="t13-section-title">Skills</div>
                                 <div className="t13-skill-pills">
                                     {skills.map((skill, i) => (
@@ -152,7 +154,7 @@ export default function Template13({ data }) {
                         )}
 
                         {languages && languages.length > 0 && (
-                            <div className="t13-section">
+                            <div className="t13-section" style={getSpacingStyle(spacingConfig, 'languages')}>
                                 <div className="t13-section-title">Languages</div>
                                 {languages.map((lang, i) => (
                                     <div key={i} className="t13-lang-row">
@@ -164,7 +166,7 @@ export default function Template13({ data }) {
                         )}
 
                         {references && references.length > 0 && (
-                            <div className="t13-section">
+                            <div className="t13-section" style={getSpacingStyle(spacingConfig, 'references')}>
                                 <div className="t13-section-title">References</div>
                                 {references.map((ref, i) => (
                                     <div key={i} className="t13-ref-card">
