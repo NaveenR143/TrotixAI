@@ -193,7 +193,38 @@ export default function TermsOfUseComp() {
             content: "If any provision of these Terms shall be unlawful, void, or for any reason unenforceable, then that provision shall be deemed severable from this agreement and shall not affect the validity and enforceability of any remaining provisions."
         },
         {
-            title: "25. Contact Us",
+            title: "25. SMS Terms & Conditions",
+            content: "By providing your mobile phone number, you consent to receive SMS messages from RightNXT. These messages may include account verification codes, login authentication, password resets, account-related notifications, and, where you have opted in, promotional and marketing communications about our products, services, offers, updates, and events. Message frequency may vary. You can opt out of marketing SMS at any time by replying STOP. Transactional messages related to your account may still be sent when necessary to provide or secure our services.",
+            subSections: [
+                {
+                    title: "Message Frequency",
+                    content: "Message frequency varies based on your use of our services. You will only receive SMS messages when required to verify your identity or complete account-related actions."
+                },
+                {
+                    title: "Message & Data Rates",
+                    content: "Standard message and data rates may apply according to your mobile carrier's plan."
+                },
+                {
+                    title: "Opt-Out",
+                    content: "If you no longer wish to receive marketing SMS messages, you may opt out at any time by contacting us via email. Please note that opting out of transactional SMS messages, such as verification codes or security notifications, may prevent you from accessing certain features of the service."
+                },
+                {
+                    title: "Help",
+                    content: "For assistance, contact us through the support options available on our website."
+                },
+                {
+                    title: "Consent",
+                    content: "Your consent to receive SMS messages is not a condition of purchasing any products or services."
+                },
+                {
+                    title: "Privacy",
+                    content: "Your mobile phone number and SMS consent information will be used solely for providing the requested SMS services. We do not sell or share your SMS opt-in data or consent with third parties for marketing purposes. We may share your information only with service providers that facilitate SMS delivery on our behalf, solely for the purpose of providing the requested service."
+                }
+            ],
+            footer: "By using RightNXT and requesting SMS verification, you acknowledge and agree to these SMS Terms & Conditions."
+        },
+        {
+            title: "26. Contact Us",
             content: "Please forward any comments or complaints about the Site to:",
             footer: "Email: nr@rightnxt.com\nCompany: Thanish AI Innovations (OPC) Pvt. Ltd.\nLocation: Bengaluru, Karnataka, India"
         }

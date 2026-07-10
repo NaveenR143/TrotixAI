@@ -331,9 +331,18 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
               <Paper
                 key={idx}
                 variant="outlined"
-                sx={{ p: 2.5, mb: 2, bgcolor: "#f8fafc", borderStyle: "dashed" }}
+                sx={{ p: { xs: 2, sm: 2.5 }, mb: 2, bgcolor: "#f8fafc", borderStyle: "dashed" }}
               >
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    justifyContent: "space-between",
+                    alignItems: { xs: "flex-start", sm: "center" },
+                    gap: { xs: 1, sm: 2 },
+                    mb: 1
+                  }}
+                >
                   <Typography sx={{ fontWeight: 700, mb: 0.5, textTransform: "uppercase", letterSpacing: "0.5px", fontSize: "0.95rem", color: "#0f172a" }}>
                     {exp.role}
                   </Typography>
@@ -341,7 +350,7 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
                     <Chip label="Currently Working" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 600, height: 24 }} />
                   )}
                 </Box>
-                <Typography sx={{ fontSize: "0.9rem", color: "#6366f1", fontWeight: 600, mb: 0.5 }}>
+                <Typography sx={{ fontSize: "0.9rem", color: "#6366f1", fontWeight: 600, mb: 0.5, textTransform: "uppercase" }}>
                   {exp.company_name}
                 </Typography>
                 {exp.location && (
@@ -350,10 +359,33 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
                     {exp.location}
                   </Typography>
                 )}
-                <Typography sx={{ fontSize: "0.85rem", color: "text.secondary", mb: 1 }}>
-                  {calculateExperienceDuration(exp.startDate, exp.endDate, exp.isCurrent)}
-                  {exp.startDate &&
-                    ` • ${new Date(exp.startDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })} to ${exp.isCurrent ? "Present" : new Date(exp.endDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })}`}
+                <Typography
+                  component="div"
+                  sx={{
+                    fontSize: "0.85rem",
+                    color: "text.secondary",
+                    mb: 1,
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    alignItems: { xs: "flex-start", sm: "center" },
+                    gap: { xs: 0.5, sm: 0 },
+                  }}
+                >
+                  <span>{calculateExperienceDuration(exp.startDate, exp.endDate, exp.isCurrent)}</span>
+                  {exp.startDate && (
+                    <>
+                      <Box component="span" sx={{ display: { xs: "none", sm: "inline" }, mx: 1 }}>
+                        •
+                      </Box>
+                      <span>
+                        {`${new Date(exp.startDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })} to ${
+                          exp.isCurrent
+                            ? "Present"
+                            : new Date(exp.endDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })
+                        }`}
+                      </span>
+                    </>
+                  )}
                 </Typography>
                 {exp.description && (
                   <Typography
@@ -361,9 +393,10 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
                       fontSize: "0.9rem",
                       color: "text.primary",
                       lineHeight: 1.5,
+                      textAlign: { xs: "justify", sm: "left" },
                       "& ul, & ol": { pl: 3, my: 1 },
                       "& li": { mb: 0.5 },
-                      "& p": { my: 0.5 }
+                      "& p": { my: 0.5, textAlign: { xs: "justify", sm: "left" } }
                     }}
                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }}
                   />

@@ -954,20 +954,22 @@ class JobMatcherService:
             candidate_filters = []
             job_min_exp = job_data.get("experience_min_yrs") or 0
             job_exp_level = job_data.get("experience_level")
+            # Industry filter: return empty if job has no industry
             job_industry = job_data.get("industry")
+            if not job_industry:
+                return []
 
-            # Industry filter: candidate must have a matching industry bidirectionally
-            if job_industry:
-                matching_industries = JobMatcherService._get_matching_industries([job_industry])
-                candidate_filters.append(
-                    exists().where(
-                        and_(
-                            user_industries.c.user_id == Resume.user_id,
-                            user_industries.c.industry_id == Industry.id,
-                            Industry.name.in_(matching_industries)
-                        )
+            # Expand job industries bidirectionally
+            matching_industries = JobMatcherService._get_matching_industries([job_industry])
+            candidate_filters.append(
+                exists().where(
+                    and_(
+                        user_industries.c.user_id == Resume.user_id,
+                        user_industries.c.industry_id == Industry.id,
+                        Industry.name.in_(matching_industries)
                     )
                 )
+            )
 
             # 1. Experience filter: candidate experience should be within reasonable range of job min experience
             if job_min_exp > 0:

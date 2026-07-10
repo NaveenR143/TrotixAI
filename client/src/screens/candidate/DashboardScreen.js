@@ -182,7 +182,7 @@ const DashboardScreen = () => {
       </Container>
 
       {/* Hero Header */}
-      <Box sx={{
+      {/* <Box sx={{
         pt: 8, pb: 6, mb: 4,
         backgroundImage: 'radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 50%), radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.05) 0%, transparent 50%)'
       }}>
@@ -204,7 +204,7 @@ const DashboardScreen = () => {
             </Typography>
           </Box>
         </Container>
-      </Box>
+      </Box> */}
 
       {/* Main Grid */}
       <Container maxWidth="lg">

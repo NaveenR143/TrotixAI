@@ -560,7 +560,12 @@ async def service_worker():
 async def spa_fallback(full_path: str):
     # Exclude API routes from SPA fallback to avoid confusing HTML responses
     api_prefixes = ["profile", "jobs", "otp", "resume-process"]
-    if any(full_path.startswith(prefix) for prefix in api_prefixes):
+    
+    # We only want to exclude actual API routes, not client-side routes.
+    # The client-side route "/profile" or "/profile/" should be allowed to load the SPA.
+    is_client_route = full_path in ("profile", "profile/")
+    
+    if not is_client_route and any(full_path.startswith(prefix) for prefix in api_prefixes):
         raise HTTPException(
             status_code=404, detail=f"API route '/{full_path}' not found"
         )

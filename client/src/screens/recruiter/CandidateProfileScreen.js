@@ -567,7 +567,9 @@ const CandidateProfileScreen = () => {
                   color: '#475569',
                   lineHeight: 1.8,
                   wordBreak: 'break-word',
-                  overflowWrap: 'anywhere'
+                  overflowWrap: 'anywhere',
+                  whiteSpace: 'pre-line',
+                  textAlign: { xs: 'justify', md: 'left' }
                 }}
               >
                 {applicant.about}
@@ -605,9 +607,10 @@ const CandidateProfileScreen = () => {
                         lineHeight: 1.7,
                         wordBreak: 'break-word',
                         overflowWrap: 'anywhere',
+                        textAlign: { xs: 'justify', md: 'left' },
                         "& ul, & ol": { pl: 3, my: 1 },
                         "& li": { mb: 0.5 },
-                        "& p": { my: 0.5 }
+                        "& p": { my: 0.5, textAlign: { xs: 'justify', md: 'left' } }
                       }}
                       dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }}
                     />
@@ -635,9 +638,10 @@ const CandidateProfileScreen = () => {
                           lineHeight: 1.7,
                           wordBreak: 'break-word',
                           overflowWrap: 'anywhere',
+                          textAlign: { xs: 'justify', md: 'left' },
                           "& ul, & ol": { pl: 3, my: 1 },
                           "& li": { mb: 0.5 },
-                          "& p": { my: 0.5 }
+                          "& p": { my: 0.5, textAlign: { xs: 'justify', md: 'left' } }
                         }}
                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(proj.description) }}
                       />

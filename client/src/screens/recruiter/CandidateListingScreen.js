@@ -206,7 +206,20 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
       </Paper>
 
       <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: '#111827' }}>Professional Summary</Typography>
-      <Typography variant="body1" sx={{ color: '#475569', lineHeight: 1.8, mb: 4 }}>{candidate.summary}</Typography>
+      <Typography
+        variant="body1"
+        sx={{
+          color: '#475569',
+          lineHeight: 1.8,
+          mb: 4,
+          whiteSpace: 'pre-line',
+          wordBreak: 'break-word',
+          overflowWrap: 'anywhere',
+          textAlign: { xs: 'justify', md: 'left' }
+        }}
+      >
+        {candidate.summary}
+      </Typography>
 
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>

@@ -165,7 +165,17 @@ const ProfessionalSummarySection = ({ userId, profile, initialAbout, onSuccess, 
       )}
 
       {!isEditing ? (
-        <Typography sx={{ fontSize: "0.9rem", color: "#475569", lineHeight: 1.6 }}>
+        <Typography
+          sx={{
+            fontSize: "0.9rem",
+            color: "#475569",
+            lineHeight: 1.6,
+            whiteSpace: "pre-line",
+            wordBreak: "break-word",
+            overflowWrap: "anywhere",
+            textAlign: { xs: "justify", sm: "left" }
+          }}
+        >
           {about || "—"}
         </Typography>
       ) : (
