@@ -16,7 +16,12 @@ import {
   CircularProgress,
   Skeleton,
   Snackbar,
+  Tabs,
+  Tab,
 } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+import WorkIcon from "@mui/icons-material/Work";
+import SchoolIcon from "@mui/icons-material/School";
 import axios from "axios";
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
 import { updateUserProfile, debitPoints } from "../../redux/user/Action";
@@ -41,6 +46,21 @@ import AchievementsSection from "./sections/AchievementsSection";
 import AIPoweredActions from "./components/ai/AIPoweredActions";
 import AiResultDialog from "./components/ai/AiResultDialog";
 import InsufficientCreditsDialog from "./components/dialogs/InsufficientCreditsDialog";
+
+const TabPanel = (props) => {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`profile-tabpanel-${index}`}
+      aria-labelledby={`profile-tab-${index}`}
+      {...other}
+    >
+      {value === index && children}
+    </div>
+  );
+};
 
 const UserProfile = () => {
   const theme = useTheme();
@@ -75,6 +95,11 @@ const UserProfile = () => {
     learning: null,
   });
   const [insufficientCreditsDialogOpen, setInsufficientCreditsDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
 
   // Fetch user profile data from API
   useEffect(() => {
@@ -260,91 +285,159 @@ const UserProfile = () => {
               onSuggest={handleAiSuggestLearning}
             />
 
-            {/* Profile Sections */}
-            <IndustriesSection
-              userId={userId}
-              profile={profile}
-              onSuccess={handleSuccess}
-            />
-
-            <ProfilePhotoSection
-              userId={userId}
-              avatarUrl={profile?.avatarUrl}
-              onSuccess={handleSuccess}
-            />
-
-            <PersonalInformationSection
-              userId={userId}
-              profile={profile}
-              onSuccess={handleSuccess}
-            />
-
-            <WorkExperienceSection
-              userId={userId}
-              profile={profile}
-              initialExperiences={profile?.experience}
-              onSuccess={handleSuccess}
-              enhancedData={enhancedData?.workExperience}
-            />
-
-            <AchievementsSection
-              userId={userId}
-              profile={profile}
-              initialAchievements={profile?.achievements}
-              onSuccess={handleSuccess}
-            />
-
-            <EducationSection
-              userId={userId}
-              profile={profile}
-              initialEducation={profile?.education}
-              onSuccess={handleSuccess}
-              enhancedData={enhancedData?.education}
-            />
-
-            <ProjectsSection
-              userId={userId}
-              profile={profile}
-              initialProjects={profile?.projects}
-              onSuccess={handleSuccess}
-              enhancedData={enhancedData?.projects}
-            />
-
-            <SkillsSection
-              userId={userId}
-              profile={profile}
-              initialSkills={profile?.skills}
-              onSuccess={handleSuccess}
-              enhancedData={enhancedData?.skills}
-            />
-
-            <LanguagesSection
-              userId={userId}
-              profile={profile}
-              initialLanguages={profile?.languages}
-              onSuccess={handleSuccess}
-              enhancedData={enhancedData?.languages}
-            />
-
-            <ProfessionalSummarySection
-              userId={userId}
-              profile={profile}
-              initialAbout={profile?.summary}
-              onSuccess={handleSuccess}
-              enhancedData={enhancedData?.summary}
-            />
-
-            <PersonalDetailsSection
-              userId={userId}
-              profile={profile}
-              initialData={{
-                date_of_birth: profile?.date_of_birth,
-                maritalStatus: profile?.maritalStatus,
-                gender: profile?.gender,
-                currentLocation: profile?.currentLocation
+            {/* Profile Navigation Tabs */}
+            <Paper
+              elevation={0}
+              sx={{
+                border: "1px solid #e2e8f0",
+                borderRadius: "16px",
+                bgcolor: "#fff",
+                boxShadow: "0 4px 24px rgba(15,23,42,0.04)",
+                mb: 1,
+                overflow: "hidden"
               }}
-              onSuccess={handleSuccess}
-            />
+            >
+              <Tabs
+                value={activeTab}
+                onChange={handleTabChange}
+                variant="scrollable"
+                scrollButtons="auto"
+                allowScrollButtonsMobile
+                sx={{
+                  borderBottom: 1,
+                  borderColor: "divider",
+                  "& .MuiTabs-indicator": {
+                    height: 3,
+                    borderRadius: "3px 3px 0 0",
+                    bgcolor: "#6366f1",
+                  },
+                  "& .MuiTab-root": {
+                    py: 2,
+                    px: { xs: 2, sm: 3 },
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    color: "#64748b",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    transition: "all 0.2s ease-in-out",
+                    display: "inline-flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 1,
+                    minHeight: 48,
+                    "&.Mui-selected": {
+                      color: "#4f46e5",
+                      bgcolor: "rgba(99, 102, 241, 0.04)",
+                    },
+                    "&:hover": {
+                      color: "#4f46e5",
+                    }
+                  }
+                }}
+              >
+                <Tab icon={<PersonIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Personal" />
+                <Tab icon={<WorkIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Experience" />
+                <Tab icon={<SchoolIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Education & Skills" />
+              </Tabs>
+            </Paper>
+
+            {/* Tab Panels */}
+            <TabPanel value={activeTab} index={0}>
+              <Stack spacing={3}>
+                <ProfilePhotoSection
+                  userId={userId}
+                  avatarUrl={profile?.avatarUrl}
+                  onSuccess={handleSuccess}
+                />
+
+                <PersonalInformationSection
+                  userId={userId}
+                  profile={profile}
+                  onSuccess={handleSuccess}
+                />
+
+                <PersonalDetailsSection
+                  userId={userId}
+                  profile={profile}
+                  initialData={{
+                    date_of_birth: profile?.date_of_birth,
+                    maritalStatus: profile?.maritalStatus,
+                    gender: profile?.gender,
+                    currentLocation: profile?.currentLocation
+                  }}
+                  onSuccess={handleSuccess}
+                />
+
+                <IndustriesSection
+                  userId={userId}
+                  profile={profile}
+                  onSuccess={handleSuccess}
+                />
+              </Stack>
+            </TabPanel>
+
+            <TabPanel value={activeTab} index={1}>
+              <Stack spacing={3}>
+                <ProfessionalSummarySection
+                  userId={userId}
+                  profile={profile}
+                  initialAbout={profile?.summary}
+                  onSuccess={handleSuccess}
+                  enhancedData={enhancedData?.summary}
+                />
+
+                <WorkExperienceSection
+                  userId={userId}
+                  profile={profile}
+                  initialExperiences={profile?.experience}
+                  onSuccess={handleSuccess}
+                  enhancedData={enhancedData?.workExperience}
+                />
+
+                <ProjectsSection
+                  userId={userId}
+                  profile={profile}
+                  initialProjects={profile?.projects}
+                  onSuccess={handleSuccess}
+                  enhancedData={enhancedData?.projects}
+                />
+
+                <AchievementsSection
+                  userId={userId}
+                  profile={profile}
+                  initialAchievements={profile?.achievements}
+                  onSuccess={handleSuccess}
+                />
+              </Stack>
+            </TabPanel>
+
+            <TabPanel value={activeTab} index={2}>
+              <Stack spacing={3}>
+                <SkillsSection
+                  userId={userId}
+                  profile={profile}
+                  initialSkills={profile?.skills}
+                  onSuccess={handleSuccess}
+                  enhancedData={enhancedData?.skills}
+                />
+
+                <EducationSection
+                  userId={userId}
+                  profile={profile}
+                  initialEducation={profile?.education}
+                  onSuccess={handleSuccess}
+                  enhancedData={enhancedData?.education}
+                />
+
+                <LanguagesSection
+                  userId={userId}
+                  profile={profile}
+                  initialLanguages={profile?.languages}
+                  onSuccess={handleSuccess}
+                  enhancedData={enhancedData?.languages}
+                />
+              </Stack>
+            </TabPanel>
           </Stack>
         )}
 
