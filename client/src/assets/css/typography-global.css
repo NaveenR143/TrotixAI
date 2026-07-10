@@ -13,15 +13,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 * {
-  font-family: 'Open Sans', Verdana, sans-serif !important;
+  font-family: 'Inter', 'Open Sans', Verdana, sans-serif !important;
 }
 
 /* Crispy Headings Override */
-h1, h2, h3, h4, h5, h6,
-.MuiTypography-h1, .MuiTypography-h2, .MuiTypography-h3, 
-.MuiTypography-h4, .MuiTypography-h5, .MuiTypography-h6,
-.ant-typography h1, .ant-typography h2, .ant-typography h3,
-.ant-typography h4, .ant-typography h5, .ant-typography h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.MuiTypography-h1,
+.MuiTypography-h2,
+.MuiTypography-h3,
+.MuiTypography-h4,
+.MuiTypography-h5,
+.MuiTypography-h6,
+.ant-typography h1,
+.ant-typography h2,
+.ant-typography h3,
+.ant-typography h4,
+.ant-typography h5,
+.ant-typography h6 {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -179,13 +192,21 @@ body,
    ============================================================================ */
 
 /* Headings */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-weight: 800;
 }
 
 /* Paragraphs and text */
-p, span, div, a {
+p,
+span,
+div,
+a {
   font-family: 'Open Sans', Verdana, sans-serif;
 }
 
@@ -200,7 +221,9 @@ option {
 }
 
 /* Lists */
-ul, ol, li {
+ul,
+ol,
+li {
   font-family: 'Open Sans', Verdana, sans-serif;
 }
 

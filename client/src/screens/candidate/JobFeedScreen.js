@@ -32,15 +32,12 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [animating, setAnimating] = useState(false);
-  const [animDir, setAnimDir] = useState('left');
   const [savedJobs, setSavedJobs] = useState(new Set());
   const [jobs, setJobs] = useState(initialJobs || []);
   const [loading, setLoading] = useState(!initialJobs || initialJobs.length === 0);
   const [error, setError] = useState(null);
   const [selectedDesktopJob, setSelectedDesktopJob] = useState(jobs[0] || null);
-  const [showMobileDetailView, setShowMobileDetailView] = useState(false);
+  const [selectedMobileJob, setSelectedMobileJob] = useState(null);
   const [filterMode, setFilterMode] = useState('all');
   const [showCoach, setShowCoach] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -56,23 +53,6 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
   });
   const profile = useSelector((state) => state.UserReducer);
   const hasNoIndustries = !profile?.user_industries || profile.user_industries.length === 0;
-
-  // Touch handling for swipe
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.changedTouches[0].clientX;
-  };
-
-  const handleTouchEnd = (e) => {
-    touchEndX.current = e.changedTouches[0].clientX;
-    const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) handleSwipe('right');
-      else handlePrev();
-    }
-  };
 
   // Fetch jobs from API on component mount
   useEffect(() => {
@@ -145,25 +125,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
     }
   }, [userId, initialJobs]);
 
-  const handleSwipe = (dir) => {
-    if (animating || currentIndex >= filteredJobs.length) return;
-    setAnimDir(dir);
-    setAnimating(true);
-    setTimeout(() => {
-      setCurrentIndex(p => p + 1);
-      setAnimating(false);
-    }, 300);
-  };
 
-  const handlePrev = () => {
-    if (animating || currentIndex <= 0) return;
-    setAnimDir('left');
-    setAnimating(true);
-    setTimeout(() => {
-      setCurrentIndex(p => p - 1);
-      setAnimating(false);
-    }, 300);
-  };
 
   const toggleSave = (id) =>
     setSavedJobs(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -232,13 +194,10 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
 
     if (isDesktop && selectedDesktopJob) {
       triggerRecordView(selectedDesktopJob.id);
-    } else if (!isDesktop && showMobileDetailView) {
-      const currentJob = filteredJobs[currentIndex];
-      if (currentJob) {
-        triggerRecordView(currentJob.id);
-      }
+    } else if (!isDesktop && selectedMobileJob) {
+      triggerRecordView(selectedMobileJob.id);
     }
-  }, [selectedDesktopJob, showMobileDetailView, currentIndex, isDesktop, userId, filteredJobs]);
+  }, [selectedDesktopJob, selectedMobileJob, isDesktop, userId]);
 
   // Get active filter count
   const activeFilterCount =
@@ -251,7 +210,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
     (filters.matchScore > 0 ? 1 : 0) +
     (filters.hideViewed ? 1 : 0);
 
-  if (jobs.length === 0 || (currentIndex >= filteredJobs.length && !isDesktop)) {
+  if (jobs.length === 0 || (filteredJobs.length === 0 && !isDesktop)) {
     if (loading) {
       return (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 3 }}>
@@ -381,19 +340,16 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
       );
     }
 
-    const job = filteredJobs[currentIndex];
-    if (!job) return null;
-
     // Show detail screen if requested
-    if (showMobileDetailView) {
+    if (selectedMobileJob) {
       return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)' }}>
           <JobDetailScreen
-            job={job}
+            job={selectedMobileJob}
             isEmbedded={false}
             savedJobs={savedJobs}
-            onToggleSave={() => toggleSave(job.id)}
-            onBack={() => setShowMobileDetailView(false)}
+            onToggleSave={() => toggleSave(selectedMobileJob.id)}
+            onBack={() => setSelectedMobileJob(null)}
           />
         </Box>
       );
@@ -418,7 +374,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ fontWeight: 600, color: '#0f172a', fontSize: '0.9rem' }}>
-              {currentIndex + 1} / {filteredJobs.length}
+              {filteredJobs.length} Match{filteredJobs.length !== 1 ? 'es' : ''}
             </Typography>
             {activeFilterCount > 0 && (
               <Chip
@@ -449,34 +405,77 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
           </Badge>
         </Box>
 
+        {/* Scrollable feed list */}
         <Box
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
           sx={{
-            flex: 1, p: 2, display: 'flex', flexDirection: 'column',
-            position: 'relative', overflow: 'hidden',
-            transition: 'transform 0.3s ease-out',
-            transform: animating ? (animDir === 'right' ? 'translateX(-100%)' : 'translateX(100%)') : 'translateX(0)'
+            flex: 1,
+            overflowY: 'auto',
+            scrollSnapType: 'y mandatory',
+            scrollBehavior: 'smooth',
+            WebkitOverflowScrolling: 'touch',
+            display: 'flex',
+            flexDirection: 'column',
+            py: 2,
+            px: 0.75,
+            gap: 2,
+            '&::-webkit-scrollbar': { display: 'none' },
+            scrollbarWidth: 'none',
           }}
         >
-          <MobileJobCard
-            job={job}
-            onSkip={() => handleSwipe('right')}
-            onInterested={() => handlePrev()}
-            onToggleSave={() => toggleSave(job.id)}
-            isSaved={savedJobs.has(job.id)}
-            onExit={onGoBack}
-            onDetail={() => setShowMobileDetailView(true)}
-          />
-        </Box>
-
-        <Box sx={{ pb: 3, px: 4 }}>
-          <Box sx={{ height: 6, bgcolor: '#E5E7EB', borderRadius: 3, overflow: 'hidden' }}>
-            <Box sx={{ height: '100%', width: `${((currentIndex + 1) / filteredJobs.length) * 100}%`, bgcolor: '#6366f1', transition: 'width 0.3s' }} />
-          </Box>
-          <Typography variant="caption" align="center" sx={{ display: 'block', mt: 1, color: '#6B7280', fontWeight: 600 }}>
-            Swipe to browse jobs
-          </Typography>
+          {filteredJobs.map((job, index) => (
+            <React.Fragment key={job.id}>
+              <Box
+                sx={{
+                  height: 'calc(100dvh - 150px)',
+                  width: '100%',
+                  position: 'relative',
+                  scrollSnapAlign: 'start',
+                  scrollSnapStop: 'always',
+                  flexShrink: 0,
+                }}
+              >
+                <MobileJobCard
+                  job={job}
+                  onToggleSave={() => toggleSave(job.id)}
+                  isSaved={savedJobs.has(job.id)}
+                  onExit={onGoBack}
+                  onDetail={() => setSelectedMobileJob(job)}
+                />
+              </Box>
+              {index < filteredJobs.length - 1 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    py: 1,
+                    scrollSnapAlign: 'none',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: '60%',
+                      height: '2px',
+                      background: 'linear-gradient(90deg, transparent, #cbd5e1 50%, transparent)',
+                      position: 'relative',
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        top: -3,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: 24,
+                        height: 8,
+                        borderRadius: 4,
+                        bgcolor: '#94a3b8',
+                      }
+                    }}
+                  />
+                </Box>
+              )}
+            </React.Fragment>
+          ))}
         </Box>
 
         {/* Mobile Filters Drawer */}
@@ -522,7 +521,6 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
               fullWidth
               onClick={() => {
                 setShowFilters(false);
-                setCurrentIndex(0);
               }}
               sx={{ textTransform: 'none', background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }}
             >

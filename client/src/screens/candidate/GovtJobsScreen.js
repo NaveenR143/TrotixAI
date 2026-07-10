@@ -22,28 +22,8 @@ const GovtJobsScreen = () => {
   const [error, setError] = useState(null);
   
   // UX State
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [animating, setAnimating] = useState(false);
-  const [animDir, setAnimDir] = useState('left');
   const [selectedDesktopJob, setSelectedDesktopJob] = useState(null);
-  const [showMobileDetailView, setShowMobileDetailView] = useState(false);
-
-  // Touch handling for swipe
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.changedTouches[0].clientX;
-  };
-
-  const handleTouchEnd = (e) => {
-    touchEndX.current = e.changedTouches[0].clientX;
-    const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) handleSwipe('right');
-      else handlePrev();
-    }
-  };
+  const [selectedMobileJob, setSelectedMobileJob] = useState(null);
 
   useEffect(() => {
     const fetchGovtJobs = async () => {
@@ -89,30 +69,7 @@ const GovtJobsScreen = () => {
     fetchGovtJobs();
   }, []);
 
-  const handleSwipe = (dir) => {
-    if (animating || currentIndex >= jobs.length - 1) {
-       if (currentIndex >= jobs.length - 1 && !animating) {
-          setCurrentIndex(p => p + 1);
-       }
-       return;
-    };
-    setAnimDir(dir);
-    setAnimating(true);
-    setTimeout(() => {
-      setCurrentIndex(p => p + 1);
-      setAnimating(false);
-    }, 300);
-  };
 
-  const handlePrev = () => {
-    if (animating || currentIndex <= 0) return;
-    setAnimDir('left');
-    setAnimating(true);
-    setTimeout(() => {
-      setCurrentIndex(p => p - 1);
-      setAnimating(false);
-    }, 300);
-  };
 
   const onGoBack = () => navigate('/dashboard');
 
@@ -140,7 +97,7 @@ const GovtJobsScreen = () => {
 
   // Mobile View
   if (!isDesktop) {
-    if (jobs.length === 0 || currentIndex >= jobs.length) {
+    if (jobs.length === 0) {
       return (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 2, px: 4, textAlign: 'center' }}>
           <Typography sx={{ fontSize: '3rem' }}>✨</Typography>
@@ -156,50 +113,119 @@ const GovtJobsScreen = () => {
       );
     }
 
-    const currentJob = jobs[currentIndex];
-
-    if (showMobileDetailView) {
+    if (selectedMobileJob) {
       return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)' }}>
           <GovtJobDetailScreen 
-            job={currentJob} 
+            job={selectedMobileJob} 
             isEmbedded={false} 
-            onBack={() => setShowMobileDetailView(false)} 
+            onBack={() => setSelectedMobileJob(null)} 
           />
         </Box>
       );
     }
 
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)', position: 'relative', overflow: 'hidden', bgcolor: '#f8fafc' }}>
-        <Box
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          sx={{
-            flex: 1, p: 2, display: 'flex', flexDirection: 'column',
-            position: 'relative', overflow: 'hidden',
-            transition: 'transform 0.3s ease-out',
-            transform: animating ? (animDir === 'right' ? 'translateX(-100%)' : 'translateX(100%)') : 'translateX(0)'
-          }}
-        >
-          <MobileJobCard
-            job={currentJob}
-            onSkip={() => handleSwipe('right')}
-            onInterested={() => handlePrev()}
-            onExit={onGoBack}
-            onDetail={() => setShowMobileDetailView(true)}
-            isSaved={false}
-            onToggleSave={() => {}}
-          />
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)', bgcolor: '#f8fafc' }}>
+        {/* Header/Top Bar */}
+        <Box sx={{
+          p: 2,
+          borderBottom: '1px solid #e2e8f0',
+          bgcolor: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          zIndex: 5
+        }}>
+          <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '1rem' }}>
+            Government Jobs ({jobs.length})
+          </Typography>
+          <Button
+            size="small"
+            onClick={onGoBack}
+            startIcon={<ArrowBackIcon />}
+            sx={{
+              color: '#059669',
+              borderColor: '#e2e8f0',
+              textTransform: 'none',
+              fontWeight: 600,
+            }}
+          >
+            Back
+          </Button>
         </Box>
 
-        <Box sx={{ pb: 3, px: 4 }}>
-          <Box sx={{ height: 6, bgcolor: '#E5E7EB', borderRadius: 3, overflow: 'hidden' }}>
-            <Box sx={{ height: '100%', width: `${((currentIndex + 1) / jobs.length) * 100}%`, bgcolor: '#059669', transition: 'width 0.3s' }} />
-          </Box>
-          <Typography variant="caption" align="center" sx={{ display: 'block', mt: 1, color: '#6B7280', fontWeight: 600 }}>
-            Swipe to browse jobs
-          </Typography>
+        {/* Scrollable Feed Container */}
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            scrollSnapType: 'y mandatory',
+            scrollBehavior: 'smooth',
+            WebkitOverflowScrolling: 'touch',
+            display: 'flex',
+            flexDirection: 'column',
+            py: 2,
+            px: 0.75,
+            gap: 2,
+            '&::-webkit-scrollbar': { display: 'none' },
+            scrollbarWidth: 'none',
+          }}
+        >
+          {jobs.map((job, idx) => (
+            <React.Fragment key={job.id}>
+              <Box
+                sx={{
+                  height: 'calc(100dvh - 150px)',
+                  width: '100%',
+                  position: 'relative',
+                  scrollSnapAlign: 'start',
+                  scrollSnapStop: 'always',
+                  flexShrink: 0,
+                }}
+              >
+                <MobileJobCard
+                  job={job}
+                  onExit={onGoBack}
+                  onDetail={() => setSelectedMobileJob(job)}
+                  isSaved={false}
+                  onToggleSave={() => {}}
+                />
+              </Box>
+              {idx < jobs.length - 1 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    py: 1,
+                    scrollSnapAlign: 'none',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: '60%',
+                      height: '2px',
+                      background: 'linear-gradient(90deg, transparent, #cbd5e1 50%, transparent)',
+                      position: 'relative',
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        top: -3,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: 24,
+                        height: 8,
+                        borderRadius: 4,
+                        bgcolor: '#059669',
+                      }
+                    }}
+                  />
+                </Box>
+              )}
+            </React.Fragment>
+          ))}
         </Box>
       </Box>
     );

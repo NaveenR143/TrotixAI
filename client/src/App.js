@@ -23,6 +23,11 @@ import Router from "./routes/Router";
 import LoadingSpinnerComp from "./components/common/LoadingSpinnerComp";
 
 // Global Typography Styles - Open Sans font standardization
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "@fontsource/inter/800.css";
 import "./assets/css/typography-global.css";
 
 const AppRoutes = () => {

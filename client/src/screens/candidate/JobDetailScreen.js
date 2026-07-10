@@ -195,11 +195,16 @@ const JobDetailScreen = ({
       // Email Contact
       setShowEmailDialog(true);
     } else {
-      setSnackbar({
-        open: true,
-        message: "No application method available for this job.",
-        severity: "info",
-      });
+
+      const companyName = (typeof job.company === "object" ? job.company?.name : job.company) || "";
+      const searchQuery = `${companyName} jobs careers`;
+      const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+      window.open(searchUrl, "_blank");
+      // setSnackbar({
+      //   open: true,
+      //   message: "No application method available for this job.",
+      //   severity: "info",
+      // });
     }
   };
 
@@ -377,6 +382,57 @@ const JobDetailScreen = ({
     </Box>
   );
 
+  const renderJobDescription = (description) => {
+    if (!description) return null;
+
+    // Check if the description contains HTML tags
+    const hasHtml = /<[a-z][\s\S]*>/i.test(description);
+    if (hasHtml) {
+      return (
+        <Box
+          dangerouslySetInnerHTML={{ __html: description }}
+          sx={{
+            color: "#475569",
+            lineHeight: 1.8,
+            fontSize: "1rem",
+            textAlign: "justify",
+            '& p': { mb: 2, textAlign: "justify" },
+            '& ul, & ol': { mb: 2, pl: 3 },
+            '& li': { mb: 1 },
+            '& img': { maxWidth: '100%', height: 'auto', borderRadius: '8px' }
+          }}
+        />
+      );
+    }
+
+    // Split plain text by double newlines for paragraph separation
+    const paragraphs = description.split(/\n\s*\n+/);
+
+    return (
+      <Box>
+        {paragraphs.map((para, index) => {
+          const trimmed = para.trim();
+          if (!trimmed) return null;
+          return (
+            <Typography
+              key={index}
+              sx={{
+                mb: 2,
+                color: "#475569",
+                lineHeight: 1.8,
+                fontSize: "1rem",
+                whiteSpace: "pre-line",
+                textAlign: "justify",
+              }}
+            >
+              {trimmed}
+            </Typography>
+          );
+        })}
+      </Box>
+    );
+  };
+
   return (
     <Box sx={{ bgcolor: "#F8FAFC", minHeight: "100vh", pb: 8 }}>
       {/* Top Header */}
@@ -459,21 +515,15 @@ const JobDetailScreen = ({
               <SectionHeader icon={AssignmentIcon} title="Job Description" accent="#22D3EE" />
               <Box
                 sx={{
-                  color: "#475569",
-                  lineHeight: 1.8,
-                  fontSize: "1rem",
                   maxHeight: expandedDescription ? 'none' : '400px',
                   overflow: 'hidden',
                   position: 'relative',
                   wordBreak: 'break-word',
                   overflowWrap: 'anywhere',
-                  '& p': { mb: 2 },
-                  '& ul, & ol': { mb: 2, pl: 3 },
-                  '& li': { mb: 1 },
-                  '& img': { maxWidth: '100%', height: 'auto', borderRadius: '8px' }
                 }}
-                dangerouslySetInnerHTML={{ __html: job.description }}
-              />
+              >
+                {renderJobDescription(job.description)}
+              </Box>
               <Button
                 onClick={() => setExpandedDescription(!expandedDescription)}
                 sx={{ mt: 2, fontWeight: 700, color: '#2563EB', textTransform: 'none' }}
@@ -518,142 +568,6 @@ const JobDetailScreen = ({
           {/* Sidebar */}
           <Grid item xs={12} md={4}>
             <Stack spacing={4} sx={{ position: { md: 'sticky' }, top: 100 }}>
-              {/* Apply Card */}
-              <Paper elevation={0} sx={{ p: 4, borderRadius: '20px' }}>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  onClick={handleApply}
-                  disabled={applying || generatingEmail || generatingATS}
-                  startIcon={applying ? <CircularProgress size={20} color="inherit" /> : null}
-                  sx={{
-                    py: 1.5, borderRadius: '12px', fontWeight: 800, fontSize: '1rem',
-                    bgcolor: '#2563EB',
-                    boxShadow: '0 10px 25px rgba(37, 99, 235, 0.2)',
-                    '&:hover': { bgcolor: '#1e40af', boxShadow: '0 12px 30px rgba(37, 99, 235, 0.3)' },
-                    "&.Mui-disabled": {
-                      background: "#E2E8F0",
-                      color: "#475569"
-                    }
-                  }}
-                >
-                  {applying ? "Applying..." : "Apply Now"}
-                </Button>
-                {job && (
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    startIcon={generatingATS ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
-                    onClick={handleApplyWithAI}
-                    disabled={applying || generatingEmail || generatingATS}
-                    sx={{
-                      mt: 2,
-                      py: 1.5,
-                      borderRadius: '12px',
-                      fontWeight: 800,
-                      fontSize: '1rem',
-                      background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
-                      boxShadow: '0 10px 25px rgba(124, 58, 237, 0.2)',
-                      textTransform: 'none',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 0.2,
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #6D28D9 0%, #1E40AF 100%)',
-                        boxShadow: '0 12px 30px rgba(124, 58, 237, 0.3)',
-                        transform: 'translateY(-2px)'
-                      },
-                      transition: 'all 0.3s ease',
-                      "&.Mui-disabled": {
-                        background: "#E2E8F0",
-                        color: "#475569"
-                      }
-                    }}
-                  >
-                    {generatingATS ? (
-                      "Generating..."
-                    ) : (
-                      <>
-                        <span>Generate with AI</span>
-                        <span
-                          style={{
-                            fontSize: '0.75rem',
-                            fontWeight: 500,
-                            opacity: 0.9
-                          }}
-                        >
-                          Uses 10 credits
-                        </span>
-                      </>
-                    )}
-                  </Button>
-                )}
-
-                {job.hiring_email && (
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    startIcon={generatingEmail ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
-                    onClick={handleEmailApplyWithAI}
-                    disabled={applying || generatingEmail || generatingATS}
-                    sx={{
-                      mt: 2,
-                      py: 1.5,
-                      borderRadius: '12px',
-                      fontWeight: 800,
-                      fontSize: '1rem',
-                      background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
-                      boxShadow: '0 10px 25px rgba(124, 58, 237, 0.2)',
-                      textTransform: 'none',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 0.2,
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #6D28D9 0%, #1E40AF 100%)',
-                        boxShadow: '0 12px 30px rgba(124, 58, 237, 0.3)',
-                        transform: 'translateY(-2px)'
-                      },
-                      transition: 'all 0.3s ease',
-                      "&.Mui-disabled": {
-                        background: "#E2E8F0",
-                        color: "#475569"
-                      }
-                    }}
-                  >
-                    {generatingEmail ? (
-                      "Generating..."
-                    ) : (
-                      <>
-                        <span>Email with AI</span>
-                        <span
-                          style={{
-                            fontSize: '0.75rem',
-                            fontWeight: 500,
-                            opacity: 0.9
-                          }}
-                        >
-                          Uses 5 credits
-                        </span>
-                      </>
-                    )}
-                  </Button>
-                )}
-                {/* <Button
-                  variant="outlined"
-                  fullWidth
-                  onClick={() => onToggleSave?.(job.id)}
-                  sx={{ mt: 2, py: 1.5, borderRadius: '12px', fontWeight: 700, fontSize: '1rem', color: '#475569', borderColor: '#E5E7EB' }}
-                >
-                  {isSaved ? "Saved" : "Save for Later"}
-                </Button> */}
-                <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2, color: '#94A3B8', fontWeight: 600 }}>
-                  Posted {job.posted}
-                </Typography>
-              </Paper>
 
               {/* Skills Match Card */}
               <Paper elevation={0} sx={{ p: 4, borderRadius: '20px' }}>
@@ -732,6 +646,144 @@ const JobDetailScreen = ({
             </Stack>
           </Grid>
         </Grid>
+
+        {/* Apply Card at the bottom, after all details */}
+        <Paper elevation={0} sx={{ p: 4, mt: 4, borderRadius: '20px' }}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            alignItems="stretch"
+            justifyContent="center"
+            sx={{ width: '100%' }}
+          >
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={handleApply}
+              disabled={applying || generatingEmail || generatingATS}
+              startIcon={applying ? <CircularProgress size={20} color="inherit" /> : null}
+              sx={{
+                flex: 1,
+                py: 1.5, borderRadius: '12px', fontWeight: 800, fontSize: '1rem',
+                bgcolor: '#2563EB',
+                boxShadow: '0 10px 25px rgba(37, 99, 235, 0.2)',
+                '&:hover': { bgcolor: '#1e40af', boxShadow: '0 12px 30px rgba(37, 99, 235, 0.3)' },
+                "&.Mui-disabled": {
+                  background: "#E2E8F0",
+                  color: "#475569"
+                }
+              }}
+            >
+              {applying ? "Applying..." : "Apply Now"}
+            </Button>
+            {job && (
+              <Button
+                variant="contained"
+                fullWidth
+                startIcon={generatingATS ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
+                onClick={handleApplyWithAI}
+                disabled={applying || generatingEmail || generatingATS}
+                sx={{
+                  flex: 1,
+                  py: 1.5,
+                  borderRadius: '12px',
+                  fontWeight: 800,
+                  fontSize: '1rem',
+                  background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
+                  boxShadow: '0 10px 25px rgba(124, 58, 237, 0.2)',
+                  textTransform: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 0.2,
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #6D28D9 0%, #1E40AF 100%)',
+                    boxShadow: '0 12px 30px rgba(124, 58, 237, 0.3)',
+                    transform: 'translateY(-2px)'
+                  },
+                  transition: 'all 0.3s ease',
+                  "&.Mui-disabled": {
+                    background: "#E2E8F0",
+                    color: "#475569"
+                  }
+                }}
+              >
+                {generatingATS ? (
+                  "Generating..."
+                ) : (
+                  <>
+                    <span>Generate with AI</span>
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 500,
+                        opacity: 0.9
+                      }}
+                    >
+                      Uses 10 credits
+                    </span>
+                  </>
+                )}
+              </Button>
+            )}
+
+            {job.hiring_email && (
+              <Button
+                variant="contained"
+                fullWidth
+                startIcon={generatingEmail ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
+                onClick={handleEmailApplyWithAI}
+                disabled={applying || generatingEmail || generatingATS}
+                sx={{
+                  flex: 1,
+                  py: 1.5,
+                  borderRadius: '12px',
+                  fontWeight: 800,
+                  fontSize: '1rem',
+                  background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
+                  boxShadow: '0 10px 25px rgba(124, 58, 237, 0.2)',
+                  textTransform: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 0.2,
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #6D28D9 0%, #1E40AF 100%)',
+                    boxShadow: '0 12px 30px rgba(124, 58, 237, 0.3)',
+                    transform: 'translateY(-2px)'
+                  },
+                  transition: 'all 0.3s ease',
+                  "&.Mui-disabled": {
+                    background: "#E2E8F0",
+                    color: "#475569"
+                  }
+                }}
+              >
+                {generatingEmail ? (
+                  "Generating..."
+                ) : (
+                  <>
+                    <span>Email with AI</span>
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 500,
+                        opacity: 0.9
+                      }}
+                    >
+                      Uses 5 credits
+                    </span>
+                  </>
+                )}
+              </Button>
+            )}
+          </Stack>
+          <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2, color: '#94A3B8', fontWeight: 600 }}>
+            Posted {job.posted}
+          </Typography>
+        </Paper>
       </Container>
 
       {/* Email Dialog */}

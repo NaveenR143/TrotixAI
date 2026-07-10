@@ -275,6 +275,57 @@ const PublicJobDetailScreen = () => {
     </Box>
   );
 
+  const renderJobDescription = (description) => {
+    if (!description) return null;
+
+    // Check if the description contains HTML tags
+    const hasHtml = /<[a-z][\s\S]*>/i.test(description);
+    if (hasHtml) {
+      return (
+        <Box
+          dangerouslySetInnerHTML={{ __html: description }}
+          sx={{
+            color: "#475569",
+            lineHeight: 1.8,
+            fontSize: "1rem",
+            textAlign: "justify",
+            '& p': { mb: 2, textAlign: "justify" },
+            '& ul, & ol': { mb: 2, pl: 3 },
+            '& li': { mb: 1 },
+            '& img': { maxWidth: '100%', height: 'auto', borderRadius: '8px' }
+          }}
+        />
+      );
+    }
+
+    // Split plain text by double newlines for paragraph separation
+    const paragraphs = description.split(/\n\s*\n+/);
+
+    return (
+      <Box>
+        {paragraphs.map((para, index) => {
+          const trimmed = para.trim();
+          if (!trimmed) return null;
+          return (
+            <Typography
+              key={index}
+              sx={{
+                mb: 2,
+                color: "#475569",
+                lineHeight: 1.8,
+                fontSize: "1rem",
+                whiteSpace: "pre-line",
+                textAlign: "justify",
+              }}
+            >
+              {trimmed}
+            </Typography>
+          );
+        })}
+      </Box>
+    );
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#F8FAFC' }}>
@@ -352,17 +403,15 @@ const PublicJobDetailScreen = () => {
               <SectionHeader icon={AssignmentIcon} title="Job Description" accent="#22D3EE" />
               <Box
                 sx={{
-                  color: "#475569",
-                  lineHeight: 1.8,
-                  fontSize: "1rem",
                   maxHeight: expandedDescription ? 'none' : '400px',
                   overflow: 'hidden',
                   position: 'relative',
                   wordBreak: 'break-word',
-                  '& p': { mb: 2 }
+                  overflowWrap: 'anywhere',
                 }}
-                dangerouslySetInnerHTML={{ __html: job.description }}
-              />
+              >
+                {renderJobDescription(job.description)}
+              </Box>
               <Button
                 onClick={() => setExpandedDescription(!expandedDescription)}
                 sx={{ mt: 2, fontWeight: 700, color: '#2563EB', textTransform: 'none' }}
@@ -374,51 +423,6 @@ const PublicJobDetailScreen = () => {
 
           <Grid item xs={12} md={4}>
             <Stack spacing={4} sx={{ position: { md: 'sticky' }, top: 100 }}>
-              <Paper elevation={0} sx={{ p: 4, borderRadius: '20px' }}>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  onClick={handleApply}
-                  disabled={applying}
-                  sx={{
-                    py: 1.5, borderRadius: '12px', fontWeight: 800, fontSize: '1rem',
-                    bgcolor: '#2563EB',
-                    boxShadow: '0 10px 25px rgba(37, 99, 235, 0.2)',
-                    '&:hover': { bgcolor: '#1e40af' },
-                    "&.Mui-disabled": {
-                      background: "#E2E8F0",
-                      color: "#475569"
-                    }
-                  }}
-                >
-                  {applying ? "Applying..." : "Apply Now"}
-                </Button>
-
-                {job.hiring_email && (
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    startIcon={<AutoAwesomeIcon />}
-                    onClick={handleApplyWithAI}
-                    disabled={generatingEmail}
-                    sx={{
-                      mt: 2, py: 1.5, borderRadius: '12px', fontWeight: 800,
-                      background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
-                      '&:hover': { transform: 'translateY(-2px)' },
-                      "&.Mui-disabled": {
-                        background: "#E2E8F0",
-                        color: "#475569"
-                      }
-                    }}
-                  >
-                    {generatingEmail ? "Generating..." : "Apply with AI"}
-                  </Button>
-                )}
-
-                <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2, color: '#94A3B8', fontWeight: 600 }}>
-                  Posted {job.posted || (job.posted_at ? new Date(job.posted_at).toLocaleDateString() : 'recently')}
-                </Typography>
-              </Paper>
 
               <Paper elevation={0} sx={{ p: 4, borderRadius: '20px' }}>
                 <SectionHeader icon={SchoolIcon} title="Skills" accent="#7C3AED" />
@@ -431,6 +435,62 @@ const PublicJobDetailScreen = () => {
             </Stack>
           </Grid>
         </Grid>
+
+        {/* Apply Card at the bottom, after all details */}
+        <Paper elevation={0} sx={{ p: 4, mt: 4, borderRadius: '20px' }}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            alignItems="stretch"
+            justifyContent="center"
+            sx={{ width: '100%' }}
+          >
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={handleApply}
+              disabled={applying}
+              sx={{
+                flex: 1,
+                py: 1.5, borderRadius: '12px', fontWeight: 800, fontSize: '1rem',
+                bgcolor: '#2563EB',
+                boxShadow: '0 10px 25px rgba(37, 99, 235, 0.2)',
+                '&:hover': { bgcolor: '#1e40af' },
+                "&.Mui-disabled": {
+                  background: "#E2E8F0",
+                  color: "#475569"
+                }
+              }}
+            >
+              {applying ? "Applying..." : "Apply Now"}
+            </Button>
+
+            {job.hiring_email && (
+              <Button
+                variant="contained"
+                fullWidth
+                startIcon={<AutoAwesomeIcon />}
+                onClick={handleApplyWithAI}
+                disabled={generatingEmail}
+                sx={{
+                  flex: 1,
+                  py: 1.5, borderRadius: '12px', fontWeight: 800, fontSize: '1rem',
+                  background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
+                  '&:hover': { transform: 'translateY(-2px)' },
+                  "&.Mui-disabled": {
+                    background: "#E2E8F0",
+                    color: "#475569"
+                  }
+                }}
+              >
+                {generatingEmail ? "Generating..." : "Apply with AI"}
+              </Button>
+            )}
+          </Stack>
+          <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2, color: '#94A3B8', fontWeight: 600 }}>
+            Posted {job.posted || (job.posted_at ? new Date(job.posted_at).toLocaleDateString() : 'recently')}
+          </Typography>
+        </Paper>
       </Container>
 
       <Dialog

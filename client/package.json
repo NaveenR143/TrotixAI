@@ -9,6 +9,7 @@
     "@arcgis/map-components-react": "^4.31.6",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@fontsource/inter": "^5.2.8",
     "@mapbox/shp-write": "^0.4.3",
     "@microsoft/applicationinsights-react-js": "^19.3.8",
     "@microsoft/applicationinsights-web": "^3.3.10",
