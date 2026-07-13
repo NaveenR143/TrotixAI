@@ -46,6 +46,12 @@ from ai.models.career_models import (
     EnhancedResume,
     AIUsageSuccessResponse,
     AIUsageStatus,
+    EnhancePhotoRequest,
+    EnhancePhotoSuccessResponse,
+    EnhancePhotoResponse,
+    SaveEnhancedPhotoRequest,
+    SaveEnhancedPhotoSuccessResponse,
+    SaveEnhancedPhotoResponse,
 )
 
 # Logger
@@ -1245,6 +1251,111 @@ async def update_profile_photo(
         logger.error(f"Error updating profile photo: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500, detail=f"Internal error: {str(e)}")
+
+
+@router.post(
+    "/enhance-photo/{user_id}",
+    response_model=EnhancePhotoSuccessResponse,
+    responses={
+        400: {"model": ProfileErrorResponse},
+        403: {"model": ProfileErrorResponse},
+        500: {"model": ProfileErrorResponse},
+    },
+    summary="Enhance Profile Photo with AI",
+    description="Analyze and generate a professional corporate headshot of the user using GPT & DALL-E",
+)
+async def enhance_profile_photo(
+    user_id: UUID,
+    request: EnhancePhotoRequest,
+    session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+) -> EnhancePhotoSuccessResponse:
+    try:
+        # Security check: Ensure user is updating their own profile
+        if str(user_id) != current_user_id:
+            logger.warning(
+                f"Unauthorized photo enhance attempt: {current_user_id} tried to enhance {user_id}"
+            )
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only enhance your own profile photo",
+            )
+
+        from ai.services.ai_refiner_service import AzureOpenAIResumeRefiner
+        refiner = AzureOpenAIResumeRefiner()
+        
+        # 1. Generate professional photo (calls prompt generation + DALL-E)
+        generated_url = await refiner.generate_professional_photo(user_id, request.avatar_url, session)
+        
+        return EnhancePhotoSuccessResponse(
+            status="success",
+            data=EnhancePhotoResponse(enhanced_url=generated_url)
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error enhancing profile photo: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail=f"Internal error: {str(e)}"
+        )
+
+
+@router.post(
+    "/save-enhanced-photo/{user_id}",
+    response_model=SaveEnhancedPhotoSuccessResponse,
+    responses={
+        400: {"model": ProfileErrorResponse},
+        403: {"model": ProfileErrorResponse},
+        500: {"model": ProfileErrorResponse},
+    },
+    summary="Save Enhanced Profile Photo",
+    description="Download enhanced photo from DALL-E temporary URL, upload to Azure storage, and update database",
+)
+async def save_enhanced_profile_photo(
+    user_id: UUID,
+    request: SaveEnhancedPhotoRequest,
+    session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+) -> SaveEnhancedPhotoSuccessResponse:
+    try:
+        # Security check: Ensure user is updating their own profile
+        if str(user_id) != current_user_id:
+            logger.warning(
+                f"Unauthorized photo save attempt: {current_user_id} tried to save enhanced photo for {user_id}"
+            )
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only save your own profile photo",
+            )
+
+        from ai.services.ai_refiner_service import AzureOpenAIResumeRefiner
+        refiner = AzureOpenAIResumeRefiner()
+        
+        # 1. Upload generated image from temp URL to Azure Storage
+        final_avatar_url = await refiner.upload_generated_image(request.enhanced_url, user_id)
+        
+        # 2. Update database
+        success = await refiner.update_user_avatar(user_id, final_avatar_url, session)
+        if not success:
+            raise HTTPException(
+                status_code=500, detail="Failed to update database with enhanced photo URL"
+            )
+            
+        logger.info(f"Enhanced profile photo saved successfully for user: {user_id}")
+        
+        return SaveEnhancedPhotoSuccessResponse(
+            status="success",
+            data=SaveEnhancedPhotoResponse(avatar_url=final_avatar_url)
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error saving enhanced profile photo: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail=f"Internal error: {str(e)}"
+        )
 
 
 @router.get(

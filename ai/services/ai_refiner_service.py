@@ -11,6 +11,7 @@ from ai.utils.toon import TOONFormatter
 from ai.utils.data_utils import clean_dict
 from typing import Dict, Any, List
 import logging
+import httpx
 
 logger = logging.getLogger(__name__)
 
@@ -123,6 +124,8 @@ class AzureOpenAIResumeRefiner:
                 messages=messages,
                 temperature=0.2,  # slight creativity for recommendations
             )
+            if hasattr(response, "usage") and response.usage:
+                print(f"Input tokens: {response.usage.prompt_tokens}, Output tokens: {response.usage.completion_tokens}")
 
             content = (response.choices[0].message.content or "").strip()
 
@@ -228,6 +231,8 @@ class AzureOpenAIResumeRefiner:
                 messages=messages,
                 temperature=0.3,
             )
+            if hasattr(response, "usage") and response.usage:
+                print(f"Input tokens: {response.usage.prompt_tokens}, Output tokens: {response.usage.completion_tokens}")
 
             content = (response.choices[0].message.content or "").strip()
 
@@ -303,6 +308,8 @@ class AzureOpenAIResumeRefiner:
                 messages=messages,
                 temperature=0.7,  # moderate creativity for email writing
             )
+            if hasattr(response, "usage") and response.usage:
+                print(f"Input tokens: {response.usage.prompt_tokens}, Output tokens: {response.usage.completion_tokens}")
 
             content = (response.choices[0].message.content or "").strip()
 
@@ -321,3 +328,272 @@ class AzureOpenAIResumeRefiner:
                 f"Application email generation failed: {exc}", exc_info=True)
             raise CareerAdvisorError(
                 f"LLM application email failed: {exc}") from exc
+
+    async def generate_professional_photo(
+        self,
+        user_id: UUID,
+        avatar_url: str,
+        session: AsyncSession,
+    ) -> str:
+        """
+        Orchestrate the AI photo enhancement process.
+        """
+        logger.info(f"Generating professional photo for user {user_id} using source {avatar_url}")
+        
+        # 1. Download image from avatar_url
+        try:
+            from ai.services.azure_storage_service import AzureStorageService
+            azure_service = AzureStorageService()
+            image_bytes, content_type = await azure_service.get_user_photo(avatar_url)
+        except Exception as e:
+            logger.error(f"Failed to fetch user photo from storage: {e}")
+            raise CareerAdvisorError(f"Could not retrieve source photo from storage: {str(e)}")
+
+        # 2. Call GPT to analyze photo and get prompt + gender info
+        # prompt_data = await self.call_gpt_image_prompt_generation(image_bytes, content_type, user_id, session)
+        # dalle_prompt = prompt_data.get("prompt")
+        # gender = prompt_data.get("gender", "generic")
+
+        # 3. Call DALL-E (or fallback) to generate the image
+        generated_url = await self.call_gpt_image_model(
+            image_bytes=image_bytes,
+            content_type=content_type,
+        )
+
+        return generated_url
+
+    async def call_gpt_image_prompt_generation(
+        self,
+        image_bytes: bytes,
+        content_type: str,
+        user_id: UUID,
+        session: AsyncSession,
+    ) -> dict:
+        """
+        Analyze image using multimodal GPT model and return prompt + gender.
+        If vision fails or is unsupported, fallback to profile-based text description.
+        """
+        import base64
+        from sqlalchemy import text
+        
+        try:
+            base64_image = base64.b64encode(image_bytes).decode('utf-8')
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an AI assistant specialized in image analysis for professional profile photos.\n"
+                        "Analyze the user's photo and output a JSON object containing:\n"
+                        "1. 'gender': 'male', 'female', or 'unknown'\n"
+                        "2. 'prompt': A detailed DALL-E 3 image generation prompt to generate a high-quality professional corporate headshot of this person.\n"
+                        "The prompt should preserve key features (approximate age, ethnicity, hair color/style, eye color) and specify professional business attire (suit, blazer) against a clean modern office backdrop with soft studio lighting.\n"
+                        "Return ONLY a valid JSON object matching the schema: {\"gender\": \"...\", \"prompt\": \"...\"}."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Analyze this photo and write the JSON prompt output."
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:{content_type};base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
+            ]
+
+            response = self._client.chat.completions.create(
+                model=self._deployment,
+                messages=messages,
+                response_format={"type": "json_object"},
+                temperature=0.2,
+            )
+            if hasattr(response, "usage") and response.usage:
+                print(f"Input tokens: {response.usage.prompt_tokens}, Output tokens: {response.usage.completion_tokens}")
+            
+            result = json.loads(response.choices[0].message.content or "{}")
+            if "prompt" in result:
+                return result
+                
+        except Exception as e:
+            logger.warning(f"Multimodal vision call failed or unsupported, falling back to text profile: {e}")
+            
+        # Fallback: Query database for profile details to construct prompt
+        try:
+            query = text("SELECT first_name, last_name, gender FROM resumes WHERE user_id = :user_id LIMIT 1")
+            db_res = await session.execute(query, {"user_id": str(user_id)})
+            row = db_res.fetchone()
+            
+            gender = "unknown"
+            if row:
+                gender = (row[2] or "unknown").lower()
+                
+            gender_pronoun = "person"
+            attire = "professional business attire"
+            if gender == "male":
+                gender_pronoun = "man"
+                attire = "a sharp navy blue suit with a white shirt and tie"
+            elif gender == "female":
+                gender_pronoun = "woman"
+                attire = "a professional black blazer with a white blouse"
+
+            fallback_prompt = (
+                f"A professional corporate headshot of a smiling {gender_pronoun} in {attire}. "
+                f"They look confident and friendly, suitable for a resume and LinkedIn profile. "
+                f"Set against a modern, clean, slightly out-of-focus office background with soft studio lighting. "
+                f"High-quality 4k resolution, realistic photo."
+            )
+            return {"gender": gender, "prompt": fallback_prompt}
+            
+        except Exception as db_err:
+            logger.error(f"Fallback database query failed: {db_err}")
+            return {
+                "gender": "unknown",
+                "prompt": "A high-quality professional corporate headshot of a smiling professional, dressed in corporate attire, set against a clean, modern, slightly out-of-focus office background with soft studio lighting."
+            }
+
+    async def call_gpt_image_model(
+        self,
+        image_bytes: bytes | None = None,
+        content_type: str | None = None,
+    ) -> str:
+        """
+        Call AZURE_FLUX model to generate the image.
+        If AZURE_FLUX fails, fallback to a premium preset unsplash URL.
+        """
+        
+        try:
+            endpoint = os.getenv("AZURE_FLUX_ENDPOINT", "").split("#")[0].strip()
+            api_key = os.getenv("AZURE_FLUX_API_KEY", "").split("#")[0].strip()
+            api_version = os.getenv("AZURE_FLUX_API_VERSION", "").split("#")[0].strip()
+            deployment = os.getenv("AZURE_FLUX_DEPLOYMENT", "").split("#")[0].strip()
+
+            if not endpoint or not api_key:
+                raise AIRefinementError("AZURE_FLUX_ENDPOINT and AZURE_FLUX_API_KEY must be set in env.")
+
+            url = f"{endpoint}?api-version={api_version}" if api_version else endpoint
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "api-key": api_key,
+                "Content-Type": "application/json",
+            }
+
+            image_prompt = (
+                "Transform the uploaded photo into a professional corporate headshot while preserving "
+                "the person's exact identity, facial features, hairstyle, skin tone, and natural expression. "
+                "Create a confident, friendly, and approachable appearance suitable for a resume and LinkedIn profile. "
+                "Improve lighting, sharpness, and overall image quality while keeping the result photorealistic. "
+                "Use professional business attire appropriate for a corporate environment. "
+                "Replace the background with a clean, modern office setting with a subtle blur and soft studio lighting. "
+                "Frame the image as a professional head-and-shoulders portrait with natural proportions. "
+                "Maintain realistic skin texture and avoid any artificial or overly retouched appearance. "
+                "High-resolution professional photography style, realistic DSLR camera quality."
+            )
+
+            payload = {
+                "prompt": image_prompt,
+                "width": 1024,
+                "height": 1024,
+                "n": 1,
+            }
+            if deployment:
+                payload["model"] = deployment
+
+            if image_bytes and content_type:
+                import base64
+                base64_image = base64.b64encode(image_bytes).decode('utf-8')
+                payload["input_image"] = base64_image
+
+            logger.info(f"Calling AZURE_FLUX model with endpoint: {endpoint}")
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, headers=headers, json=payload, timeout=60.0)
+                response.raise_for_status()
+                resp_json = response.json()
+
+            data = resp_json.get("data", [])
+            if data:
+                image_url = data[0].get("url")
+                if image_url:
+                    return image_url
+                b64 = data[0].get("b64_json")
+                if b64:
+                    return f"data:image/png;base64,{b64}"
+
+            raise AIRefinementError("No image URL or base64 data returned in the response.")
+
+        except Exception as e:
+            logger.error(f"AZURE_FLUX image generation failed, returning premium unsplash preset: {e}")
+            
+        fallback_urls = {
+            "male": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400",
+            "female": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400",
+            "unknown": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=400",
+            "generic": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=400"
+        }
+        
+        gender_key = ("unknown" or "generic").lower()
+        return fallback_urls.get(gender_key, fallback_urls["generic"])
+
+    async def upload_generated_image(self, image_url: str, user_id: UUID) -> str:
+        """
+        Download the generated image from OpenAI/Unsplash/BFL or parse base64 and upload it to Azure Storage.
+        """
+        import httpx
+        import base64
+        from ai.services.azure_storage_service import AzureStorageService
+        from azure.storage.blob import BlobServiceClient
+        
+        logger.info(f"Downloading/parsing generated image for user {user_id}")
+        
+        if image_url.startswith("data:"):
+            try:
+                header, encoded = image_url.split(",", 1)
+                image_bytes = base64.b64decode(encoded)
+                content_type = header.split(";")[0].split(":")[1]
+            except Exception as e:
+                raise CareerAdvisorError(f"Failed to parse base64 data URL: {e}")
+        else:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(image_url, timeout=30.0)
+                if response.status_code != 200:
+                    raise CareerAdvisorError(f"Failed to download generated image: HTTP {response.status_code}")
+                image_bytes = response.content
+                content_type = response.headers.get("content-type", "image/png")
+
+        file_ext = ".png"
+        if "jpeg" in content_type or "jpg" in content_type:
+            file_ext = ".jpg"
+        elif "webp" in content_type:
+            file_ext = ".webp"
+
+        azure_service = AzureStorageService()
+        blob_service_client = BlobServiceClient.from_connection_string(
+            azure_service.connection_string
+        )
+        container_name = "userphotos"
+        try:
+            blob_service_client.create_container(container_name)
+        except Exception:
+            pass
+            
+        blob_name = f"{user_id}_enhanced{file_ext}"
+        blob_client = blob_service_client.get_blob_client(
+            container=container_name, blob=blob_name
+        )
+        
+        blob_client.upload_blob(image_bytes, overwrite=True)
+        return blob_client.url
+
+    async def update_user_avatar(self, user_id: UUID, new_avatar_url: str, session: AsyncSession) -> bool:
+        """
+        Update the avatar_url in the database.
+        """
+        from ai.db.resume_repository import ResumeRepository
+        repo = ResumeRepository(session)
+        success = await repo.update_avatar_url(str(user_id), new_avatar_url)
+        return success

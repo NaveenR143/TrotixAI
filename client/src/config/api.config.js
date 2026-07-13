@@ -8,9 +8,9 @@
  */
 
 // ─── Base URL Configuration ────────────────────────────────────────────────────
-// const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://localhost:8000';
 // const API_BASE_URL = 'http://192.168.1.7:8000';
-const API_BASE_URL = 'https://rightnxtai-bkdudpehedfwffgy.centralindia-01.azurewebsites.net';
+// const API_BASE_URL = 'https://rightnxtai-bkdudpehedfwffgy.centralindia-01.azurewebsites.net';
 
 // ─── API Endpoints ────────────────────────────────────────────────────────────
 const API_ENDPOINTS = {
@@ -50,6 +50,8 @@ const API_ENDPOINTS = {
   GOVT_JOBS: '/jobs/govt-jobs',
   GOVT_JOB_DETAILS: '/jobs/govt-jobs/',
   UPDATE_PHOTO: '/profile/update-photo',
+  ENHANCE_PHOTO: '/profile/enhance-photo',
+  SAVE_ENHANCED_PHOTO: '/profile/save-enhanced-photo',
   GET_PHOTO: '/profile/get-photo',
   RECORD_VIEW: '/jobs/record-view',
   CREDITS_USE_FEATURE: '/credits/use-feature',

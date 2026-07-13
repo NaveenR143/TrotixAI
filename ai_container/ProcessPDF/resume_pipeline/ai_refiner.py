@@ -165,6 +165,8 @@ class AzureOpenAIResumeRefiner:
                 messages=messages,
                 temperature=0.0,  # 🔥 deterministic output
             )
+            if hasattr(response, "usage") and response.usage:
+                print(f"Input tokens: {response.usage.prompt_tokens}, Output tokens: {response.usage.completion_tokens}")
 
             content = (response.choices[0].message.content or "").strip()
 

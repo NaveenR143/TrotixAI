@@ -305,7 +305,7 @@ const TemplateSelectorScreen = () => {
       </Container>
 
       {/* Hero Section */}
-      <Box
+      {/* <Box
         sx={{
           py: { xs: 4, md: 6 }, // ⬇️ reduced from 6/10 → 4/6
           background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
@@ -329,20 +329,9 @@ const TemplateSelectorScreen = () => {
           >
             Pick Your Dream Template
           </Typography>
-          {/* <Typography
-            sx={{
-              fontSize: { xs: "1rem", md: "1.25rem" },
-              color: "#94a3b8",
-              maxWidth: 600,
-              mx: "auto",
-              mb: 4,
-            }}
-          >
-            Our AI-optimized templates are designed to grab recruiter attention
-            and pass ATS filters with ease.
-          </Typography> */}
+          
         </Container>
-      </Box>
+      </Box> */}
 
       {/* Template Sections */}
       <Container maxWidth="lg" sx={{ mt: 6, position: "relative", zIndex: 10 }}>

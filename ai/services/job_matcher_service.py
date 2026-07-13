@@ -172,9 +172,9 @@ class JobMatcherService:
             user_data, candidate_jobs, session
         )
 
-        # Step 4: Filter jobs with no matched skills, sort by final score
+        # Step 4: Filter jobs with no matched skills, sort by latest posted_date and then final_score desc
         filtered_jobs = [j for j in scored_jobs if j.get("matched_skills")]
-        filtered_jobs.sort(key=lambda x: x["final_score"], reverse=True)
+        filtered_jobs.sort(key=lambda x: (x.get("posted_date") or "", x.get("final_score", 0.0)), reverse=True)
         return filtered_jobs[:limit]
 
     @staticmethod

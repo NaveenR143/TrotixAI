@@ -69,10 +69,10 @@ const MobileJobCard = ({
         <Typography
           sx={{
             fontWeight: 900,
-            fontSize: "1.7rem",
+            fontSize: "1.5rem",
             color: "#0f172a",
             lineHeight: 1.15,
-            mb: 1,
+            mb: 2,
             letterSpacing: "-0.02em",
           }}
         >
@@ -88,7 +88,7 @@ const MobileJobCard = ({
           }}
         >
           <Typography
-            sx={{ fontSize: "1.1rem", color: "#64748b", fontWeight: 600 }}
+            sx={{ fontSize: "1.0rem", color: "#64748b", fontWeight: 600 }}
           >
             {job.company}
           </Typography>
@@ -135,7 +135,7 @@ const MobileJobCard = ({
               boxShadow: "0 2px 6px rgba(15,23,42,0.03)",
             }}
           />
-          {job.salary && (
+          {/* {job.salary && (
             <Chip
               label={job.salary}
               size="small"
@@ -150,7 +150,7 @@ const MobileJobCard = ({
                 py: 1.5,
               }}
             />
-          )}
+          )} */}
           <Chip
             label={`${getWorkModeIcon(job.workMode)} ${job.workMode}`}
             size="small"
@@ -227,7 +227,7 @@ const MobileJobCard = ({
         )}
 
         {job.keySkillsMatched?.length > 0 && (
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 4, mt: 2 }}>
             <Typography
               sx={{
                 fontSize: "0.75rem",

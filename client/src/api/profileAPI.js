@@ -601,6 +601,50 @@ export const fetchProfilePhoto = async (avatarUrl) => {
 };
 
 /**
+ * Enhance Profile Photo with AI
+ */
+export const enhanceProfilePhoto = async (userId, avatarUrl) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}${API_ENDPOINTS.ENHANCE_PHOTO}/${userId}`,
+      { avatar_url: avatarUrl },
+      { headers: getHeaders(), timeout: 60000 }
+    );
+
+    return {
+      error: false,
+      data: response.data?.data || response.data,
+      message: response.data?.message || "AI image generated successfully",
+    };
+  } catch (error) {
+    console.error("Error enhancing profile photo:", error);
+    return handleError(error);
+  }
+};
+
+/**
+ * Save Enhanced Profile Photo
+ */
+export const saveEnhancedProfilePhoto = async (userId, enhancedUrl) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}${API_ENDPOINTS.SAVE_ENHANCED_PHOTO}/${userId}`,
+      { enhanced_url: enhancedUrl },
+      { headers: getHeaders(), timeout: 30000 }
+    );
+
+    return {
+      error: false,
+      data: response.data?.data || response.data,
+      message: response.data?.message || "AI photo saved successfully",
+    };
+  } catch (error) {
+    console.error("Error saving enhanced profile photo:", error);
+    return handleError(error);
+  }
+};
+
+/**
  * Record Job View
  */
 export const recordJobView = async (jobId, userId) => {

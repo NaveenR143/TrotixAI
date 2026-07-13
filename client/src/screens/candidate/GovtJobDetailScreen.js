@@ -109,10 +109,10 @@ const GovtJobDetailScreen = ({ job: initialJob, isEmbedded = false, onBack }) =>
                 size="small" 
                 sx={{ bgcolor: '#ecfdf5', color: '#059669', fontWeight: 700, mb: 1.5, borderRadius: '6px' }} 
               />
-              <Typography sx={{ fontWeight: 900, fontSize: '1.7rem', color: '#0f172a', mb: 1, letterSpacing: '-0.03em', lineHeight: 1.2 }}>
+              <Typography sx={{ fontWeight: 900, fontSize: { xs: "1.5rem", md: "1.8rem" }, color: '#0f172a', mb: 1, letterSpacing: '-0.03em', lineHeight: 1.2 }}>
                 {job.title}
               </Typography>
-              <Typography sx={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 500 }}>
+              <Typography sx={{ color: '#64748b', fontSize: { xs: "0.85rem", md: "0.9rem" }, fontWeight: 500 }}>
                 {job.state || "Government Department"}
               </Typography>
             </Box>

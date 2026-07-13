@@ -104,3 +104,28 @@ class AIUsageSuccessResponse(BaseModel):
     status: str = "success"
     data: AIUsageStatus
     timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+
+# --- Profile Photo Enhancement Models ---
+
+class EnhancePhotoRequest(BaseModel):
+    avatar_url: str
+
+class EnhancePhotoResponse(BaseModel):
+    enhanced_url: str
+
+class EnhancePhotoSuccessResponse(BaseModel):
+    status: str = "success"
+    data: EnhancePhotoResponse
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+class SaveEnhancedPhotoRequest(BaseModel):
+    enhanced_url: str
+
+class SaveEnhancedPhotoResponse(BaseModel):
+    avatar_url: str
+
+class SaveEnhancedPhotoSuccessResponse(BaseModel):
+    status: str = "success"
+    data: SaveEnhancedPhotoResponse
+    timestamp: datetime = Field(default_factory=datetime.utcnow)

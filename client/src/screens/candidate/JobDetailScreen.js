@@ -180,31 +180,23 @@ const JobDetailScreen = ({
       } finally {
         setApplying(false);
       }
-    } else if (job.careers_url && !job.is_verified) {
-      // External Application
-
-      // window.open(job.careers_url, "_blank");
-      const companyName = (typeof job.company === "object" ? job.company?.name : job.company) || "";
-      const searchQuery = `${companyName} jobs careers`;
-      const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
-      window.open(searchUrl, "_blank");
-    } else if (job.careers_url && !job.is_verified) {
-      window.open(job.careers_url, "_blank");
-    }
-    else if (job.hiring_email) {
-      // Email Contact
-      setShowEmailDialog(true);
     } else {
-
       const companyName = (typeof job.company === "object" ? job.company?.name : job.company) || "";
-      const searchQuery = `${companyName} jobs careers`;
-      const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
-      window.open(searchUrl, "_blank");
-      // setSnackbar({
-      //   open: true,
-      //   message: "No application method available for this job.",
-      //   severity: "info",
-      // });
+      const googleSearch = () => {
+        const searchQuery = `${companyName} careers jobs`;
+        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+        window.open(searchUrl, "_blank");
+      };
+
+      if (!job.is_verified) {
+        googleSearch();
+      } else if (job.is_verified && job.careers_url) {
+        window.open(job.careers_url, "_blank");
+      } else if (job.is_verified && !job.careers_url && job.hiring_email) {
+        setShowEmailDialog(true);
+      } else {
+        googleSearch();
+      }
     }
   };
 
@@ -374,7 +366,7 @@ const JobDetailScreen = ({
     <Box sx={{ mb: 3 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
         <Icon sx={{ color: "#111827", fontSize: 22 }} />
-        <Typography sx={{ fontWeight: 800, fontSize: "1.1rem", color: "#111827", letterSpacing: "-0.02em" }}>
+        <Typography sx={{ fontWeight: 800, fontSize: { xs: "1.0rem", md: "1.1rem" }, color: "#111827", letterSpacing: "-0.02em" }}>
           {title}
         </Typography>
       </Box>
@@ -469,44 +461,48 @@ const JobDetailScreen = ({
           <Grid item xs={12} md={8}>
             {/* Job Header Card */}
             <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: '20px' }}>
-              <Box sx={{ display: "flex", gap: 3, alignItems: "flex-start", mb: 4, flexDirection: { xs: 'column', sm: 'row' } }}>
-                <Avatar
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    background: `linear-gradient(135deg, ${job.logoColor || '#2563EB'}, #4f46e5)`,
-                    fontSize: "2rem",
-                    fontWeight: 800,
-                    borderRadius: '20px',
-                    boxShadow: "0 8px 25px rgba(37, 99, 235, 0.15)",
-                  }}
-                >
-                  {job.company?.[0]}
-                </Avatar>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 900, color: "#111827", letterSpacing: "-0.03em", mb: 0.5 }}>
-                    {job.title}
-                  </Typography>
-                  <Typography variant="h6" sx={{ color: "#2563EB", fontWeight: 700, mb: 2.5 }}>
+              <Box>
+                <Typography sx={{ fontWeight: 900, color: "#111827", fontSize: { xs: "1.5rem", md: "1.8rem" }, letterSpacing: "-0.03em", mb: 1.5 }}>
+                  {job.title}
+                </Typography>
+                
+                <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
+                  <Avatar
+                    sx={{
+                      width: 30,
+                      height: 30,
+                      background: `linear-gradient(135deg, ${job.logoColor || '#2563EB'}, #4f46e5)`,
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                      borderRadius: '8px',
+                      boxShadow: "0 4px 12px rgba(37, 99, 235, 0.12)",
+                    }}
+                  >
+                    {job.company?.[0]}
+                  </Avatar>
+                  <Typography sx={{ color: "#2563EB", fontWeight: 700, fontSize: { xs: "1.0rem", md: "1.15rem" } }}>
                     {job.company}
                   </Typography>
-                  <Stack direction="row" spacing={2} flexWrap="wrap" gap={1.5}>
-                    <MatchBadge score={job.matchScore} size="lg" />
-                    <Chip
-                      icon={<LocationOnIcon sx={{ fontSize: '16px !important' }} />}
-                      label={job.location}
-                      variant="outlined"
-                      sx={{ borderRadius: '10px', fontWeight: 600, color: '#64748B', borderColor: '#E5E7EB' }}
-                    />
-                    <Chip
-                      icon={<WorkIcon sx={{ fontSize: '16px !important' }} />}
-                      label={job.workMode}
-                      variant="outlined"
-                      sx={{ borderRadius: '10px', fontWeight: 600, color: '#64748B', borderColor: '#E5E7EB' }}
-                    />
+                </Stack>
+
+                <Stack direction="row" spacing={2} flexWrap="wrap" gap={1.5}>
+                  <MatchBadge score={job.matchScore} size="lg" />
+                  <Chip
+                    icon={<LocationOnIcon sx={{ fontSize: '16px !important' }} />}
+                    label={job.location}
+                    variant="outlined"
+                    sx={{ borderRadius: '10px', fontWeight: 600, color: '#64748B', borderColor: '#E5E7EB' }}
+                  />
+                  <Chip
+                    icon={<WorkIcon sx={{ fontSize: '16px !important' }} />}
+                    label={job.workMode}
+                    variant="outlined"
+                    sx={{ borderRadius: '10px', fontWeight: 600, color: '#64748B', borderColor: '#E5E7EB' }}
+                  />
+                  {job.salary && (
                     <Chip label={job.salary} sx={{ borderRadius: '10px', fontWeight: 800, bgcolor: '#dcfce7', color: '#16a34a' }} />
-                  </Stack>
-                </Box>
+                  )}
+                </Stack>
               </Box>
             </Paper>
 
@@ -568,7 +564,6 @@ const JobDetailScreen = ({
           {/* Sidebar */}
           <Grid item xs={12} md={4}>
             <Stack spacing={4} sx={{ position: { md: 'sticky' }, top: 100 }}>
-
               {/* Skills Match Card */}
               <Paper elevation={0} sx={{ p: 4, borderRadius: '20px' }}>
                 <SectionHeader icon={SchoolIcon} title="Skills Match" accent="#7C3AED" />
@@ -619,7 +614,7 @@ const JobDetailScreen = ({
 
               {/* Job Summary */}
               <Paper elevation={0} sx={{ p: 4, borderRadius: '20px' }}>
-                <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Job Summary</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: { xs: "1.0rem", md: "1.15rem" }, mb: 3 }}>Job Summary</Typography>
                 <Stack spacing={3}>
                   <Box>
                     <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 600 }}>EXPERIENCE</Typography>
@@ -631,10 +626,12 @@ const JobDetailScreen = ({
                         : (job.experience || "Not specified")}
                     </Typography>
                   </Box>
-                  <Box>
-                    <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 600 }}>JOB TYPE</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{job.jobType}</Typography>
-                  </Box>
+                  {job.jobType && (
+                    <Box>
+                      <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 600 }}>JOB TYPE</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>{job.jobType}</Typography>
+                    </Box>
+                  )}
                   {job.teamSize && (
                     <Box>
                       <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 600 }}>TEAM SIZE</Typography>

@@ -267,7 +267,7 @@ const PublicJobDetailScreen = () => {
     <Box sx={{ mb: 3 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
         <Icon sx={{ color: "#111827", fontSize: 22 }} />
-        <Typography sx={{ fontWeight: 800, fontSize: "1.1rem", color: "#111827", letterSpacing: "-0.02em" }}>
+        <Typography sx={{ fontWeight: 800, fontSize: { xs: "1.0rem", md: "1.1rem" }, color: "#111827", letterSpacing: "-0.02em" }}>
           {title}
         </Typography>
       </Box>
@@ -374,10 +374,10 @@ const PublicJobDetailScreen = () => {
                   {(job.company?.name || job.company)?.[0]}
                 </Avatar>
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 900, color: "#111827", letterSpacing: "-0.03em", mb: 0.5 }}>
+                  <Typography sx={{ fontWeight: 900, color: "#111827", fontSize: { xs: "1.5rem", md: "1.8rem" }, letterSpacing: "-0.03em", mb: 0.5 }}>
                     {job.title}
                   </Typography>
-                  <Typography variant="h6" sx={{ color: "#2563EB", fontWeight: 700, mb: 2.5 }}>
+                  <Typography sx={{ color: "#2563EB", fontWeight: 700, fontSize: { xs: "1.0rem", md: "1.15rem" }, mb: 2.5 }}>
                     {job.company?.name || job.company}
                   </Typography>
                   <Stack direction="row" spacing={2} flexWrap="wrap" gap={1.5}>
