@@ -23,8 +23,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import * as profileAPI from "../../../api/profileAPI";
+import { useDispatch } from "react-redux";
+import { updateUserProfile } from "../../../redux/user/Action";
+import InsufficientCreditsDialog from "../components/dialogs/InsufficientCreditsDialog";
 
-const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
+const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -38,7 +41,9 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
   const [aiEnhancementStep, setAiEnhancementStep] = useState(0);
   const [generatedPhotoUrl, setGeneratedPhotoUrl] = useState(null);
   const [isSavingEnhanced, setIsSavingEnhanced] = useState(false);
+  const [insufficientCreditsDialogOpen, setInsufficientCreditsDialogOpen] = useState(false);
   const fileInputRef = useRef(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     let objectUrl = null;
@@ -139,44 +144,69 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
   const handleAiEnhance = async () => {
     if (!avatarUrl) return;
 
-    setIsDialogOpen(true);
-    setAiEnhancementStep(1); // Loading state
-    setEnhancing(true);
-    setEnhanceStep(0);
+    if (userPoints < 10) {
+      setInsufficientCreditsDialogOpen(true);
+      return;
+    }
+
+    setLoading(true);
     setError(null);
 
-    const stepInterval = setInterval(() => {
-      setEnhanceStep((prev) => {
-        if (prev >= 2) {
-          clearInterval(stepInterval);
-          return 2;
-        }
-        return prev + 1;
-      });
-    }, 2000);
-
     try {
-      const result = await profileAPI.enhanceProfilePhoto(userId, avatarUrl);
-      clearInterval(stepInterval);
+      const creditResult = await profileAPI.deductFeatureCredits(userId, "enhance_profile_photo");
+      if (creditResult.error || !creditResult.success) {
+        setInsufficientCreditsDialogOpen(true);
+        setLoading(false);
+        return;
+      }
 
-      if (result.error) {
-        setError(result.message || "Failed to generate AI photo. Please try again.");
+      if (creditResult.balance !== undefined) {
+        dispatch(updateUserProfile({ points: creditResult.balance }));
+      }
+
+      setIsDialogOpen(true);
+      setAiEnhancementStep(1); // Loading state
+      setEnhancing(true);
+      setEnhanceStep(0);
+
+      const stepInterval = setInterval(() => {
+        setEnhanceStep((prev) => {
+          if (prev >= 2) {
+            clearInterval(stepInterval);
+            return 2;
+          }
+          return prev + 1;
+        });
+      }, 2000);
+
+      try {
+        const result = await profileAPI.enhanceProfilePhoto(userId, avatarUrl);
+        clearInterval(stepInterval);
+
+        if (result.error) {
+          setError(result.message || "Failed to generate AI photo. Please try again.");
+          setAiEnhancementStep(3); // Error state
+          setEnhancing(false);
+        } else {
+          setGeneratedPhotoUrl(result.data.enhanced_url);
+          setEnhanceStep(3);
+          setTimeout(() => {
+            setAiEnhancementStep(2); // Preview state
+            setEnhancing(false);
+          }, 1000);
+        }
+      } catch (err) {
+        clearInterval(stepInterval);
+        setError("An unexpected error occurred during AI image generation.");
         setAiEnhancementStep(3); // Error state
         setEnhancing(false);
-      } else {
-        setGeneratedPhotoUrl(result.data.enhanced_url);
-        setEnhanceStep(3);
-        setTimeout(() => {
-          setAiEnhancementStep(2); // Preview state
-          setEnhancing(false);
-        }, 1000);
+        console.error(err);
       }
     } catch (err) {
-      clearInterval(stepInterval);
-      setError("An unexpected error occurred during AI image generation.");
-      setAiEnhancementStep(3); // Error state
-      setEnhancing(false);
+      setError("Failed to deduct credits. Please try again.");
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -269,8 +299,8 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
             <Box
               sx={{
                 position: "relative",
-                p: 0.5,
-                borderRadius: "16px",
+                p: 0.3,
+                borderRadius: 0,
                 background: "linear-gradient(135deg, #6366f1, #a855f7)",
                 boxShadow: "0 8px 20px rgba(99, 102, 241, 0.2)",
                 overflow: "hidden",
@@ -278,11 +308,11 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
             >
               <Avatar
                 src={previewUrl || secureImageUrl}
-                variant="rounded"
+                variant="square"
                 sx={{
                   width: { xs: 120, md: 140 },
                   height: { xs: 120, md: 140 },
-                  borderRadius: "12px",
+                  borderRadius: 0,
                   border: "4px solid #fff",
                   bgcolor: "#f1f5f9",
                   fontSize: "3rem",
@@ -291,9 +321,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
                   filter: isEnhanced ? "brightness(1.04) contrast(1.08) saturate(1.03)" : "none",
                   transition: "filter 0.5s ease",
                   "& img": {
-                    objectFit: "cover",
-                    transform: "scale(1.15)",
-                    transformOrigin: "center",
+                    objectFit: "contain",
                   }
                 }}
               >
@@ -312,7 +340,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
                     left: 4,
                     right: 4,
                     bottom: 4,
-                    borderRadius: "12px",
+                    borderRadius: 0,
                     bgcolor: "rgba(15, 23, 42, 0.65)",
                     display: "flex",
                     flexDirection: "column",
@@ -453,7 +481,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
                       },
                     }}
                   >
-                    Enhance with AI
+                    Enhance with AI · 10 Credits
                   </Button>
                 )}
               </>
@@ -530,20 +558,18 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
           {aiEnhancementStep === 1 && (
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", py: 4, gap: 3 }}>
               {/* Spinner & Scan Animation */}
-              <Box sx={{ position: "relative", p: 0.5, borderRadius: "16px", background: "linear-gradient(135deg, #a855f7, #6366f1)", overflow: "hidden" }}>
+              <Box sx={{ position: "relative", p: 0.5, borderRadius: 0, background: "linear-gradient(135deg, #a855f7, #6366f1)", overflow: "hidden" }}>
                 <Avatar
                   src={secureImageUrl}
-                  variant="rounded"
+                  variant="square"
                   sx={{
                     width: 130,
                     height: 130,
-                    borderRadius: "12px",
+                    borderRadius: 0,
                     border: "4px solid #fff",
                     filter: "blur(0.5px)",
                     "& img": {
-                      objectFit: "cover",
-                      transform: "scale(1.15)",
-                      transformOrigin: "center",
+                      objectFit: "contain",
                     }
                   }}
                 />
@@ -554,7 +580,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
                     left: 4,
                     right: 4,
                     bottom: 4,
-                    borderRadius: "12px",
+                    borderRadius: 0,
                     bgcolor: "rgba(15, 23, 42, 0.4)",
                     display: "flex",
                     alignItems: "center",
@@ -620,19 +646,17 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
                   <Typography variant="caption" sx={{ fontWeight: 800, color: "#64748b", display: "block", mb: 1, textTransform: "uppercase" }}>
                     ORIGINAL
                   </Typography>
-                  <Box sx={{ p: 0.5, borderRadius: "16px", bgcolor: "#e2e8f0", overflow: "hidden" }}>
+                  <Box sx={{ p: 0.5, borderRadius: 0, bgcolor: "#e2e8f0", overflow: "hidden" }}>
                     <Avatar
                       src={secureImageUrl}
-                      variant="rounded"
+                      variant="square"
                       sx={{
                         width: 120,
                         height: 120,
-                        borderRadius: "12px",
+                        borderRadius: 0,
                         border: "3px solid #fff",
                         "& img": {
-                          objectFit: "cover",
-                          transform: "scale(1.15)",
-                          transformOrigin: "center",
+                          objectFit: "contain",
                         }
                       }}
                     />
@@ -649,19 +673,17 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
                   <Typography variant="caption" sx={{ fontWeight: 800, color: "#a855f7", display: "block", mb: 1, textTransform: "uppercase" }}>
                     ✨ ENHANCED BY AI
                   </Typography>
-                  <Box sx={{ p: 0.5, borderRadius: "16px", background: "linear-gradient(135deg, #a855f7, #6366f1)", boxShadow: "0 8px 20px rgba(168, 85, 247, 0.3)", overflow: "hidden" }}>
+                  <Box sx={{ p: 0.5, borderRadius: 0, background: "linear-gradient(135deg, #a855f7, #6366f1)", boxShadow: "0 8px 20px rgba(168, 85, 247, 0.3)", overflow: "hidden" }}>
                     <Avatar
                       src={generatedPhotoUrl}
-                      variant="rounded"
+                      variant="square"
                       sx={{
                         width: 120,
                         height: 120,
-                        borderRadius: "12px",
+                        borderRadius: 0,
                         border: "3px solid #fff",
                         "& img": {
-                          objectFit: "cover",
-                          transform: "scale(1.15)",
-                          transformOrigin: "center",
+                          objectFit: "contain",
                         }
                       }}
                     />
@@ -741,6 +763,11 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess }) => {
           )}
         </DialogActions>
       </Dialog>
+
+      <InsufficientCreditsDialog
+        open={insufficientCreditsDialogOpen}
+        onClose={() => setInsufficientCreditsDialogOpen(false)}
+      />
 
       {/* Decorative background element */}
       <Box

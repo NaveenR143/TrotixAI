@@ -26,6 +26,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ShareIcon from "@mui/icons-material/Share";
 import WorkIcon from "@mui/icons-material/Work";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import SchoolIcon from "@mui/icons-material/School";
@@ -263,6 +264,16 @@ const PublicJobDetailScreen = () => {
     });
   };
 
+  const handleShareLink = () => {
+    const publicUrl = `${window.location.origin}/jobs/${job.id}`;
+    navigator.clipboard.writeText(publicUrl);
+    setSnackbar({
+      open: true,
+      message: "Public job link copied to clipboard!",
+      severity: "success",
+    });
+  };
+
   const SectionHeader = ({ icon: Icon, title, accent = "#2563EB" }) => (
     <Box sx={{ mb: 3 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
@@ -354,7 +365,32 @@ const PublicJobDetailScreen = () => {
         <meta name="description" content={job ? `Apply for ${job.title} at ${job.company?.name || job.company}. ${job.description?.substring(0, 150)}...` : 'View job details on RightNxt AI'} />
       </Helmet>
 
-      <Container maxWidth="lg" sx={{ pt: 3 }}>
+      <Box sx={{ bgcolor: "#FFFFFF", borderBottom: "1px solid #E5E7EB", position: 'sticky', top: 0, zIndex: 1000, mb: 3 }}>
+        <Container maxWidth="lg">
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", py: 1.5 }}>
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <IconButton onClick={() => navigate(-1)} size="small" sx={{ color: '#6B7280' }}>
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827', letterSpacing: '-0.02em' }}>
+                Job Details
+              </Typography>
+            </Stack>
+            <IconButton
+              onClick={handleShareLink}
+              sx={{
+                border: "1px solid #E5E7EB",
+                borderRadius: '10px',
+                color: '#6B7280'
+              }}
+            >
+              <ShareIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </Container>
+      </Box>
+
+      <Container maxWidth="lg">
         <Grid container spacing={4}>
 
           <Grid item xs={12} md={8}>
@@ -537,7 +573,7 @@ const PublicJobDetailScreen = () => {
 
               <Paper
                 variant="outlined"
-                onClick={() => navigate(`/?redirect=${encodeURIComponent(location.pathname)}&action=apply`)}
+                onClick={() => navigate(`/login?redirect=${encodeURIComponent(location.pathname)}&action=apply`)}
                 sx={{
                   p: 3, borderRadius: '20px', cursor: 'pointer', transition: 'all 0.2s',
                   '&:hover': { bgcolor: '#F8FAFC', borderColor: '#7C3AED', transform: 'translateY(-2px)' }

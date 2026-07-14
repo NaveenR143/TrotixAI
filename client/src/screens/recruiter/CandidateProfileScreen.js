@@ -514,12 +514,16 @@ const CandidateProfileScreen = () => {
                 <Grid item>
                   <Avatar
                     src={applicant.profileImage}
+                    variant="square"
                     sx={{
                       width: 100,
                       height: 100,
-                      borderRadius: '20px',
+                      borderRadius: 0,
                       boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
-                      border: '4px solid #FFFFFF'
+                      border: '4px solid #FFFFFF',
+                      "& img": {
+                        objectFit: "contain"
+                      }
                     }}
                   />
                 </Grid>

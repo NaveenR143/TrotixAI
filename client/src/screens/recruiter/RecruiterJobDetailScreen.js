@@ -22,6 +22,7 @@ import {
     MenuItem,
     Tooltip,
     Alert,
+    Snackbar,
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -79,6 +80,7 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
     const [anchorEl, setAnchorEl] = useState(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [shareDialogOpen, setShareDialogOpen] = useState(false);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
 
     const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
@@ -435,12 +437,23 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
                 <DialogTitle sx={{ fontWeight: 800 }}>Share Job</DialogTitle>
                 <DialogContent>
                     <Stack spacing={2} sx={{ mt: 1 }}>
-                        <Button fullWidth variant="outlined" startIcon={<LinkIcon />} onClick={() => { navigator.clipboard.writeText(window.location.href); setShareDialogOpen(false); }} sx={{ borderRadius: '10px', fontWeight: 700, py: 1.2 }}>Copy Link</Button>
+                        <Button fullWidth variant="outlined" startIcon={<LinkIcon />} onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/jobs/${jobId}`); setShareDialogOpen(false); setSnackbarOpen(true); }} sx={{ borderRadius: '10px', fontWeight: 700, py: 1.2 }}>Copy Link</Button>
                         <Button fullWidth variant="outlined" sx={{ borderRadius: '10px', fontWeight: 700, py: 1.2 }}>LinkedIn</Button>
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}><Button onClick={() => setShareDialogOpen(false)}>Close</Button></DialogActions>
             </Dialog>
+
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={4000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+                <Alert severity="success" variant="filled" sx={{ borderRadius: '12px', fontWeight: 600 }}>
+                    Public job link copied to clipboard!
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

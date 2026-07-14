@@ -181,7 +181,19 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
   const CandidateDetail = ({ candidate }) => (
     <Box sx={{ p: { xs: 3, md: 5 } }}>
       <Box sx={{ display: 'flex', gap: 4, mb: 4, flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'center', sm: 'flex-start' } }}>
-        <Avatar src={candidate.profileImage} sx={{ width: 100, height: 100, borderRadius: '20px', boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }} />
+        <Avatar
+          src={candidate.profileImage}
+          variant="square"
+          sx={{
+            width: 100,
+            height: 100,
+            borderRadius: 0,
+            boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
+            "& img": {
+              objectFit: "contain"
+            }
+          }}
+        />
         <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, flexWrap: 'wrap', gap: 2 }}>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#111827' }}>{candidate.name}</Typography>

@@ -62,6 +62,11 @@ FEATURE_CONFIG = {
         "description": "AI Resume Enhancement",
         "cost": 20,
     },
+    "enhance_profile_photo": {
+        "tx_type": CreditTxTypeEnum.resume_enhancement,
+        "description": "AI Profile Photo Enhancement",
+        "cost": 10,
+    },
     "skill_analysis": {
         "tx_type": CreditTxTypeEnum.skills_enhancement,
         "description": "AI Missing Skills Analysis",

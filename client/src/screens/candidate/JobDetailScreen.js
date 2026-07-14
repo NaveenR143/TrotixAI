@@ -39,6 +39,7 @@ import GroupsIcon from "@mui/icons-material/Groups";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import EmailIcon from "@mui/icons-material/Email";
+import ShareIcon from "@mui/icons-material/Share";
 import MatchBadge from "../../components/jobs/MatchBadge";
 import { getWorkModeIcon } from "../../utils/themeUtils";
 import { useSelector, useDispatch } from "react-redux";
@@ -361,6 +362,16 @@ const JobDetailScreen = ({
     });
   };
 
+  const handleShareLink = () => {
+    const publicUrl = `${window.location.origin}/jobs/${job.id}`;
+    navigator.clipboard.writeText(publicUrl);
+    setSnackbar({
+      open: true,
+      message: "Public job link copied to clipboard!",
+      severity: "success",
+    });
+  };
+
   // Helper component for section headers with icons
   const SectionHeader = ({ icon: Icon, title, accent = "#2563EB" }) => (
     <Box sx={{ mb: 3 }}>
@@ -440,16 +451,28 @@ const JobDetailScreen = ({
                   Job Details
                 </Typography>
               </Stack>
-              <IconButton
-                onClick={() => onToggleSave?.(job.id)}
-                sx={{
-                  border: "1px solid #E5E7EB",
-                  borderRadius: '10px',
-                  color: isSaved ? '#f59e0b' : '#6B7280'
-                }}
-              >
-                {isSaved ? <BookmarkIcon /> : <BookmarkBorderIcon />}
-              </IconButton>
+              <Stack direction="row" spacing={1.5}>
+                <IconButton
+                  onClick={handleShareLink}
+                  sx={{
+                    border: "1px solid #E5E7EB",
+                    borderRadius: '10px',
+                    color: '#6B7280'
+                  }}
+                >
+                  <ShareIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  onClick={() => onToggleSave?.(job.id)}
+                  sx={{
+                    border: "1px solid #E5E7EB",
+                    borderRadius: '10px',
+                    color: isSaved ? '#f59e0b' : '#6B7280'
+                  }}
+                >
+                  {isSaved ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+                </IconButton>
+              </Stack>
             </Box>
           </Container>
         </Box>

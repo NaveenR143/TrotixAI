@@ -348,6 +348,7 @@ const UserProfile = () => {
                   userId={userId}
                   avatarUrl={profile?.avatarUrl}
                   onSuccess={handleSuccess}
+                  userPoints={userPoints || 0}
                 />
 
                 <PersonalInformationSection
