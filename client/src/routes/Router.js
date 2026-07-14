@@ -180,7 +180,7 @@ const Router = [
           { path: "login", element: <LoginScreen /> },
           { path: "terms", element: <TermsOfUseLayout /> },
           { path: "govt-jobs", element: <GovtJobsScreen /> },
-          { path: "jobs/:id", element: <PublicJobDetailScreen /> },
+          { path: "job/:id", element: <PublicJobDetailScreen /> },
           { path: "processing", element: <ProcessingRoute /> },
           { path: "manual-profile", element: <ManualProfileRoute /> },
           {

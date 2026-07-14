@@ -80,7 +80,7 @@ axios.interceptors.response.use(
         currentPath === "/" ||
         currentPath === "/login" ||
         currentPath === "/terms" ||
-        currentPath.startsWith("/jobs/") ||
+        currentPath.startsWith("/job/") ||
         currentPath === "/processing" ||
         currentPath === "/manual-profile" ||
         currentPath === "/govt-jobs" ||

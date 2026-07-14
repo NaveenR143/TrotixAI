@@ -265,7 +265,7 @@ const PublicJobDetailScreen = () => {
   };
 
   const handleShareLink = () => {
-    const publicUrl = `${window.location.origin}/jobs/${job.id}`;
+    const publicUrl = `${window.location.origin}/job/${job.id}`;
     navigator.clipboard.writeText(publicUrl);
     setSnackbar({
       open: true,

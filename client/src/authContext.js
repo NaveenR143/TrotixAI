@@ -40,13 +40,13 @@ export const AuthProvider = ({ children }) => {
         // 4. Reset Redux store to initial state
         dispatch({ type: RESET_INITIAL_STATE });
 
-        // Redirect if on a protected path (e.g. not public paths like /, /login, /terms, /jobs/*, /processing, /error/*)
+        // Redirect if on a protected path (e.g. not public paths like /, /login, /terms, /job/*, /processing, /error/*)
         const currentPath = window.location.pathname;
         const isPublicPath =
           currentPath === "/" ||
           currentPath === "/login" ||
           currentPath === "/terms" ||
-          currentPath.startsWith("/jobs/") ||
+          currentPath.startsWith("/job/") ||
           currentPath === "/processing" ||
           currentPath === "/manual-profile" ||
           currentPath === "/govt-jobs" ||

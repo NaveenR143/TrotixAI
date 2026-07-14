@@ -310,7 +310,7 @@ const ProcessingScreen = ({ onComplete }) => {
     const autoApplyJobId = location.state?.autoApplyJobId;
     if (autoApplyJobId) {
       // Redirect back to the public job detail page
-      navigate(`/jobs/${autoApplyJobId}`, { state: { applied: true } });
+      navigate(`/job/${autoApplyJobId}`, { state: { applied: true } });
     } else {
       navigate("/dashboard");
     }
