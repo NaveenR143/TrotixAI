@@ -6,6 +6,7 @@ const INIT_STATE = {
 	token: '', // User Api Token
 	email: '', // User Email
 	role: '', // User Role
+	userrole: '', // User Role (Duplicate for compatibility)
 	displayname: '', // User Display Name
 	ip: '', // User Ip
 	ri: '', // EsriAPI
@@ -37,16 +38,24 @@ function UserReducer(state = INIT_STATE, action) {
 	}
 
 	switch (action.type) {
-		case ADD_USERDETAILS:
+		case ADD_USERDETAILS: {
+			const addedRole = action.payload.userrole || action.payload.role || action.payload.userType || state.userrole || state.role;
 			return {
 				...state,
-				...action.payload
+				...action.payload,
+				role: addedRole,
+				userrole: addedRole
 			};
-		case UPDATE_USER_PROFILE:
+		}
+		case UPDATE_USER_PROFILE: {
+			const updatedRole = action.payload.userrole || action.payload.role || action.payload.userType || state.userrole || state.role;
 			return {
 				...state,
-				...action.payload
+				...action.payload,
+				role: updatedRole,
+				userrole: updatedRole
 			};
+		}
 		case DEBIT_POINTS:
 			return {
 				...state,

@@ -127,14 +127,14 @@ const DashboardScreen = () => {
       accent: '#EC4899',
       onClick: () => navigate('/skill-development'),
     },
-    {
-      icon: AccountBalanceIcon,
-      title: 'Government Jobs',
-      description: 'Explore the latest career opportunities in government departments.',
-      accent: '#059669',
-      onClick: () => navigate('/govt-jobs'),
-      count: '100+',
-    },
+    // {
+    //   icon: AccountBalanceIcon,
+    //   title: 'Government Jobs',
+    //   description: 'Explore the latest career opportunities in government departments.',
+    //   accent: '#059669',
+    //   onClick: () => navigate('/govt-jobs'),
+    //   count: '100+',
+    // },
   ];
 
   return (

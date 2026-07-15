@@ -49,6 +49,7 @@ export const AuthProvider = ({ children }) => {
           currentPath.startsWith("/job/") ||
           currentPath === "/processing" ||
           currentPath === "/manual-profile" ||
+          currentPath === "/post-job" ||
           currentPath === "/govt-jobs" ||
           currentPath.startsWith("/error");
 
@@ -70,7 +71,8 @@ export const AuthProvider = ({ children }) => {
             mobile: userData.mobile || userData.phone,
             displayname: userData.full_name || userData.name || 'User',
             fullname: userData.full_name || userData.name || 'User',
-            role: verifiedType
+            role: verifiedType,
+            userrole: verifiedType
           }
         });
 

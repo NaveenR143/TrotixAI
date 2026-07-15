@@ -72,6 +72,8 @@ def send_otp(phone: str) -> str:
 
     message = f"Your OTP for RightNxt is {otp}."
 
+    print("message: ", message)
+
     try:
         # Prepare parameters for the send_text_message API call
 
@@ -99,13 +101,13 @@ def send_otp(phone: str) -> str:
         #     params["DestinationCountryParameters"] = country_params
 
         logger.info(f"Sending OTP to {phone}")
-        client = get_sms_client()
-        response = client.send_text_message(**params)
+        # client = get_sms_client()
+        # response = client.send_text_message(**params)
 
-        message_id = response.get("MessageId")
+        # message_id = response.get("MessageId")
         # print("Sender ID :",origination_identity)
-        print("OTP SMS sent successfully to ", phone, ". MessageId: ", message_id)
-        logger.info(f"OTP SMS sent successfully to {phone}. MessageId: {message_id}")
+        # print("OTP SMS sent successfully to ", phone, ". MessageId: ", message_id)
+        # logger.info(f"OTP SMS sent successfully to {phone}. MessageId: {message_id}")
 
     except NoCredentialsError as e:
         logger.warning(

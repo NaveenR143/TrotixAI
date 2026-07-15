@@ -3,6 +3,8 @@ import React, { lazy } from "react";
 import { Navigate, useNavigate, useParams, Outlet, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ProtectedRoute from "../components/common/ProtectedRoute";
+import RecruiterRoute from "../components/common/RecruiterRoute";
+import CandidateRoute from "../components/common/CandidateRoute";
 import { useAuth } from "../authContext";
 import Spinner from "../components/common/Spinner";
 import Loadable from "../layouts/full-layout/loadable/Loadable";
@@ -103,11 +105,13 @@ const EntryRoute = () => {
         // }
       }}
       onPostJob={() => {
-        if (user?.mobile && user?.role) {
-          navigate('/post-job');
-        } else {
-          navigate({ pathname: '/login', search: '?redirect=%2Fpost-job' });
-        }
+
+        navigate('/post-job');
+        // if (user?.mobile && user?.role) {
+        //   navigate('/post-job');
+        // } else {
+        //   navigate({ pathname: '/login', search: '?redirect=%2Fpost-job' });
+        // }
       }}
     />
   );
@@ -183,29 +187,42 @@ const Router = [
           { path: "job/:id", element: <PublicJobDetailScreen /> },
           { path: "processing", element: <ProcessingRoute /> },
           { path: "manual-profile", element: <ManualProfileRoute /> },
+          { path: "post-job", element: <PostJobScreen /> },
           {
             element: <ProtectedRoute><Outlet /></ProtectedRoute>,
             children: [
 
-              { path: "dashboard", element: <DashboardRoute /> },
-              { path: "profile", element: <ProfileRoute /> },
-              { path: "feed", element: <FeedRoute /> },
-              { path: "detail/:id", element: <DetailRoute /> },
-              { path: "membership", element: <MembershipRoute /> },
-              { path: "post-job", element: <PostJobScreen /> },
-              { path: "posted-jobs", element: <PostedJobsScreen /> },
-              { path: "recruiters", element: <RecruitersScreen /> },
-              { path: "consultants", element: <ConsultantsScreen /> },
-              { path: "resume-builder", element: <TemplateSelectorScreen /> },
-              { path: "resume-builder/create", element: <ResumeBuilderScreen /> },
-              { path: "career-advice", element: <CareerAdvisorScreen /> },
-              { path: "skill-development", element: <SkillDevelopmentScreen /> },
-              { path: "learning", element: <div>Learning Screen (Coming Soon)</div> },
-              { path: "candidate-feed/:jobId", element: <CandidateFeedScreen /> },
-              { path: "job-applicants/:jobId", element: <JobApplicantsScreen /> },
-              { path: "candidate-profile/:userId", element: <CandidateProfileScreen /> },
-              { path: "govt-job-detail/:id", element: <GovtJobDetailScreen /> },
-              { path: "recruiter-dashboard", element: <RecruiterDashboardRoute /> },
+              //Candidate
+              {
+                element: <CandidateRoute><Outlet /></CandidateRoute>,
+                children: [
+                  { path: "profile", element: <ProfileRoute /> },
+                  { path: "membership", element: <MembershipRoute /> },
+                  { path: "dashboard", element: <DashboardRoute /> },
+                  { path: "feed", element: <FeedRoute /> },
+                  { path: "detail/:id", element: <DetailRoute /> },
+                  { path: "recruiters", element: <RecruitersScreen /> },
+                  { path: "consultants", element: <ConsultantsScreen /> },
+                  { path: "resume-builder", element: <TemplateSelectorScreen /> },
+                  { path: "resume-builder/create", element: <ResumeBuilderScreen /> },
+                  { path: "career-advice", element: <CareerAdvisorScreen /> },
+                  { path: "skill-development", element: <SkillDevelopmentScreen /> },
+                  { path: "learning", element: <div>Learning Screen (Coming Soon)</div> },
+                  { path: "govt-job-detail/:id", element: <GovtJobDetailScreen /> },
+                ]
+              },
+
+              //Recruiter
+              {
+                element: <RecruiterRoute><Outlet /></RecruiterRoute>,
+                children: [
+                  { path: "candidate-feed/:jobId", element: <CandidateFeedScreen /> },
+                  { path: "candidate-profile/:userId", element: <CandidateProfileScreen /> },
+                  { path: "job-applicants/:jobId", element: <JobApplicantsScreen /> },
+                  { path: "recruiter-dashboard", element: <RecruiterDashboardRoute /> },
+                  { path: "posted-jobs", element: <PostedJobsScreen /> },
+                ]
+              },
             ]
           },
         ]

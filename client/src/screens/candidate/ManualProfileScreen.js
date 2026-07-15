@@ -365,6 +365,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
           userid: resp.data.user_id,
           role: resp.data.user_type,
           userType: resp.data.user_type,
+          userrole: resp.data.user_type,
           mobile: cleanPhone,
           fullname: formData.firstName + " " + formData.lastName,
           email: formData.email

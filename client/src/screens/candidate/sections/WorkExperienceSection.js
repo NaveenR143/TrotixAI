@@ -378,27 +378,54 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
                         •
                       </Box>
                       <span>
-                        {`${new Date(exp.startDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })} to ${
-                          exp.isCurrent
-                            ? "Present"
-                            : new Date(exp.endDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })
-                        }`}
+                        {`${new Date(exp.startDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })} to ${exp.isCurrent
+                          ? "Present"
+                          : new Date(exp.endDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })
+                          }`}
                       </span>
                     </>
                   )}
                 </Typography>
                 {exp.description && (
                   <Typography
+                    component="div"
+                    variant="body2"
                     sx={{
                       fontSize: "0.9rem",
                       color: "text.primary",
-                      lineHeight: 1.5,
+                      lineHeight: 1.7,
+                      whiteSpace: "normal",
+                      wordBreak: "break-word",
+                      overflowWrap: "anywhere",
                       textAlign: { xs: "justify", sm: "left" },
-                      "& ul, & ol": { pl: 3, my: 1 },
-                      "& li": { mb: 0.5 },
-                      "& p": { my: 0.5, textAlign: { xs: "justify", sm: "left" } }
+
+                      "& p": {
+                        margin: "0 0 12px",
+                      },
+
+                      "& ul, & ol": {
+                        paddingLeft: "24px",
+                        margin: "12px 0",
+                      },
+
+                      "& li": {
+                        marginBottom: "6px",
+                      },
+
+                      "& pre": {
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        overflowX: "auto",
+                      },
+
+                      "& img": {
+                        maxWidth: "100%",
+                        height: "auto",
+                      },
                     }}
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }}
+                    dangerouslySetInnerHTML={{
+                      __html: sanitizeHtml(exp.description),
+                    }}
                   />
                 )}
               </Paper>

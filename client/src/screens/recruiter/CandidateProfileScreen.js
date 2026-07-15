@@ -605,18 +605,39 @@ const CandidateProfileScreen = () => {
                       </Typography>
                     </Stack>
                     <Typography
+                      component="div"
                       variant="body2"
                       sx={{
-                        color: '#475569',
+                        color: "#475569",
                         lineHeight: 1.7,
-                        wordBreak: 'break-word',
-                        overflowWrap: 'anywhere',
-                        textAlign: { xs: 'justify', md: 'left' },
-                        "& ul, & ol": { pl: 3, my: 1 },
-                        "& li": { mb: 0.5 },
-                        "& p": { my: 0.5, textAlign: { xs: 'justify', md: 'left' } }
+                        whiteSpace: "normal",
+                        wordBreak: "break-word",
+                        overflowWrap: "anywhere",
+                        display: "block",
+                        textAlign: { xs: "justify", md: "left" },
+
+                        "& p": {
+                          margin: "0 0 12px",
+                        },
+
+                        "& ul, & ol": {
+                          paddingLeft: "24px",
+                          margin: "12px 0",
+                        },
+
+                        "& li": {
+                          marginBottom: "6px",
+                        },
+
+                        "& br": {
+                          display: "block",
+                          content: '""',
+                          marginBottom: "8px",
+                        },
                       }}
-                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp.description) }}
+                      dangerouslySetInnerHTML={{
+                        __html: sanitizeHtml(exp.description),
+                      }}
                     />
                   </Box>
                 ))}
@@ -635,13 +656,15 @@ const CandidateProfileScreen = () => {
                         <Typography variant="caption" sx={{ fontWeight: 700, color: '#6B7280' }}>{proj.duration}</Typography>
                       </Stack>
                       <Typography
+                        component="div"
                         variant="body2"
                         sx={{
                           color: '#475569',
                           mb: 2.5,
                           lineHeight: 1.7,
+                          whiteSpace: 'pre-wrap',
                           wordBreak: 'break-word',
-                          overflowWrap: 'anywhere',
+                          overflowWrap: 'break-word',
                           textAlign: { xs: 'justify', md: 'left' },
                           "& ul, & ol": { pl: 3, my: 1 },
                           "& li": { mb: 0.5 },

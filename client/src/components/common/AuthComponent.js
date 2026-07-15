@@ -150,7 +150,7 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
       const resp = await verifyOTP(formData.mobile, otpToVerify);
       if (!resp.error) {
         const verifiedType = mapRoleToType(resp.data.user_type);
-        
+
         // Refresh React Auth Context before navigating to populate the context user state
         await refreshAuth(formData.mobile);
 
@@ -161,7 +161,8 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
             mobile: formData.mobile,
             displayname: formData.name || 'User',
             fullname: formData.name || 'User',
-            role: verifiedType
+            role: verifiedType,
+            userrole: verifiedType
           }
         });
         dispatch(fetchAndStoreProfile(formData.mobile));
@@ -204,7 +205,7 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
           </Typography>
           <Typography sx={{ color: '#64748B', fontSize: '0.95rem', fontWeight: 500 }}>
             {step === 1
-              ? (isLogin ? "Enter your mobile to continue" : "Join the platform to start matching")
+              ? (isLogin ? "Enter your mobile to continue" : "Join the platform to start posting")
               : `Enter the code sent to +91 ${formData.mobile}`}
           </Typography>
         </Box>
@@ -317,10 +318,10 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
                     {activeOtp.loading
                       ? "Resending..."
                       : activeOtp.isCooldownActive
-                      ? `Resend code in ${activeOtp.remainingSeconds}s`
-                      : activeOtp.resendAttempts >= 3
-                      ? "Daily Limit Reached"
-                      : "Resend Code"}
+                        ? `Resend code in ${activeOtp.remainingSeconds}s`
+                        : activeOtp.resendAttempts >= 3
+                          ? "Daily Limit Reached"
+                          : "Resend Code"}
                   </Button>
                   <Button
                     fullWidth variant="text" size="small"

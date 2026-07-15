@@ -72,6 +72,8 @@ const UserProfile = () => {
 
   const profile = useSelector((state) => state.UserReducer);
   const { userid, points: userPoints } = useSelector((state) => state.UserReducer);
+  const userrole = profile?.role || profile?.userrole;
+  const isRecruiter = userrole?.toLowerCase() === "recruiter";
 
   // Profile fetching states
   const [loading, setLoading] = useState(true);
@@ -107,13 +109,13 @@ const UserProfile = () => {
       setLoading(true);
       setError(null);
 
-      const phone = profile?.mobile || "9789502974"; // Keep existing fallback logic if needed
+      const phone = profile?.mobile; // Keep existing fallback logic if needed
 
       const result = await dispatch(fetchAndStoreProfile(phone));
 
       if (result.success) {
         setUserId(result.data.id);
-        
+
         // If profile has not been viewed, mark it as viewed on first visit
         if (result.data?.personalDetails?.profile_viewed === false) {
           try {
@@ -127,7 +129,7 @@ const UserProfile = () => {
                   profile_viewed: true
                 }
               }));
-              
+
               // Update Local & Session Storage to keep client state in sync
               localStorage.setItem("profile_viewed", "true");
               sessionStorage.setItem("profile_viewed", "true");
@@ -177,7 +179,7 @@ const UserProfile = () => {
       return;
     }
 
-    
+
 
     setAiLoading((prev) => ({ ...prev, resume: true }));
     try {
@@ -277,13 +279,18 @@ const UserProfile = () => {
         ) : (
           <Stack spacing={3}>
             {/* AI Section */}
-            <AIPoweredActions
-              userPoints={userPoints || 0}
-              aiLoading={aiLoading}
-              onEnhance={handleAiEnhanceResume}
-              onAnalyze={handleAiIdentifySkills}
-              onSuggest={handleAiSuggestLearning}
-            />
+
+            {!isRecruiter && (
+              <AIPoweredActions
+                userPoints={userPoints || 0}
+                aiLoading={aiLoading}
+                onEnhance={handleAiEnhanceResume}
+                onAnalyze={handleAiIdentifySkills}
+                onSuggest={handleAiSuggestLearning}
+              />
+            )}
+
+            {/* {JSON.stringify(isRecruiter)} */}
 
             {/* Profile Navigation Tabs */}
             <Paper
@@ -336,6 +343,7 @@ const UserProfile = () => {
                 }}
               >
                 <Tab icon={<PersonIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Personal" />
+
                 <Tab icon={<WorkIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Experience" />
                 <Tab icon={<SchoolIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Education & Skills" />
               </Tabs>
@@ -369,13 +377,17 @@ const UserProfile = () => {
                   onSuccess={handleSuccess}
                 />
 
-                <IndustriesSection
-                  userId={userId}
-                  profile={profile}
-                  onSuccess={handleSuccess}
-                />
+                {!isRecruiter && (
+                  <IndustriesSection
+                    userId={userId}
+                    profile={profile}
+                    onSuccess={handleSuccess}
+                  />
+                )}
               </Stack>
             </TabPanel>
+
+            {/* {!isRecruiter && (<> */}
 
             <TabPanel value={activeTab} index={1}>
               <Stack spacing={3}>
@@ -439,6 +451,7 @@ const UserProfile = () => {
                 />
               </Stack>
             </TabPanel>
+            {/* </>)} */}
           </Stack>
         )}
 

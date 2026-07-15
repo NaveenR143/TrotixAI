@@ -83,6 +83,7 @@ axios.interceptors.response.use(
         currentPath.startsWith("/job/") ||
         currentPath === "/processing" ||
         currentPath === "/manual-profile" ||
+        currentPath === "/post-job" ||
         currentPath === "/govt-jobs" ||
         currentPath.startsWith("/error");
 
