@@ -119,7 +119,7 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
         <Box sx={{ mb: 3 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
                 <Icon sx={{ color: "#111827", fontSize: 22 }} />
-                <Typography sx={{ fontWeight: 800, fontSize: "1.1rem", color: "#111827", letterSpacing: "-0.02em" }}>
+                <Typography sx={{ fontWeight: 700, fontSize: "1.1rem", color: "#111827", letterSpacing: "-0.02em" }}>
                     {title}
                 </Typography>
             </Box>
@@ -135,7 +135,7 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
             fullWidth
             variant={variant}
             sx={{
-                fontWeight: 800,
+                fontWeight: 700,
                 borderRadius: '12px',
                 textTransform: "none",
                 py: 1.5,
@@ -172,7 +172,7 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
         <Chip
             label={skill}
             sx={{
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: "0.85rem",
                 borderRadius: '10px',
                 px: 1,
@@ -183,7 +183,7 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
                 }),
                 ...(variant === "preferred" && {
                     bgcolor: "#F8FAFC",
-                    color: "#64748b",
+                    color: "#212121",
                     border: "1px solid #E5E7EB",
                 }),
             }}
@@ -202,7 +202,7 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
                             <IconButton onClick={onBack} size="small" sx={{ color: '#6B7280' }}>
                                 <ArrowBackIcon />
                             </IconButton>
-                            <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827', letterSpacing: '-0.02em' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
                                 Job Details
                             </Typography>
                         </Stack>
@@ -229,7 +229,7 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
                                         height: 80,
                                         background: `linear-gradient(135deg, ${job.logoColor || '#2563EB'}, #4f46e5)`,
                                         fontSize: "1.8rem",
-                                        fontWeight: 800,
+                                        fontWeight: 700,
                                         borderRadius: '20px',
                                         boxShadow: "0 8px 25px rgba(37, 99, 235, 0.15)",
                                     }}
@@ -237,10 +237,10 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
                                     {job.company?.[0]}
                                 </Avatar>
                                 <Box sx={{ flex: 1 }}>
-                                    <Typography variant="h4" sx={{ fontWeight: 900, color: "#111827", letterSpacing: "-0.03em", mb: 0.5 }}>
+                                    <Typography variant="h4" sx={{ fontWeight: 800, color: "#111827", letterSpacing: "-0.03em", mb: 0.5 }}>
                                         {job.title}
                                     </Typography>
-                                    <Typography variant="h6" sx={{ color: "#2563EB", fontWeight: 700, mb: 2 }}>
+                                    <Typography variant="h6" sx={{ color: "#2563EB", fontWeight: 600, mb: 2 }}>
                                         {job.company}
                                     </Typography>
                                     <Stack direction="row" spacing={2} flexWrap="wrap" gap={1}>
@@ -248,16 +248,16 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
                                             icon={<LocationOnIcon sx={{ fontSize: '16px !important' }} />} 
                                             label={job.location} 
                                             variant="outlined" 
-                                            sx={{ borderRadius: '8px', fontWeight: 600, color: '#64748B', borderColor: '#E5E7EB' }} 
+                                            sx={{ borderRadius: '8px', fontWeight: 500, color: '#212121', borderColor: '#E5E7EB' }} 
                                         />
                                         <Chip 
                                             icon={<WorkIcon sx={{ fontSize: '16px !important' }} />} 
                                             label={job.type} 
                                             variant="outlined" 
-                                            sx={{ borderRadius: '8px', fontWeight: 600, color: '#64748B', borderColor: '#E5E7EB' }} 
+                                            sx={{ borderRadius: '8px', fontWeight: 500, color: '#212121', borderColor: '#E5E7EB' }} 
                                         />
                                         {job.salary && (
-                                            <Chip label={job.salary} sx={{ borderRadius: '8px', fontWeight: 800, bgcolor: '#dcfce7', color: '#16a34a' }} />
+                                            <Chip label={job.salary} sx={{ borderRadius: '8px', fontWeight: 700, bgcolor: '#dcfce7', color: '#16a34a' }} />
                                         )}
                                     </Stack>
                                 </Box>
@@ -317,7 +317,7 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
                                         <Grid item xs={12} sm={6} key={idx}>
                                             <Box sx={{ p: 2, bgcolor: "#F8FAFC", borderRadius: '12px', border: "1px solid #E5E7EB", display: 'flex', alignItems: 'center', gap: 2 }}>
                                                 <CheckCircleIcon sx={{ color: "#10B981", fontSize: 20 }} />
-                                                <Typography sx={{ fontWeight: 700, color: "#111827" }}>{benefit}</Typography>
+                                                <Typography sx={{ fontWeight: 600, color: "#111827" }}>{benefit}</Typography>
                                             </Box>
                                         </Grid>
                                     ))}
@@ -331,7 +331,7 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
                         <Stack spacing={4} sx={{ position: { md: 'sticky' }, top: 100 }}>
                             {/* Actions Card */}
                             <Paper elevation={0} sx={{ p: 4 }}>
-                                <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Actions</Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>Actions</Typography>
                                 <Stack spacing={2}>
                                     <ActionButton
                                         icon={GroupIcon}
@@ -350,18 +350,18 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
 
                             {/* Stats Card */}
                             <Paper elevation={0} sx={{ p: 4 }}>
-                                <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Recruitment Stats</Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>Recruitment Stats</Typography>
                                 <Grid container spacing={2}>
                                     <Grid item xs={6}>
                                         <Box sx={{ p: 2.5, bgcolor: '#F8FAFC', borderRadius: '16px', textAlign: 'center' }}>
-                                            <Typography variant="h4" sx={{ fontWeight: 800, color: '#2563EB' }}>{job.applicants || 0}</Typography>
-                                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Applied</Typography>
+                                            <Typography variant="h4" sx={{ fontWeight: 700, color: '#2563EB' }}>{job.applicants || 0}</Typography>
+                                            <Typography variant="caption" sx={{ fontWeight: 600, color: '#6B7280', textTransform: 'uppercase' }}>Applied</Typography>
                                         </Box>
                                     </Grid>
                                     <Grid item xs={6}>
                                         <Box sx={{ p: 2.5, bgcolor: '#F8FAFC', borderRadius: '16px', textAlign: 'center' }}>
-                                            <Typography variant="h4" sx={{ fontWeight: 800, color: '#111827' }}>{job.openings || 1}</Typography>
-                                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Openings</Typography>
+                                            <Typography variant="h4" sx={{ fontWeight: 700, color: '#111827' }}>{job.openings || 1}</Typography>
+                                            <Typography variant="caption" sx={{ fontWeight: 600, color: '#6B7280', textTransform: 'uppercase' }}>Openings</Typography>
                                         </Box>
                                     </Grid>
                                 </Grid>
@@ -369,14 +369,14 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
 
                             {/* Job Info Card */}
                             <Paper elevation={0} sx={{ p: 4 }}>
-                                <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Job Information</Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>Job Information</Typography>
                                 <Stack spacing={3}>
                                     <Box>
-                                        <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 600 }}>STATUS</Typography>
+                                        <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 500 }}>STATUS</Typography>
                                         <Chip 
                                             label={job.status} 
                                             sx={{ 
-                                                fontWeight: 800, 
+                                                fontWeight: 700, 
                                                 bgcolor: job.status?.toLowerCase() === 'active' ? '#dcfce7' : '#fef2f2',
                                                 color: job.status?.toLowerCase() === 'active' ? '#16a34a' : '#ef4444',
                                                 borderRadius: '8px'
@@ -384,16 +384,16 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
                                         />
                                     </Box>
                                     <Box>
-                                        <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 600 }}>POSTED ON</Typography>
-                                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{job.posted}</Typography>
+                                        <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 500 }}>POSTED ON</Typography>
+                                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{job.posted}</Typography>
                                     </Box>
                                     <Box>
-                                        <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 600 }}>EXPERIENCE</Typography>
-                                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{job.experience}</Typography>
+                                        <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 500 }}>EXPERIENCE</Typography>
+                                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{job.experience}</Typography>
                                     </Box>
                                     <Box>
-                                        <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 600 }}>DEPARTMENT</Typography>
-                                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{job.department || "Engineering"}</Typography>
+                                        <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 500 }}>DEPARTMENT</Typography>
+                                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{job.department || "Engineering"}</Typography>
                                     </Box>
                                 </Stack>
                             </Paper>
@@ -422,23 +422,23 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
 
             {/* Delete Dialog */}
             <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} PaperProps={{ sx: { borderRadius: '16px' } }}>
-                <DialogTitle sx={{ fontWeight: 800 }}>Delete Job Posting?</DialogTitle>
+                <DialogTitle sx={{ fontWeight: 700 }}>Delete Job Posting?</DialogTitle>
                 <DialogContent>
                     <Typography sx={{ color: '#475569' }}>This will permanently remove the job and all associated applicant data.</Typography>
                 </DialogContent>
                 <DialogActions sx={{ p: 3 }}>
-                    <Button onClick={() => setDeleteDialogOpen(false)} sx={{ fontWeight: 700, color: '#6B7280' }}>Cancel</Button>
-                    <Button onClick={handleDeleteConfirm} variant="contained" color="error" sx={{ fontWeight: 800, borderRadius: '10px' }}>Delete Forever</Button>
+                    <Button onClick={() => setDeleteDialogOpen(false)} sx={{ fontWeight: 600, color: '#6B7280' }}>Cancel</Button>
+                    <Button onClick={handleDeleteConfirm} variant="contained" color="error" sx={{ fontWeight: 700, borderRadius: '10px' }}>Delete Forever</Button>
                 </DialogActions>
             </Dialog>
 
             {/* Share Dialog */}
             <Dialog open={shareDialogOpen} onClose={() => setShareDialogOpen(false)} PaperProps={{ sx: { borderRadius: '16px', minWidth: 320 } }}>
-                <DialogTitle sx={{ fontWeight: 800 }}>Share Job</DialogTitle>
+                <DialogTitle sx={{ fontWeight: 700 }}>Share Job</DialogTitle>
                 <DialogContent>
                     <Stack spacing={2} sx={{ mt: 1 }}>
-                        <Button fullWidth variant="outlined" startIcon={<LinkIcon />} onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/job/${jobId}`); setShareDialogOpen(false); setSnackbarOpen(true); }} sx={{ borderRadius: '10px', fontWeight: 700, py: 1.2 }}>Copy Link</Button>
-                        <Button fullWidth variant="outlined" sx={{ borderRadius: '10px', fontWeight: 700, py: 1.2 }}>LinkedIn</Button>
+                        <Button fullWidth variant="outlined" startIcon={<LinkIcon />} onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/job/${jobId}`); setShareDialogOpen(false); setSnackbarOpen(true); }} sx={{ borderRadius: '10px', fontWeight: 600, py: 1.2 }}>Copy Link</Button>
+                        <Button fullWidth variant="outlined" sx={{ borderRadius: '10px', fontWeight: 600, py: 1.2 }}>LinkedIn</Button>
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}><Button onClick={() => setShareDialogOpen(false)}>Close</Button></DialogActions>
@@ -450,7 +450,7 @@ const RecruiterJobDetailScreen = ({ jobId, jobData, onBack }) => {
                 onClose={() => setSnackbarOpen(false)}
                 anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
             >
-                <Alert severity="success" variant="filled" sx={{ borderRadius: '12px', fontWeight: 600 }}>
+                <Alert severity="success" variant="filled" sx={{ borderRadius: '12px', fontWeight: 500 }}>
                     Public job link copied to clipboard!
                 </Alert>
             </Snackbar>

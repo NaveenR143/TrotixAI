@@ -34,7 +34,7 @@
 .t6-header h1 {
     font-family: 'Merriweather', 'Georgia', serif;
     font-size: 30px;
-    font-weight: 900;
+    font-weight: 800;
     color: #1e3a5f;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -43,7 +43,7 @@
 
 .t6-header .t6-job-title {
     font-size: 14px;
-    font-weight: 400;
+    font-weight: 300;
     color: #b8860b;
     /* Classic Gold/Bronze */
     text-transform: uppercase;
@@ -77,7 +77,7 @@
 .t6-section-title {
     font-family: 'Merriweather', 'Georgia', serif;
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     color: #1e3a5f;
@@ -118,7 +118,7 @@
 }
 
 .t6-skill-item strong {
-    font-weight: 700;
+    font-weight: 600;
     color: #1e3a5f;
 }
 
@@ -137,20 +137,20 @@
 .t6-exp-role {
     font-family: 'Merriweather', serif;
     font-size: 13.5px;
-    font-weight: 700;
+    font-weight: 600;
     color: #1e3a5f;
 }
 
 .t6-exp-date {
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
     color: #b8860b;
     font-style: italic;
 }
 
 .t6-exp-company {
     font-size: 12.5px;
-    font-weight: 400;
+    font-weight: 300;
     margin-bottom: 8px;
     color: #555;
     text-transform: uppercase;
@@ -188,7 +188,7 @@
 .t6-edu-school {
     font-family: 'Merriweather', serif;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     color: #1e3a5f;
     text-transform: uppercase;
 }
@@ -202,7 +202,7 @@
 
 .t6-edu-date {
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
     color: #b8860b;
     font-style: italic;
     white-space: nowrap;
@@ -224,13 +224,13 @@
 .t6-proj-name {
     font-family: 'Merriweather', serif;
     font-size: 13.5px;
-    font-weight: 700;
+    font-weight: 600;
     color: #1e3a5f;
 }
 
 .t6-proj-year {
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
     color: #b8860b;
     font-style: italic;
 }
@@ -263,7 +263,7 @@
 }
 
 .t6-lang-item strong {
-    font-weight: 700;
+    font-weight: 600;
     color: #1e3a5f;
 }
 

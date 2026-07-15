@@ -55,17 +55,17 @@ const SkillDevelopmentReport = ({ data, profile, timestamp }) => {
         >
             {/* Header */}
             <Box className="report-section" sx={{ borderBottom: '4px solid #6366f1', pb: 2 }}>
-                <Typography variant="h4" fontWeight={900} sx={{ letterSpacing: -1, color: '#0f172a' }}>
+                <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: -1, color: '#0f172a' }}>
                     Skill Enhancement Report
                 </Typography>
-                <Typography variant="h6" color="#6366f1" fontWeight={700} sx={{ mt: 1 }}>
+                <Typography variant="h6" color="#6366f1" fontWeight={600} sx={{ mt: 1 }}>
                     Industry: {industry || "General"}
                 </Typography>
                 <Stack direction="row" justifyContent="space-between" sx={{ mt: 2 }}>
-                    <Typography variant="subtitle1" fontWeight={600} color="text.secondary">
+                    <Typography variant="subtitle1" fontWeight={500} color="text.secondary">
                         Candidate: {profile?.personalDetails?.fullName || "Valued User"}
                     </Typography>
-                    <Typography variant="subtitle1" fontWeight={600} color="text.secondary">
+                    <Typography variant="subtitle1" fontWeight={500} color="text.secondary">
                         Generated on: {formatDate(timestamp)}
                     </Typography>
                 </Stack>
@@ -73,7 +73,7 @@ const SkillDevelopmentReport = ({ data, profile, timestamp }) => {
 
             {/* Overview Section */}
             <Box className="report-section">
-                <Typography variant="h5" fontWeight={800} sx={{ mb: 2, color: '#0f172a', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <Typography variant="h5" fontWeight={700} sx={{ mb: 2, color: '#0f172a', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Skill Analysis Overview
                 </Typography>
                 <Typography variant="body1" sx={{ color: '#475569', lineHeight: 1.6 }}>
@@ -88,21 +88,21 @@ const SkillDevelopmentReport = ({ data, profile, timestamp }) => {
                 <Box key={index} className="report-section" sx={{ border: '1px solid #e2e8f0', borderRadius: 3, p: 3, bgcolor: index % 2 === 0 ? '#f8fafc' : 'white' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
                         <Box>
-                            <Typography variant="h5" fontWeight={800} color="#0f172a">
+                            <Typography variant="h5" fontWeight={700} color="#0f172a">
                                 {item.skill}
                             </Typography>
                             <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                                <Typography variant="caption" sx={{ px: 1.5, py: 0.5, bgcolor: '#e0e7ff', color: '#4338ca', borderRadius: 1, fontWeight: 700, textTransform: 'uppercase' }}>
+                                <Typography variant="caption" sx={{ px: 1.5, py: 0.5, bgcolor: '#e0e7ff', color: '#4338ca', borderRadius: 1, fontWeight: 600, textTransform: 'uppercase' }}>
                                     {item.category}
                                 </Typography>
-                                <Typography variant="caption" sx={{ px: 1.5, py: 0.5, bgcolor: item.roadmap_priority === 'short-term' ? '#fef3c7' : '#dcfce7', color: item.roadmap_priority === 'short-term' ? '#92400e' : '#166534', borderRadius: 1, fontWeight: 700, textTransform: 'uppercase' }}>
+                                <Typography variant="caption" sx={{ px: 1.5, py: 0.5, bgcolor: item.roadmap_priority === 'short-term' ? '#fef3c7' : '#dcfce7', color: item.roadmap_priority === 'short-term' ? '#92400e' : '#166534', borderRadius: 1, fontWeight: 600, textTransform: 'uppercase' }}>
                                     {item.roadmap_priority}
                                 </Typography>
                             </Stack>
                         </Box>
                     </Stack>
 
-                    <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.8rem', mb: 1, letterSpacing: 1 }}>
+                    <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.8rem', mb: 1, letterSpacing: 1 }}>
                         Why this matters
                     </Typography>
                     <Typography variant="body2" sx={{ mb: 2, color: '#334155' }}>
@@ -113,7 +113,7 @@ const SkillDevelopmentReport = ({ data, profile, timestamp }) => {
 
                     <Grid container spacing={3}>
                         <Grid item xs={12} md={6}>
-                            <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.8rem', mb: 1.5, letterSpacing: 1 }}>
+                            <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.8rem', mb: 1.5, letterSpacing: 1 }}>
                                 Learning Path
                             </Typography>
                             <List dense disablePadding>
@@ -128,16 +128,16 @@ const SkillDevelopmentReport = ({ data, profile, timestamp }) => {
                             </List>
                         </Grid>
                         <Grid item xs={12} md={6}>
-                            <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.8rem', mb: 1.5, letterSpacing: 1 }}>
+                            <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.8rem', mb: 1.5, letterSpacing: 1 }}>
                                 Curated Resources
                             </Typography>
                             <Stack spacing={1}>
                                 {item.resources?.map((res, i) => (
                                     <Box key={i} sx={{ p: 1.5, border: '1px solid #e2e8f0', borderRadius: 2, bgcolor: 'white' }}>
-                                        <Typography variant="caption" fontWeight={800} display="block" color="#6366f1">
+                                        <Typography variant="caption" fontWeight={700} display="block" color="#6366f1">
                                             {res.type.toUpperCase()} • {res.provider}
                                         </Typography>
-                                        <Typography variant="body2" fontWeight={700}>
+                                        <Typography variant="body2" fontWeight={600}>
                                             {res.name}
                                         </Typography>
                                         <Typography variant="caption" color="text.secondary">

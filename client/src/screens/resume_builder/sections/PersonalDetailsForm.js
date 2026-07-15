@@ -23,7 +23,7 @@ const PersonalDetailsForm = () => {
 
   return (
     <Stack spacing={3}>
-      <Typography variant="h6" sx={{ fontWeight: 700 }}>Personal Details</Typography>
+      <Typography variant="h6" sx={{ fontWeight: 600 }}>Personal Details</Typography>
       <Grid container spacing={2}>
         <Grid item xs={12} sm={6}>
           <TextField
@@ -45,7 +45,7 @@ const PersonalDetailsForm = () => {
         </Grid>
         <Grid item xs={12} sm={6}>
           <Stack justifyContent="center" sx={{ minHeight: 56 }}>
-            <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600 }}>
+            <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 500 }}>
               Phone
             </Typography>
             <Typography variant="body1" sx={{ color: "text.primary", mt: 0.5 }}>
@@ -79,7 +79,7 @@ const PersonalDetailsForm = () => {
               />
             }
             label={
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
                 Show Date of Birth, Gender, Marital Status & Location on Resume
               </Typography>
             }

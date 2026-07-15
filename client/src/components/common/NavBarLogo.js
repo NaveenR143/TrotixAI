@@ -9,7 +9,7 @@ const useStyles = makeStyles(() => ({
   logo: {
     padding: "10px",
     fontSize: "medium",
-    fontWeight: 700,
+    fontWeight: 600,
     color: "#575656",
     lineHeight: "2vh",
     fontFamily: "system-ui",

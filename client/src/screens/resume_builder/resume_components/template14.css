@@ -52,7 +52,7 @@
 
 .t14-header-name {
     font-size: 2.1rem;
-    font-weight: 800;
+    font-weight: 700;
     color: var(--t14-dark);
     letter-spacing: -0.04em;
     line-height: 1;
@@ -64,7 +64,7 @@
 
 .t14-header-title {
     font-size: 0.7rem;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--t14-accent);
@@ -82,7 +82,7 @@
     align-items: center;
     justify-content: center;
     font-size: 1.15rem;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -0.02em;
 }
 
@@ -99,7 +99,7 @@
     gap: 6px;
     font-size: 0.65rem;
     color: var(--t14-text-secondary);
-    font-weight: 500;
+    font-weight: 400;
     background: var(--t14-bg-page);
     padding: 5px 12px;
     border-radius: 6px;
@@ -145,7 +145,7 @@
     align-items: center;
     gap: 10px;
     font-size: 0.65rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--t14-accent);
@@ -167,7 +167,7 @@
 
 .t14-profile-text {
     font-size: 0.78rem;
-    font-weight: 400;
+    font-weight: 300;
     color: var(--t14-text-secondary);
     line-height: 1.8;
 }
@@ -195,14 +195,14 @@
 
 .t14-exp-role {
     font-size: 0.85rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--t14-text-primary);
     line-height: 1.3;
 }
 
 .t14-exp-date-badge {
     font-size: 0.58rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--t14-accent);
     background: var(--t14-accent-light);
     padding: 3px 10px;
@@ -214,7 +214,7 @@
 
 .t14-exp-company {
     font-size: 0.72rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--t14-text-muted);
     margin-bottom: 10px;
     text-transform: uppercase;
@@ -268,7 +268,7 @@ ul.t14-exp-desc li::before {
 
 .t14-edu-degree {
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--t14-text-primary);
     line-height: 1.3;
     margin-bottom: 3px;
@@ -284,7 +284,7 @@ ul.t14-exp-desc li::before {
 
 .t14-edu-year {
     font-size: 0.6rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--t14-accent);
 }
 
@@ -301,14 +301,14 @@ ul.t14-exp-desc li::before {
     justify-content: space-between;
     align-items: center;
     font-size: 0.68rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--t14-text-primary);
     margin-bottom: 6px;
 }
 
 .t14-skill-pct {
     font-size: 0.58rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--t14-accent);
 }
 
@@ -340,7 +340,7 @@ ul.t14-exp-desc li::before {
 
 .t14-lang-name {
     font-size: 0.68rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--t14-text-primary);
 }
 
@@ -369,7 +369,7 @@ ul.t14-exp-desc li::before {
 
 .t14-interest-tag {
     font-size: 0.58rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--t14-text-secondary);
     background: var(--t14-bg-page);
     border: 1px solid var(--t14-border);
@@ -387,7 +387,7 @@ ul.t14-exp-desc li::before {
 
 .t14-ref-name {
     font-size: 0.72rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--t14-text-primary);
     text-transform: uppercase;
 }

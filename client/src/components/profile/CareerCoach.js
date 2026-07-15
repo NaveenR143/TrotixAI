@@ -39,9 +39,9 @@ const CareerCoach = ({ profile }) => {
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
             <AutoAwesomeIcon sx={{ color: '#6366f1' }} />
-            <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a' }}>AI Career Coach</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#0f172a' }}>AI Career Coach</Typography>
           </Box>
-          <Typography sx={{ color: '#64748b', fontSize: '0.9rem' }}>
+          <Typography sx={{ color: '#212121', fontSize: '0.9rem' }}>
             Personalized guidance to accelerate your career as a {primarySkill} specialist.
           </Typography>
         </Box>
@@ -49,30 +49,30 @@ const CareerCoach = ({ profile }) => {
         {/* Career Progress */}
         <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 3, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a' }}>Profile Strength</Typography>
-            <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#6366f1' }}>85%</Typography>
+            <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: '#0f172a' }}>Profile Strength</Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#6366f1' }}>85%</Typography>
           </Box>
           <LinearProgress variant="determinate" value={85} sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { bgcolor: '#6366f1' } }} />
-          <Typography sx={{ mt: 1.5, fontSize: '0.75rem', color: '#64748b' }}>
+          <Typography sx={{ mt: 1.5, fontSize: '0.75rem', color: '#212121' }}>
             Complete your `About` section to reach 95% and unlock more job matches.
           </Typography>
         </Paper>
 
         {/* Mentorship */}
         <Box>
-          <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
             <GroupsIcon sx={{ color: '#8b5cf6' }} /> Personalized Mentorship
           </Typography>
           <Stack spacing={2}>
             {mentorships.map((m, i) => (
               <Paper key={i} variant="outlined" sx={{ p: 2, borderRadius: 2, '&:hover': { borderColor: '#8b5cf6', bgcolor: '#f5f3ff' }, transition: '0.2s' }}>
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#ede9fe', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, flexShrink: 0 }}>
+                  <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#ede9fe', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, flexShrink: 0 }}>
                     {m.avatar}
                   </Box>
                   <Box sx={{ minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>{m.name}</Typography>
-                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mb: 0.5 }}>{m.role}</Typography>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#0f172a' }}>{m.name}</Typography>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#212121', mb: 0.5 }}>{m.role}</Typography>
                     <Chip label={m.focus} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#fff', border: '1px solid #e2e8f0' }} />
                   </Box>
                 </Box>
@@ -83,7 +83,7 @@ const CareerCoach = ({ profile }) => {
 
         {/* Recommended Courses */}
         <Box>
-          <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
             <SchoolIcon sx={{ color: '#0ea5e9' }} /> Learning Paths
           </Typography>
           <Stack spacing={2}>
@@ -91,16 +91,16 @@ const CareerCoach = ({ profile }) => {
               <Paper key={i} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <Box>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a', mb: 0.5 }}>{c.title}</Typography>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: '#0f172a', mb: 0.5 }}>{c.title}</Typography>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <Typography sx={{ fontSize: '0.72rem', color: '#64748b' }}>{c.platform}</Typography>
+                      <Typography sx={{ fontSize: '0.72rem', color: '#212121' }}>{c.platform}</Typography>
                       <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#cbd5e1' }} />
-                      <Typography sx={{ fontSize: '0.72rem', color: '#64748b' }}>{c.duration}</Typography>
+                      <Typography sx={{ fontSize: '0.72rem', color: '#212121' }}>{c.duration}</Typography>
                       <Chip label={c.level} size="small" variant="outlined" sx={{ height: 18, fontSize: '0.6rem', color: '#0ea5e9', borderColor: '#0ea5e9' }} />
                     </Stack>
                   </Box>
                   <Tooltip title="View Course">
-                    <IconButton size="small" sx={{ color: '#64748b' }}><LaunchIcon fontSize="inherit" /></IconButton>
+                    <IconButton size="small" sx={{ color: '#212121' }}><LaunchIcon fontSize="inherit" /></IconButton>
                   </Tooltip>
                 </Box>
               </Paper>
@@ -110,7 +110,7 @@ const CareerCoach = ({ profile }) => {
 
         {/* AI Career Tips */}
         <Box>
-          <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
             <LightbulbIcon sx={{ color: '#f59e0b' }} /> Improvement Tips
           </Typography>
           <Stack spacing={1.5}>

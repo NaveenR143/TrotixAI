@@ -61,7 +61,7 @@ const GovtJobDetailScreen = ({ job: initialJob, isEmbedded = false, onBack }) =>
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: isEmbedded ? '400px' : '100vh', gap: 3, bgcolor: '#f8fafc' }}>
         <CircularProgress size={50} sx={{ color: '#059669' }} />
-        <Typography sx={{ color: '#64748b', fontWeight: 500 }}>Loading job details...</Typography>
+        <Typography sx={{ color: '#212121', fontWeight: 400 }}>Loading job details...</Typography>
       </Box>
     );
   }
@@ -70,7 +70,7 @@ const GovtJobDetailScreen = ({ job: initialJob, isEmbedded = false, onBack }) =>
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: isEmbedded ? '400px' : '100vh', gap: 2, px: 4, textAlign: 'center' }}>
         <Typography sx={{ fontSize: '3rem' }}>⚠️</Typography>
-        <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#0f172a' }}>{error}</Typography>
+        <Typography sx={{ fontWeight: 700, fontSize: '1.5rem', color: '#0f172a' }}>{error}</Typography>
         {!isEmbedded && (
           <Button variant="contained" onClick={onGoBack} startIcon={<ArrowBackIcon />}
             sx={{ mt: 2, bgcolor: '#059669', '&:hover': { bgcolor: '#047857' }, borderRadius: '12px' }}>
@@ -91,7 +91,7 @@ const GovtJobDetailScreen = ({ job: initialJob, isEmbedded = false, onBack }) =>
               <IconButton onClick={onGoBack} sx={{ color: '#0f172a' }}>
                 <ArrowBackIcon />
               </IconButton>
-              <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a', letterSpacing: '-0.02em' }}>
+              <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: '#0f172a', letterSpacing: '-0.02em' }}>
                 Job Details
               </Typography>
             </Stack>
@@ -107,12 +107,12 @@ const GovtJobDetailScreen = ({ job: initialJob, isEmbedded = false, onBack }) =>
               <Chip 
                 label="Government Opportunity" 
                 size="small" 
-                sx={{ bgcolor: '#ecfdf5', color: '#059669', fontWeight: 700, mb: 1.5, borderRadius: '6px' }} 
+                sx={{ bgcolor: '#ecfdf5', color: '#059669', fontWeight: 600, mb: 1.5, borderRadius: '6px' }} 
               />
-              <Typography sx={{ fontWeight: 900, fontSize: { xs: "1.5rem", md: "1.8rem" }, color: '#0f172a', mb: 1, letterSpacing: '-0.03em', lineHeight: 1.2 }}>
+              <Typography sx={{ fontWeight: 800, fontSize: { xs: "1.5rem", md: "1.8rem" }, color: '#0f172a', mb: 1, letterSpacing: '-0.03em', lineHeight: 1.2 }}>
                 {job.title}
               </Typography>
-              <Typography sx={{ color: '#64748b', fontSize: { xs: "0.85rem", md: "0.9rem" }, fontWeight: 500 }}>
+              <Typography sx={{ color: '#212121', fontSize: { xs: "0.85rem", md: "0.9rem" }, fontWeight: 400 }}>
                 {job.state || "Government Department"}
               </Typography>
             </Box>
@@ -123,38 +123,38 @@ const GovtJobDetailScreen = ({ job: initialJob, isEmbedded = false, onBack }) =>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3 }}>
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Box sx={{ p: 1, bgcolor: '#f1f5f9', borderRadius: '10px' }}>
-                  <LocationOnIcon sx={{ color: '#64748b' }} />
+                  <LocationOnIcon sx={{ color: '#212121' }} />
                 </Box>
                 <Box>
-                  <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>Location</Typography>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.88rem', color: '#1e293b' }}>{job.location || job.state}</Typography>
+                  <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase' }}>Location</Typography>
+                  <Typography sx={{ fontWeight: 500, fontSize: '0.88rem', color: '#1e293b' }}>{job.location || job.state}</Typography>
                 </Box>
               </Stack>
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Box sx={{ p: 1, bgcolor: '#f1f5f9', borderRadius: '10px' }}>
-                  <CalendarTodayIcon sx={{ color: '#64748b' }} />
+                  <CalendarTodayIcon sx={{ color: '#212121' }} />
                 </Box>
                 <Box>
-                  <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>Last Date to Apply</Typography>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.88rem', color: '#dc2626' }}>{job.expired_date || "Not Specified"}</Typography>
+                  <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase' }}>Last Date to Apply</Typography>
+                  <Typography sx={{ fontWeight: 500, fontSize: '0.88rem', color: '#dc2626' }}>{job.expired_date || "Not Specified"}</Typography>
                 </Box>
               </Stack>
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Box sx={{ p: 1, bgcolor: '#f1f5f9', borderRadius: '10px' }}>
-                  <SchoolIcon sx={{ color: '#64748b' }} />
+                  <SchoolIcon sx={{ color: '#212121' }} />
                 </Box>
                 <Box>
-                  <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>Qualification</Typography>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.88rem', color: '#1e293b' }}>{job.qualification || "Refer to PDF"}</Typography>
+                  <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase' }}>Qualification</Typography>
+                  <Typography sx={{ fontWeight: 500, fontSize: '0.88rem', color: '#1e293b' }}>{job.qualification || "Refer to PDF"}</Typography>
                 </Box>
               </Stack>
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Box sx={{ p: 1, bgcolor: '#f1f5f9', borderRadius: '10px' }}>
-                  <WorkIcon sx={{ color: '#64748b' }} />
+                  <WorkIcon sx={{ color: '#212121' }} />
                 </Box>
                 <Box>
-                  <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>Job Type</Typography>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.88rem', color: '#1e293b' }}>{job.job_type || "Govt Job"}</Typography>
+                  <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase' }}>Job Type</Typography>
+                  <Typography sx={{ fontWeight: 500, fontSize: '0.88rem', color: '#1e293b' }}>{job.job_type || "Govt Job"}</Typography>
                 </Box>
               </Stack>
             </Box>
@@ -163,7 +163,7 @@ const GovtJobDetailScreen = ({ job: initialJob, isEmbedded = false, onBack }) =>
 
             {/* Description */}
             <Box>
-              <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: '#0f172a', mb: 2 }}>Job Description</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '1.1rem', color: '#0f172a', mb: 2 }}>Job Description</Typography>
               <Typography sx={{ color: '#475569', fontSize: '0.9rem', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
                 {job.description || "No detailed description provided. Please refer to the official notification for complete details."}
               </Typography>
@@ -188,7 +188,7 @@ const GovtJobDetailScreen = ({ job: initialJob, isEmbedded = false, onBack }) =>
                     '&:hover': { bgcolor: '#047857' },
                     py: 1.5,
                     borderRadius: '12px',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     textTransform: 'none'
                   }}
                 >
@@ -213,7 +213,7 @@ const GovtJobDetailScreen = ({ job: initialJob, isEmbedded = false, onBack }) =>
                     '&:hover': { borderColor: '#047857', bgcolor: '#f0fdf4' },
                     py: 1.5,
                     borderRadius: '12px',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     textTransform: 'none'
                   }}
                 >

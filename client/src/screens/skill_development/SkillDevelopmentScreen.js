@@ -72,7 +72,7 @@ const SectionTitle = ({ icon, title, subtitle }) => (
             <Avatar sx={{ bgcolor: '#6366f1', width: 32, height: 32 }}>
                 {icon}
             </Avatar>
-            <Typography variant="h6" fontWeight={800} sx={{ letterSpacing: -0.5 }}>
+            <Typography variant="h6" fontWeight={700} sx={{ letterSpacing: -0.5 }}>
                 {title}
             </Typography>
         </Stack>
@@ -267,7 +267,7 @@ const SkillDevelopmentScreen = () => {
                             <CircularProgress size={80} thickness={4} sx={{ color: '#6366f1' }} />
                             <TrendingUpIcon sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: 32, color: '#94a3b8' }} />
                         </Box>
-                        <Typography variant="h5" fontWeight={900} gutterBottom sx={{ letterSpacing: -0.5 }}>
+                        <Typography variant="h5" fontWeight={800} gutterBottom sx={{ letterSpacing: -0.5 }}>
                             Scanning Market Trends...
                         </Typography>
                         <Typography variant="body1" color="text.secondary" sx={{ mt: 2, mb: 4, lineHeight: 1.6, fontSize: '1.05rem' }}>
@@ -283,7 +283,7 @@ const SkillDevelopmentScreen = () => {
     if (error && !fullResponse) {
         return (
             <Container maxWidth="sm" sx={{ py: 10, textAlign: 'center' }}>
-                <Alert severity="error" variant="outlined" sx={{ borderRadius: 3, mb: 3, fontWeight: 600 }}>
+                <Alert severity="error" variant="outlined" sx={{ borderRadius: 3, mb: 3, fontWeight: 500 }}>
                     {error}
                 </Alert>
                 <Button startIcon={<RefreshIcon />} variant="contained" onClick={() => fetchSkillAnalysis()} sx={{ borderRadius: 3, bgcolor: 'black', color: 'white', px: 4 }}>
@@ -306,15 +306,15 @@ const SkillDevelopmentScreen = () => {
                             <Box sx={{ position: "relative", zIndex: 1 }}>
                                 <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={3}>
                                     <Box>
-                                        <Typography variant="overline" sx={{ opacity: 0.7, letterSpacing: 3, fontWeight: 800 }}>
+                                        <Typography variant="overline" sx={{ opacity: 0.7, letterSpacing: 3, fontWeight: 700 }}>
                                             SKILL DEVELOPMENT ENGINE
                                         </Typography>
-                                        <Typography variant="h4" fontWeight={900} sx={{ letterSpacing: -1.5, mb: 1.5, lineHeight: 1 }}>
+                                        <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: -1.5, mb: 1.5, lineHeight: 1 }}>
                                             Skills Enhancement
                                         </Typography>
                                         <Stack direction="row" spacing={1} alignItems="center">
                                             <VerifiedIcon sx={{ fontSize: 18, color: '#818cf8' }} />
-                                            <Typography variant="body1" sx={{ opacity: 0.85, fontWeight: 300 }}>
+                                            <Typography variant="body1" sx={{ opacity: 0.85, fontWeight: 200 }}>
                                                 Target Industry: <strong>{industry || "IT & Software"}</strong>
                                             </Typography>
                                         </Stack>
@@ -325,7 +325,7 @@ const SkillDevelopmentScreen = () => {
                                             disabled={downloadingPDF}
                                             onClick={handleDownloadPDF}
                                             startIcon={downloadingPDF ? <CircularProgress size={20} color="inherit" /> : <FileDownloadIcon />}
-                                            sx={{ color: "white", borderColor: "rgba(255,255,255,0.3)", px: 3, py: 1.5, borderRadius: 4, fontWeight: 700, textTransform: 'none', "&:hover": { bgcolor: "rgba(255,255,255,0.1)", borderColor: "white" } }}
+                                            sx={{ color: "white", borderColor: "rgba(255,255,255,0.3)", px: 3, py: 1.5, borderRadius: 4, fontWeight: 600, textTransform: 'none', "&:hover": { bgcolor: "rgba(255,255,255,0.1)", borderColor: "white" } }}
                                         >
                                             {downloadingPDF ? "Exporting..." : "Download Report"}
                                         </Button>
@@ -340,7 +340,7 @@ const SkillDevelopmentScreen = () => {
                                                 px: 4,
                                                 py: 1.5,
                                                 borderRadius: 4,
-                                                fontWeight: 900,
+                                                fontWeight: 800,
                                                 textTransform: 'none',
                                                 boxShadow: '0 10px 20px -5px rgba(99, 102, 241, 0.5)',
                                                 "&:hover": { bgcolor: "#4f46e5", transform: 'translateY(-2px)' },
@@ -376,11 +376,11 @@ const SkillDevelopmentScreen = () => {
                                     <Grid item xs={12} md={4} sx={{ bgcolor: '#f8fafc', p: 4, borderRight: { md: '1px solid #e2e8f0' } }}>
                                         <Stack spacing={2}>
                                             <Box>
-                                                <Typography variant="h5" fontWeight={900} color="#0f172a" gutterBottom>
+                                                <Typography variant="h5" fontWeight={800} color="#0f172a" gutterBottom>
                                                     {item.skill}
                                                 </Typography>
                                                 <Stack direction="row" spacing={1}>
-                                                    <Chip label={item.category} size="small" sx={{ bgcolor: '#e0e7ff', color: '#4338ca', fontWeight: 700, borderRadius: 1.5 }} />
+                                                    <Chip label={item.category} size="small" sx={{ bgcolor: '#e0e7ff', color: '#4338ca', fontWeight: 600, borderRadius: 1.5 }} />
                                                     <Chip
                                                         label={item.roadmap_priority}
                                                         size="small"
@@ -388,7 +388,7 @@ const SkillDevelopmentScreen = () => {
                                                         sx={{
                                                             borderColor: item.roadmap_priority === 'short-term' ? '#f59e0b' : '#10b981',
                                                             color: item.roadmap_priority === 'short-term' ? '#b45309' : '#047857',
-                                                            fontWeight: 700,
+                                                            fontWeight: 600,
                                                             borderRadius: 1.5
                                                         }}
                                                     />
@@ -396,7 +396,7 @@ const SkillDevelopmentScreen = () => {
                                             </Box>
                                             <Divider />
                                             <Box>
-                                                <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.75rem', mb: 2, letterSpacing: 1.5 }}>
+                                                <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.75rem', mb: 2, letterSpacing: 1.5 }}>
                                                     The Rationale
                                                 </Typography>
                                                 <Typography variant="body2" sx={{ color: '#475569', lineHeight: 1.6 }}>
@@ -410,7 +410,7 @@ const SkillDevelopmentScreen = () => {
                                     <Grid item xs={12} md={8} sx={{ p: 4 }}>
                                         <Grid container spacing={4}>
                                             <Grid item xs={12} sm={6}>
-                                                <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.75rem', mb: 2, letterSpacing: 1.5 }}>
+                                                <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.75rem', mb: 2, letterSpacing: 1.5 }}>
                                                     Learning Suggestions
                                                 </Typography>
                                                 <List dense disablePadding>
@@ -421,14 +421,14 @@ const SkillDevelopmentScreen = () => {
                                                             </ListItemIcon>
                                                             <ListItemText
                                                                 primary={suggestion}
-                                                                primaryTypographyProps={{ variant: 'body2', sx: { color: '#334155', fontWeight: 500 } }}
+                                                                primaryTypographyProps={{ variant: 'body2', sx: { color: '#334155', fontWeight: 400 } }}
                                                             />
                                                         </ListItem>
                                                     ))}
                                                 </List>
                                             </Grid>
                                             <Grid item xs={12} sm={6}>
-                                                <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.75rem', mb: 2, letterSpacing: 1.5 }}>
+                                                <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.75rem', mb: 2, letterSpacing: 1.5 }}>
                                                     Recommended Resources
                                                 </Typography>
                                                 <Stack spacing={2}>
@@ -448,10 +448,10 @@ const SkillDevelopmentScreen = () => {
                                                                     {res.type === 'course' ? <SchoolIcon fontSize="small" /> : res.type === 'book' ? <BookIcon fontSize="small" /> : <LanguageIcon fontSize="small" />}
                                                                 </Avatar>
                                                                 <Box sx={{ flex: 1 }}>
-                                                                    <Typography variant="caption" fontWeight={800} color="text.secondary" display="block">
+                                                                    <Typography variant="caption" fontWeight={700} color="text.secondary" display="block">
                                                                         {res.provider} • {res.cost}
                                                                     </Typography>
-                                                                    <Typography variant="body2" fontWeight={700} sx={{ lineHeight: 1.2 }}>
+                                                                    <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1.2 }}>
                                                                         {res.name}
                                                                     </Typography>
                                                                 </Box>
@@ -472,7 +472,7 @@ const SkillDevelopmentScreen = () => {
 
                     {/* Footer */}
                     <Grid item xs={12} textAlign="center" sx={{ py: 6 }}>
-                        <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.8, fontWeight: 500 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.8, fontWeight: 400 }}>
                             Analyzed by <strong>RightNxt AI Skills Engine</strong> • Data as of {formatDate(timestamp)}
                         </Typography>
                     </Grid>

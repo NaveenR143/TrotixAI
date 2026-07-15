@@ -67,7 +67,7 @@ const JobDetail = ({ job, onBack }) => {
                                 cursor: 'pointer',
                                 padding: '0.5rem 0',
                                 fontSize: '0.95rem',
-                                fontWeight: 600,
+                                fontWeight: 500,
                                 textDecoration: 'underline'
                             }}
                         >

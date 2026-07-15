@@ -28,7 +28,7 @@ const SkillsForm = () => {
 
   return (
     <Stack spacing={3}>
-      <Typography variant="h6" sx={{ fontWeight: 700 }}>Skills</Typography>
+      <Typography variant="h6" sx={{ fontWeight: 600 }}>Skills</Typography>
       <Box>
         <TextField
           fullWidth
@@ -48,7 +48,7 @@ const SkillsForm = () => {
             onDelete={() => handleRemove(skill)}
             sx={{ 
               bgcolor: "#f1f5f9", 
-              fontWeight: 600,
+              fontWeight: 500,
               borderRadius: "8px",
               border: "1px solid #e2e8f0"
             }}

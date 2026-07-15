@@ -19,7 +19,7 @@ const JobListItem = ({ job, isSelected, onClick }) => {
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.75 }}>
-        <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a', lineHeight: 1.3, flex: 1, pr: 1 }} noWrap>
+        <Typography sx={{ fontWeight: 600, fontSize: '0.88rem', color: '#0f172a', lineHeight: 1.3, flex: 1, pr: 1 }} noWrap>
           {job.title}
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.4, flexShrink: 0 }}>
@@ -29,7 +29,7 @@ const JobListItem = ({ job, isSelected, onClick }) => {
           )}
         </Box>
       </Box>
-      <Typography sx={{ fontSize: '0.8rem', color: '#64748b', mb: 0.75 }}>{job.company}</Typography>
+      <Typography sx={{ fontSize: '0.8rem', color: '#212121', mb: 0.75 }}>{job.company}</Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1, flexWrap: 'wrap' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <LocationOnIcon sx={{ fontSize: 12, color: '#94a3b8' }} />
@@ -42,24 +42,24 @@ const JobListItem = ({ job, isSelected, onClick }) => {
         {job.expired_date && (
           <>
             <Typography sx={{ fontSize: '0.75rem', color: '#cbd5e1', mx: 0.25 }}>·</Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 600 }}>Ends: {job.expired_date}</Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 500 }}>Ends: {job.expired_date}</Typography>
           </>
         )}
       </Box>
       {job.qualification && (
-        <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mb: 1.25, fontStyle: 'italic' }} noWrap>
+        <Typography sx={{ fontSize: '0.75rem', color: '#212121', mb: 1.25, fontStyle: 'italic' }} noWrap>
           Graduation: {job.qualification}
         </Typography>
       )}
       <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
         {job.type && (
           <Chip label={job.type} size="small"
-            sx={{ height: 18, fontSize: '0.68rem', bgcolor: '#f0fdf4', color: '#15803d', border: '1px solid #dcfce7', fontWeight: 600 }}
+            sx={{ height: 18, fontSize: '0.68rem', bgcolor: '#f0fdf4', color: '#15803d', border: '1px solid #dcfce7', fontWeight: 500 }}
           />
         )}
         {(job.keySkillsMatched || []).slice(0, 3).map(s => (
           <Chip key={s} label={s} size="small"
-            sx={{ height: 18, fontSize: '0.68rem', bgcolor: isSelected ? '#ede9fe' : '#f8fafc', color: isSelected ? '#4f46e5' : '#64748b', border: `1px solid ${isSelected ? '#c4b5fd' : '#e2e8f0'}` }}
+            sx={{ height: 18, fontSize: '0.68rem', bgcolor: isSelected ? '#ede9fe' : '#f8fafc', color: isSelected ? '#4f46e5' : '#212121', border: `1px solid ${isSelected ? '#c4b5fd' : '#e2e8f0'}` }}
           />
         ))}
         {job.keySkillsMatched?.length > 3 && (

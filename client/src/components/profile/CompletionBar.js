@@ -5,10 +5,10 @@ import { Box, Typography } from "@mui/material";
 const CompletionBar = ({ pct }) => (
   <Box sx={{ mb: 3 }}>
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-      <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: '#212121', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         Profile Completeness
       </Typography>
-      <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: pct >= 80 ? '#16a34a' : '#f59e0b' }}>
+      <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: pct >= 80 ? '#16a34a' : '#f59e0b' }}>
         {pct}%
       </Typography>
     </Box>

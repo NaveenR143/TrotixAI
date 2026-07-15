@@ -80,7 +80,7 @@ const NotFound = () => {
 
             <Typography variant="h2" sx={{
               fontSize: { xs: '1.5rem', md: '2.5rem' },
-              fontWeight: 900,
+              fontWeight: 800,
               color: '#111827',
               letterSpacing: '-0.04em',
               lineHeight: 1.2
@@ -90,10 +90,10 @@ const NotFound = () => {
 
             <Typography sx={{
               fontSize: { xs: '0.95rem', md: '1.1rem' },
-              color: '#64748B',
+              color: '#212121',
               maxWidth: 520,
               lineHeight: 1.6,
-              fontWeight: 500,
+              fontWeight: 400,
               px: { xs: 2, md: 0 }
             }}>
               The page you're looking for has drifted away. Don't worry, our career engine is already recalculating the path to your success.
@@ -117,7 +117,7 @@ const NotFound = () => {
                 borderRadius: '16px',
                 px: 5,
                 py: 1.8,
-                fontWeight: 800,
+                fontWeight: 700,
                 textTransform: 'none',
                 background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
                 fontSize: '1rem',
@@ -141,7 +141,7 @@ const NotFound = () => {
                 borderRadius: '16px',
                 px: 5,
                 py: 1.8,
-                fontWeight: 800,
+                fontWeight: 700,
                 textTransform: 'none',
                 color: '#111827',
                 borderColor: '#E2E8F0',

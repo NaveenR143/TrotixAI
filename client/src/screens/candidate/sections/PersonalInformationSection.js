@@ -232,8 +232,8 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <PersonIcon sx={{ fontSize: 20, color: "#64748b" }} />
-          <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
+          <PersonIcon sx={{ fontSize: 20, color: "#212121" }} />
+          <Typography sx={{ fontWeight: 600, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
             Personal Information
           </Typography>
         </Box>
@@ -270,40 +270,40 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <Box>
-              <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#212121", mb: 0.5, textTransform: "uppercase" }}>
                 Full Name
               </Typography>
-              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>
+              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 400 }}>
                 {profile?.fullname || "—"}
               </Typography>
             </Box>
           </Grid>
           <Grid item xs={12}>
             <Box>
-              <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#212121", mb: 0.5, textTransform: "uppercase" }}>
                 Email
               </Typography>
-              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>
+              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 400 }}>
                 {profile?.email || "—"}
               </Typography>
             </Box>
           </Grid>
           <Grid item xs={12} sm={6}>
             <Box>
-              <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#212121", mb: 0.5, textTransform: "uppercase" }}>
                 Mobile
               </Typography>
-              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>
+              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 400 }}>
                 {profile?.mobile || "—"}
               </Typography>
             </Box>
           </Grid>
           <Grid item xs={12} sm={6}>
             <Box>
-              <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#212121", mb: 0.5, textTransform: "uppercase" }}>
                 Preferred Location
               </Typography>
-              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>
+              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 400 }}>
                 {profile?.preferredLocation || "—"}
               </Typography>
             </Box>
@@ -311,10 +311,10 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
           {profile?.website && (
             <Grid item xs={12}>
               <Box>
-                <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>
+                <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#212121", mb: 0.5, textTransform: "uppercase" }}>
                   Website
                 </Typography>
-                <Typography sx={{ fontSize: "0.95rem", color: "#6366f1", fontWeight: 500 }}>
+                <Typography sx={{ fontSize: "0.95rem", color: "#6366f1", fontWeight: 400 }}>
                   <a href={profile.website} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "inherit" }}>
                     {profile.website}
                   </a>
@@ -336,7 +336,7 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
               helperText={formErrors.fullname}
               size="small"
               InputProps={{
-                startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} />,
+                startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: "#212121" }} />,
               }}
             />
           </Grid>
@@ -352,7 +352,7 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
               helperText={formErrors.email}
               size="small"
               InputProps={{
-                startAdornment: <EmailIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} />,
+                startAdornment: <EmailIcon sx={{ mr: 1, fontSize: 18, color: "#212121" }} />,
               }}
             />
           </Grid>
@@ -450,7 +450,7 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
                     </Button>
                   </Stack>
                   {phoneVerificationOtp.resendAttempts >= 3 && (
-                    <Typography color="warning.main" variant="caption" sx={{ mt: 1, display: 'block', fontWeight: 600 }}>
+                    <Typography color="warning.main" variant="caption" sx={{ mt: 1, display: 'block', fontWeight: 500 }}>
                       ⚠️ Daily resend limit of 3 attempts reached. Please request a new OTP tomorrow.
                     </Typography>
                   )}
@@ -463,7 +463,7 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
               )}
 
               {otpVerified && (
-                <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   ✓ Mobile number verified successfully
                 </Typography>
               )}
@@ -480,7 +480,7 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
               helperText={formErrors.preferredLocation}
               size="small"
               InputProps={{
-                startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} />,
+                startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: "#212121" }} />,
               }}
             />
           </Grid>
@@ -494,7 +494,7 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
               size="small"
               placeholder="https://..."
               InputProps={{
-                startAdornment: <PublicIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} />,
+                startAdornment: <PublicIcon sx={{ mr: 1, fontSize: 18, color: "#212121" }} />,
               }}
             />
           </Grid>

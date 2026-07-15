@@ -39,7 +39,7 @@
 
 .t7-header-left h1 {
     font-size: 28px;
-    font-weight: 800;
+    font-weight: 700;
     color: #005f73;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -49,7 +49,7 @@
 
 .t7-header-left .t7-job-title {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     color: #94d2bd;
     /* Soft Teal */
     text-transform: uppercase;
@@ -76,7 +76,7 @@
 
 .t7-section-title {
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 2px;
     color: #005f73;
@@ -126,7 +126,7 @@
 .t7-skills-table .t7-skill-cat {
     background-color: #f0f7f4;
     /* Very light teal tint */
-    font-weight: 700;
+    font-weight: 600;
     color: #005f73;
     width: 25%;
     white-space: nowrap;
@@ -150,13 +150,13 @@
 
 .t7-exp-role {
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     color: #005f73;
 }
 
 .t7-exp-date {
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     color: #555;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -164,7 +164,7 @@
 
 .t7-exp-company {
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 400;
     margin-bottom: 8px;
     color: #666;
     text-transform: uppercase;
@@ -201,7 +201,7 @@
 
 .t7-edu-school {
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     color: #005f73;
     text-transform: uppercase;
 }
@@ -215,7 +215,7 @@
 
 .t7-edu-date {
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     color: #555;
     text-transform: uppercase;
     white-space: nowrap;
@@ -236,13 +236,13 @@
 
 .t7-proj-name {
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     color: #005f73;
 }
 
 .t7-proj-year {
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     color: #555;
     text-transform: uppercase;
 }
@@ -275,7 +275,7 @@
 }
 
 .t7-lang-item strong {
-    font-weight: 700;
+    font-weight: 600;
     color: #005f73;
 }
 

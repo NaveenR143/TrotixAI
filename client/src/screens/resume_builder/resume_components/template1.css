@@ -29,7 +29,7 @@
 
 .header h1 {
   font-size: 32px;
-  font-weight: 800;
+  font-weight: 700;
   color: #333;
   margin: 0;
   letter-spacing: 1px;
@@ -39,7 +39,7 @@
   font-size: 18px;
   color: #555;
   margin: 5px 0 15px;
-  font-weight: 400;
+  font-weight: 300;
 }
 
 .header-divider {
@@ -81,7 +81,7 @@
 /* Section Titles */
 h4 {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   color: #333;
   margin-top: 0;
   margin-bottom: 15px;
@@ -107,7 +107,7 @@ h4 {
 
 .block .year {
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     color: #444;
     margin-bottom: 4px;
 }
@@ -136,13 +136,13 @@ h4 {
 
 .exp-date {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   color: #444;
 }
 
 .company-name {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     color: #666;
     margin-bottom: 6px;
 }

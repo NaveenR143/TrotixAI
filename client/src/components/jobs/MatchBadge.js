@@ -17,7 +17,7 @@ const MatchBadge = ({ score, size = 'md' }) => {
       }}
     >
       <AutoAwesomeIcon sx={{ fontSize: isLg ? 13 : 10, color: c.main }} />
-      <Typography sx={{ fontSize: isLg ? '0.82rem' : '0.7rem', fontWeight: 700, color: c.main }}>
+      <Typography sx={{ fontSize: isLg ? '0.82rem' : '0.7rem', fontWeight: 600, color: c.main }}>
         {score}% match
       </Typography>
     </Box>

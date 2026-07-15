@@ -278,7 +278,7 @@ const PublicJobDetailScreen = () => {
     <Box sx={{ mb: 3 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
         <Icon sx={{ color: "#111827", fontSize: 22 }} />
-        <Typography sx={{ fontWeight: 800, fontSize: { xs: "1.0rem", md: "1.1rem" }, color: "#111827", letterSpacing: "-0.02em" }}>
+        <Typography sx={{ fontWeight: 700, fontSize: { xs: "1.0rem", md: "1.1rem" }, color: "#111827", letterSpacing: "-0.02em" }}>
           {title}
         </Typography>
       </Box>
@@ -348,7 +348,7 @@ const PublicJobDetailScreen = () => {
   if (error || !job) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#F8FAFC', p: 3, textAlign: 'center' }}>
-        <Typography variant="h5" sx={{ fontWeight: 800, mb: 2, color: '#111827' }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, color: '#111827' }}>
           {error || "Job not found"}
         </Typography>
         <Button variant="contained" onClick={() => navigate('/dashboard')} sx={{ borderRadius: '12px', textTransform: 'none', px: 4 }}>
@@ -372,7 +372,7 @@ const PublicJobDetailScreen = () => {
               <IconButton onClick={() => navigate(-1)} size="small" sx={{ color: '#6B7280' }}>
                 <ArrowBackIcon />
               </IconButton>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827', letterSpacing: '-0.02em' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
                 Job Details
               </Typography>
             </Stack>
@@ -402,7 +402,7 @@ const PublicJobDetailScreen = () => {
                     height: 80,
                     background: `linear-gradient(135deg, #2563EB, #4f46e5)`,
                     fontSize: "2rem",
-                    fontWeight: 800,
+                    fontWeight: 700,
                     borderRadius: '20px',
                     boxShadow: "0 8px 25px rgba(37, 99, 235, 0.15)",
                   }}
@@ -410,10 +410,10 @@ const PublicJobDetailScreen = () => {
                   {(job.company?.name || job.company)?.[0]}
                 </Avatar>
                 <Box sx={{ flex: 1 }}>
-                  <Typography sx={{ fontWeight: 900, color: "#111827", fontSize: { xs: "1.5rem", md: "1.8rem" }, letterSpacing: "-0.03em", mb: 0.5 }}>
+                  <Typography sx={{ fontWeight: 800, color: "#111827", fontSize: { xs: "1.5rem", md: "1.8rem" }, letterSpacing: "-0.03em", mb: 0.5 }}>
                     {job.title}
                   </Typography>
-                  <Typography sx={{ color: "#2563EB", fontWeight: 700, fontSize: { xs: "1.0rem", md: "1.15rem" }, mb: 2.5 }}>
+                  <Typography sx={{ color: "#2563EB", fontWeight: 600, fontSize: { xs: "1.0rem", md: "1.15rem" }, mb: 2.5 }}>
                     {job.company?.name || job.company}
                   </Typography>
                   <Stack direction="row" spacing={2} flexWrap="wrap" gap={1.5}>
@@ -421,15 +421,15 @@ const PublicJobDetailScreen = () => {
                       icon={<LocationOnIcon sx={{ fontSize: '16px !important' }} />}
                       label={job.location}
                       variant="outlined"
-                      sx={{ borderRadius: '10px', fontWeight: 600, color: '#64748B', borderColor: '#E5E7EB' }}
+                      sx={{ borderRadius: '10px', fontWeight: 500, color: '#212121', borderColor: '#E5E7EB' }}
                     />
                     <Chip
                       icon={<WorkIcon sx={{ fontSize: '16px !important' }} />}
                       label={job.workMode || job.work_mode}
                       variant="outlined"
-                      sx={{ borderRadius: '10px', fontWeight: 600, color: '#64748B', borderColor: '#E5E7EB' }}
+                      sx={{ borderRadius: '10px', fontWeight: 500, color: '#212121', borderColor: '#E5E7EB' }}
                     />
-                    {job.salary && <Chip label={job.salary} sx={{ borderRadius: '10px', fontWeight: 800, bgcolor: '#dcfce7', color: '#16a34a' }} />}
+                    {job.salary && <Chip label={job.salary} sx={{ borderRadius: '10px', fontWeight: 700, bgcolor: '#dcfce7', color: '#16a34a' }} />}
                   </Stack>
                 </Box>
               </Box>
@@ -450,7 +450,7 @@ const PublicJobDetailScreen = () => {
               </Box>
               <Button
                 onClick={() => setExpandedDescription(!expandedDescription)}
-                sx={{ mt: 2, fontWeight: 700, color: '#2563EB', textTransform: 'none' }}
+                sx={{ mt: 2, fontWeight: 600, color: '#2563EB', textTransform: 'none' }}
               >
                 {expandedDescription ? 'Read Less' : 'Read Full Description'}
               </Button>
@@ -464,7 +464,7 @@ const PublicJobDetailScreen = () => {
                 <SectionHeader icon={SchoolIcon} title="Skills" accent="#7C3AED" />
                 <Stack direction="row" flexWrap="wrap" gap={1}>
                   {(job.skills || []).map(s => (
-                    <Chip key={s} label={s} sx={{ bgcolor: '#eff6ff', color: '#2563EB', fontWeight: 700, borderRadius: '8px' }} />
+                    <Chip key={s} label={s} sx={{ bgcolor: '#eff6ff', color: '#2563EB', fontWeight: 600, borderRadius: '8px' }} />
                   ))}
                 </Stack>
               </Paper>
@@ -488,7 +488,7 @@ const PublicJobDetailScreen = () => {
               disabled={applying}
               sx={{
                 flex: 1,
-                py: 1.5, borderRadius: '12px', fontWeight: 800, fontSize: '1rem',
+                py: 1.5, borderRadius: '12px', fontWeight: 700, fontSize: '1rem',
                 bgcolor: '#2563EB',
                 boxShadow: '0 10px 25px rgba(37, 99, 235, 0.2)',
                 '&:hover': { bgcolor: '#1e40af' },
@@ -510,7 +510,7 @@ const PublicJobDetailScreen = () => {
                 disabled={generatingEmail}
                 sx={{
                   flex: 1,
-                  py: 1.5, borderRadius: '12px', fontWeight: 800, fontSize: '1rem',
+                  py: 1.5, borderRadius: '12px', fontWeight: 700, fontSize: '1rem',
                   background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
                   '&:hover': { transform: 'translateY(-2px)' },
                   "&.Mui-disabled": {
@@ -523,7 +523,7 @@ const PublicJobDetailScreen = () => {
               </Button>
             )}
           </Stack>
-          <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2, color: '#94A3B8', fontWeight: 600 }}>
+          <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2, color: '#94A3B8', fontWeight: 500 }}>
             Posted {job.posted || (job.posted_at ? new Date(job.posted_at).toLocaleDateString() : 'recently')}
           </Typography>
         </Paper>
@@ -536,7 +536,7 @@ const PublicJobDetailScreen = () => {
         fullWidth
         PaperProps={{ sx: { borderRadius: '28px', p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <RocketLaunchIcon sx={{ color: '#2563EB' }} />
             Quick Apply
@@ -548,7 +548,7 @@ const PublicJobDetailScreen = () => {
         <DialogContent>
           {applyStep === 'choice' && (
             <Stack spacing={3} sx={{ py: 2 }}>
-              <Typography sx={{ color: '#64748B', fontWeight: 500 }}>
+              <Typography sx={{ color: '#212121', fontWeight: 400 }}>
                 You're applying for <strong>{job.title}</strong>. Choose how you'd like to proceed:
               </Typography>
 
@@ -565,8 +565,8 @@ const PublicJobDetailScreen = () => {
                     <AutoAwesomeIcon />
                   </Box>
                   <Box>
-                    <Typography sx={{ fontWeight: 800, color: '#111827' }}>Upload Resume (Recommended)</Typography>
-                    <Typography sx={{ fontSize: '0.85rem', color: '#64748B' }}>AI will parse your details and match you instantly.</Typography>
+                    <Typography sx={{ fontWeight: 700, color: '#111827' }}>Upload Resume (Recommended)</Typography>
+                    <Typography sx={{ fontSize: '0.85rem', color: '#212121' }}>AI will parse your details and match you instantly.</Typography>
                   </Box>
                 </Stack>
               </Paper>
@@ -584,8 +584,8 @@ const PublicJobDetailScreen = () => {
                     <GroupsIcon />
                   </Box>
                   <Box>
-                    <Typography sx={{ fontWeight: 800, color: '#111827' }}>Login to Apply</Typography>
-                    <Typography sx={{ fontSize: '0.85rem', color: '#64748B' }}>Use your existing profile and track application status.</Typography>
+                    <Typography sx={{ fontWeight: 700, color: '#111827' }}>Login to Apply</Typography>
+                    <Typography sx={{ fontSize: '0.85rem', color: '#212121' }}>Use your existing profile and track application status.</Typography>
                   </Box>
                 </Stack>
               </Paper>
@@ -594,7 +594,7 @@ const PublicJobDetailScreen = () => {
 
           {applyStep === 'resume' && (
             <Box sx={{ py: 2 }}>
-              <Typography sx={{ color: '#64748B', mb: 3, fontWeight: 500 }}>
+              <Typography sx={{ color: '#212121', mb: 3, fontWeight: 400 }}>
                 Upload your resume to complete the application.
               </Typography>
               <ResumeUpload
@@ -604,7 +604,7 @@ const PublicJobDetailScreen = () => {
               />
               <Button
                 onClick={() => setApplyStep('choice')}
-                sx={{ mt: 3, fontWeight: 700, color: '#64748B' }}
+                sx={{ mt: 3, fontWeight: 600, color: '#212121' }}
               >
                 Back
               </Button>
@@ -621,7 +621,7 @@ const PublicJobDetailScreen = () => {
         fullWidth
         PaperProps={{ sx: { borderRadius: '24px', p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 900, fontSize: '1.5rem', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.5rem', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <AutoAwesomeIcon sx={{ color: '#7C3AED' }} />
           ATS-Optimized Application Content
         </DialogTitle>
@@ -630,7 +630,7 @@ const PublicJobDetailScreen = () => {
             <Box sx={{ p: 1, bgcolor: '#0EA5E9', borderRadius: '10px', color: 'white' }}>
               <TrendingUpIcon fontSize="small" />
             </Box>
-            <Typography sx={{ color: '#0369A1', fontWeight: 600, fontSize: '0.9rem' }}>
+            <Typography sx={{ color: '#0369A1', fontWeight: 500, fontSize: '0.9rem' }}>
               We've tailored your profile details specifically for this job description to make them highly ATS-friendly. Review, edit, and copy the sections below.
             </Typography>
           </Box>
@@ -639,7 +639,7 @@ const PublicJobDetailScreen = () => {
             {/* Project Details */}
             <Box>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1E293B', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
                   Project Details
                 </Typography>
                 <Button
@@ -649,7 +649,7 @@ const PublicJobDetailScreen = () => {
                     setSnackbar({ open: true, message: "Project details copied!", severity: "success" });
                   }}
                   startIcon={<ContentCopyIcon sx={{ fontSize: '14px !important' }} />}
-                  sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB' }}
+                  sx={{ fontWeight: 600, textTransform: 'none', color: '#2563EB' }}
                 >
                   Copy
                 </Button>
@@ -668,7 +668,7 @@ const PublicJobDetailScreen = () => {
             {/* Current Experience Details */}
             <Box>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1E293B', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
                   Current Experience Details
                 </Typography>
                 <Button
@@ -678,7 +678,7 @@ const PublicJobDetailScreen = () => {
                     setSnackbar({ open: true, message: "Experience details copied!", severity: "success" });
                   }}
                   startIcon={<ContentCopyIcon sx={{ fontSize: '14px !important' }} />}
-                  sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB' }}
+                  sx={{ fontWeight: 600, textTransform: 'none', color: '#2563EB' }}
                 >
                   Copy
                 </Button>
@@ -697,7 +697,7 @@ const PublicJobDetailScreen = () => {
             {/* Skills */}
             <Box>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1E293B', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
                   Skills
                 </Typography>
                 <Button
@@ -707,7 +707,7 @@ const PublicJobDetailScreen = () => {
                     setSnackbar({ open: true, message: "Skills copied!", severity: "success" });
                   }}
                   startIcon={<ContentCopyIcon sx={{ fontSize: '14px !important' }} />}
-                  sx={{ fontWeight: 700, textTransform: 'none', color: '#2563EB' }}
+                  sx={{ fontWeight: 600, textTransform: 'none', color: '#2563EB' }}
                 >
                   Copy
                 </Button>
@@ -733,7 +733,7 @@ const PublicJobDetailScreen = () => {
               px: 4,
               borderRadius: '12px',
               bgcolor: '#111827',
-              fontWeight: 800,
+              fontWeight: 700,
               textTransform: 'none',
               boxShadow: '0 8px 20px rgba(17, 24, 39, 0.2)',
               '&:hover': { bgcolor: '#000000', transform: 'translateY(-2px)' },
@@ -751,7 +751,7 @@ const PublicJobDetailScreen = () => {
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity={snackbar.severity} variant="filled" sx={{ borderRadius: '12px', fontWeight: 600 }}>
+        <Alert severity={snackbar.severity} variant="filled" sx={{ borderRadius: '12px', fontWeight: 500 }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

@@ -215,7 +215,7 @@ export const BuildTheme = (config = {}) => {
       },
       text: {
         primary: customizer.activeMode === 'dark' ? '#f1f5f9' : '#0f172a',
-        secondary: customizer.activeMode === 'dark' ? '#cbd5e1' : '#64748b',
+        secondary: customizer.activeMode === 'dark' ? '#cbd5e1' : '#212121',
       },
     },
   };

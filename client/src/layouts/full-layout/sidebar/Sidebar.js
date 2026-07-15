@@ -65,7 +65,7 @@ const Sidebar = ({ isMobileSidebarOpen, onSidebarClose, isSidebarOpen, toggleSid
                       <Grid>
                         <Typography
                           variant="subtitle2"
-                          fontWeight="500"
+                          fontWeight="400"
                           sx={{ mt: 0, opacity: '0.4' }}
                         >
                           {item.subheader}

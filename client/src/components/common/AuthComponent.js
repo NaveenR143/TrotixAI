@@ -193,17 +193,17 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
         {step === 2 && (
           <IconButton
             onClick={() => setStep(1)}
-            sx={{ position: 'absolute', top: 24, left: 24, color: '#64748B' }}
+            sx={{ position: 'absolute', top: 24, left: 24, color: '#212121' }}
           >
             <KeyboardBackspaceIcon />
           </IconButton>
         )}
 
         <Box sx={{ textAlign: 'center', mb: 5 }}>
-          <Typography variant="h4" sx={{ fontWeight: 900, color: '#111827', mb: 1.5, letterSpacing: '-0.03em' }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, color: '#111827', mb: 1.5, letterSpacing: '-0.03em' }}>
             {step === 1 ? (isLogin ? "Welcome back" : "Create account") : "Verification"}
           </Typography>
-          <Typography sx={{ color: '#64748B', fontSize: '0.95rem', fontWeight: 500 }}>
+          <Typography sx={{ color: '#212121', fontSize: '0.95rem', fontWeight: 400 }}>
             {step === 1
               ? (isLogin ? "Enter your mobile to continue" : "Join the platform to start posting")
               : `Enter the code sent to +91 ${formData.mobile}`}
@@ -211,13 +211,13 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
         </Box>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 4, borderRadius: '12px', fontWeight: 600 }}>
+          <Alert severity="error" sx={{ mb: 4, borderRadius: '12px', fontWeight: 500 }}>
             {error}
           </Alert>
         )}
 
         {step === 2 && activeOtp.resendAttempts >= 3 && (
-          <Alert severity="warning" sx={{ mb: 4, borderRadius: '12px', fontWeight: 600 }}>
+          <Alert severity="warning" sx={{ mb: 4, borderRadius: '12px', fontWeight: 500 }}>
             You have exhausted all 3 daily resend attempts. Please request a new code tomorrow.
           </Alert>
         )}
@@ -239,7 +239,7 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
                   value={formData.mobile}
                   onChange={(e) => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><Typography sx={{ color: '#94A3B8', fontWeight: 700 }}>+91</Typography></InputAdornment>
+                    startAdornment: <InputAdornment position="start"><Typography sx={{ color: '#94A3B8', fontWeight: 600 }}>+91</Typography></InputAdornment>
                   }}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
                 />
@@ -247,7 +247,7 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
                   fullWidth variant="contained" size="large" type="submit"
                   disabled={loading || (isLogin ? formData.mobile.length !== 10 : (!formData.name.trim() || formData.mobile.length !== 10))}
                   sx={{
-                    py: 2, borderRadius: '16px', fontWeight: 800, textTransform: 'none', fontSize: '1rem',
+                    py: 2, borderRadius: '16px', fontWeight: 700, textTransform: 'none', fontSize: '1rem',
                     bgcolor: '#2563EB', boxShadow: '0 8px 20px rgba(37, 99, 235, 0.2)',
                     '&:hover': { bgcolor: '#1e40af' },
                     "&.Mui-disabled": {
@@ -264,7 +264,7 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
                     <Link
                       component="button" type="button"
                       onClick={() => { setIsLogin(!isLogin); setError(""); }}
-                      sx={{ color: '#2563EB', fontWeight: 700, textDecoration: 'none', fontSize: '0.9rem', '&:hover': { textDecoration: 'underline' } }}
+                      sx={{ color: '#2563EB', fontWeight: 600, textDecoration: 'none', fontSize: '0.9rem', '&:hover': { textDecoration: 'underline' } }}
                     >
                       {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
                     </Link>
@@ -286,13 +286,13 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
                     inputMode: 'numeric',
                     pattern: '[0-9]*',
                   }}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' }, '& input': { textAlign: 'center', letterSpacing: '8px', fontWeight: 800, fontSize: '1.2rem' } }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' }, '& input': { textAlign: 'center', letterSpacing: '8px', fontWeight: 700, fontSize: '1.2rem' } }}
                 />
                 <Button
                   fullWidth variant="contained" size="large" type="submit"
                   disabled={loading || formData.otp.length !== 4}
                   sx={{
-                    py: 2, borderRadius: '16px', fontWeight: 800, textTransform: 'none', fontSize: '1rem',
+                    py: 2, borderRadius: '16px', fontWeight: 700, textTransform: 'none', fontSize: '1rem',
                     bgcolor: '#2563EB', boxShadow: '0 8px 20px rgba(37, 99, 235, 0.2)',
                     '&:hover': { bgcolor: '#1e40af' },
                     "&.Mui-disabled": {
@@ -309,7 +309,7 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
                     onClick={handleResendOtp}
                     disabled={activeOtp.isCooldownActive || !activeOtp.isEligible || activeOtp.loading}
                     sx={{
-                      borderRadius: '16px', fontWeight: 700, textTransform: 'none', py: 1.5,
+                      borderRadius: '16px', fontWeight: 600, textTransform: 'none', py: 1.5,
                       "&.Mui-disabled": {
                         color: "#94A3B8"
                       }
@@ -326,7 +326,7 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
                   <Button
                     fullWidth variant="text" size="small"
                     onClick={() => { setStep(1); setError(""); }}
-                    sx={{ color: '#64748B', fontWeight: 700, textTransform: 'none' }}
+                    sx={{ color: '#212121', fontWeight: 600, textTransform: 'none' }}
                   >
                     Change phone number
                   </Button>

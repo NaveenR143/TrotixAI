@@ -64,17 +64,17 @@ const DashboardSection = ({ icon: Icon, title, description, count, accent, onCli
       </Box>
 
       <Box sx={{ flex: 1 }}>
-        <Typography sx={{ fontWeight: 800, fontSize: "1.15rem", color: "#111827", mb: 0.5, letterSpacing: '-0.01em' }}>
+        <Typography sx={{ fontWeight: 700, fontSize: "1.15rem", color: "#111827", mb: 0.5, letterSpacing: '-0.01em' }}>
           {title}
         </Typography>
-        <Typography sx={{ fontSize: "0.95rem", color: "#64748B", fontWeight: 500, lineHeight: 1.6 }}>
+        <Typography sx={{ fontSize: "0.95rem", color: "#212121", fontWeight: 400, lineHeight: 1.6 }}>
           {description}
         </Typography>
       </Box>
 
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         {count ? (
-          <Typography sx={{ fontWeight: 800, fontSize: "1.25rem", color: "#111827" }}>
+          <Typography sx={{ fontWeight: 700, fontSize: "1.25rem", color: "#111827" }}>
             {count}
           </Typography>
         ) : <Box />}
@@ -148,16 +148,16 @@ const DashboardScreen = () => {
               <Avatar
                 sx={{
                   width: 40, height: 40, bgcolor: "#2563EB",
-                  fontWeight: 800, fontSize: '0.9rem'
+                  fontWeight: 700, fontSize: '0.9rem'
                 }}
               >
                 {fullname?.[0] || "U"}
               </Avatar>
               <Box>
-                <Typography sx={{ fontWeight: 800, color: "#111827", fontSize: '1rem' }}>
+                <Typography sx={{ fontWeight: 700, color: "#111827", fontSize: '1rem' }}>
                   {fullname || "User"}
                 </Typography>
-                <Typography sx={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>
+                <Typography sx={{ fontSize: '0.75rem', color: '#212121', fontWeight: 500 }}>
                   Candidate Dashboard
                 </Typography>
               </Box>
@@ -191,15 +191,15 @@ const DashboardScreen = () => {
             <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
               <Box sx={{ px: 1.5, py: 0.5, bgcolor: '#eff6ff', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: 1 }}>
                 <RocketLaunchIcon sx={{ fontSize: 16, color: '#2563EB' }} />
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   AI Matching Active
                 </Typography>
               </Box>
             </Stack>
-            <Typography variant="h4" sx={{ fontWeight: 900, color: "#111827", letterSpacing: "-0.04em", lineHeight: 1.1, mb: 2 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: "#111827", letterSpacing: "-0.04em", lineHeight: 1.1, mb: 2 }}>
               Find your next <Box component="span" sx={{ color: '#2563EB' }}>career leap</Box> with RightNxt AI.
             </Typography>
-            <Typography sx={{ color: "#64748B", fontSize: "1rem", fontWeight: 500, lineHeight: 1.6 }}>
+            <Typography sx={{ color: "#212121", fontSize: "1rem", fontWeight: 400, lineHeight: 1.6 }}>
               Your personalized recruitment companion is ready to match you with top companies.
             </Typography>
           </Box>
@@ -233,10 +233,10 @@ const DashboardScreen = () => {
         >
           <Grid2 container spacing={4} alignItems="center">
             <Grid2 size={{ xs: 12, md: 8 }}>
-              <Typography variant="h5" sx={{ fontWeight: 900, mb: 2, letterSpacing: '-0.02em' }}>
+              <Typography variant="h5" sx={{ fontWeight: 800, mb: 2, letterSpacing: '-0.02em' }}>
                 Stand out to recruiters
               </Typography>
-              <Typography sx={{ opacity: 0.7, fontSize: '1rem', fontWeight: 500, maxWidth: 500 }}>
+              <Typography sx={{ opacity: 0.7, fontSize: '1rem', fontWeight: 400, maxWidth: 500 }}>
                 Get a detailed analysis of your profile and see how you rank against other candidates for top roles.
               </Typography>
             </Grid2>
@@ -246,7 +246,7 @@ const DashboardScreen = () => {
                 size="large"
                 onClick={() => navigate('/profile')}
                 sx={{
-                  px: 5, py: 2, borderRadius: '16px', fontWeight: 800, textTransform: 'none',
+                  px: 5, py: 2, borderRadius: '16px', fontWeight: 700, textTransform: 'none',
                   background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
                   color: '#FFFFFF', fontSize: '1.1rem',
                   boxShadow: '0 10px 20px rgba(37, 99, 235, 0.3)',

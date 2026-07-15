@@ -39,7 +39,7 @@ const FbOrdinaryForm = () => {
           alignItems="center"
         >
           <Box flexGrow={1}>
-            <Typography fontWeight="500" variant="h4">
+            <Typography fontWeight="400" variant="h4">
               Ordinary Form
             </Typography>
           </Box>

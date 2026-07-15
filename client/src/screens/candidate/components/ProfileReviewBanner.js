@@ -69,7 +69,7 @@ const ProfileReviewBanner = () => {
             <Box>
               <Typography
                 sx={{
-                  fontWeight: 800,
+                  fontWeight: 700,
                   fontSize: { xs: "0.9rem", sm: "1.05rem" },
                   color: "#78350F",
                   mb: 0.5,
@@ -82,7 +82,7 @@ const ProfileReviewBanner = () => {
                 sx={{
                   fontSize: { xs: "0.8rem", sm: "0.9rem" },
                   color: "#92400E",
-                  fontWeight: 500,
+                  fontWeight: 400,
                   lineHeight: 1.4,
                 }}
               >
@@ -100,7 +100,7 @@ const ProfileReviewBanner = () => {
               px: { xs: 2.5, sm: 3.5 },
               py: { xs: 1, sm: 1.2 },
               borderRadius: { xs: "10px", sm: "12px" },
-              fontWeight: 700,
+              fontWeight: 600,
               textTransform: "none",
               fontSize: { xs: "0.82rem", sm: "0.88rem" },
               background: "linear-gradient(135deg, #D97706 0%, #B45309 100%)",

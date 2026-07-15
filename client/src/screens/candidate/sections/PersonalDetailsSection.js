@@ -146,8 +146,8 @@ const PersonalDetailsSection = ({ userId, profile, initialData, onSuccess }) => 
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <PersonIcon sx={{ fontSize: 20, color: "#64748b" }} />
-          <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
+          <PersonIcon sx={{ fontSize: 20, color: "#212121" }} />
+          <Typography sx={{ fontWeight: 600, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
             Personal Details
           </Typography>
         </Box>
@@ -184,40 +184,40 @@ const PersonalDetailsSection = ({ userId, profile, initialData, onSuccess }) => 
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <Box>
-              <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#212121", mb: 0.5, textTransform: "uppercase" }}>
                 Date of Birth
               </Typography>
-              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>
+              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 400 }}>
                 {formData.date_of_birth || "—"}
               </Typography>
             </Box>
           </Grid>
           <Grid item xs={12} sm={6}>
             <Box>
-              <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#212121", mb: 0.5, textTransform: "uppercase" }}>
                 Marital Status
               </Typography>
-              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>
+              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 400 }}>
                 {formData.maritalStatus || "—"}
               </Typography>
             </Box>
           </Grid>
           <Grid item xs={12} sm={6}>
             <Box>
-              <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#212121", mb: 0.5, textTransform: "uppercase" }}>
                 Gender
               </Typography>
-              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>
+              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 400 }}>
                 {formData.gender || "—"}
               </Typography>
             </Box>
           </Grid>
           <Grid item xs={12} sm={6}>
             <Box>
-              <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", mb: 0.5, textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#212121", mb: 0.5, textTransform: "uppercase" }}>
                 Current Location
               </Typography>
-              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 500 }}>
+              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 400 }}>
                 {formData.currentLocation || "—"}
               </Typography>
             </Box>
@@ -242,7 +242,7 @@ const PersonalDetailsSection = ({ userId, profile, initialData, onSuccess }) => 
                   error: !!formErrors.date_of_birth,
                   helperText: formErrors.date_of_birth,
                   InputProps: {
-                    startAdornment: <CakeIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} />,
+                    startAdornment: <CakeIcon sx={{ mr: 1, fontSize: 18, color: "#212121" }} />,
                   },
                 },
               }}
@@ -258,7 +258,7 @@ const PersonalDetailsSection = ({ userId, profile, initialData, onSuccess }) => 
               onChange={handleInputChange}
               size="small"
               InputProps={{
-                startAdornment: <FamilyRestroomIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} />,
+                startAdornment: <FamilyRestroomIcon sx={{ mr: 1, fontSize: 18, color: "#212121" }} />,
               }}
             >
               <MenuItem value="">Select</MenuItem>
@@ -278,7 +278,7 @@ const PersonalDetailsSection = ({ userId, profile, initialData, onSuccess }) => 
               onChange={handleInputChange}
               size="small"
               InputProps={{
-                startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} />,
+                startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: "#212121" }} />,
               }}
             >
               <MenuItem value="">Select</MenuItem>
@@ -297,7 +297,7 @@ const PersonalDetailsSection = ({ userId, profile, initialData, onSuccess }) => 
               onChange={handleInputChange}
               size="small"
               InputProps={{
-                startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} />,
+                startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: "#212121" }} />,
               }}
             />
           </Grid>

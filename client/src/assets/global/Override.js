@@ -60,7 +60,7 @@ const components = {
         textTransform: 'none',
         boxShadow: 'none',
         borderRadius: '12px',
-        fontWeight: 700,
+        fontWeight: 600,
         padding: '10px 24px',
         '&:hover': {
           boxShadow: 'none',
@@ -99,7 +99,7 @@ const components = {
   MuiChip: {
     styleOverrides: {
       root: {
-        fontWeight: '600',
+        fontWeight: '500',
         borderRadius: '10px',
         fontSize: '0.8125rem',
       },
@@ -109,7 +109,7 @@ const components = {
     styleOverrides: {
       root: {
         backgroundColor: '#FFFFFF',
-        fontWeight: 800,
+        fontWeight: 700,
         color: '#111827',
       },
     },

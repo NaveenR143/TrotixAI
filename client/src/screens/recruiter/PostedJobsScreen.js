@@ -166,7 +166,7 @@ const PostedJobsScreen = () => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)', bgcolor: '#F8FAFC' }}>
         <CircularProgress size={40} thickness={5} sx={{ color: '#2563EB', mb: 2 }} />
-        <Typography sx={{ color: '#6B7280', fontWeight: 600 }}>Loading your jobs...</Typography>
+        <Typography sx={{ color: '#6B7280', fontWeight: 500 }}>Loading your jobs...</Typography>
       </Box>
     );
   }
@@ -194,14 +194,14 @@ const PostedJobsScreen = () => {
                 <IconButton onClick={() => navigate(-1)} size="small" sx={{ color: '#6B7280', bgcolor: '#F8FAFC' }}>
                   <ArrowBackIcon fontSize="small" />
                 </IconButton>
-                <Typography variant="caption" sx={{ color: '#2563EB', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <Typography variant="caption" sx={{ color: '#2563EB', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Recruiter Dashboard
                 </Typography>
               </Stack>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: '#111827', mb: 1, letterSpacing: '-0.03em' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, color: '#111827', mb: 1, letterSpacing: '-0.03em' }}>
                 Posted Jobs
               </Typography>
-              <Typography variant="body1" sx={{ color: '#475569', fontWeight: 500 }}>
+              <Typography variant="body1" sx={{ color: '#475569', fontWeight: 400 }}>
                 Manage {jobs.length} active job postings and track applicant progress.
               </Typography>
             </Box>
@@ -210,7 +210,7 @@ const PostedJobsScreen = () => {
               startIcon={<AddIcon />}
               onClick={() => navigate('/post-job')}
               sx={{
-                px: 4, py: 1.5, fontWeight: 800, borderRadius: '12px', bgcolor: '#2563EB',
+                px: 4, py: 1.5, fontWeight: 700, borderRadius: '12px', bgcolor: '#2563EB',
                 boxShadow: '0 8px 20px rgba(37, 99, 235, 0.2)',
                 '&:hover': { bgcolor: '#1e40af', boxShadow: '0 8px 25px rgba(37, 99, 235, 0.3)' }
               }}
@@ -258,7 +258,7 @@ const PostedJobsScreen = () => {
             <Box sx={{ width: 80, height: 80, borderRadius: '24px', bgcolor: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 3 }}>
               <WorkOutlineIcon sx={{ fontSize: 40, color: '#CBD5E1' }} />
             </Box>
-            <Typography variant="h5" sx={{ fontWeight: 800, color: '#111827', mb: 1 }}>No jobs posted yet</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#111827', mb: 1 }}>No jobs posted yet</Typography>
             <Typography sx={{ color: '#6B7280', mb: 4, maxWidth: 400, mx: 'auto' }}>
               Create your first job posting to start receiving AI-matched applications from top talent.
             </Typography>
@@ -266,15 +266,15 @@ const PostedJobsScreen = () => {
               variant="outlined"
               startIcon={<AddIcon />}
               onClick={() => navigate('/post-job')}
-              sx={{ borderRadius: '12px', fontWeight: 800, px: 4, py: 1.2, borderColor: '#E5E7EB', color: '#111827' }}
+              sx={{ borderRadius: '12px', fontWeight: 700, px: 4, py: 1.2, borderColor: '#E5E7EB', color: '#111827' }}
             >
               Get Started
             </Button>
           </Box>
         ) : filteredJobs.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 10 }}>
-            <Typography sx={{ fontWeight: 700, color: '#6B7280', mb: 2 }}>No results found for "{searchQuery}"</Typography>
-            <Button variant="text" onClick={() => { setSearchQuery(""); setFilterType("All"); }} sx={{ fontWeight: 800, color: '#2563EB' }}>
+            <Typography sx={{ fontWeight: 600, color: '#6B7280', mb: 2 }}>No results found for "{searchQuery}"</Typography>
+            <Button variant="text" onClick={() => { setSearchQuery(""); setFilterType("All"); }} sx={{ fontWeight: 700, color: '#2563EB' }}>
               Reset Filters
             </Button>
           </Box>
@@ -307,30 +307,30 @@ const PostedJobsScreen = () => {
                           width: 64, height: 64, borderRadius: '16px',
                           background: `linear-gradient(135deg, ${job.logoColor || '#2563EB'}, #4f46e5)`,
                           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                          color: 'white', fontWeight: 800, fontSize: '1.5rem',
+                          color: 'white', fontWeight: 700, fontSize: '1.5rem',
                           boxShadow: '0 8px 20px rgba(0,0,0,0.1)'
                         }}>
                           {job.company ? job.company.charAt(0) : 'J'}
                         </Box>
                         <Box sx={{ flex: 1 }}>
-                          <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827', mb: 0.5, letterSpacing: '-0.02em', fontSize: '1.15rem' }}>
+                          <Typography variant="h6" sx={{ fontWeight: 700, color: '#111827', mb: 0.5, letterSpacing: '-0.02em', fontSize: '1.15rem' }}>
                             {job.title}
                           </Typography>
-                          <Typography sx={{ color: '#2563EB', fontWeight: 700, mb: 2 }}>
+                          <Typography sx={{ color: '#2563EB', fontWeight: 600, mb: 2 }}>
                             {job.company}
                           </Typography>
                           <Stack direction="row" spacing={2} flexWrap="wrap" gap={1}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: '#6B7280' }}>
                               <WorkOutlineIcon sx={{ fontSize: 18 }} />
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{job.type}</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 500 }}>{job.type}</Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: '#6B7280' }}>
                               <LocationOnIcon sx={{ fontSize: 18 }} />
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{job.location}</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 500 }}>{job.location}</Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: '#6B7280' }}>
                               <DateRangeIcon sx={{ fontSize: 18 }} />
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{job.posted}</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 500 }}>{job.posted}</Typography>
                             </Box>
                           </Stack>
                         </Box>
@@ -345,10 +345,10 @@ const PostedJobsScreen = () => {
                           sx={{ textAlign: 'center', cursor: 'pointer', transition: 'opacity 0.2s', '&:hover': { opacity: 0.7 } }}
                           onClick={(e) => handleViewApplicants(e, job)}
                         >
-                          <Typography variant="h5" sx={{ fontWeight: 800, color: '#111827', lineHeight: 1 }}>
+                          <Typography variant="h5" sx={{ fontWeight: 700, color: '#111827', lineHeight: 1 }}>
                             {job.applicants || 0}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.65rem' }}>
+                          <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 600, textTransform: 'uppercase', fontSize: '0.65rem' }}>
                             Applicants
                           </Typography>
                         </Box>
@@ -361,13 +361,13 @@ const PostedJobsScreen = () => {
                             sx={{
                               bgcolor: job.status?.toLowerCase() === 'active' ? '#dcfce7' : '#fef2f2',
                               color: job.status?.toLowerCase() === 'active' ? '#16a34a' : '#ef4444',
-                              fontWeight: 800,
+                              fontWeight: 700,
                               borderRadius: '8px',
                               height: 24,
                               px: 1
                             }}
                           />
-                          <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 700, textTransform: 'uppercase', display: 'block', mt: 0.5, fontSize: '0.65rem' }}>
+                          <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 600, textTransform: 'uppercase', display: 'block', mt: 0.5, fontSize: '0.65rem' }}>
                             Status
                           </Typography>
                         </Box>
@@ -380,7 +380,7 @@ const PostedJobsScreen = () => {
                           sx={{
                             background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
                             color: 'white',
-                            fontWeight: 800,
+                            fontWeight: 700,
                             borderRadius: '12px',
                             px: 3,
                             py: 1.2,
@@ -430,14 +430,14 @@ const PostedJobsScreen = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={handleViewDetails} sx={{ borderRadius: '8px', fontWeight: 600, py: 1.5 }}>
+        <MenuItem onClick={handleViewDetails} sx={{ borderRadius: '8px', fontWeight: 500, py: 1.5 }}>
           View Details
         </MenuItem>
-        <MenuItem onClick={handleEditPosting} sx={{ borderRadius: '8px', fontWeight: 600, py: 1.5 }}>
+        <MenuItem onClick={handleEditPosting} sx={{ borderRadius: '8px', fontWeight: 500, py: 1.5 }}>
           Edit Posting
         </MenuItem>
         <Divider sx={{ my: 1 }} />
-        <MenuItem onClick={handleDeactivateClick} sx={{ borderRadius: '8px', fontWeight: 600, py: 1.5, color: '#ef4444' }}>
+        <MenuItem onClick={handleDeactivateClick} sx={{ borderRadius: '8px', fontWeight: 500, py: 1.5, color: '#ef4444' }}>
           Deactivate Job
         </MenuItem>
       </Menu>
@@ -451,16 +451,16 @@ const PostedJobsScreen = () => {
         }}
         PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.25rem' }}>Deactivate Job Posting?</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700, fontSize: '1.25rem' }}>Deactivate Job Posting?</DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ fontWeight: 500, color: '#475569' }}>
+          <DialogContentText sx={{ fontWeight: 400, color: '#475569' }}>
             Are you sure you want to deactivate <strong>{selectedJob?.title}</strong>? This will set the job status to closed and it will no longer be visible to candidates.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ p: 2, gap: 1 }}>
           <Button
             onClick={() => setConfirmDialogOpen(false)}
-            sx={{ fontWeight: 700, color: '#64748B', px: 3 }}
+            sx={{ fontWeight: 600, color: '#212121', px: 3 }}
           >
             Cancel
           </Button>
@@ -470,7 +470,7 @@ const PostedJobsScreen = () => {
             color="error"
             disabled={deactivating}
             sx={{
-              fontWeight: 800,
+              fontWeight: 700,
               borderRadius: '10px',
               px: 3,
               bgcolor: '#ef4444',
@@ -493,7 +493,7 @@ const PostedJobsScreen = () => {
           onClose={handleSnackbarClose}
           severity={snackbar.severity}
           variant="filled"
-          sx={{ borderRadius: '12px', fontWeight: 600, boxShadow: '0 8px 25px rgba(0,0,0,0.1)' }}
+          sx={{ borderRadius: '12px', fontWeight: 500, boxShadow: '0 8px 25px rgba(0,0,0,0.1)' }}
         >
           {snackbar.message}
         </Alert>

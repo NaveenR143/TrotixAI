@@ -100,7 +100,7 @@ const IndustriesBanner = ({ autoNavigate = false, onNavigate }) => {
             <Box sx={{ flex: 1 }}>
               <Typography
                 sx={{
-                  fontWeight: 800,
+                  fontWeight: 700,
                   fontSize: { xs: "0.88rem", sm: "1.05rem" },
                   color: "#1E3A8A",
                   mb: 0.5,
@@ -113,7 +113,7 @@ const IndustriesBanner = ({ autoNavigate = false, onNavigate }) => {
                 sx={{
                   fontSize: { xs: "0.78rem", sm: "0.9rem" },
                   color: "#1E40AF",
-                  fontWeight: 500,
+                  fontWeight: 400,
                   lineHeight: 1.4,
                 }}
               >
@@ -155,7 +155,7 @@ const IndustriesBanner = ({ autoNavigate = false, onNavigate }) => {
                 <Typography
                   sx={{
                     fontSize: "0.82rem",
-                    fontWeight: 700,
+                    fontWeight: 600,
                     color: "#1E40AF",
                     letterSpacing: "-0.01em",
                     whiteSpace: "nowrap",
@@ -175,7 +175,7 @@ const IndustriesBanner = ({ autoNavigate = false, onNavigate }) => {
                 px: { xs: 2.5, sm: 3.5 },
                 py: { xs: 1, sm: 1.2 },
                 borderRadius: { xs: "10px", sm: "12px" },
-                fontWeight: 700,
+                fontWeight: 600,
                 textTransform: "none",
                 fontSize: { xs: "0.82rem", sm: "0.88rem" },
                 background: "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)",

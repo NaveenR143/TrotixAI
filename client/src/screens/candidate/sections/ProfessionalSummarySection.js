@@ -121,7 +121,7 @@ const ProfessionalSummarySection = ({ userId, profile, initialAbout, onSuccess, 
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <DescriptionIcon sx={{ fontSize: 20, color: "#6366f1" }} />
-          <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
+          <Typography sx={{ fontWeight: 600, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
             Professional Summary
           </Typography>
         </Box>

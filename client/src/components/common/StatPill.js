@@ -13,8 +13,8 @@ const StatPill = ({ label, value, delay = 0 }) => (
       animation: `${fadeSlideUp} 0.5s ${delay}ms both`,
     }}
   >
-    <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>{value}</Typography>
-    <Typography sx={{ fontSize: '0.78rem', color: '#64748b' }}>{label}</Typography>
+    <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>{value}</Typography>
+    <Typography sx={{ fontSize: '0.78rem', color: '#212121' }}>{label}</Typography>
   </Box>
 );
 

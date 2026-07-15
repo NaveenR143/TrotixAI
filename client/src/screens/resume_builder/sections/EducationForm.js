@@ -30,7 +30,7 @@ const EducationForm = () => {
   return (
     <Stack spacing={3}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>Education</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>Education</Typography>
         <Button startIcon={<AddIcon />} onClick={handleAdd} size="small" variant="text" sx={{ color: "black" }}>
           Add Education
         </Button>

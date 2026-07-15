@@ -52,7 +52,7 @@
 
 .t13-header-name {
     font-size: 2rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--t13-text-primary);
     letter-spacing: -0.03em;
     line-height: 1;
@@ -60,7 +60,7 @@
 
 .t13-header-title {
     font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--t13-accent);
@@ -77,7 +77,7 @@
     align-items: center;
     justify-content: center;
     font-size: 1.3rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.02em;
 }
 
@@ -93,7 +93,7 @@
     gap: 6px;
     font-size: 0.72rem;
     color: var(--t13-text-secondary);
-    font-weight: 500;
+    font-weight: 400;
     word-break: break-word;
     overflow-wrap: break-word;
 }
@@ -128,7 +128,7 @@
 
 .t13-section-title {
     font-size: 0.65rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--t13-accent);
@@ -147,7 +147,7 @@
 
 .t13-profile-text {
     font-size: 0.78rem;
-    font-weight: 400;
+    font-weight: 300;
     color: var(--t13-text-secondary);
     line-height: 1.75;
 }
@@ -174,7 +174,7 @@
 
 .t13-exp-date {
     font-size: 0.65rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--t13-accent);
     background: var(--t13-accent-light);
     padding: 3px 8px;
@@ -186,14 +186,14 @@
 
 .t13-exp-role {
     font-size: 0.85rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--t13-text-primary);
     margin-bottom: 1px;
 }
 
 .t13-exp-company {
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--t13-text-secondary);
     margin-bottom: 8px;
     text-transform: uppercase;
@@ -225,7 +225,7 @@ ul.t13-exp-desc li::before {
     position: absolute;
     left: 0;
     color: var(--t13-accent);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 /* RIGHT COLUMN */
@@ -241,7 +241,7 @@ ul.t13-exp-desc li::before {
 
 .t13-skill-group-title {
     font-size: 0.65rem;
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--t13-text-muted);
@@ -256,7 +256,7 @@ ul.t13-exp-desc li::before {
 
 .t13-skill-pill {
     font-size: 0.65rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--t13-accent-dark);
     background: var(--t13-accent-light);
     padding: 4px 10px;
@@ -277,7 +277,7 @@ ul.t13-exp-desc li::before {
 
 .t13-edu-degree {
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--t13-text-primary);
     line-height: 1.3;
     margin-bottom: 3px;
@@ -293,7 +293,7 @@ ul.t13-exp-desc li::before {
 
 .t13-edu-year {
     font-size: 0.62rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--t13-accent);
 }
 
@@ -312,7 +312,7 @@ ul.t13-exp-desc li::before {
 }
 
 .t13-lang-level {
-    font-weight: 600;
+    font-weight: 500;
     color: var(--t13-text-primary);
     font-size: 0.65rem;
 }
@@ -331,7 +331,7 @@ ul.t13-exp-desc li::before {
 
 .t13-ref-name {
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--t13-text-primary);
     text-transform: uppercase;
 }
@@ -355,7 +355,7 @@ ul.t13-exp-desc li::before {
 
 .t13-interest-chip {
     font-size: 0.6rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--t13-text-secondary);
     background: #fff;
     border: 1px solid var(--t13-border);

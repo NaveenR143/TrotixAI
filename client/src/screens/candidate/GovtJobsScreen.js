@@ -77,7 +77,7 @@ const GovtJobsScreen = () => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 3, bgcolor: '#f8fafc' }}>
         <CircularProgress size={50} sx={{ color: '#059669' }} />
-        <Typography sx={{ color: '#64748b', fontWeight: 500 }}>Fetching latest government opportunities...</Typography>
+        <Typography sx={{ color: '#212121', fontWeight: 400 }}>Fetching latest government opportunities...</Typography>
       </Box>
     );
   }
@@ -86,7 +86,7 @@ const GovtJobsScreen = () => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 2, px: 4, textAlign: 'center' }}>
         <Typography sx={{ fontSize: '3rem' }}>⚠️</Typography>
-        <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#0f172a' }}>{error}</Typography>
+        <Typography sx={{ fontWeight: 700, fontSize: '1.5rem', color: '#0f172a' }}>{error}</Typography>
         <Button variant="contained" onClick={onGoBack} startIcon={<ArrowBackIcon />}
           sx={{ mt: 2, bgcolor: '#059669', '&:hover': { bgcolor: '#047857' }, borderRadius: '12px', textTransform: 'none', px: 4 }}>
           Back to Dashboard
@@ -101,8 +101,8 @@ const GovtJobsScreen = () => {
       return (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 2, px: 4, textAlign: 'center' }}>
           <Typography sx={{ fontSize: '3rem' }}>✨</Typography>
-          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#0f172a', mb: 0.5 }}>You're all caught up!</Typography>
-          <Typography sx={{ color: '#64748b', fontSize: '1rem', maxWidth: 400, mb: 2, lineHeight: 1.6 }}>
+          <Typography sx={{ fontWeight: 700, fontSize: '1.5rem', color: '#0f172a', mb: 0.5 }}>You're all caught up!</Typography>
+          <Typography sx={{ color: '#212121', fontSize: '1rem', maxWidth: 400, mb: 2, lineHeight: 1.6 }}>
             We couldn't find any more government jobs at this time. Check back later for new opportunities.
           </Typography>
           <Button variant="contained" onClick={onGoBack} startIcon={<ArrowBackIcon />}
@@ -137,7 +137,7 @@ const GovtJobsScreen = () => {
           justifyContent: 'space-between',
           zIndex: 5
         }}>
-          <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '1rem' }}>
+          <Typography sx={{ fontWeight: 600, color: '#0f172a', fontSize: '1rem' }}>
             Government Jobs ({jobs.length})
           </Typography>
           <Button
@@ -148,7 +148,7 @@ const GovtJobsScreen = () => {
               color: '#059669',
               borderColor: '#e2e8f0',
               textTransform: 'none',
-              fontWeight: 600,
+              fontWeight: 500,
             }}
           >
             Back
@@ -237,9 +237,9 @@ const GovtJobsScreen = () => {
       {/* Sidebar List */}
       <Box sx={{ width: 340, flexShrink: 0, borderRight: '1px solid #e2e8f0', bgcolor: '#f8fafc', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <Box sx={{ p: 2.5, borderBottom: '1px solid #e2e8f0', bgcolor: '#fff' }}>
-          <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>
+          <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: '#0f172a' }}>
             Government Jobs
-            <Box component="span" sx={{ ml: 1, px: 1, py: 0.25, bgcolor: '#ecfdf5', color: '#059669', borderRadius: 100, fontSize: '0.72rem', fontWeight: 700 }}>{jobs.length}</Box>
+            <Box component="span" sx={{ ml: 1, px: 1, py: 0.25, bgcolor: '#ecfdf5', color: '#059669', borderRadius: 100, fontSize: '0.72rem', fontWeight: 600 }}>{jobs.length}</Box>
           </Typography>
         </Box>
         <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5, display: 'flex', flexDirection: 'column', gap: 1, '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: 100 } }}>

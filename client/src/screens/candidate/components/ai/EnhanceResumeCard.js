@@ -42,10 +42,10 @@ const EnhanceResumeCard = ({ userPoints, loading, onEnhance }) => {
           <AutoAwesomeIcon sx={{ color: "#6366f1", fontSize: 20 }} />
         </Box>
       </Box>
-      <Typography sx={{ fontWeight: 700, color: "#0f172a", mb: 1, fontSize: "0.95rem" }}>
+      <Typography sx={{ fontWeight: 600, color: "#0f172a", mb: 1, fontSize: "0.95rem" }}>
         Enhance Resume
       </Typography>
-      <Typography sx={{ fontSize: "0.85rem", color: "#64748b", mb: 2 }}>
+      <Typography sx={{ fontSize: "0.85rem", color: "#212121", mb: 2 }}>
         AI will tailor your resume to match job market trends
       </Typography>
       <Tooltip title="Click to enhance your resume">

@@ -131,7 +131,7 @@ export default function DataCoverageComp(props) {
         <>
           <Typography
             variant="h5"
-            fontWeight="700"
+            fontWeight="600"
             sx={{
               mb: 3,
               background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
@@ -201,7 +201,7 @@ export default function DataCoverageComp(props) {
                         <Typography
                           className="count-text"
                           variant="h3"
-                          fontWeight="800"
+                          fontWeight="700"
                           sx={{
                             background: `linear-gradient(135deg, ${facilityColor} 0%, ${hexToRgba(facilityColor, 0.7)} 100%)`,
                             WebkitBackgroundClip: "text",
@@ -242,7 +242,7 @@ export default function DataCoverageComp(props) {
 
                       <Typography
                         variant="body1"
-                        fontWeight="600"
+                        fontWeight="500"
                         sx={{
                           color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.9)" : "rgba(0, 0, 0, 0.8)",
                           letterSpacing: "0.01em",

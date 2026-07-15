@@ -252,7 +252,7 @@ const UserProfile = () => {
         </Snackbar>
 
         <Box sx={{ mb: 4 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: "1.8rem", textTransform: "uppercase", letterSpacing: "1px", color: "#0f172a" }}>My Profile</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: "1.8rem", textTransform: "uppercase", letterSpacing: "1px", color: "#0f172a" }}>My Profile</Typography>
           <Typography sx={{ fontSize: "0.9rem", color: "text.secondary", mt: 0.5 }}>
             {loading ? "Loading..." : "Keep your profile updated for better opportunities"}
           </Typography>
@@ -322,8 +322,8 @@ const UserProfile = () => {
                     py: 2,
                     px: { xs: 2, sm: 3 },
                     fontSize: "0.85rem",
-                    fontWeight: 700,
-                    color: "#64748b",
+                    fontWeight: 600,
+                    color: "#212121",
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
                     transition: "all 0.2s ease-in-out",

@@ -42,20 +42,20 @@ const ProfileEditScreen = ({ initialData, onSave }) => {
           <Box sx={{ width: 52, height: 52, borderRadius: '14px', background: 'linear-gradient(135deg, #10b981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2, boxShadow: '0 6px 20px rgba(16,185,129,0.3)' }}>
             <CheckCircleIcon sx={{ color: '#fff', fontSize: 26 }} />
           </Box>
-          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#0f172a', letterSpacing: '-0.03em', mb: 0.5 }}>Resume parsed successfully</Typography>
-          <Typography sx={{ fontSize: '0.88rem', color: '#64748b' }}>Review what our AI extracted and refine your profile to improve match quality.</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: '1.5rem', color: '#0f172a', letterSpacing: '-0.03em', mb: 0.5 }}>Resume parsed successfully</Typography>
+          <Typography sx={{ fontSize: '0.88rem', color: '#212121' }}>Review what our AI extracted and refine your profile to improve match quality.</Typography>
         </Box>
 
         <Paper elevation={0} sx={{ p: 4, border: '1px solid #e2e8f0', boxShadow: '0 4px 24px rgba(15,23,42,0.06)', animation: `${fadeSlideUp} 0.4s 0.1s both` }}>
           <CompletionBar pct={completeness} />
           <Stack spacing={3}>
             <Box>
-              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1 }}>Target Roles</Typography>
+              <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: '#212121', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1 }}>Target Roles</Typography>
               <TextField fullWidth size="small" placeholder="e.g. Senior Frontend Engineer" value={profile.rolePreferences} onChange={(e) => setProfile({ ...profile, rolePreferences: e.target.value })} />
             </Box>
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Skills</Typography>
+                <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: '#212121', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Skills</Typography>
                 <Chip icon={<AutoAwesomeIcon sx={{ fontSize: '0.8rem !important', color: '#6366f1 !important' }} />} label={`${profile.skillList.length} detected`} size="small" sx={{ bgcolor: '#ede9fe', color: '#4f46e5', border: '1px solid #c4b5fd', height: 20, fontSize: '0.7rem' }} />
               </Box>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, p: 2, borderRadius: 2, border: '1px solid #e2e8f0', bgcolor: '#f8fafc', minHeight: 60 }}>
@@ -65,16 +65,16 @@ const ProfileEditScreen = ({ initialData, onSave }) => {
               </Box>
               <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
                 <TextField size="small" placeholder="Add a skill…" value={newSkill} onChange={(e) => setNewSkill(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addSkill(newSkill); }} sx={{ flexGrow: 1 }} />
-                <Button variant="outlined" size="small" onClick={() => addSkill(newSkill)} sx={{ borderColor: '#e2e8f0', color: '#64748b', '&:hover': { borderColor: '#6366f1', color: '#6366f1' } }}>Add</Button>
+                <Button variant="outlined" size="small" onClick={() => addSkill(newSkill)} sx={{ borderColor: '#e2e8f0', color: '#212121', '&:hover': { borderColor: '#6366f1', color: '#6366f1' } }}>Add</Button>
               </Box>
             </Box>
             <Grid container spacing={2}>
               <Grid size={{ xs: 6 }}>
-                <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1 }}>Experience</Typography>
+                <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: '#212121', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1 }}>Experience</Typography>
                 <TextField fullWidth size="small" placeholder="e.g. 5 years" value={profile.experience} onChange={(e) => setProfile({ ...profile, experience: e.target.value })} />
               </Grid>
               <Grid size={{ xs: 6 }}>
-                <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1 }}>Job Preferred Location</Typography>
+                <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: '#212121', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1 }}>Job Preferred Location</Typography>
                 <TextField fullWidth size="small" placeholder="e.g. Remote, US" value={profile.preferredLocation} onChange={(e) => setProfile({ ...profile, preferredLocation: e.target.value })} />
               </Grid>
             </Grid>

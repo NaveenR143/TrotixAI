@@ -289,7 +289,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
               }}
             >
               <AutoAwesomeIcon sx={{ fontSize: 11 }} />
-              <Typography sx={{ fontSize: "0.6rem", fontWeight: 800, letterSpacing: "0.5px" }}>
+              <Typography sx={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.5px" }}>
                 AI ENHANCED
               </Typography>
             </Box>
@@ -316,8 +316,8 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
                   border: "4px solid #fff",
                   bgcolor: "#f1f5f9",
                   fontSize: "3rem",
-                  fontWeight: 700,
-                  color: "#64748b",
+                  fontWeight: 600,
+                  color: "#212121",
                   filter: isEnhanced ? "brightness(1.04) contrast(1.08) saturate(1.03)" : "none",
                   transition: "filter 0.5s ease",
                   "& img": {
@@ -365,7 +365,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
                     variant="caption"
                     sx={{
                       color: "#fff",
-                      fontWeight: 700,
+                      fontWeight: 600,
                       fontSize: "0.65rem",
                       px: 1,
                       textAlign: "center",
@@ -426,10 +426,10 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
 
         {/* Content & Actions */}
         <Box sx={{ flex: 1, textAlign: { xs: "center", sm: "left" } }}>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: "#0f172a", mb: 0.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: "#0f172a", mb: 0.5 }}>
             Profile Photo
           </Typography>
-          <Typography variant="body2" sx={{ color: "#64748b", mb: 2, maxWidth: 400 }}>
+          <Typography variant="body2" sx={{ color: "#212121", mb: 2, maxWidth: 400 }}>
             Upload a professional photo to help recruiters recognize you.
             Supported formats: JPG, PNG, WEBP (Max 2MB).
           </Typography>
@@ -450,7 +450,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
                   sx={{
                     borderRadius: 2,
                     textTransform: "none",
-                    fontWeight: 600,
+                    fontWeight: 500,
                     px: 3,
                     borderColor: "#e2e8f0",
                     color: "#475569",
@@ -468,7 +468,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
                     sx={{
                       borderRadius: 2,
                       textTransform: "none",
-                      fontWeight: 600,
+                      fontWeight: 500,
                       px: 3,
                       background: "linear-gradient(135deg, #a855f7, #6366f1)",
                       boxShadow: "0 4px 12px rgba(168, 85, 247, 0.2)",
@@ -495,7 +495,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
                   sx={{
                     borderRadius: 2,
                     textTransform: "none",
-                    fontWeight: 600,
+                    fontWeight: 500,
                     px: 3,
                     background: "linear-gradient(135deg, #6366f1, #4f46e5)",
                     boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3)",
@@ -517,7 +517,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
                   sx={{
                     borderRadius: 2,
                     textTransform: "none",
-                    fontWeight: 600,
+                    fontWeight: 500,
                     color: "#ef4444",
                     "&:hover": { bgcolor: "#fef2f2" },
                     "&.Mui-disabled": {
@@ -549,7 +549,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
           }
         }}
       >
-        <DialogTitle sx={{ fontWeight: 800, color: "#0f172a", pb: 1, display: "flex", alignItems: "center", gap: 1 }}>
+        <DialogTitle sx={{ fontWeight: 700, color: "#0f172a", pb: 1, display: "flex", alignItems: "center", gap: 1 }}>
           <AutoAwesomeIcon sx={{ color: "#a855f7" }} />
           AI Profile Photo Enhancer
         </DialogTitle>
@@ -610,12 +610,12 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
               </Box>
 
               <Box sx={{ width: "100%", maxWidth: 320, textAlign: "center" }}>
-                <Typography variant="body1" sx={{ fontWeight: 700, color: "#1e293b", mb: 1 }}>
+                <Typography variant="body1" sx={{ fontWeight: 600, color: "#1e293b", mb: 1 }}>
                   {enhanceStep === 0 && "Step 1/3: Analyzing facial features..."}
                   {enhanceStep === 1 && "Step 2/3: Generating AI prompt..."}
                   {enhanceStep >= 2 && "Step 3/3: Running image synthesis..."}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>
+                <Typography variant="body2" sx={{ color: "#212121", mb: 2 }}>
                   Please do not close this window. This may take up to 30 seconds.
                 </Typography>
                 <LinearProgress
@@ -636,14 +636,14 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
 
           {aiEnhancementStep === 2 && (
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", py: 2, gap: 3 }}>
-              <Typography variant="body2" sx={{ color: "#64748b", textAlign: "center", maxWidth: 450 }}>
+              <Typography variant="body2" sx={{ color: "#212121", textAlign: "center", maxWidth: 450 }}>
                 Your photo has been enhanced with professional studio lighting, a corporate backdrop, and formal attire. Compare the results below.
               </Typography>
 
               <Stack direction={{ xs: "column", sm: "row" }} spacing={4} alignItems="center" justifyContent="center">
                 {/* Original Photo */}
                 <Box sx={{ textAlign: "center" }}>
-                  <Typography variant="caption" sx={{ fontWeight: 800, color: "#64748b", display: "block", mb: 1, textTransform: "uppercase" }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: "#212121", display: "block", mb: 1, textTransform: "uppercase" }}>
                     ORIGINAL
                   </Typography>
                   <Box sx={{ p: 0.5, borderRadius: 0, bgcolor: "#e2e8f0", overflow: "hidden" }}>
@@ -664,13 +664,13 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
                 </Box>
 
                 {/* Arrow */}
-                <Box sx={{ display: { xs: "none", sm: "block" }, color: "#a855f7", fontSize: "2rem", fontWeight: 700 }}>
+                <Box sx={{ display: { xs: "none", sm: "block" }, color: "#a855f7", fontSize: "2rem", fontWeight: 600 }}>
                   ➔
                 </Box>
 
                 {/* Enhanced Photo */}
                 <Box sx={{ textAlign: "center" }}>
-                  <Typography variant="caption" sx={{ fontWeight: 800, color: "#a855f7", display: "block", mb: 1, textTransform: "uppercase" }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: "#a855f7", display: "block", mb: 1, textTransform: "uppercase" }}>
                     ✨ ENHANCED BY AI
                   </Typography>
                   <Box sx={{ p: 0.5, borderRadius: 0, background: "linear-gradient(135deg, #a855f7, #6366f1)", boxShadow: "0 8px 20px rgba(168, 85, 247, 0.3)", overflow: "hidden" }}>
@@ -698,7 +698,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
               <Alert severity="error" sx={{ width: "100%", borderRadius: 3 }}>
                 {error || "An unexpected error occurred during generation."}
               </Alert>
-              <Typography variant="body2" sx={{ color: "#64748b", textAlign: "center", mt: 1 }}>
+              <Typography variant="body2" sx={{ color: "#212121", textAlign: "center", mt: 1 }}>
                 Please check your network and OpenAI service limits, and try again.
               </Typography>
             </Box>
@@ -716,9 +716,9 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
                   borderRadius: 2,
                   px: 4,
                   borderColor: "#cbd5e1",
-                  color: "#64748b",
+                  color: "#212121",
                   textTransform: "none",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   "&:hover": { borderColor: "#94a3b8", bgcolor: "#f8fafc" }
                 }}
               >
@@ -735,7 +735,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
                   background: "linear-gradient(135deg, #a855f7, #6366f1)",
                   boxShadow: "0 4px 12px rgba(168, 85, 247, 0.3)",
                   textTransform: "none",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   color: "#fff",
                   "&:hover": { background: "linear-gradient(135deg, #9333ea, #4f46e5)" }
                 }}
@@ -754,7 +754,7 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
                 bgcolor: "#475569",
                 color: "#fff",
                 textTransform: "none",
-                fontWeight: 600,
+                fontWeight: 500,
                 "&:hover": { bgcolor: "#334155" }
               }}
             >

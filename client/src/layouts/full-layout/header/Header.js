@@ -183,14 +183,14 @@ const Header = ({ sx, customClass, toggleSidebar, toggleMobileSidebar }) => {
               <Typography
                 color="textSecondary"
                 variant="h5"
-                fontWeight="400"
+                fontWeight="300"
                 sx={{ ml: 1 }}
               >
                 Hi,
               </Typography>
               <Typography
                 variant="h5"
-                fontWeight="700"
+                fontWeight="600"
                 sx={{
                   ml: 1,
                 }}
@@ -224,7 +224,7 @@ const Header = ({ sx, customClass, toggleSidebar, toggleMobileSidebar }) => {
             }}
           >
             <Box display="flex" alignItems="center">
-              <Typography variant="h4" fontWeight="500">
+              <Typography variant="h4" fontWeight="400">
                 User Profile
               </Typography>
             </Box>

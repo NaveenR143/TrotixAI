@@ -84,7 +84,7 @@ const FbBasicHeaderForm = () => {
           alignItems="center"
         >
           <Box flexGrow={1}>
-            <Typography fontWeight="500" variant="h4">
+            <Typography fontWeight="400" variant="h4">
               Basic Header Form
             </Typography>
           </Box>

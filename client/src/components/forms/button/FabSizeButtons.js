@@ -58,7 +58,7 @@ const FabSizeButtons = () => (
         <Fab size="medium" variant="extended" color="default" aria-label="large-home">
           <FeatherIcon fontSize="small" icon="home" width="18" height="18" />
           <Typography
-            fontWeight="500"
+            fontWeight="400"
             sx={{
               ml: 1,
               textTransform: 'capitalize',

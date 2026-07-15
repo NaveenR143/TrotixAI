@@ -277,7 +277,7 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <BusinessIcon sx={{ fontSize: 20, color: "#6366f1" }} />
-          <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "1px", color: "#0f172a" }}>
+          <Typography sx={{ fontWeight: 600, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "1px", color: "#0f172a" }}>
             Work Experience
           </Typography>
         </Box>
@@ -343,14 +343,14 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
                     mb: 1
                   }}
                 >
-                  <Typography sx={{ fontWeight: 700, mb: 0.5, textTransform: "uppercase", letterSpacing: "0.5px", fontSize: "0.95rem", color: "#0f172a" }}>
+                  <Typography sx={{ fontWeight: 600, mb: 0.5, textTransform: "uppercase", letterSpacing: "0.5px", fontSize: "0.95rem", color: "#0f172a" }}>
                     {exp.role}
                   </Typography>
                   {exp.isCurrent && (
-                    <Chip label="Currently Working" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 600, height: 24 }} />
+                    <Chip label="Currently Working" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 500, height: 24 }} />
                   )}
                 </Box>
-                <Typography sx={{ fontSize: "0.9rem", color: "#6366f1", fontWeight: 600, mb: 0.5, textTransform: "uppercase" }}>
+                <Typography sx={{ fontSize: "0.9rem", color: "#6366f1", fontWeight: 500, mb: 0.5, textTransform: "uppercase" }}>
                   {exp.company_name}
                 </Typography>
                 {exp.location && (
@@ -437,7 +437,7 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
           {experiences.map((exp, idx) => (
             <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed", border: newExperienceIndices.has(idx) ? "2px dashed #10b981" : "1px dashed #e2e8f0" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-                {newExperienceIndices.has(idx) && <Chip label="🆕 NEW RECORD" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 700 }} />}
+                {newExperienceIndices.has(idx) && <Chip label="🆕 NEW RECORD" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 600 }} />}
                 <IconButton size="small" onClick={() => removeExperience(idx)} sx={{ color: "#f43f5e", ml: "auto" }}>
                   <DeleteIcon fontSize="inherit" />
                 </IconButton>
@@ -450,7 +450,7 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
                   <TextField fullWidth label="Role" value={exp.role} onChange={(e) => updateExperience(idx, "role", e.target.value)} size="small" />
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField fullWidth label="Location" value={exp.location} onChange={(e) => updateExperience(idx, "location", e.target.value)} size="small" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: "#64748b" }} /> }} />
+                  <TextField fullWidth label="Location" value={exp.location} onChange={(e) => updateExperience(idx, "location", e.target.value)} size="small" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: "#212121" }} /> }} />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <DatePicker

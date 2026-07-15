@@ -333,14 +333,14 @@ const ResumeBuilderScreen = () => {
                 variant="text" size="small"
                 sx={{
                   mb: 2, color: "text.secondary", textTransform: "none",
-                  fontWeight: 500, borderRadius: 2, px: 1.5,
+                  fontWeight: 400, borderRadius: 2, px: 1.5,
                   "&:hover": { bgcolor: "#f1f5f9", color: "text.primary" },
                 }}
               >
                 Back to Templates
               </Button>
 
-              <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
                 Build Your Resume
               </Typography>
               <Typography variant="body2" sx={{ color: "text.secondary", mb: 4 }}>
@@ -359,7 +359,7 @@ const ResumeBuilderScreen = () => {
                 }}
               >
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "text.primary" }}>
+                  <Typography sx={{ fontWeight: 600, fontSize: "0.9rem", color: "text.primary" }}>
                     ↕ Page & Section Spacing
                   </Typography>
                 </AccordionSummary>
@@ -457,7 +457,7 @@ const ResumeBuilderScreen = () => {
               <IconButton size="small" onClick={() => setZoom((p) => Math.min(1.5, p + 0.1))}>
                 <ZoomInIcon />
               </IconButton>
-              <Typography variant="caption" sx={{ fontWeight: 700, minWidth: 40 }}>
+              <Typography variant="caption" sx={{ fontWeight: 600, minWidth: 40 }}>
                 {Math.round(zoom * 100)}%
               </Typography>
             </Stack>
@@ -513,9 +513,9 @@ const ResumeBuilderScreen = () => {
                   variant="outlined"
                   color="warning"
                   size="small"
-                  sx={{ fontWeight: 600 }}
+                  sx={{ fontWeight: 500 }}
                 />
-                <Typography variant="caption" sx={{ color: "#f59e0b", fontWeight: 600 }}>
+                <Typography variant="caption" sx={{ color: "#f59e0b", fontWeight: 500 }}>
                   Costs 10 credits • Balance: {userPoints}
                 </Typography>
               </div>
@@ -536,7 +536,7 @@ const ResumeBuilderScreen = () => {
                 background: isPremiumTemplate
                   ? "linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)"
                   : "linear-gradient(135deg, #111827 0%, #1F2937 100%)",
-                fontWeight: 700, color: "#fff", textTransform: "none",
+                fontWeight: 600, color: "#fff", textTransform: "none",
                 boxShadow: isPremiumTemplate
                   ? "0 10px 30px rgba(124,58,237,0.35)"
                   : "0 10px 20px rgba(17,24,39,0.18)",
@@ -556,12 +556,12 @@ const ResumeBuilderScreen = () => {
               }}
             >
               {downloading ? (
-                <Typography sx={{ fontWeight: 700, fontSize: "0.95rem", color: "#fff" }}>
+                <Typography sx={{ fontWeight: 600, fontSize: "0.95rem", color: "#fff" }}>
                   Preparing PDF...
                 </Typography>
               ) : (
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: "0.95rem", lineHeight: 1, color: "inherit" }}>
+                  <Typography sx={{ fontWeight: 600, fontSize: "0.95rem", lineHeight: 1, color: "inherit" }}>
                     Download Resume PDF
                   </Typography>
                   {isPremiumTemplate && (
@@ -571,7 +571,7 @@ const ResumeBuilderScreen = () => {
                       backgroundColor: "rgba(255,255,255,0.14)",
                       border: "1px solid rgba(255,255,255,0.18)",
                       fontSize: "0.72rem",
-                      fontWeight: 800,
+                      fontWeight: 700,
                       color: "#fff",
                       whiteSpace: "nowrap",
                     }}>
@@ -598,7 +598,7 @@ const ResumeBuilderScreen = () => {
       >
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <CreditIcon sx={{ fontSize: 28, color: "#f59e0b" }} />
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>Premium Template Download</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 500 }}>Premium Template Download</Typography>
         </DialogTitle>
         <DialogContent sx={{ py: 3 }}>
           <Stack spacing={2}>
@@ -609,7 +609,7 @@ const ResumeBuilderScreen = () => {
               backgroundColor: "#f0f9ff", padding: 16,
               borderRadius: 8, border: "1px solid #bfdbfe",
             }}>
-              <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e40af", mb: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: "#1e40af", mb: 1 }}>
                 💳 Billing Summary
               </Typography>
               {[
@@ -618,13 +618,13 @@ const ResumeBuilderScreen = () => {
               ].map(([label, value]) => (
                 <div key={label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                   <Typography variant="body2">{label}:</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{value}</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>{value}</Typography>
                 </div>
               ))}
               <Divider sx={{ my: 1 }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>New Balance:</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: "#166534" }}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>New Balance:</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: "#166534" }}>
                   {userPoints - 10} Credits
                 </Typography>
               </div>

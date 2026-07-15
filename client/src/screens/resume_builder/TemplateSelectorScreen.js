@@ -118,7 +118,7 @@ const TemplateCard = ({ name, image, onSelect, delay, isMobile, isPremium }) => 
             sx={{
               bgcolor: "#6366f1",
               color: "#fff",
-              fontWeight: 700,
+              fontWeight: 600,
               fontSize: { xs: "0.75rem", md: "0.85rem" },
               px: { xs: 2, md: 3.5 },
               py: { xs: 1, md: 1.2 },
@@ -147,7 +147,7 @@ const TemplateCard = ({ name, image, onSelect, delay, isMobile, isPremium }) => 
               right: 12,
               background: "linear-gradient(135deg, #6366f1 0%, #a855f7 100%)",
               color: "#ffffff",
-              fontWeight: 800,
+              fontWeight: 700,
               fontSize: "0.65rem",
               height: 22,
               px: 1,
@@ -196,7 +196,7 @@ const TemplateSelectorScreen = () => {
           <Typography
             variant="h4"
             sx={{
-              fontWeight: 900,
+              fontWeight: 800,
               color: "#0f172a",
               fontSize: { xs: "1.5rem", md: "2.25rem" },
               letterSpacing: "-0.03em",
@@ -212,7 +212,7 @@ const TemplateSelectorScreen = () => {
               sx={{
                 background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                 color: "#ffffff",
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: "0.7rem",
                 height: 24,
                 px: 1,
@@ -230,7 +230,7 @@ const TemplateSelectorScreen = () => {
             fontSize: { xs: "0.95rem", md: "1.1rem" },
             maxWidth: "700px",
             lineHeight: 1.6,
-            fontWeight: 500,
+            fontWeight: 400,
           }}
         >
           {subtitle}
@@ -284,14 +284,14 @@ const TemplateSelectorScreen = () => {
               >
                 Dashboard
               </Link>
-              <Typography color="text.primary" sx={{ fontSize: "0.9rem", fontWeight: 600 }}>
+              <Typography color="text.primary" sx={{ fontSize: "0.9rem", fontWeight: 500 }}>
                 Resume Builder
               </Typography>
             </Breadcrumbs>
             <Button
               startIcon={<ArrowBackIcon />}
               onClick={() => navigate("/dashboard")}
-              sx={{ color: "#64748b", fontWeight: 600 }}
+              sx={{ color: "#212121", fontWeight: 500 }}
             >
               Back to Dashboard
             </Button>
@@ -319,7 +319,7 @@ const TemplateSelectorScreen = () => {
           <Typography
             sx={{
               fontSize: { xs: "2rem", md: "3.5rem" },
-              fontWeight: 900,
+              fontWeight: 800,
               mb: 2,
               lineHeight: 1.1,
               background: "linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)",
@@ -366,7 +366,7 @@ const TemplateSelectorScreen = () => {
               boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
             }}
           >
-            <Typography variant="h5" sx={{ color: "#64748b", mb: 2, fontWeight: 700 }}>
+            <Typography variant="h5" sx={{ color: "#212121", mb: 2, fontWeight: 600 }}>
               No templates found
             </Typography>
             <Typography sx={{ color: "#94a3b8" }}>

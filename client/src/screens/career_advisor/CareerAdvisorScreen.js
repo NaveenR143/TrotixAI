@@ -97,7 +97,7 @@ const SectionTitle = ({ icon, title, subtitle }) => (
             <Avatar sx={{ bgcolor: 'black', width: 32, height: 32 }}>
                 {icon}
             </Avatar>
-            <Typography variant="h6" fontWeight={800} sx={{ letterSpacing: -0.5 }}>
+            <Typography variant="h6" fontWeight={700} sx={{ letterSpacing: -0.5 }}>
                 {title}
             </Typography>
         </Stack>
@@ -310,7 +310,7 @@ const CareerAdvisorScreen = () => {
                             <CircularProgress size={80} thickness={4} sx={{ color: '#0f172a' }} />
                             <PsychologyIcon sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: 32, color: '#94a3b8' }} />
                         </Box>
-                        <Typography variant="h5" fontWeight={900} gutterBottom sx={{ letterSpacing: -0.5 }}>
+                        <Typography variant="h5" fontWeight={800} gutterBottom sx={{ letterSpacing: -0.5 }}>
                             Analyzing Your Potential...
                         </Typography>
                         <Typography variant="body1" color="text.secondary" sx={{ mt: 2, mb: 4, lineHeight: 1.6, fontSize: '1.05rem' }}>
@@ -330,7 +330,7 @@ const CareerAdvisorScreen = () => {
                     <Avatar sx={{ width: 80, height: 80, bgcolor: '#fee2e2', color: '#ef4444', mx: 'auto', mb: 3 }}>
                         <ErrorOutlineIcon sx={{ fontSize: 40 }} />
                     </Avatar>
-                    <Typography variant="h5" fontWeight={800} gutterBottom>
+                    <Typography variant="h5" fontWeight={700} gutterBottom>
                         Insufficient Profile Data
                     </Typography>
                     <Typography variant="body1" color="text.secondary" mb={4}>
@@ -340,7 +340,7 @@ const CareerAdvisorScreen = () => {
                         variant="contained"
                         size="large"
                         onClick={() => navigate("/resume-builder")}
-                        sx={{ bgcolor: 'black', color: 'white', px: 4, py: 1.5, borderRadius: 3, fontWeight: 700, "&:hover": { bgcolor: '#333' } }}
+                        sx={{ bgcolor: 'black', color: 'white', px: 4, py: 1.5, borderRadius: 3, fontWeight: 600, "&:hover": { bgcolor: '#333' } }}
                     >
                         Complete My Profile
                     </Button>
@@ -352,7 +352,7 @@ const CareerAdvisorScreen = () => {
     if (error && !fullResponse) {
         return (
             <Container maxWidth="sm" sx={{ py: 10, textAlign: 'center' }}>
-                <Alert severity="error" variant="outlined" sx={{ borderRadius: 3, mb: 3, fontWeight: 600 }}>
+                <Alert severity="error" variant="outlined" sx={{ borderRadius: 3, mb: 3, fontWeight: 500 }}>
                     {error}
                 </Alert>
                 <Button
@@ -389,7 +389,7 @@ const CareerAdvisorScreen = () => {
                                     sx={{
                                         bgcolor: '#ecfdf5',
                                         color: '#065f46',
-                                        fontWeight: 700,
+                                        fontWeight: 600,
                                         border: '1px solid #10b981',
                                         fontSize: '0.75rem'
                                     }}
@@ -397,7 +397,7 @@ const CareerAdvisorScreen = () => {
                             </Stack>
                             <Stack direction="row" spacing={1} alignItems="center" color="text.secondary">
                                 <AccessTimeIcon sx={{ fontSize: 14 }} />
-                                <Typography variant="caption" fontWeight={600}>
+                                <Typography variant="caption" fontWeight={500}>
                                     Generated on {formatDate(timestamp)}
                                 </Typography>
                             </Stack>
@@ -417,13 +417,13 @@ const CareerAdvisorScreen = () => {
                             <Box sx={{ position: "relative", zIndex: 1 }}>
                                 <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={3}>
                                     <Box>
-                                        <Typography variant="overline" sx={{ opacity: 0.7, letterSpacing: 3, fontWeight: 800 }}>
+                                        <Typography variant="overline" sx={{ opacity: 0.7, letterSpacing: 3, fontWeight: 700 }}>
                                             PROFESSIONAL GROWTH ENGINE
                                         </Typography>
-                                        <Typography variant="h4" fontWeight={900} sx={{ letterSpacing: -1.5, mb: 1.5, lineHeight: 1 }}>
+                                        <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: -1.5, mb: 1.5, lineHeight: 1 }}>
                                             Career Advisor
                                         </Typography>
-                                        <Typography variant="body1" sx={{ opacity: 0.85, maxWidth: 650, fontSize: '1.1rem', fontWeight: 400 }}>
+                                        <Typography variant="body1" sx={{ opacity: 0.85, maxWidth: 650, fontSize: '1.1rem', fontWeight: 300 }}>
                                             Personalized guidance derived from your {profile?.skills?.length || 0} skills and {profile?.experience?.length || 0} experiences.
                                         </Typography>
                                     </Box>
@@ -433,7 +433,7 @@ const CareerAdvisorScreen = () => {
                                             disabled={downloadingPDF || refreshing}
                                             onClick={handleDownloadPDF}
                                             startIcon={downloadingPDF ? <CircularProgress size={20} color="inherit" /> : <FileDownloadIcon />}
-                                            sx={{ color: "white", borderColor: "rgba(255,255,255,0.3)", px: 3, py: 1.5, borderRadius: 4, fontWeight: 700, textTransform: 'none', "&:hover": { bgcolor: "rgba(255,255,255,0.1)", borderColor: "white" } }}
+                                            sx={{ color: "white", borderColor: "rgba(255,255,255,0.3)", px: 3, py: 1.5, borderRadius: 4, fontWeight: 600, textTransform: 'none', "&:hover": { bgcolor: "rgba(255,255,255,0.1)", borderColor: "white" } }}
                                         >
                                             {downloadingPDF ? "Exporting..." : "Download Report"}
                                         </Button>
@@ -448,7 +448,7 @@ const CareerAdvisorScreen = () => {
                                                 px: 4,
                                                 py: 1.5,
                                                 borderRadius: 4,
-                                                fontWeight: 900,
+                                                fontWeight: 800,
                                                 textTransform: 'none',
                                                 boxShadow: '0 10px 20px -5px rgba(59, 130, 246, 0.5)',
                                                 "&:hover": { bgcolor: "#2563eb", transform: 'translateY(-2px)' },
@@ -481,10 +481,10 @@ const CareerAdvisorScreen = () => {
                                     <Table size="small">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell sx={{ fontWeight: 800, borderBottom: '2px solid #f1f5f9' }}>Skill Name</TableCell>
-                                                <TableCell align="center" sx={{ fontWeight: 800, borderBottom: '2px solid #f1f5f9' }}>Current</TableCell>
-                                                <TableCell align="center" sx={{ fontWeight: 800, borderBottom: '2px solid #f1f5f9' }}>Required</TableCell>
-                                                <TableCell align="right" sx={{ fontWeight: 800, borderBottom: '2px solid #f1f5f9' }}>Importance</TableCell>
+                                                <TableCell sx={{ fontWeight: 700, borderBottom: '2px solid #f1f5f9' }}>Skill Name</TableCell>
+                                                <TableCell align="center" sx={{ fontWeight: 700, borderBottom: '2px solid #f1f5f9' }}>Current</TableCell>
+                                                <TableCell align="center" sx={{ fontWeight: 700, borderBottom: '2px solid #f1f5f9' }}>Required</TableCell>
+                                                <TableCell align="right" sx={{ fontWeight: 700, borderBottom: '2px solid #f1f5f9' }}>Importance</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -492,13 +492,13 @@ const CareerAdvisorScreen = () => {
                                                 skill_gaps.map((skill, index) => (
                                                     <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                                         <TableCell component="th" scope="row">
-                                                            <Typography variant="body2" fontWeight={700}>{skill.skill}</Typography>
+                                                            <Typography variant="body2" fontWeight={600}>{skill.skill}</Typography>
                                                         </TableCell>
                                                         <TableCell align="center">
-                                                            <Chip label={skill.current_level || "Beginner"} size="small" variant="outlined" sx={{ fontWeight: 600, fontSize: '0.7rem' }} />
+                                                            <Chip label={skill.current_level || "Beginner"} size="small" variant="outlined" sx={{ fontWeight: 500, fontSize: '0.7rem' }} />
                                                         </TableCell>
                                                         <TableCell align="center">
-                                                            <Chip label={skill.required_level || "Advanced"} size="small" color="primary" sx={{ fontWeight: 600, fontSize: '0.7rem' }} />
+                                                            <Chip label={skill.required_level || "Advanced"} size="small" color="primary" sx={{ fontWeight: 500, fontSize: '0.7rem' }} />
                                                         </TableCell>
                                                         <TableCell align="right">
                                                             <Box sx={{ width: 100, display: 'inline-block' }}>
@@ -532,7 +532,7 @@ const CareerAdvisorScreen = () => {
                                     </Table>
                                 </TableContainer>
                                 {/* <Box sx={{ mt: 3, textAlign: 'center', p: 2, bgcolor: '#f8fafc', borderRadius: 4, border: '1px dashed #cbd5e1' }}>
-                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontWeight: 600 }}>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontWeight: 500 }}>
                                         Not satisfied with these results? Rerun the AI engine.
                                     </Typography>
                                     <Button
@@ -541,7 +541,7 @@ const CareerAdvisorScreen = () => {
                                         disabled={refreshing}
                                         onClick={() => fetchCareerAdvice(true)}
                                         startIcon={<RefreshIcon />}
-                                        sx={{ fontWeight: 800, color: '#3b82f6', "&:hover": { bgcolor: 'transparent', textDecoration: 'underline' } }}
+                                        sx={{ fontWeight: 700, color: '#3b82f6', "&:hover": { bgcolor: 'transparent', textDecoration: 'underline' } }}
                                     >
                                         Regenerate Analysis
                                     </Button>
@@ -579,10 +579,10 @@ const CareerAdvisorScreen = () => {
                                                         {item.title?.toLowerCase().includes('cert') ? <AssignmentIcon fontSize="small" /> : <SchoolIcon fontSize="small" />}
                                                     </Avatar>
                                                     <Box sx={{ flex: 1, overflow: 'hidden' }}>
-                                                        <Typography variant="subtitle2" fontWeight={800} noWrap>
+                                                        <Typography variant="subtitle2" fontWeight={700} noWrap>
                                                             {item.title}
                                                         </Typography>
-                                                        <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                                                        <Typography variant="caption" color="text.secondary" fontWeight={500}>
                                                             {item.provider}
                                                         </Typography>
                                                     </Box>
@@ -642,13 +642,13 @@ const CareerAdvisorScreen = () => {
                                                     }}
                                                 >
                                                     <Stack direction="row" spacing={3} alignItems="center">
-                                                        <Avatar sx={{ width: 32, height: 32, bgcolor: 'black', fontSize: 14, fontWeight: 800 }}>
+                                                        <Avatar sx={{ width: 32, height: 32, bgcolor: 'black', fontSize: 14, fontWeight: 700 }}>
                                                             {i + 1}
                                                         </Avatar>
                                                         <Box>
-                                                            <Typography fontWeight={800} variant="subtitle1">{item.phase}</Typography>
+                                                            <Typography fontWeight={700} variant="subtitle1">{item.phase}</Typography>
                                                             {item.timeline && (
-                                                                <Typography variant="caption" color="primary" fontWeight={700} sx={{ textTransform: 'uppercase' }}>
+                                                                <Typography variant="caption" color="primary" fontWeight={600} sx={{ textTransform: 'uppercase' }}>
                                                                     ⏳ {item.timeline}
                                                                 </Typography>
                                                             )}
@@ -658,7 +658,7 @@ const CareerAdvisorScreen = () => {
                                                 <AccordionDetails sx={{ p: 4, bgcolor: 'white' }}>
                                                     <Grid container spacing={4}>
                                                         <Grid item xs={12} md={8}>
-                                                            <Typography variant="subtitle2" fontWeight={800} color="text.secondary" gutterBottom sx={{ textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: 1 }}>
+                                                            <Typography variant="subtitle2" fontWeight={700} color="text.secondary" gutterBottom sx={{ textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: 1 }}>
                                                                 Description & Actions
                                                             </Typography>
                                                             <Typography variant="body1" sx={{ lineHeight: 1.7, color: '#334155' }}>
@@ -666,7 +666,7 @@ const CareerAdvisorScreen = () => {
                                                             </Typography>
                                                         </Grid>
                                                         <Grid item xs={12} md={4}>
-                                                            <Typography variant="subtitle2" fontWeight={800} color="text.secondary" gutterBottom sx={{ textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: 1 }}>
+                                                            <Typography variant="subtitle2" fontWeight={700} color="text.secondary" gutterBottom sx={{ textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: 1 }}>
                                                                 Recommended Resources
                                                             </Typography>
                                                             <Stack spacing={1} sx={{ mt: 1 }}>
@@ -686,7 +686,7 @@ const CareerAdvisorScreen = () => {
                                                                                 borderRadius: 2,
                                                                                 borderColor: '#e2e8f0',
                                                                                 color: '#475569',
-                                                                                fontWeight: 600,
+                                                                                fontWeight: 500,
                                                                                 fontSize: '0.8rem',
                                                                                 '&:hover': { bgcolor: '#f8fafc', borderColor: '#3b82f6' }
                                                                             }}
@@ -713,7 +713,7 @@ const CareerAdvisorScreen = () => {
 
                     {/* Footer Info */}
                     <Grid item xs={12} textAlign="center" sx={{ py: 4 }}>
-                        <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.8, fontWeight: 500 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.8, fontWeight: 400 }}>
                             Generated by <strong>RightNxt AI Career Engine</strong>. Recommendations are dynamic and evolve with your profile updates.
                         </Typography>
                     </Grid>

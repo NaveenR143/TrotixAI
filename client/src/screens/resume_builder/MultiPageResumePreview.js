@@ -309,7 +309,7 @@ const MultiPageResumePreview = ({
                     borderRadius: "5px",
                     padding: "2px 8px",
                     fontSize: "9px",
-                    fontWeight: 700,
+                    fontWeight: 600,
                     color: "#94a3b8",
                     letterSpacing: "0.06em",
                     lineHeight: 1.4,

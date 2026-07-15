@@ -12,7 +12,7 @@ const formatDate = (dateStr) => {
   return dateStr;
 };
 
-export default function PersonalDetailsGrid({ user, labelColor = "#64748b", valueColor = "#0f172a" }) {
+export default function PersonalDetailsGrid({ user, labelColor = "#212121", valueColor = "#0f172a" }) {
   if (!user) return null;
 
   const { date_of_birth, gender, maritalStatus, location, showPersonalDetails } = user;
@@ -47,13 +47,13 @@ export default function PersonalDetailsGrid({ user, labelColor = "#64748b", valu
               textTransform: "uppercase",
               letterSpacing: "0.5px",
               color: labelColor,
-              fontWeight: "600",
+              fontWeight: "500",
               marginBottom: "2px",
             }}
           >
             {item.label}
           </span>
-          <span style={{ fontSize: "11px", color: valueColor, fontWeight: "500" }}>
+          <span style={{ fontSize: "11px", color: valueColor, fontWeight: "400" }}>
             {item.value}
           </span>
         </div>

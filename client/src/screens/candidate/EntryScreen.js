@@ -211,7 +211,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
           variant="contained"
           onClick={onPostJob}
           sx={{
-            borderRadius: '12px', px: 2, py: 1, fontWeight: 800, textTransform: 'none',
+            borderRadius: '12px', px: 2, py: 1, fontWeight: 700, textTransform: 'none',
             background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
             color: '#FFFFFF',
             fontSize: { xs: '0.7rem', md: '0.85rem' },
@@ -241,15 +241,15 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
               <RevealBox id="hero-text" className="reveal-trigger" inView={revealed["hero-text"]}>
                 <Box sx={{ mb: 4, display: 'inline-flex', alignItems: 'center', gap: 1.5, px: 2, py: 1, borderRadius: 'full', border: '1px solid rgba(37, 99, 235, 0.2)', bgcolor: 'rgba(37, 99, 235, 0.05)' }}>
                   <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#2563EB' }} />
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#2563EB', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#2563EB', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                     AI-powered job matching for modern careers
                   </Typography>
                 </Box>
-                <Typography variant="h1" sx={{ fontSize: { xs: "2.4rem", md: "4.4rem" }, fontWeight: 800, lineHeight: 1.1, mb: 3, letterSpacing: "-0.03em" }}>
+                <Typography variant="h1" sx={{ fontSize: { xs: "2.4rem", md: "4.4rem" }, fontWeight: 700, lineHeight: 1.1, mb: 3, letterSpacing: "-0.03em" }}>
                   The Smarter Way to <br />
                   <GradientText>Get Hired.</GradientText>
                 </Typography>
-                <Typography sx={{ fontSize: "1.15rem", color: "#64748B", lineHeight: 1.6, mb: 5, maxWidth: 540 }}>
+                <Typography sx={{ fontSize: "1.15rem", color: "#212121", lineHeight: 1.6, mb: 5, maxWidth: 540 }}>
                   Upload your resume, let our AI instantly match you with the right jobs, and uncover the exact skills that will help you land interviews faster.
                 </Typography>
 
@@ -264,8 +264,8 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                         <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: 'rgba(37, 99, 235, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1.5, color: '#2563EB' }}>
                           {item.icon}
                         </Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>{item.title}</Typography>
-                        <Typography variant="caption" sx={{ color: '#64748B', display: 'block', lineHeight: 1.4 }}>{item.text}</Typography>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>{item.title}</Typography>
+                        <Typography variant="caption" sx={{ color: '#212121', display: 'block', lineHeight: 1.4 }}>{item.text}</Typography>
                       </GlassBox>
                     </Grid>
                   ))}
@@ -291,7 +291,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                           <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#FFBD2E' }} />
                           <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#27C93F' }} />
                         </Stack>
-                        <Chip label="ATS Score 92" size="small" icon={<ShieldCheckIcon sx={{ fontSize: '14px !important' }} />} sx={{ bgcolor: '#F1F5F9', fontWeight: 700, height: 24 }} />
+                        <Chip label="ATS Score 92" size="small" icon={<ShieldCheckIcon sx={{ fontSize: '14px !important' }} />} sx={{ bgcolor: '#F1F5F9', fontWeight: 600, height: 24 }} />
                       </Box>
 
                       <Box sx={{ p: 4 }}>
@@ -314,7 +314,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                             borderColor: '#2563EB',
                             borderWidth: '1.5px',
                             color: '#2563EB',
-                            fontWeight: 700,
+                            fontWeight: 600,
                             textTransform: 'none',
                             fontSize: '0.95rem',
                             "&:hover": {
@@ -349,7 +349,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                             />
                           }
                           label={
-                            <Typography variant="caption" sx={{ color: '#64748B' }}>
+                            <Typography variant="caption" sx={{ color: '#212121' }}>
                               I agree to the{" "}
                               <Link
                                 href="/terms"
@@ -357,7 +357,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                                 rel="noopener"
                                 sx={{
                                   color: '#2563EB',
-                                  fontWeight: 200,
+                                  fontWeight: 100,
                                   textDecoration: 'underline',
                                   '&:hover': {
                                     color: '#1D4ED8'
@@ -372,10 +372,10 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                         />
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pt: 2, borderTop: '1px solid #F1F5F9', width: '100%', justifyContent: 'center', mb: 4 }}>
-                          <Typography sx={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 500 }}>Returning user?</Typography>
+                          <Typography sx={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 400 }}>Returning user?</Typography>
                           <Button
                             onClick={onDirectSearch}
-                            sx={{ fontSize: '0.85rem', color: '#2563EB', fontWeight: 700, p: 0, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}
+                            sx={{ fontSize: '0.85rem', color: '#2563EB', fontWeight: 600, p: 0, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}
                           >
                             Access My Feed
                           </Button>
@@ -387,24 +387,24 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                               <CheckIcon />
                             </Box>
                             <Box>
-                              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>ATS Friendly</Typography>
-                              <Typography variant="caption" sx={{ color: '#64748B' }}>Keyword coverage improved</Typography>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>ATS Friendly</Typography>
+                              <Typography variant="caption" sx={{ color: '#212121' }}>Keyword coverage improved</Typography>
                             </Box>
                           </Box>
 
                           <Grid container spacing={2}>
                             <Grid item xs={6}>
                               <GlassBox sx={{ p: 2, animation: `${floaty} 7s ease-in-out infinite` }}>
-                                <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>Match Score</Typography>
+                                <Typography variant="caption" sx={{ color: '#212121', fontWeight: 500 }}>Match Score</Typography>
                                 <Stack direction="row" alignItems="flex-end" spacing={1} sx={{ mt: 1 }}>
-                                  <Typography variant="h5" sx={{ fontWeight: 800 }}>94%</Typography>
-                                  <Typography variant="caption" sx={{ color: '#10B981', fontWeight: 700, mb: 0.5 }}>+12%</Typography>
+                                  <Typography variant="h5" sx={{ fontWeight: 700 }}>94%</Typography>
+                                  <Typography variant="caption" sx={{ color: '#10B981', fontWeight: 600, mb: 0.5 }}>+12%</Typography>
                                 </Stack>
                               </GlassBox>
                             </Grid>
                             <Grid item xs={6}>
                               <GlassBox sx={{ p: 2, animation: `${floaty} 8.5s ease-in-out infinite 0.7s` }}>
-                                <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>AI Actions</Typography>
+                                <Typography variant="caption" sx={{ color: '#212121', fontWeight: 500 }}>AI Actions</Typography>
                                 <Stack spacing={1} sx={{ mt: 1.5 }}>
                                   <Box sx={{ height: 4, borderRadius: 2, bgcolor: '#E2E8F0', overflow: 'hidden' }}>
                                     <Box sx={{ width: '80%', height: '100%', background: 'linear-gradient(90deg, #2563EB, #7C3AED)' }} />
@@ -429,7 +429,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                       animation: `${pulseRing} 2.6s ease-in-out infinite`
                     }}>
                       <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#10B981" }} />
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: "#1E293B" }}>AI scanning career fit...</Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: "#1E293B" }}>AI scanning career fit...</Typography>
                     </Box>
                   </GlassBox>
                 </Box>
@@ -443,10 +443,10 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
       <Box component="section" sx={{ py: { xs: 10, md: 16 }, bgcolor: "#FFF" }}>
         <Container maxWidth="lg">
           <RevealBox id="how-it-works-header" className="reveal-trigger" inView={revealed["how-it-works-header"]} sx={{ mb: 8 }}>
-            <Typography variant="h2" sx={{ fontSize: { xs: "2rem", md: "2.75rem" }, fontWeight: 800, mb: 2 }}>
+            <Typography variant="h2" sx={{ fontSize: { xs: "2rem", md: "2.75rem" }, fontWeight: 700, mb: 2 }}>
               Find Your Dream Job in Just 2 Simple Steps
             </Typography>
-            <Typography sx={{ fontSize: "1.1rem", color: "#64748B", fontWeight: 500 }}>
+            <Typography sx={{ fontSize: "1.1rem", color: "#212121", fontWeight: 400 }}>
               Fast. Smart. Personalized.
             </Typography>
           </RevealBox>
@@ -460,8 +460,8 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                       <CloudUploadIcon />
                     </Box>
                     <Box>
-                      <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>1. Upload Resume</Typography>
-                      <Typography variant="body2" sx={{ color: '#64748B', lineHeight: 1.6 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>1. Upload Resume</Typography>
+                      <Typography variant="body2" sx={{ color: '#212121', lineHeight: 1.6 }}>
                         Start with a simple upload. We extract experience, skills, and structure to create a clean, searchable career profile instantly.
                       </Typography>
                     </Box>
@@ -480,7 +480,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                       <Grid item xs={5}>
                         <Box sx={{ textAlign: 'center', p: 2, borderRadius: '16px', border: '1px dashed #2563EB', bgcolor: 'rgba(37, 99, 235, 0.02)' }}>
                           <FileTextIcon sx={{ color: '#2563EB', fontSize: 32, mb: 1 }} />
-                          <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>Parsing...</Typography>
+                          <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>Parsing...</Typography>
                         </Box>
                       </Grid>
                     </Grid>
@@ -497,8 +497,8 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                       <BriefcaseIcon />
                     </Box>
                     <Box>
-                      <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>2. Find Jobs with AI + ATS Score</Typography>
-                      <Typography variant="body2" sx={{ color: '#64748B', lineHeight: 1.6 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>2. Find Jobs with AI + ATS Score</Typography>
+                      <Typography variant="body2" sx={{ color: '#212121', lineHeight: 1.6 }}>
                         See ranked roles with match percentages, ATS score indicators, and job cards tailored to your strengths and goals.
                       </Typography>
                     </Box>
@@ -507,13 +507,13 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                   <Grid container spacing={2}>
                     <Grid item xs={6}>
                       <Box sx={{ bgcolor: '#FFF', borderRadius: '20px', p: 2.5, border: '1px solid #E2E8F0', height: '100%' }}>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: '#111827', display: 'block', mb: 2 }}>AI Matching</Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#111827', display: 'block', mb: 2 }}>AI Matching</Typography>
                         <Stack spacing={2}>
                           {[{ l: "Designer", p: "96%" }, { l: "Writer", p: "89%" }].map((item, i) => (
                             <Box key={i}>
                               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                                <Typography sx={{ fontSize: '10px', fontWeight: 700, color: '#64748B' }}>{item.l}</Typography>
-                                <Typography sx={{ fontSize: '10px', fontWeight: 800, color: '#111827' }}>{item.p}</Typography>
+                                <Typography sx={{ fontSize: '10px', fontWeight: 600, color: '#212121' }}>{item.l}</Typography>
+                                <Typography sx={{ fontSize: '10px', fontWeight: 700, color: '#111827' }}>{item.p}</Typography>
                               </Box>
                               <Box sx={{ height: 4, bgcolor: '#F1F5F9', borderRadius: 4, overflow: 'hidden' }}>
                                 <Box sx={{ width: item.p, height: '100%', background: 'linear-gradient(90deg, #2563EB, #7C3AED)' }} />
@@ -525,16 +525,16 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                     </Grid>
                     <Grid item xs={6}>
                       <Box sx={{ bgcolor: '#FFF', borderRadius: '20px', p: 2.5, border: '1px solid #E2E8F0', height: '100%', textAlign: 'center' }}>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: '#111827', display: 'block', mb: 1 }}>ATS Score</Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#111827', display: 'block', mb: 1 }}>ATS Score</Typography>
                         <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
                           <Box sx={{ width: 60, height: 60, borderRadius: '50%', border: '6px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>92</Typography>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>92</Typography>
                           </Box>
                           <Box sx={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '6px solid transparent', borderTopColor: '#2563EB', borderRightColor: '#7C3AED', transform: 'rotate(50deg)' }} />
                         </Box>
                         <Stack direction="row" spacing={0.5} justifyContent="center">
-                          <Box sx={{ px: 1, py: 0.5, bgcolor: '#F8FAFC', borderRadius: 4, fontSize: '8px', fontWeight: 700 }}>Keywords</Box>
-                          <Box sx={{ px: 1, py: 0.5, bgcolor: '#F8FAFC', borderRadius: 4, fontSize: '8px', fontWeight: 700 }}>Format</Box>
+                          <Box sx={{ px: 1, py: 0.5, bgcolor: '#F8FAFC', borderRadius: 4, fontSize: '8px', fontWeight: 600 }}>Keywords</Box>
+                          <Box sx={{ px: 1, py: 0.5, bgcolor: '#F8FAFC', borderRadius: 4, fontSize: '8px', fontWeight: 600 }}>Format</Box>
                         </Stack>
                       </Box>
                     </Grid>
@@ -559,13 +559,13 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                   <Grid container spacing={2}>
                     <Grid item xs={6}>
                       <Box sx={{ p: 2, borderRadius: "16px", border: "1px solid #FECACA", bgcolor: "#FEF2F2" }}>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: "#EF4444", textTransform: "uppercase", mb: 1, display: "block" }}>Before</Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: "#EF4444", textTransform: "uppercase", mb: 1, display: "block" }}>Before</Typography>
                         <Typography variant="body2" sx={{ color: "#7F1D1D", fontSize: "0.8rem" }}>Generic formatting, low visibility.</Typography>
                       </Box>
                     </Grid>
                     <Grid item xs={6}>
                       <Box sx={{ p: 2, borderRadius: "16px", border: "1px solid #A7F3D0", bgcolor: "#F0FDF4" }}>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: "#10B981", textTransform: "uppercase", mb: 1, display: "block" }}>After</Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: "#10B981", textTransform: "uppercase", mb: 1, display: "block" }}>After</Typography>
                         <Typography variant="body2" sx={{ color: "#064E3B", fontSize: "0.8rem" }}>ATS-optimized, 3x more views.</Typography>
                       </Box>
                     </Grid>
@@ -575,10 +575,10 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
             </Grid>
             <Grid item xs={12} md={6} sx={{ order: { xs: 1, md: 2 } }}>
               <RevealBox id="ats-text" className="reveal-trigger" inView={revealed["ats-text"]}>
-                <Typography variant="h2" sx={{ fontSize: { xs: "2rem", md: "2.75rem" }, fontWeight: 800, mb: 3 }}>
+                <Typography variant="h2" sx={{ fontSize: { xs: "2rem", md: "2.75rem" }, fontWeight: 700, mb: 3 }}>
                   Applying to Jobs… But Never Hearing Back?
                 </Typography>
-                <Typography sx={{ color: "#64748B", mb: 4, fontSize: "1.1rem", lineHeight: 1.6 }}>
+                <Typography sx={{ color: "#212121", mb: 4, fontSize: "1.1rem", lineHeight: 1.6 }}>
                   Most resumes are filtered by ATS before a recruiter ever sees them. Our AI ensures your resume is structured and keyword-optimized for maximum visibility.
                 </Typography>
 
@@ -589,12 +589,12 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                     { n: 3, t: "Generate Optimized PDF", d: "Download a polished version ready for submission." }
                   ].map((item, i) => (
                     <Box key={i} sx={{ display: "flex", gap: 3, p: 3, borderRadius: "20px", border: "1px solid #E2E8F0", bgcolor: "white", transition: "all 0.3s ease", "&:hover": { transform: "translateX(8px)", borderColor: "#2563EB" } }}>
-                      <Box sx={{ width: 44, height: 44, borderRadius: "12px", bgcolor: i === 0 ? "rgba(37, 99, 235, 0.1)" : i === 1 ? "rgba(124, 58, 237, 0.1)" : "rgba(14, 165, 233, 0.1)", color: i === 0 ? "#2563EB" : i === 1 ? "#7C3AED" : "#0EA5E9", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, flexShrink: 0 }}>
+                      <Box sx={{ width: 44, height: 44, borderRadius: "12px", bgcolor: i === 0 ? "rgba(37, 99, 235, 0.1)" : i === 1 ? "rgba(124, 58, 237, 0.1)" : "rgba(14, 165, 233, 0.1)", color: i === 0 ? "#2563EB" : i === 1 ? "#7C3AED" : "#0EA5E9", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0 }}>
                         {item.n}
                       </Box>
                       <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#111827" }}>{item.t}</Typography>
-                        <Typography variant="body2" sx={{ color: "#64748B" }}>{item.d}</Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#111827" }}>{item.t}</Typography>
+                        <Typography variant="body2" sx={{ color: "#212121" }}>{item.d}</Typography>
                       </Box>
                     </Box>
                   ))}
@@ -609,10 +609,10 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
       <Box component="section" sx={{ py: { xs: 10, md: 16 }, bgcolor: "#FFF" }}>
         <Container maxWidth="lg">
           <RevealBox id="features-header" className="reveal-trigger" inView={revealed["features-header"]} sx={{ textAlign: "center", mb: 10 }}>
-            <Typography variant="h2" sx={{ fontSize: { xs: "2.25rem", md: "3.5rem" }, fontWeight: 800, mb: 2 }}>
+            <Typography variant="h2" sx={{ fontSize: { xs: "2.25rem", md: "3.5rem" }, fontWeight: 700, mb: 2 }}>
               Premium tools built to move your career forward
             </Typography>
-            <Typography sx={{ fontSize: "1.15rem", color: "#64748B", maxWidth: 720, mx: "auto" }}>
+            <Typography sx={{ fontSize: "1.15rem", color: "#212121", maxWidth: 720, mx: "auto" }}>
               A focused set of AI features designed to help professionals build stronger resumes, find better jobs, and understand exactly how to improve.
             </Typography>
           </RevealBox>
@@ -628,8 +628,8 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                     <Box sx={{ width: 56, height: 56, borderRadius: '16px', background: f.gradient, color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3 }}>
                       {React.cloneElement(f.icon, { sx: { fontSize: 28 } })}
                     </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.5 }}>{f.title}</Typography>
-                    <Typography variant="body2" sx={{ color: '#64748B', lineHeight: 1.6 }}>{f.subtitle}</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>{f.title}</Typography>
+                    <Typography variant="body2" sx={{ color: '#212121', lineHeight: 1.6 }}>{f.subtitle}</Typography>
                   </GlassBox>
                 </RevealBox>
               </Grid>
@@ -648,15 +648,15 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                       <Box sx={{ width: 56, height: 56, borderRadius: '16px', background: 'linear-gradient(135deg, #2563EB, #7C3AED)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3 }}>
                         <WandSparklesIcon sx={{ fontSize: 28 }} />
                       </Box>
-                      <Typography variant="h4" sx={{ fontWeight: 800, mb: 2 }}>AI Resume Enhancement</Typography>
-                      <Typography sx={{ color: '#64748B', fontSize: '1.1rem', mb: 4 }}>
+                      <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>AI Resume Enhancement</Typography>
+                      <Typography sx={{ color: '#212121', fontSize: '1.1rem', mb: 4 }}>
                         Rewrite bullet points, sharpen summaries, and elevate your resume with polished, recruiter-friendly language using our fine-tuned LLMs.
                       </Typography>
                       <Stack direction="row" spacing={2}>
                         {[{ l: "Clarity", v: "Better" }, { l: "Impact", v: "Stronger" }, { l: "Response", v: "Higher" }].map((s, i) => (
                           <Box key={i} sx={{ p: 2, borderRadius: '16px', bgcolor: 'white', border: '1px solid #E2E8F0', flex: 1 }}>
-                            <Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>{s.l}</Typography>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#111827' }}>{s.v}</Typography>
+                            <Typography variant="caption" sx={{ color: '#212121', fontWeight: 500 }}>{s.l}</Typography>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#111827' }}>{s.v}</Typography>
                           </Box>
                         ))}
                       </Stack>
@@ -668,7 +668,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                           <Box sx={{ height: 12, width: '90%', bgcolor: '#F1F5F9', borderRadius: 4 }} />
                           <Box sx={{ height: 12, width: '75%', bgcolor: '#F1F5F9', borderRadius: 4 }} />
                           <Box sx={{ height: 40, width: '100%', borderRadius: '12px', border: '1px dashed #2563EB', mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Typography variant="caption" sx={{ fontWeight: 800, color: '#2563EB' }}>Optimizing with AI...</Typography>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#2563EB' }}>Optimizing with AI...</Typography>
                           </Box>
                         </Stack>
                         <Box sx={{ position: 'absolute', inset: 0, border: '2px solid transparent', borderTopColor: '#2563EB', animation: `${scanBar} 3s infinite` }} />
@@ -686,7 +686,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
       <Box component="section" sx={{ py: 12, bgcolor: "#F8FAFC", borderTop: "1px solid #F1F5F9" }}>
         <Container maxWidth="lg">
           <RevealBox id="stats-header" className="reveal-trigger" inView={revealed["stats-header"]} sx={{ textAlign: "center", mb: 8 }}>
-            <Typography variant="h3" sx={{ fontWeight: 900, mb: 2 }}>Trusted by thousands of ambitious professionals.</Typography>
+            <Typography variant="h3" sx={{ fontWeight: 800, mb: 2 }}>Trusted by thousands of ambitious professionals.</Typography>
           </RevealBox>
           <Grid container spacing={4} justifyContent="center">
             {[
@@ -700,8 +700,8 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                     <Box sx={{ mx: 'auto', mb: 2, width: 64, height: 64, borderRadius: '50%', bgcolor: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563EB' }}>
                       {s.i}
                     </Box>
-                    <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5 }}>{s.v}</Typography>
-                    <Typography variant="subtitle2" sx={{ color: '#64748B', fontWeight: 600 }}>{s.l}</Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>{s.v}</Typography>
+                    <Typography variant="subtitle2" sx={{ color: '#212121', fontWeight: 500 }}>{s.l}</Typography>
                   </GlassBox>
                 </RevealBox>
               </Grid>
@@ -721,7 +721,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                     <SparklesIcon />
                   </Box>
                   <Box>
-                    <Typography sx={{ color: "#FFF", fontWeight: 800, letterSpacing: "-0.02em" }}>RightNxt AI</Typography>
+                    <Typography sx={{ color: "#FFF", fontWeight: 700, letterSpacing: "-0.02em" }}>RightNxt AI</Typography>
                     <Typography variant="caption">Career intelligence platform</Typography>
                   </Box>
                 </Stack>
@@ -733,7 +733,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
             <Grid item xs={12} md={7}>
               <Grid container spacing={4}>
                 <Grid item xs={12} sm={4}>
-                  <Typography variant="subtitle2" sx={{ color: "#FFF", fontWeight: 700, mb: 3 }}>Product</Typography>
+                  <Typography variant="subtitle2" sx={{ color: "#FFF", fontWeight: 600, mb: 3 }}>Product</Typography>
                   <Stack spacing={2}>
                     {["Resume Builder", "Job Matching", "ATS Scoring", "Skill Gap"].map(link => (
                       <Typography key={link} variant="body2" sx={{ cursor: 'pointer', '&:hover': { color: '#FFF' } }}>{link}</Typography>
@@ -741,24 +741,24 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                   </Stack>
                 </Grid>
                 <Grid item xs={12} sm={5}>
-                  <Typography variant="subtitle2" sx={{ color: "#FFF", fontWeight: 700, mb: 3 }}>Contact Us</Typography>
+                  <Typography variant="subtitle2" sx={{ color: "#FFF", fontWeight: 600, mb: 3 }}>Contact Us</Typography>
                   <Stack spacing={2}>
                     <Box>
-                      <Typography variant="caption" sx={{ color: "#FFF", fontWeight: 600, display: "block", mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mailing Address</Typography>
+                      <Typography variant="caption" sx={{ color: "#FFF", fontWeight: 500, display: "block", mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mailing Address</Typography>
                       <Typography variant="body2" sx={{ color: "#94A3B8", lineHeight: 1.5 }}>
                         THANISH AI INNOVATIONS (OPC) PRIVATE LIMITED<br />
                       </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: "#FFF", fontWeight: 600, display: "block", mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Customer Queries</Typography>
-                      <Link href="mailto:nr@rightnxt.com" sx={{ color: '#2563EB', textDecoration: 'none', fontWeight: 600, '&:hover': { color: '#3B82F6', textDecoration: 'underline' } }}>
+                      <Typography variant="caption" sx={{ color: "#FFF", fontWeight: 500, display: "block", mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Customer Queries</Typography>
+                      <Link href="mailto:nr@rightnxt.com" sx={{ color: '#2563EB', textDecoration: 'none', fontWeight: 500, '&:hover': { color: '#3B82F6', textDecoration: 'underline' } }}>
                         nr@rightnxt.com
                       </Link>
                     </Box>
                   </Stack>
                 </Grid>
                 <Grid item xs={12} sm={3}>
-                  <Typography variant="subtitle2" sx={{ color: "#FFF", fontWeight: 700, mb: 3 }}>Follow Us</Typography>
+                  <Typography variant="subtitle2" sx={{ color: "#FFF", fontWeight: 600, mb: 3 }}>Follow Us</Typography>
                   <Stack direction="row" spacing={2}>
                     <IconButton
                       component="a"

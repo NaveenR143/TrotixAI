@@ -206,7 +206,7 @@ const AchievementsSection = ({ userId, profile, initialAchievements, onSuccess }
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <EmojiEventsIcon sx={{ fontSize: 20, color: "#f59e0b" }} />
-          <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "1px", color: "#0f172a" }}>
+          <Typography sx={{ fontWeight: 600, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "1px", color: "#0f172a" }}>
             Achievements / Certifications / Accomplishments
           </Typography>
         </Box>
@@ -267,9 +267,9 @@ const AchievementsSection = ({ userId, profile, initialAchievements, onSuccess }
             <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed", border: newIndices.has(idx) ? "2px dashed #10b981" : "1px dashed #e2e8f0" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                 {newIndices.has(idx) ? (
-                  <Chip label="🆕 NEW RECORD" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 700 }} />
+                  <Chip label="🆕 NEW RECORD" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 600 }} />
                 ) : (
-                  <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b" }}>
+                  <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#212121" }}>
                     ACHIEVEMENT #{idx + 1}
                   </Typography>
                 )}

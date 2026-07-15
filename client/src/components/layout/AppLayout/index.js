@@ -11,7 +11,7 @@ const useStyles = makeStyles((theme) => ({
   logo: {
     padding: "18px",
     fontSize: "medium",
-    fontWeight: 700,
+    fontWeight: 600,
     color: "#575656",
     marginTop: "10px",
     lineHeight: "40px",

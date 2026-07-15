@@ -63,17 +63,17 @@ const DashboardSection = ({ icon: Icon, title, description, accent, onClick, cou
             </Box>
 
             <Box>
-                <Typography sx={{ fontWeight: 800, fontSize: "1.1rem", color: "#111827", mb: 0.5 }}>
+                <Typography sx={{ fontWeight: 700, fontSize: "1.1rem", color: "#111827", mb: 0.5 }}>
                     {title}
                 </Typography>
-                <Typography sx={{ fontSize: "0.9rem", color: "#64748B", fontWeight: 500, lineHeight: 1.5 }}>
+                <Typography sx={{ fontSize: "0.9rem", color: "#212121", fontWeight: 400, lineHeight: 1.5 }}>
                     {description}
                 </Typography>
             </Box>
 
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ pt: 1 }}>
                 {count ? (
-                    <Typography sx={{ fontWeight: 800, fontSize: "1.5rem", color: "#111827", letterSpacing: "-0.02em" }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: "1.5rem", color: "#111827", letterSpacing: "-0.02em" }}>
                         {count}
                     </Typography>
                 ) : <Box />}
@@ -103,10 +103,10 @@ const StatCard = ({ label, value, icon: Icon, color }) => (
             <Icon sx={{ color, fontSize: 24 }} />
         </Box>
         <Box>
-            <Typography sx={{ fontWeight: 800, fontSize: "1.5rem", color: "#111827", lineHeight: 1 }}>
+            <Typography sx={{ fontWeight: 700, fontSize: "1.5rem", color: "#111827", lineHeight: 1 }}>
                 {value}
             </Typography>
-            <Typography sx={{ fontSize: "0.85rem", color: "#64748B", fontWeight: 600, mt: 0.5 }}>
+            <Typography sx={{ fontSize: "0.85rem", color: "#212121", fontWeight: 500, mt: 0.5 }}>
                 {label}
             </Typography>
         </Box>
@@ -177,16 +177,16 @@ const DashboardScreen = () => {
                             <Avatar
                                 sx={{
                                     width: 40, height: 40, bgcolor: "#2563EB",
-                                    fontWeight: 800, fontSize: '0.9rem'
+                                    fontWeight: 700, fontSize: '0.9rem'
                                 }}
                             >
                                 {displayname?.[0] || "R"}
                             </Avatar>
                             <Box>
-                                <Typography sx={{ fontWeight: 800, color: "#111827", fontSize: '1rem' }}>
+                                <Typography sx={{ fontWeight: 700, color: "#111827", fontSize: '1rem' }}>
                                     {displayname || "Recruiter"}
                                 </Typography>
-                                <Typography sx={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>
+                                <Typography sx={{ fontSize: '0.75rem', color: '#212121', fontWeight: 500 }}>
                                     Recruiter Dashboard
                                 </Typography>
                             </Box>
@@ -206,10 +206,10 @@ const DashboardScreen = () => {
             <Container maxWidth="lg" sx={{ mt: 6, mb: 4 }}>
                 <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={3}>
                     <Box>
-                        <Typography variant="h4" sx={{ fontWeight: 900, color: "#111827", letterSpacing: "-0.03em", mb: 1 }}>
+                        <Typography variant="h4" sx={{ fontWeight: 800, color: "#111827", letterSpacing: "-0.03em", mb: 1 }}>
                             Welcome back, {displayname?.split(' ')[0] || "Recruiter"}!
                         </Typography>
-                        <Typography sx={{ color: "#64748B", fontSize: "1.1rem", fontWeight: 500 }}>
+                        <Typography sx={{ color: "#212121", fontSize: "1.1rem", fontWeight: 400 }}>
                             Everything you need to manage your hiring pipeline in one place.
                         </Typography>
                     </Box>
@@ -218,7 +218,7 @@ const DashboardScreen = () => {
                         startIcon={<AddIcon />}
                         onClick={() => navigate("/post-job")}
                         sx={{
-                            px: 3, py: 1.5, borderRadius: '14px', fontWeight: 800, textTransform: 'none',
+                            px: 3, py: 1.5, borderRadius: '14px', fontWeight: 700, textTransform: 'none',
                             bgcolor: '#2563EB', boxShadow: '0 8px 20px rgba(37, 99, 235, 0.2)',
                             '&:hover': { bgcolor: '#1e40af', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)' }
                         }}
@@ -245,7 +245,7 @@ const DashboardScreen = () => {
 
             {/* Main Sections Grid */}
             <Container maxWidth="lg">
-                <Typography sx={{ fontWeight: 800, fontSize: "1.2rem", color: "#111827", mb: 3 }}>
+                <Typography sx={{ fontWeight: 700, fontSize: "1.2rem", color: "#111827", mb: 3 }}>
                     Management Hub
                 </Typography>
                 <Grid2 container spacing={3}>
@@ -273,10 +273,10 @@ const DashboardScreen = () => {
                 >
                     <Grid2 container spacing={4} alignItems="center">
                         <Grid2 size={{ xs: 12, md: 8 }}>
-                            <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, letterSpacing: '-0.02em' }}>
+                            <Typography variant="h4" sx={{ fontWeight: 800, mb: 1, letterSpacing: '-0.02em' }}>
                                 Scale your team with AI power
                             </Typography>
-                            <Typography sx={{ opacity: 0.7, fontSize: '1.1rem', fontWeight: 500 }}>
+                            <Typography sx={{ opacity: 0.7, fontSize: '1.1rem', fontWeight: 400 }}>
                                 Use our advanced matching algorithms to find the perfect candidates for your open roles in seconds.
                             </Typography>
                         </Grid2>
@@ -286,7 +286,7 @@ const DashboardScreen = () => {
                                 size="large"
                                 onClick={() => navigate("/post-job")}
                                 sx={{
-                                    px: 4, py: 2, borderRadius: '14px', fontWeight: 800, textTransform: 'none',
+                                    px: 4, py: 2, borderRadius: '14px', fontWeight: 700, textTransform: 'none',
                                     background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
                                     color: '#FFFFFF',
                                     boxShadow: '0 10px 25px rgba(37, 99, 235, 0.25)',

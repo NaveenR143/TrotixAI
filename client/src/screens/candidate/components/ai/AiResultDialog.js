@@ -27,7 +27,7 @@ const AiResultDialog = ({
       fullWidth
       PaperProps={{ sx: { borderRadius: 2, border: "1px solid #e2e8f0" } }}
     >
-      <DialogTitle sx={{ fontWeight: 700, color: "#0f172a", pb: 1 }}>
+      <DialogTitle sx={{ fontWeight: 600, color: "#0f172a", pb: 1 }}>
         {title}
       </DialogTitle>
       <DialogContent>
@@ -54,8 +54,8 @@ const AiResultDialog = ({
           <Typography
             sx={{
               fontSize: "0.85rem",
-              color: creditsText ? (creditsText.includes("50") ? "#15803d" : "#0369a1") : "#64748b",
-              fontWeight: 600,
+              color: creditsText ? (creditsText.includes("50") ? "#15803d" : "#0369a1") : "#212121",
+              fontWeight: 500,
             }}
           >
             {creditsText}

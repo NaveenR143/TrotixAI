@@ -393,7 +393,7 @@ const MembershipScreen = () => {
             sx={{
               mb: 2,
               px: 1,
-              fontWeight: 700,
+              fontWeight: 600,
               bgcolor: "#DBEAFE",
               color: COLORS.primaryBlue,
             }}
@@ -402,7 +402,7 @@ const MembershipScreen = () => {
           <Typography
             variant="h4"
             sx={{
-              fontWeight: 800,
+              fontWeight: 700,
               color: COLORS.darkText,
               mb: 1.5,
               fontSize: { xs: "2rem", md: "2.7rem" },
@@ -485,7 +485,7 @@ const MembershipScreen = () => {
                       right: 16,
                       bgcolor: COLORS.primaryBlue,
                       color: "#fff",
-                      fontWeight: 700,
+                      fontWeight: 600,
                     }}
                   />
                 )}
@@ -514,7 +514,7 @@ const MembershipScreen = () => {
                   <Typography
                     variant="h5"
                     sx={{
-                      fontWeight: 800,
+                      fontWeight: 700,
                       fontSize: "1.4rem",
                       color: COLORS.darkText,
                     }}
@@ -546,7 +546,7 @@ const MembershipScreen = () => {
                     <Typography
                       variant="h4"
                       sx={{
-                        fontWeight: 900,
+                        fontWeight: 800,
                         fontSize: "2.2rem",
                         color: COLORS.darkText,
                       }}
@@ -558,7 +558,7 @@ const MembershipScreen = () => {
                       sx={{
                         ml: 1,
                         color: COLORS.mutedText,
-                        fontWeight: 600,
+                        fontWeight: 500,
                         fontSize: "0.9rem",
                       }}
                     >
@@ -591,7 +591,7 @@ const MembershipScreen = () => {
                             fontSize: "0.92rem",
                             lineHeight: 1.5,
                             color: COLORS.darkText,
-                            fontWeight: 500,
+                            fontWeight: 400,
                           }}
                         >
                           {feature}
@@ -613,7 +613,7 @@ const MembershipScreen = () => {
                       py: 1.3,
                       borderRadius: 2.5,
                       textTransform: "none",
-                      fontWeight: 700,
+                      fontWeight: 600,
                       fontSize: "0.95rem",
 
                       ...(packageItem.popular
@@ -659,7 +659,7 @@ const MembershipScreen = () => {
             }
             sx={{
               textTransform: "none",
-              fontWeight: 700,
+              fontWeight: 600,
               color: COLORS.primaryBlue,
               fontSize: "0.95rem",
             }}
@@ -689,18 +689,18 @@ const MembershipScreen = () => {
                         "linear-gradient(135deg, #EFF6FF, #F5F3FF)",
                     }}
                   >
-                    <TableCell sx={{ fontWeight: 800 }}>
+                    <TableCell sx={{ fontWeight: 700 }}>
                       Features
                     </TableCell>
 
-                    <TableCell align="center" sx={{ fontWeight: 800 }}>
+                    <TableCell align="center" sx={{ fontWeight: 700 }}>
                       Free
                     </TableCell>
 
                     <TableCell
                       align="center"
                       sx={{
-                        fontWeight: 800,
+                        fontWeight: 700,
                         color: COLORS.primaryBlue,
                       }}
                     >
@@ -714,7 +714,7 @@ const MembershipScreen = () => {
                     <TableRow key={index}>
                       <TableCell
                         sx={{
-                          fontWeight: 600,
+                          fontWeight: 500,
                           color: COLORS.darkText,
                           fontSize: "0.92rem",
                         }}
@@ -743,7 +743,7 @@ const MembershipScreen = () => {
                           ) : (
                             <Typography
                               sx={{
-                                fontWeight: 700,
+                                fontWeight: 600,
                                 fontSize: "0.9rem",
                                 color:
                                   tier === "credits"
@@ -781,7 +781,7 @@ const MembershipScreen = () => {
           <Typography
             variant="h5"
             sx={{
-              fontWeight: 800,
+              fontWeight: 700,
               mb: 1,
             }}
           >
@@ -810,7 +810,7 @@ const MembershipScreen = () => {
               px: 4,
               py: 1.2,
               borderRadius: 2.5,
-              fontWeight: 800,
+              fontWeight: 700,
               textTransform: "none",
               boxShadow: "none",
 
@@ -851,7 +851,7 @@ const MembershipScreen = () => {
                       mb: 3,
                     }}
                   />
-                  <Typography variant="h6" fontWeight={700} color={COLORS.darkText} mb={1}>
+                  <Typography variant="h6" fontWeight={600} color={COLORS.darkText} mb={1}>
                     Processing Payment...
                   </Typography>
                   <Typography variant="body2" color={COLORS.mutedText}>
@@ -877,7 +877,7 @@ const MembershipScreen = () => {
                   >
                     <CheckCircleRoundedIcon sx={{ fontSize: 48 }} />
                   </Box>
-                  <Typography variant="h5" fontWeight={800} color={COLORS.darkText} mb={1}>
+                  <Typography variant="h5" fontWeight={700} color={COLORS.darkText} mb={1}>
                     Payment Successful!
                   </Typography>
                   <Typography variant="body1" color={COLORS.mutedText} mb={3}>
@@ -899,7 +899,7 @@ const MembershipScreen = () => {
                         <Typography variant="body2" color={COLORS.mutedText}>
                           Credits Added
                         </Typography>
-                        <Typography variant="h6" fontWeight={800} color={COLORS.success}>
+                        <Typography variant="h6" fontWeight={700} color={COLORS.success}>
                           +{creditsAdded}
                         </Typography>
                       </Grid>
@@ -907,7 +907,7 @@ const MembershipScreen = () => {
                         <Typography variant="body2" color={COLORS.mutedText}>
                           New Balance
                         </Typography>
-                        <Typography variant="h6" fontWeight={800} color={COLORS.primaryBlue}>
+                        <Typography variant="h6" fontWeight={700} color={COLORS.primaryBlue}>
                           {newBalance} Credits
                         </Typography>
                       </Grid>
@@ -920,7 +920,7 @@ const MembershipScreen = () => {
                     sx={{
                       py: 1.2,
                       borderRadius: 2.5,
-                      fontWeight: 700,
+                      fontWeight: 600,
                       textTransform: "none",
                       background: `linear-gradient(135deg, ${COLORS.primaryBlue}, ${COLORS.primaryPurple})`,
                     }}
@@ -947,7 +947,7 @@ const MembershipScreen = () => {
                   >
                     <CloseRoundedIcon sx={{ fontSize: 48 }} />
                   </Box>
-                  <Typography variant="h5" fontWeight={800} color={COLORS.darkText} mb={1}>
+                  <Typography variant="h5" fontWeight={700} color={COLORS.darkText} mb={1}>
                     Payment Failed
                   </Typography>
                   <Typography variant="body1" color={COLORS.mutedText} mb={3}>
@@ -960,7 +960,7 @@ const MembershipScreen = () => {
                     sx={{
                       py: 1.2,
                       borderRadius: 2.5,
-                      fontWeight: 700,
+                      fontWeight: 600,
                       textTransform: "none",
                       borderColor: COLORS.primaryBlue,
                       color: COLORS.primaryBlue,
@@ -990,7 +990,7 @@ const MembershipScreen = () => {
         >
           <DialogContent>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h5" fontWeight={800} color={COLORS.darkText}>
+              <Typography variant="h5" fontWeight={700} color={COLORS.darkText}>
                 Checkout
               </Typography>
               <Button
@@ -1018,26 +1018,26 @@ const MembershipScreen = () => {
                   mb: 3,
                 }}
               >
-                <Typography variant="subtitle2" color={COLORS.mutedText} fontWeight={600} gutterBottom>
+                <Typography variant="subtitle2" color={COLORS.mutedText} fontWeight={500} gutterBottom>
                   Order Summary
                 </Typography>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
                   <Box>
-                    <Typography variant="h6" fontWeight={800} color={COLORS.darkText}>
+                    <Typography variant="h6" fontWeight={700} color={COLORS.darkText}>
                       {selectedPackage.title}
                     </Typography>
                     <Typography variant="body2" color={COLORS.mutedText}>
                       {selectedPackage.description}
                     </Typography>
                   </Box>
-                  <Typography variant="h5" fontWeight={900} color={COLORS.primaryBlue}>
+                  <Typography variant="h5" fontWeight={800} color={COLORS.primaryBlue}>
                     {selectedPackage.price}
                   </Typography>
                 </Box>
               </Paper>
             )}
 
-            <Typography variant="subtitle1" fontWeight={800} color={COLORS.darkText} mb={2}>
+            <Typography variant="subtitle1" fontWeight={700} color={COLORS.darkText} mb={2}>
               Select Payment Method
             </Typography>
 
@@ -1082,7 +1082,7 @@ const MembershipScreen = () => {
                         sx={{
                           height: 18,
                           fontSize: "0.65rem",
-                          fontWeight: 700,
+                          fontWeight: 600,
                           bgcolor: COLORS.primaryBlue,
                         }}
                       />
@@ -1141,7 +1141,7 @@ const MembershipScreen = () => {
               sx={{
                 py: 1.5,
                 borderRadius: 2.5,
-                fontWeight: 800,
+                fontWeight: 700,
                 fontSize: "1rem",
                 textTransform: "none",
                 background: `linear-gradient(135deg, ${COLORS.primaryBlue}, ${COLORS.primaryPurple})`,

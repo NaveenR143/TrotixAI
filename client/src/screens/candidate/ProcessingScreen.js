@@ -347,7 +347,7 @@ const ProcessingScreen = ({ onComplete }) => {
             </Box>
 
             <Typography variant="h5" sx={{
-              fontWeight: 800,
+              fontWeight: 700,
               color: "#0f172a",
               mb: 1.5,
               letterSpacing: "-0.02em",
@@ -358,7 +358,7 @@ const ProcessingScreen = ({ onComplete }) => {
 
             <Box sx={{ mb: 4, height: 24, overflow: "hidden" }}>
               <Fade in={true} key={currentStep} timeout={500}>
-                <Typography sx={{ color: "#64748b", fontSize: "0.95rem" }}>
+                <Typography sx={{ color: "#212121", fontSize: "0.95rem" }}>
                   {steps[currentStep]}
                 </Typography>
               </Fade>
@@ -379,7 +379,7 @@ const ProcessingScreen = ({ onComplete }) => {
               {["Parsing PDF", "NLP Analysis", "Vector Search"].map((label, i) => (
                 <Typography key={label} sx={{
                   fontSize: "0.65rem",
-                  fontWeight: 800,
+                  fontWeight: 700,
                   color: i <= currentStep / 2 ? "#6366f1" : "#94a3b8",
                   textTransform: "uppercase",
                   letterSpacing: "0.1em"
@@ -401,10 +401,10 @@ const ProcessingScreen = ({ onComplete }) => {
                   border: "1px solid #fee2e2",
                   bgcolor: "#fef2f2"
                 }}>
-                  <AlertTitle sx={{ fontWeight: 700, }}>
+                  <AlertTitle sx={{ fontWeight: 600, }}>
                     Processing Delay Notice
                   </AlertTitle>
-                  <Typography sx={{ fontSize: "0.85rem", mb: 1.5, fontWeight: 500 }}>
+                  <Typography sx={{ fontSize: "0.85rem", mb: 1.5, fontWeight: 400 }}>
                     {processingError}
                   </Typography>
                   {/* <Stack direction="row" spacing={1.5}>
@@ -414,7 +414,7 @@ const ProcessingScreen = ({ onComplete }) => {
                       color="error"
                       onClick={handleResendOtp}
                       disabled={activeOtp.isCooldownActive || activeOtp.loading || !activeOtp.isEligible}
-                      sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700 }}
+                      sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
                     >
                       {activeOtp.loading
                         ? "Resending..."
@@ -429,7 +429,7 @@ const ProcessingScreen = ({ onComplete }) => {
                       variant="text"
                       color="error"
                       onClick={handleRetry}
-                      sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700 }}
+                      sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
                     >
                       Cancel & Retry
                     </Button>
@@ -446,7 +446,7 @@ const ProcessingScreen = ({ onComplete }) => {
                   borderRadius: 2.5,
                   border: "1px solid #86efac"
                 }}>
-                  <AlertTitle sx={{ fontWeight: 700, color: "#166534" }}>
+                  <AlertTitle sx={{ fontWeight: 600, color: "#166534" }}>
                     ✓ Mobile Verified Successfully
                   </AlertTitle>
                   <Typography sx={{ fontSize: "0.8rem", color: "#4b5563" }}>
@@ -488,7 +488,7 @@ const ProcessingScreen = ({ onComplete }) => {
 
               <Typography sx={{
                 fontSize: "1rem",
-                fontWeight: 800,
+                fontWeight: 700,
                 color: "#0f172a",
                 mb: 2
               }}>
@@ -499,7 +499,7 @@ const ProcessingScreen = ({ onComplete }) => {
               <Typography sx={{
                 fontSize: "0.9rem",
                 color: resumeProcessingStatus === "failed" ? "#ef4444" : "#6366f1",
-                fontWeight: 700,
+                fontWeight: 600,
                 mb: 3,
                 minHeight: 24
               }}>
@@ -524,12 +524,12 @@ const ProcessingScreen = ({ onComplete }) => {
                   }}
                 />
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography sx={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: 600 }}>
+                  <Typography sx={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: 500 }}>
                     Processing...
                   </Typography>
                   <Typography sx={{
                     fontSize: "0.85rem",
-                    fontWeight: 800,
+                    fontWeight: 700,
                     background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
@@ -568,14 +568,14 @@ const ProcessingScreen = ({ onComplete }) => {
                       color: step.done ? "#166534" : "#94a3b8",
                       flexShrink: 0,
                       fontSize: "0.8rem",
-                      fontWeight: 700
+                      fontWeight: 600
                     }}>
                       {step.done ? "✓" : idx + 1}
                     </Box>
                     <Typography sx={{
                       fontSize: "0.85rem",
-                      color: step.done ? "#166534" : "#64748b",
-                      fontWeight: step.done ? 600 : 500
+                      color: step.done ? "#166534" : "#212121",
+                      fontWeight: step.done ? 500 : 400
                     }}>
                       {step.label}
                     </Typography>
@@ -624,7 +624,7 @@ const ProcessingScreen = ({ onComplete }) => {
 
               <Typography sx={{
                 fontSize: "1.3rem",
-                fontWeight: 800,
+                fontWeight: 700,
                 color: "#0f172a",
                 mb: 1.5
               }}>
@@ -633,7 +633,7 @@ const ProcessingScreen = ({ onComplete }) => {
 
               <Typography sx={{
                 fontSize: "0.95rem",
-                color: "#64748b",
+                color: "#212121",
                 mb: 3,
                 lineHeight: 1.6
               }}>
@@ -650,7 +650,7 @@ const ProcessingScreen = ({ onComplete }) => {
                 <Typography sx={{
                   fontSize: "0.85rem",
                   color: "#166534",
-                  fontWeight: 600
+                  fontWeight: 500
                 }}>
                   ✓ Profile: Complete  •  ✓ Resume: Verified  •  ✓ Ready: To Connect
                 </Typography>
@@ -659,7 +659,7 @@ const ProcessingScreen = ({ onComplete }) => {
               {autoApplyStatus === "applying" && (
                 <Box sx={{ mb: 3, textAlign: 'center' }}>
                   <CircularProgress size={24} sx={{ mb: 1 }} />
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#2563EB' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#2563EB' }}>
                     Applying for the job...
                   </Typography>
                 </Box>
@@ -667,7 +667,7 @@ const ProcessingScreen = ({ onComplete }) => {
 
               {autoApplyStatus === "success" && (
                 <Box sx={{ mb: 3, p: 2, bgcolor: '#eff6ff', borderRadius: 2, border: '1px solid #bfdbfe' }}>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e40af', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e40af', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                     <CheckCircleIcon sx={{ fontSize: 18 }} />
                     Applied for {location.state?.autoApplyJobId ? "Job Posting" : "Job"}!
                   </Typography>
@@ -684,7 +684,7 @@ const ProcessingScreen = ({ onComplete }) => {
                   fontSize: "1rem",
                   borderRadius: 2.5,
                   textTransform: "none",
-                  fontWeight: 700,
+                  fontWeight: 600,
                   background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
                   boxShadow: "0 4px 14px rgba(99,102,241,0.3)",
                   "&:hover": {
@@ -716,7 +716,7 @@ const ProcessingScreen = ({ onComplete }) => {
               }}>
                 <Typography sx={{
                   fontSize: "1rem",
-                  fontWeight: 700,
+                  fontWeight: 600,
                   color: "#3b82f6",
                   mb: 0.5
                 }}>
@@ -724,7 +724,7 @@ const ProcessingScreen = ({ onComplete }) => {
                 </Typography>
                 <Typography sx={{
                   fontSize: "0.85rem",
-                  color: "#64748b",
+                  color: "#212121",
                   lineHeight: 1.5
                 }}>
                   We found your account. Please verify your mobile number to continue.
@@ -735,7 +735,7 @@ const ProcessingScreen = ({ onComplete }) => {
             {/* Error Alert if Processing Failed */}
             {processingError && (
               <Alert severity="error" sx={{ borderRadius: 2.5 }}>
-                <AlertTitle sx={{ fontWeight: 700 }}>Processing Error</AlertTitle>
+                <AlertTitle sx={{ fontWeight: 600 }}>Processing Error</AlertTitle>
                 {processingError}
                 <Button
                   size="small"

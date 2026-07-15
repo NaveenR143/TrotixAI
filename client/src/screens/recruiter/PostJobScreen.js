@@ -234,7 +234,7 @@ const PostJobScreen = () => {
       <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Icon sx={{ color: '#2563EB', fontSize: 20 }} />
       </Box>
-      <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: '#111827' }}>
+      <Typography sx={{ fontWeight: 700, fontSize: '1.1rem', color: '#111827' }}>
         {title}
       </Typography>
     </Box>
@@ -248,7 +248,7 @@ const PostJobScreen = () => {
             <IconButton onClick={() => navigate(-1)} size="small" sx={{ color: '#6B7280' }}>
               <ArrowBackIcon />
             </IconButton>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827', letterSpacing: '-0.02em' }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
               Post New Job
             </Typography>
           </Stack>
@@ -389,7 +389,7 @@ const PostJobScreen = () => {
                       value={formData.skills}
                       onChange={handleSkillsChange}
                       renderTags={(value, getTagProps) => value.map((option, index) => (
-                        <Chip variant="filled" label={toTitleCase(option)} size="small" sx={{ borderRadius: '8px', bgcolor: '#eff6ff', color: '#2563EB', fontWeight: 700 }} {...getTagProps({ index })} />
+                        <Chip variant="filled" label={toTitleCase(option)} size="small" sx={{ borderRadius: '8px', bgcolor: '#eff6ff', color: '#2563EB', fontWeight: 600 }} {...getTagProps({ index })} />
                       ))}
                       renderInput={(params) => (
                         <TextField
@@ -443,7 +443,7 @@ const PostJobScreen = () => {
                     placeholder="Describe the role, responsibilities, and ideal candidate profile..."
                   />
                   {errors.description && (
-                    <Typography variant="caption" sx={{ color: '#ef4444', mt: 1, ml: 1, display: 'block', fontWeight: 600 }}>
+                    <Typography variant="caption" sx={{ color: '#ef4444', mt: 1, ml: 1, display: 'block', fontWeight: 500 }}>
                       {errors.description}
                     </Typography>
                   )}
@@ -455,7 +455,7 @@ const PostJobScreen = () => {
                 <Button
                   type="submit" variant="contained" size="large" disabled={isSubmitting}
                   sx={{
-                    px: 6, py: 2, borderRadius: '16px', fontWeight: 800, textTransform: 'none', fontSize: '1.1rem',
+                    px: 6, py: 2, borderRadius: '16px', fontWeight: 700, textTransform: 'none', fontSize: '1.1rem',
                     bgcolor: '#2563EB', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.2)',
                     '&:hover': { bgcolor: '#1e40af', boxShadow: '0 12px 30px rgba(37, 99, 235, 0.3)' },
                     "&.Mui-disabled": {
@@ -473,7 +473,7 @@ const PostJobScreen = () => {
       </Container>
 
       <Snackbar open={!!successMsg} autoHideDuration={3000} onClose={() => setSuccessMsg('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert severity="success" variant="filled" sx={{ borderRadius: '12px', fontWeight: 600 }}>
+        <Alert severity="success" variant="filled" sx={{ borderRadius: '12px', fontWeight: 500 }}>
           {successMsg}
         </Alert>
       </Snackbar>

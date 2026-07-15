@@ -148,7 +148,7 @@ const LanguagesSection = ({ userId, profile, initialLanguages, onSuccess, enhanc
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <LanguageIcon sx={{ fontSize: 20, color: "#0ea5e9" }} />
-          <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
+          <Typography sx={{ fontWeight: 600, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
             Languages
           </Typography>
         </Box>
@@ -198,7 +198,7 @@ const LanguagesSection = ({ userId, profile, initialLanguages, onSuccess, enhanc
               <Chip
                 key={lang}
                 label={toTitleCase(lang)}
-                sx={{ bgcolor: "#f0f9ff", color: "#0369a1", fontWeight: 600 }}
+                sx={{ bgcolor: "#f0f9ff", color: "#0369a1", fontWeight: 500 }}
               />
             ))
           ) : (
@@ -229,7 +229,7 @@ const LanguagesSection = ({ userId, profile, initialLanguages, onSuccess, enhanc
                 sx={{
                   bgcolor: "#f0f9ff",
                   color: "#0369a1",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   "& .MuiChip-deleteIcon": { color: "#0ea5e9" },
                 }}
               />

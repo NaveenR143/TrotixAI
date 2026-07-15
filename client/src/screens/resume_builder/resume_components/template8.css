@@ -49,7 +49,7 @@
 
 .t8-header-left h1 {
     font-size: 30px;
-    font-weight: 900;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin: 0 0 4px 0;
@@ -57,7 +57,7 @@
 
 .t8-header-left .t8-job-title {
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 400;
     color: #e0f2f1;
     /* Light teal tint */
     text-transform: uppercase;
@@ -67,7 +67,7 @@
 .t8-header-right {
     text-align: right;
     font-size: 12.5px;
-    font-weight: 400;
+    font-weight: 300;
     color: #ffffff;
     line-height: 1.8;
 }
@@ -85,7 +85,7 @@
 
 .t8-section-title {
     font-size: 15px;
-    font-weight: 900;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     color: #0d3b66;
@@ -139,7 +139,7 @@
 }
 
 .t8-skill-item strong {
-    font-weight: 700;
+    font-weight: 600;
     color: #0d3b66;
 }
 
@@ -157,20 +157,20 @@
 
 .t8-exp-role {
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 600;
     color: #0d3b66;
 }
 
 .t8-exp-date {
     font-size: 11.5px;
-    font-weight: 700;
+    font-weight: 600;
     color: #00838f;
     text-transform: uppercase;
 }
 
 .t8-exp-company {
     font-size: 12.5px;
-    font-weight: 500;
+    font-weight: 400;
     margin-bottom: 8px;
     color: #555;
     padding-left: 10px;
@@ -209,7 +209,7 @@
 
 .t8-edu-school {
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     color: #0d3b66;
     text-transform: uppercase;
 }
@@ -223,7 +223,7 @@
 
 .t8-edu-date {
     font-size: 11.5px;
-    font-weight: 700;
+    font-weight: 600;
     color: #00838f;
     white-space: nowrap;
     margin-left: 20px;
@@ -243,13 +243,13 @@
 
 .t8-proj-name {
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 600;
     color: #0d3b66;
 }
 
 .t8-proj-year {
     font-size: 11.5px;
-    font-weight: 700;
+    font-weight: 600;
     color: #00838f;
     text-transform: uppercase;
 }
@@ -282,7 +282,7 @@
 }
 
 .t8-lang-item strong {
-    font-weight: 700;
+    font-weight: 600;
     color: #0d3b66;
 }
 

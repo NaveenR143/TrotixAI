@@ -41,10 +41,10 @@ const SkillsGapCard = ({ userPoints, loading, onAnalyze }) => {
           <TrendingUpIcon sx={{ color: "#0369a1", fontSize: 20 }} />
         </Box>
       </Box>
-      <Typography sx={{ fontWeight: 700, color: "#0f172a", mb: 1, fontSize: "0.95rem" }}>
+      <Typography sx={{ fontWeight: 600, color: "#0f172a", mb: 1, fontSize: "0.95rem" }}>
         Missing Skills & Analysis
       </Typography>
-      <Typography sx={{ fontSize: "0.85rem", color: "#64748b", mb: 2 }}>
+      <Typography sx={{ fontSize: "0.85rem", color: "#212121", mb: 2 }}>
         Compare profile with live job openings to identify missing skills and improvement areas.
       </Typography>
       <Tooltip title="Click to identify missing skills">

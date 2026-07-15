@@ -12,7 +12,7 @@ const Breadcrumb = ({ subtitle, items, title, children }) => (
     }}
   >
     <Grid item xs={12} sm={6} lg={8}>
-      <Typography color="textSecondary" fontWeight="400" variant="h4">
+      <Typography color="textSecondary" fontWeight="300" variant="h4">
         {subtitle}
       </Typography>
 
@@ -32,7 +32,7 @@ const Breadcrumb = ({ subtitle, items, title, children }) => (
           : ''}
       </Breadcrumbs>
       <Typography
-        fontWeight="700"
+        fontWeight="600"
         variant="h1"
         sx={{
           lineHeight: '1.235',

@@ -11,7 +11,7 @@ const SkillTag = ({ label, onDelete, matched = false }) => (
       bgcolor: matched ? '#ede9fe' : '#f8fafc',
       color: matched ? '#4f46e5' : '#475569',
       border: `1px solid ${matched ? '#c4b5fd' : '#e2e8f0'}`,
-      fontWeight: 500,
+      fontWeight: 400,
       '& .MuiChip-deleteIcon': { color: matched ? '#7c3aed' : '#94a3b8', fontSize: 14 },
     }}
   />

@@ -215,7 +215,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
       return (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 3 }}>
           <CircularProgress size={50} sx={{ color: '#6366f1' }} />
-          <Typography sx={{ color: '#64748b', fontWeight: 500 }}>Loading personalized jobs for you...</Typography>
+          <Typography sx={{ color: '#212121', fontWeight: 400 }}>Loading personalized jobs for you...</Typography>
         </Box>
       );
     }
@@ -224,7 +224,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
       return (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 2 }}>
           <Typography sx={{ fontSize: '2rem' }}>⚠️</Typography>
-          <Typography sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#0f172a' }}>{error}</Typography>
+          <Typography sx={{ fontWeight: 600, fontSize: '1.2rem', color: '#0f172a' }}>{error}</Typography>
           <Button variant="outlined" onClick={onGoBack} startIcon={<ArrowBackIcon />}
             sx={{ mt: 1, borderColor: '#e2e8f0', color: '#0f172a', '&:hover': { borderColor: '#0f172a' } }}>
             Back to Search
@@ -242,10 +242,10 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
         )}
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 2, px: 4, textAlign: 'center' }}>
           <Typography sx={{ fontSize: '3rem' }}>{filteredJobs.length === 0 && activeFilterCount > 0 ? '🔍' : '✨'}</Typography>
-          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#0f172a', mb: 0.5 }}>
+          <Typography sx={{ fontWeight: 700, fontSize: '1.5rem', color: '#0f172a', mb: 0.5 }}>
             {filteredJobs.length === 0 && activeFilterCount > 0 ? 'No matches found' : "You're all caught up!"}
           </Typography>
-          <Typography sx={{ color: '#64748b', fontSize: '1rem', maxWidth: 400, mb: 2, lineHeight: 1.6 }}>
+          <Typography sx={{ color: '#212121', fontSize: '1rem', maxWidth: 400, mb: 2, lineHeight: 1.6 }}>
             {filteredJobs.length === 0 && activeFilterCount > 0
               ? 'Try adjusting your filters or clearing them to see more opportunities.'
               : 'We couldn\'t find any more jobs matching your current profile. Update your details to get better recommendations.'}
@@ -271,7 +271,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
                   background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
                   boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
                   textTransform: 'none',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   '&:hover': { background: 'linear-gradient(135deg, #4f46e5, #4338ca)' }
                 }}
               >
@@ -287,7 +287,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
                   background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
                   boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
                   textTransform: 'none',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   '&:hover': { background: 'linear-gradient(135deg, #4f46e5, #4338ca)' }
                 }}
               >
@@ -305,7 +305,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
                 borderColor: '#e2e8f0',
                 color: '#475569',
                 textTransform: 'none',
-                fontWeight: 600,
+                fontWeight: 500,
                 '&:hover': { borderColor: '#cbd5e1', bgcolor: '#f8fafc' }
               }}
             >
@@ -322,7 +322,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
       return (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 3 }}>
           <CircularProgress size={50} sx={{ color: '#6366f1' }} />
-          <Typography sx={{ color: '#64748b', fontWeight: 500 }}>Loading personalized jobs for you...</Typography>
+          <Typography sx={{ color: '#212121', fontWeight: 400 }}>Loading personalized jobs for you...</Typography>
         </Box>
       );
     }
@@ -331,7 +331,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
       return (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 2 }}>
           <Typography sx={{ fontSize: '2rem' }}>⚠️</Typography>
-          <Typography sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#0f172a' }}>{error}</Typography>
+          <Typography sx={{ fontWeight: 600, fontSize: '1.2rem', color: '#0f172a' }}>{error}</Typography>
           <Button variant="outlined" onClick={onGoBack} startIcon={<ArrowBackIcon />}
             sx={{ mt: 1, borderColor: '#e2e8f0', color: '#0f172a', '&:hover': { borderColor: '#0f172a' } }}>
             Back to Search
@@ -373,7 +373,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
           zIndex: 5
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography sx={{ fontWeight: 600, color: '#0f172a', fontSize: '0.9rem' }}>
+            <Typography sx={{ fontWeight: 500, color: '#0f172a', fontSize: '0.9rem' }}>
               {filteredJobs.length} Match{filteredJobs.length !== 1 ? 'es' : ''}
             </Typography>
             {activeFilterCount > 0 && (
@@ -383,7 +383,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
                 sx={{
                   bgcolor: '#ede9fe',
                   color: '#4f46e5',
-                  fontWeight: 600,
+                  fontWeight: 500,
                   fontSize: '0.75rem'
                 }}
               />
@@ -492,7 +492,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
           }}
         >
           <Box sx={{ p: 2, borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography sx={{ fontWeight: 700, color: '#0f172a' }}>Job Filters</Typography>
+            <Typography sx={{ fontWeight: 600, color: '#0f172a' }}>Job Filters</Typography>
             <IconButton onClick={() => setShowFilters(false)} size="small"><CloseIcon /></IconButton>
           </Box>
           <Box sx={{ p: 2, overflowY: 'auto', maxHeight: 'calc(90vh - 60px)' }}>
@@ -537,7 +537,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)', gap: 3 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
           <CircularProgress size={50} sx={{ color: '#6366f1' }} />
-          <Typography sx={{ color: '#64748b', fontWeight: 500 }}>Loading personalized jobs for you...</Typography>
+          <Typography sx={{ color: '#212121', fontWeight: 400 }}>Loading personalized jobs for you...</Typography>
         </Box>
       </Box>
     );
@@ -548,7 +548,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
           <Typography sx={{ fontSize: '2rem' }}>⚠️</Typography>
-          <Typography sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#0f172a' }}>{error}</Typography>
+          <Typography sx={{ fontWeight: 600, fontSize: '1.2rem', color: '#0f172a' }}>{error}</Typography>
           <Button variant="outlined" onClick={onGoBack} startIcon={<ArrowBackIcon />}
             sx={{ mt: 1, borderColor: '#e2e8f0', color: '#0f172a', '&:hover': { borderColor: '#0f172a' } }}>
             Back to Search
@@ -569,9 +569,9 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
         <Box sx={{ width: 340, flexShrink: 0, borderRight: '1px solid #e2e8f0', bgcolor: '#f8fafc', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <Box sx={{ p: 2.5, borderBottom: '1px solid #e2e8f0', bgcolor: '#fff' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>
+              <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: '#0f172a' }}>
                 {filteredJobs.length === 0 ? 'No matches' : 'Recommended'}
-                <Box component="span" sx={{ ml: 1, px: 1, py: 0.25, bgcolor: '#ede9fe', color: '#4f46e5', borderRadius: 100, fontSize: '0.72rem', fontWeight: 700 }}>{filteredJobs.length}</Box>
+                <Box component="span" sx={{ ml: 1, px: 1, py: 0.25, bgcolor: '#ede9fe', color: '#4f46e5', borderRadius: 100, fontSize: '0.72rem', fontWeight: 600 }}>{filteredJobs.length}</Box>
               </Typography>
               <Stack direction="row" spacing={1}>
                 <Tooltip title="AI Career Coach">
@@ -581,7 +581,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
                 </Tooltip>
                 <Tooltip title="Filters">
                   <Badge badgeContent={activeFilterCount > 0 ? activeFilterCount : 0} color="error">
-                    <IconButton size="small" onClick={() => setShowFilters(true)} sx={{ color: '#64748b', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', '&:hover': { bgcolor: '#f1f5f9' } }}>
+                    <IconButton size="small" onClick={() => setShowFilters(true)} sx={{ color: '#212121', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', '&:hover': { bgcolor: '#f1f5f9' } }}>
                       <TuneIcon fontSize="small" />
                     </IconButton>
                   </Badge>
@@ -614,7 +614,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
                     }));
                   }
                 }}
-                  sx={{ cursor: 'pointer', flexShrink: 0, bgcolor: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#ede9fe' : '#f8fafc', color: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#4f46e5' : '#64748b', border: `1px solid ${(f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#c4b5fd' : '#e2e8f0'}`, fontWeight: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? 600 : 400, '&:hover': { bgcolor: '#ede9fe' } }} />
+                  sx={{ cursor: 'pointer', flexShrink: 0, bgcolor: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#ede9fe' : '#f8fafc', color: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#4f46e5' : '#212121', border: `1px solid ${(f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? '#c4b5fd' : '#e2e8f0'}`, fontWeight: (f === 'all' && activeFilterCount === 0) || (f === 'remote' && filters.workModes.includes('Remote')) || (f === '90%+' && filters.matchScore >= 90) ? 500 : 300, '&:hover': { bgcolor: '#ede9fe' } }} />
               ))}
               {jobs.some(j => j.is_viewed) && (
                 <Chip
@@ -625,9 +625,9 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
                     cursor: 'pointer',
                     flexShrink: 0,
                     bgcolor: filters.hideViewed ? '#ede9fe' : '#f8fafc',
-                    color: filters.hideViewed ? '#4f46e5' : '#64748b',
+                    color: filters.hideViewed ? '#4f46e5' : '#212121',
                     border: `1px solid ${filters.hideViewed ? '#c4b5fd' : '#e2e8f0'}`,
-                    fontWeight: filters.hideViewed ? 600 : 400,
+                    fontWeight: filters.hideViewed ? 500 : 300,
                     '&:hover': { bgcolor: '#ede9fe' }
                   }}
                 />
@@ -655,7 +655,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
           PaperProps={{ sx: { width: { xs: '100vw', sm: 420 }, borderLeft: '1px solid #e2e8f0', boxShadow: '-4px 0 20px rgba(0,0,0,0.05)' } }}
         >
           <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontWeight: 700, color: '#0f172a' }}>Job Filters</Typography>
+            <Typography sx={{ fontWeight: 600, color: '#0f172a' }}>Job Filters</Typography>
             <IconButton onClick={() => setShowFilters(false)} size="small"><CloseIcon /></IconButton>
           </Box>
           <Box sx={{ p: 2, overflowY: 'auto', maxHeight: 'calc(100vh - 120px)' }}>
@@ -679,7 +679,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
           PaperProps={{ sx: { width: { xs: '100vw', sm: 400 }, borderLeft: '1px solid #e2e8f0', boxShadow: '-4px 0 20px rgba(0,0,0,0.05)' } }}
         >
           <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontWeight: 700, color: '#0f172a' }}>AI Career Assistant</Typography>
+            <Typography sx={{ fontWeight: 600, color: '#0f172a' }}>AI Career Assistant</Typography>
             <IconButton onClick={() => setShowCoach(false)} size="small"><CloseIcon /></IconButton>
           </Box>
           <CareerCoach profile={profile} />

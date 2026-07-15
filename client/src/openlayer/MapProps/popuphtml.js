@@ -49,7 +49,7 @@ const renderStatus = (status) => {
   return `
     <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
       <span style="color:#666;">Status:</span>
-      <span style="font-weight:600; color:${status === "Active" ? "green" : status === "Inactive" ? "red" : "orange"
+      <span style="font-weight:500; color:${status === "Active" ? "green" : status === "Inactive" ? "red" : "orange"
     };">
         ● ${status}
       </span>
@@ -62,7 +62,7 @@ const renderPipelineStatus = (status) => {
   return `
     <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
       <span style="color:#666;">Status:</span>
-      <span style="font-weight:600; color:${status === "In Service"
+      <span style="font-weight:500; color:${status === "In Service"
       ? "green"
       : status === "Out of Service"
         ? "red"
@@ -95,7 +95,7 @@ const renderLinkButton = (id, type, values) => {
       <a href="${url}"
         target="_blank"
         rel="noopener noreferrer"
-        style="color:#2563eb; font-size:13px; text-decoration:none; font-weight:500;">
+        style="color:#2563eb; font-size:13px; text-decoration:none; font-weight:400;">
         View Details →
       </a>
     </div>
@@ -104,7 +104,7 @@ const renderLinkButton = (id, type, values) => {
 
 // Title Builder
 const renderTitle = (title) => `
-  <div style="font-size:17px; font-weight:600; margin-bottom:10px; color:#222;">
+  <div style="font-size:17px; font-weight:500; margin-bottom:10px; color:#222;">
     ${title}
   </div>`;
 

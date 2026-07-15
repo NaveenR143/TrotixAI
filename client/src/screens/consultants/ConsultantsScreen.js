@@ -163,7 +163,7 @@ const ConsultantsScreen = () => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)' }}>
         <CircularProgress size={48} sx={{ color: '#6366f1', mb: 2 }} />
-        <Typography sx={{ color: '#64748b', fontWeight: 600 }}>Loading consultants...</Typography>
+        <Typography sx={{ color: '#212121', fontWeight: 500 }}>Loading consultants...</Typography>
       </Box>
     );
   }
@@ -176,14 +176,14 @@ const ConsultantsScreen = () => {
             <Button
               startIcon={<ArrowBackIcon />}
               onClick={() => navigate(-1)}
-              sx={{ mb: 1, color: '#64748b', fontWeight: 600, textTransform: 'none', '&:hover': { bgcolor: 'transparent', color: '#0f172a' } }}
+              sx={{ mb: 1, color: '#212121', fontWeight: 500, textTransform: 'none', '&:hover': { bgcolor: 'transparent', color: '#0f172a' } }}
             >
               Back
             </Button>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: '#0f172a', letterSpacing: '-0.02em' }}>
               Career Consultants
             </Typography>
-            <Typography variant="subtitle1" sx={{ color: '#64748b', mt: 0.5 }}>
+            <Typography variant="subtitle1" sx={{ color: '#212121', mt: 0.5 }}>
               Connect with {consultants.length} professional career consultants to guide your growth.
             </Typography>
           </Box>
@@ -225,12 +225,12 @@ const ConsultantsScreen = () => {
         {consultants.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 10, bgcolor: '#ffffff', borderRadius: 4, border: '1px dashed #cbd5e1' }}>
             <BusinessIcon sx={{ fontSize: 64, color: '#cbd5e1', mb: 2 }} />
-            <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f172a', mb: 1 }}>No consultants found</Typography>
-            <Typography sx={{ color: '#64748b' }}>Check back soon for new consultants joining the platform.</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>No consultants found</Typography>
+            <Typography sx={{ color: '#212121' }}>Check back soon for new consultants joining the platform.</Typography>
           </Box>
         ) : filteredConsultants.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography sx={{ fontWeight: 600, color: '#64748b' }}>No consultants found matching your search.</Typography>
+            <Typography sx={{ fontWeight: 500, color: '#212121' }}>No consultants found matching your search.</Typography>
             <Button variant="text" onClick={() => setSearchQuery("")} sx={{ mt: 1, textTransform: 'none' }}>
               Clear Search
             </Button>
@@ -273,7 +273,7 @@ const ConsultantsScreen = () => {
                         {/* Consultant Info */}
                         <Box sx={{ flex: 1 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f172a', lineHeight: 1.2, mb: 0.5 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a', lineHeight: 1.2, mb: 0.5 }}>
                               {consultant.name}
                             </Typography>
                             {isMobile && (
@@ -285,21 +285,21 @@ const ConsultantsScreen = () => {
                               </IconButton>
                             )}
                           </Box>
-                          <Typography sx={{ color: '#6366f1', fontWeight: 600, fontSize: '0.9rem', mb: 1 }}>
+                          <Typography sx={{ color: '#6366f1', fontWeight: 500, fontSize: '0.9rem', mb: 1 }}>
                             {consultant.company}
                           </Typography>
 
-                          <Stack direction="row" flexWrap="wrap" gap={2} sx={{ color: '#64748b', fontSize: '0.85rem' }}>
+                          <Stack direction="row" flexWrap="wrap" gap={2} sx={{ color: '#212121', fontSize: '0.85rem' }}>
                             <Tooltip title="Location" placement="top" arrow>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, p: 1, borderRadius: 1.5, bgcolor: '#f0f9ff' }}>
                                 <LocationOnIcon sx={{ fontSize: 16, color: '#0ea5e9' }} />
-                                <span style={{ fontWeight: 500 }}>{consultant.city}</span>
+                                <span style={{ fontWeight: 400 }}>{consultant.city}</span>
                               </Box>
                             </Tooltip>
                             <Tooltip title="Candidates connected" placement="top" arrow>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, p: 1, borderRadius: 1.5, bgcolor: '#f8fafc' }}>
                                 <WorkIcon sx={{ fontSize: 16, color: '#6366f1' }} />
-                                <span style={{ fontWeight: 600, color: '#6366f1' }}>{consultant.candidatesConnected} connected</span>
+                                <span style={{ fontWeight: 500, color: '#6366f1' }}>{consultant.candidatesConnected} connected</span>
                               </Box>
                             </Tooltip>
                           </Stack>
@@ -320,7 +320,7 @@ const ConsultantsScreen = () => {
                             color: connectedSet.has(consultant.id) ? '#ffffff' : '#6366f1',
                             borderColor: '#6366f1',
                             textTransform: 'none',
-                            fontWeight: 600,
+                            fontWeight: 500,
                             borderRadius: 2,
                             py: 0.8,
                             px: 2,

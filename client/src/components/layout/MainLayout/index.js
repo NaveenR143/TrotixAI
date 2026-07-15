@@ -32,18 +32,18 @@ const theme = createTheme({
     warning: { main: '#f59e0b' },
     info: { main: '#0ea5e9' },
     background: { default: '#f8fafc', paper: '#ffffff' },
-    text: { primary: '#0f172a', secondary: '#64748b' },
+    text: { primary: '#0f172a', secondary: '#212121' },
     divider: '#e2e8f0',
   },
   typography: {
     fontFamily: "'Open Sans', Verdana, sans-serif",
-    h1: { fontWeight: 800, letterSpacing: '-0.03em' },
-    h2: { fontWeight: 800, letterSpacing: '-0.02em' },
-    h3: { fontWeight: 800, letterSpacing: '-0.02em' },
-    h4: { fontWeight: 700, letterSpacing: '-0.01em' },
-    h5: { fontWeight: 700, letterSpacing: '-0.01em' },
-    h6: { fontWeight: 600 },
-    button: { fontWeight: 600, letterSpacing: '0.01em' },
+    h1: { fontWeight: 700, letterSpacing: '-0.03em' },
+    h2: { fontWeight: 700, letterSpacing: '-0.02em' },
+    h3: { fontWeight: 700, letterSpacing: '-0.02em' },
+    h4: { fontWeight: 600, letterSpacing: '-0.01em' },
+    h5: { fontWeight: 600, letterSpacing: '-0.01em' },
+    h6: { fontWeight: 500 },
+    button: { fontWeight: 500, letterSpacing: '0.01em' },
   },
   shape: { borderRadius: 12 },
   shadows: [
@@ -64,7 +64,7 @@ const theme = createTheme({
         root: {
           textTransform: 'none',
           borderRadius: 10,
-          fontWeight: 600,
+          fontWeight: 500,
           transition: 'all 0.18s cubic-bezier(0.4,0,0.2,1)',
         },
         containedPrimary: {
@@ -92,7 +92,7 @@ const theme = createTheme({
     },
     MuiChip: {
       styleOverrides: {
-        root: { borderRadius: 6, fontWeight: 500, fontSize: '0.75rem' },
+        root: { borderRadius: 6, fontWeight: 400, fontSize: '0.75rem' },
       },
     },
     MuiCard: {
@@ -202,7 +202,7 @@ const NavBar = ({ onLogoClick, membership, isLoggedIn, user, role, onLogout }) =
           role="img"
           sx={{
             fontSize: { xs: '1rem', sm: '1.25rem' },
-            fontWeight: 500,
+            fontWeight: 400,
             color: 'secondary.main',
             opacity: 0.75,
             lineHeight: 1,
@@ -264,7 +264,7 @@ const NavBar = ({ onLogoClick, membership, isLoggedIn, user, role, onLogout }) =
                 bgcolor: '#faf5ff',
                 color: '#6366f1',
                 border: '1px solid #ddd6fe',
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: { xs: '0.75rem', sm: '0.82rem' },
                 cursor: 'pointer',
                 height: { xs: 28, sm: 32 },
@@ -303,7 +303,7 @@ const NavBar = ({ onLogoClick, membership, isLoggedIn, user, role, onLogout }) =
                   width: { xs: 28, sm: 32 },
                   height: { xs: 28, sm: 32 },
                   fontSize: '0.875rem',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   bgcolor: 'primary.main',
                   color: '#fff'
                 }}
@@ -349,10 +349,10 @@ const NavBar = ({ onLogoClick, membership, isLoggedIn, user, role, onLogout }) =
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
               <Box sx={{ px: 2, py: 1.5 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0f172a', lineHeight: 1.2 }}>
                   {user?.fullname || user?.displayname || 'User'}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#64748b' }}>
+                <Typography variant="caption" sx={{ color: '#212121' }}>
                   {role || 'Candidate'}
                 </Typography>
               </Box>
@@ -374,7 +374,7 @@ const NavBar = ({ onLogoClick, membership, isLoggedIn, user, role, onLogout }) =
             onClick={() => onLogoClick('/login')}
             sx={{
               color: '#fff',
-              fontWeight: 700,
+              fontWeight: 600,
               px: { xs: 1.5, sm: 2.5 },
               py: { xs: 0.5, sm: 0.8 },
               border: '1px solid #0f172a',

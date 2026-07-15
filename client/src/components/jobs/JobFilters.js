@@ -118,7 +118,7 @@ const JobFilters = ({
     <Box sx={{ mb: 3 }}>
       <Typography
         sx={{
-          fontWeight: 700,
+          fontWeight: 600,
           fontSize: "0.85rem",
           color: "#0f172a",
           textTransform: "uppercase",
@@ -189,7 +189,7 @@ const JobFilters = ({
             <TuneIcon sx={{ color: "#6366f1", fontSize: 18 }} />
           </Box>
           <Box>
-            <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
+            <Typography sx={{ fontWeight: 600, color: "#0f172a" }}>
               Filters
             </Typography>
             {activeFilterCount > 0 && (
@@ -208,7 +208,7 @@ const JobFilters = ({
               color: "#ef4444",
               fontSize: "0.8rem",
               textTransform: "none",
-              fontWeight: 600,
+              fontWeight: 500,
               "&:hover": { bgcolor: "#fee2e2" },
             }}
           >
@@ -233,7 +233,7 @@ const JobFilters = ({
             />
           }
           label={
-            <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 700 }}>
+            <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 600 }}>
               Hide Viewed Jobs
             </Typography>
           }
@@ -271,7 +271,7 @@ const JobFilters = ({
       {/* <Box sx={{ mb: 3 }}>
         <Typography
           sx={{
-            fontWeight: 700,
+            fontWeight: 600,
             fontSize: "0.85rem",
             color: "#0f172a",
             textTransform: "uppercase",
@@ -301,10 +301,10 @@ const JobFilters = ({
             }}
           />
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
-            <Typography sx={{ fontSize: "0.8rem", color: "#64748b", fontWeight: 600 }}>
+            <Typography sx={{ fontSize: "0.8rem", color: "#212121", fontWeight: 500 }}>
               ${(filters.salaryRange?.[0] || filterOptions.salaryRange[0]) / 1000}k
             </Typography>
-            <Typography sx={{ fontSize: "0.8rem", color: "#64748b", fontWeight: 600 }}>
+            <Typography sx={{ fontSize: "0.8rem", color: "#212121", fontWeight: 500 }}>
               ${(filters.salaryRange?.[1] || filterOptions.salaryRange[1]) / 1000}k
             </Typography>
           </Box>
@@ -315,7 +315,7 @@ const JobFilters = ({
       <Box sx={{ mb: 3 }}>
         <Typography
           sx={{
-            fontWeight: 700,
+            fontWeight: 600,
             fontSize: "0.85rem",
             color: "#0f172a",
             textTransform: "uppercase",
@@ -344,7 +344,7 @@ const JobFilters = ({
               "& .MuiSlider-track": { bgcolor: "#6366f1" },
             }}
           />
-          <Typography sx={{ fontSize: "0.8rem", color: "#64748b", fontWeight: 600, mt: 1 }}>
+          <Typography sx={{ fontSize: "0.8rem", color: "#212121", fontWeight: 500, mt: 1 }}>
             {filters.matchScore || 0}%+
           </Typography>
         </Box>
@@ -357,7 +357,7 @@ const JobFilters = ({
         <Box sx={{ mb: 2 }}>
           <Typography
             sx={{
-              fontWeight: 700,
+              fontWeight: 600,
               fontSize: "0.85rem",
               color: "#0f172a",
               textTransform: "uppercase",
@@ -378,7 +378,7 @@ const JobFilters = ({
                 sx={{
                   bgcolor: "#ede9fe",
                   color: "#4f46e5",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   fontSize: "0.8rem",
                   "& .MuiChip-deleteIcon": { color: "#4f46e5" },
                 }}
@@ -394,7 +394,7 @@ const JobFilters = ({
                 sx={{
                   bgcolor: "#f0fdf4",
                   color: "#15803d",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   fontSize: "0.8rem",
                   "& .MuiChip-deleteIcon": { color: "#15803d" },
                 }}
@@ -410,7 +410,7 @@ const JobFilters = ({
                 sx={{
                   bgcolor: "#f0f9ff",
                   color: "#0c4a6e",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   fontSize: "0.8rem",
                   "& .MuiChip-deleteIcon": { color: "#0c4a6e" },
                 }}
@@ -426,7 +426,7 @@ const JobFilters = ({
                 sx={{
                   bgcolor: "#fef3c7",
                   color: "#92400e",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   fontSize: "0.8rem",
                   "& .MuiChip-deleteIcon": { color: "#92400e" },
                 }}
@@ -442,7 +442,7 @@ const JobFilters = ({
                 sx={{
                   bgcolor: "#fce7f3",
                   color: "#9d174d",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   fontSize: "0.8rem",
                   "& .MuiChip-deleteIcon": { color: "#9d174d" },
                 }}
@@ -457,7 +457,7 @@ const JobFilters = ({
                 sx={{
                   bgcolor: "#ecfdf5",
                   color: "#047857",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   fontSize: "0.8rem",
                   "& .MuiChip-deleteIcon": { color: "#047857" },
                 }}
@@ -472,7 +472,7 @@ const JobFilters = ({
                 sx={{
                   bgcolor: "#f1f5f9",
                   color: "#475569",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   fontSize: "0.8rem",
                   "& .MuiChip-deleteIcon": { color: "#475569" },
                 }}

@@ -61,7 +61,7 @@
     justify-content: center;
     font-family: 'Syne', sans-serif;
     font-size: 1.75rem;
-    font-weight: 700;
+    font-weight: 600;
     color: #fff;
     margin: 0 auto 8px;
     box-shadow: 0 4px 20px rgba(249, 85, 0, 0.25);
@@ -71,7 +71,7 @@
     text-align: center;
     font-family: 'Syne', sans-serif;
     font-size: 1.1rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.05em;
     color: var(--t12-text-dark);
     margin-bottom: 2px;
@@ -80,7 +80,7 @@
 .t12-sidebar-title {
     text-align: center;
     font-size: 0.65rem;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--t12-accent);
@@ -95,7 +95,7 @@
 
 .t12-sidebar-heading {
     font-size: 0.6rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--t12-accent);
@@ -121,7 +121,7 @@
 
 .t12-contact-text {
     font-size: 0.72rem;
-    font-weight: 400;
+    font-weight: 300;
     color: var(--t12-text-sidebar-secondary);
     line-height: 1.5;
     word-break: break-word;
@@ -134,7 +134,7 @@
 
 .t12-edu-degree {
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--t12-text-sidebar);
     line-height: 1.4;
     margin-bottom: 2px;
@@ -142,7 +142,7 @@
 
 .t12-edu-school {
     font-size: 0.7rem;
-    font-weight: 400;
+    font-weight: 300;
     color: var(--t12-text-sidebar-secondary);
     margin-bottom: 2px;
     text-transform: uppercase;
@@ -150,7 +150,7 @@
 
 .t12-edu-year {
     font-size: 0.65rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--t12-text-sidebar-muted);
 }
 
@@ -160,7 +160,7 @@
 
 .t12-skill-name {
     font-size: 0.72rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--t12-text-sidebar);
     margin-bottom: 5px;
 }
@@ -188,13 +188,13 @@
 
 .t12-lang-name {
     font-size: 0.72rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--t12-text-sidebar);
 }
 
 .t12-lang-level {
     font-size: 0.62rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--t12-text-sidebar-muted);
     background: var(--t12-white);
     padding: 2px 8px;
@@ -210,7 +210,7 @@
 
 .t12-interest-tag {
     font-size: 0.62rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--t12-text-sidebar-secondary);
     background: var(--t12-white);
     padding: 4px 10px;
@@ -235,7 +235,7 @@
 .t12-main-name {
     font-family: 'Syne', sans-serif;
     font-size: 1.65rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--t12-text-dark);
     letter-spacing: -0.02em;
     line-height: 1.1;
@@ -244,7 +244,7 @@
 
 .t12-main-jobtitle {
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--t12-accent);
@@ -252,7 +252,7 @@
 
 .t12-section-heading {
     font-size: 0.62rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--t12-accent);
@@ -264,7 +264,7 @@
 
 .t12-profile-text {
     font-size: 0.78rem;
-    font-weight: 400;
+    font-weight: 300;
     color: var(--t12-text-dark-secondary);
     line-height: 1.7;
 }
@@ -295,21 +295,21 @@
 
 .t12-exp-role {
     font-size: 0.82rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--t12-text-dark);
     margin-bottom: 2px;
 }
 
 .t12-exp-company {
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--t12-accent);
     margin-bottom: 2px;
 }
 
 .t12-exp-date {
     font-size: 0.62rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--t12-text-muted);
     letter-spacing: 0.05em;
     margin-bottom: 8px;
@@ -317,7 +317,7 @@
 
 .t12-exp-desc {
     font-size: 0.72rem;
-    font-weight: 400;
+    font-weight: 300;
     color: var(--t12-text-dark-secondary);
     line-height: 1.7;
 }
@@ -357,14 +357,14 @@ ul.t12-exp-desc li::before {
 
 .t12-ref-name {
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--t12-text-dark);
     margin-bottom: 1px;
 }
 
 .t12-ref-role {
     font-size: 0.65rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--t12-text-muted);
     margin-bottom: 2px;
 }

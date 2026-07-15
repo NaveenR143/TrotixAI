@@ -138,7 +138,7 @@ const SkillsSection = ({ userId, profile, initialSkills, onSuccess, enhancedData
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <AutoAwesomeIcon sx={{ fontSize: 20, color: "#6366f1" }} />
-          <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
+          <Typography sx={{ fontWeight: 600, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
             Skills
           </Typography>
         </Box>
@@ -188,7 +188,7 @@ const SkillsSection = ({ userId, profile, initialSkills, onSuccess, enhancedData
               <Chip
                 key={skill}
                 label={toTitleCase(skill)}
-                sx={{ bgcolor: "#ede9fe", color: "#4f46e5", fontWeight: 600 }}
+                sx={{ bgcolor: "#ede9fe", color: "#4f46e5", fontWeight: 500 }}
               />
             ))
           ) : (
@@ -219,7 +219,7 @@ const SkillsSection = ({ userId, profile, initialSkills, onSuccess, enhancedData
                 sx={{
                   bgcolor: "#ede9fe",
                   color: "#4f46e5",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   "& .MuiChip-deleteIcon": { color: "#6366f1" },
                 }}
               />

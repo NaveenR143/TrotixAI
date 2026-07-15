@@ -18,7 +18,7 @@ export const headingStyles = {
   // H1 - Extra Large, ExtraBold
   h1: {
     fontFamily: fontFamily,
-    fontWeight: 800,
+    fontWeight: 700,
     fontSize: '1.875rem',
     lineHeight: 1.5,
     letterSpacing: '-0.5px',
@@ -27,7 +27,7 @@ export const headingStyles = {
   // H2 - Large, Bold
   h2: {
     fontFamily: fontFamily,
-    fontWeight: 800,
+    fontWeight: 700,
     fontSize: '1.5rem',
     lineHeight: 1.5,
     letterSpacing: '-0.3px',
@@ -36,7 +36,7 @@ export const headingStyles = {
   // H3 - Medium, Bold
   h3: {
     fontFamily: fontFamily,
-    fontWeight: 700,
+    fontWeight: 600,
     fontSize: '1.25rem',
     lineHeight: 1.5,
     letterSpacing: '-0.2px',
@@ -51,7 +51,7 @@ export const subheadingStyles = {
   // H4 - Standard, SemiBold
   h4: {
     fontFamily: fontFamily,
-    fontWeight: 600,
+    fontWeight: 500,
     fontSize: '1rem',
     lineHeight: 1.5,
   },
@@ -59,7 +59,7 @@ export const subheadingStyles = {
   // H5 - Small, SemiBold
   h5: {
     fontFamily: fontFamily,
-    fontWeight: 600,
+    fontWeight: 500,
     fontSize: '0.875rem',
     lineHeight: 1.5,
   },
@@ -67,7 +67,7 @@ export const subheadingStyles = {
   // H6 - Extra Small, Light
   h6: {
     fontFamily: fontFamily,
-    fontWeight: 300,
+    fontWeight: 200,
     fontSize: '0.75rem',
     lineHeight: 1.5,
   },
@@ -81,7 +81,7 @@ export const bodyStyles = {
   // Body Large
   bodyLarge: {
     fontFamily: fontFamily,
-    fontWeight: 400,
+    fontWeight: 300,
     fontSize: '0.875rem',
     lineHeight: 1.6,
   },
@@ -89,7 +89,7 @@ export const bodyStyles = {
   // Body Regular
   bodyRegular: {
     fontFamily: fontFamily,
-    fontWeight: 400,
+    fontWeight: 300,
     fontSize: '0.8125rem',
     lineHeight: 1.6,
   },
@@ -97,7 +97,7 @@ export const bodyStyles = {
   // Body Small
   bodySmall: {
     fontFamily: fontFamily,
-    fontWeight: 400,
+    fontWeight: 300,
     fontSize: '0.75rem',
     lineHeight: 1.6,
   },
@@ -111,7 +111,7 @@ export const componentStyles = {
   // Button Text - SemiBold
   button: {
     fontFamily: fontFamily,
-    fontWeight: 600,
+    fontWeight: 500,
     fontSize: '0.875rem',
     textTransform: 'none',
   },
@@ -119,49 +119,49 @@ export const componentStyles = {
   // Label Text - Regular
   label: {
     fontFamily: fontFamily,
-    fontWeight: 400,
+    fontWeight: 300,
     fontSize: '0.8125rem',
   },
   
   // Form Input - Regular
   input: {
     fontFamily: fontFamily,
-    fontWeight: 400,
+    fontWeight: 300,
     fontSize: '0.875rem',
   },
   
   // Navigation - SemiBold
   navigation: {
     fontFamily: fontFamily,
-    fontWeight: 600,
+    fontWeight: 500,
     fontSize: '0.875rem',
   },
   
   // Card Title - Bold
   cardTitle: {
     fontFamily: fontFamily,
-    fontWeight: 700,
+    fontWeight: 600,
     fontSize: '1rem',
   },
   
   // Card Subtitle - SemiBold
   cardSubtitle: {
     fontFamily: fontFamily,
-    fontWeight: 600,
+    fontWeight: 500,
     fontSize: '0.8125rem',
   },
   
   // Caption - Regular, Small
   caption: {
     fontFamily: fontFamily,
-    fontWeight: 400,
+    fontWeight: 300,
     fontSize: '0.6875rem',
   },
   
   // Overline - Bold, Uppercase
   overline: {
     fontFamily: fontFamily,
-    fontWeight: 700,
+    fontWeight: 600,
     fontSize: '0.6875rem',
     textTransform: 'uppercase',
     letterSpacing: '0.5px',

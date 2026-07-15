@@ -260,7 +260,7 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <FolderOpenIcon sx={{ fontSize: 20, color: "#6366f1" }} />
-          <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "1px", color: "#0f172a" }}>
+          <Typography sx={{ fontWeight: 600, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "1px", color: "#0f172a" }}>
             Projects
           </Typography>
         </Box>
@@ -318,7 +318,7 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
                   sx={{ p: 2.5, bgcolor: "#f8fafc", borderStyle: "dashed" }}
                 >
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
-                    <Typography sx={{ fontWeight: 700, mb: 0.5, textTransform: "uppercase", letterSpacing: "0.5px", fontSize: "0.95rem", color: "#0f172a" }}>
+                    <Typography sx={{ fontWeight: 600, mb: 0.5, textTransform: "uppercase", letterSpacing: "0.5px", fontSize: "0.95rem", color: "#0f172a" }}>
                       {project.title || "Untitled Project"}
                     </Typography>
                     <Typography sx={{ fontSize: "0.8rem", color: "text.secondary" }}>
@@ -349,7 +349,7 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
                           key={skill}
                           label={skill}
                           size="small"
-                          sx={{ bgcolor: "#ede9fe", color: "#4f46e5", fontWeight: 600 }}
+                          sx={{ bgcolor: "#ede9fe", color: "#4f46e5", fontWeight: 500 }}
                         />
                       ))}
                     </Box>
@@ -381,7 +381,7 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
           {projects.map((proj, idx) => (
             <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed", border: newProjectIndices.has(idx) ? "2px dashed #10b981" : "1px dashed #e2e8f0" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-                {newProjectIndices.has(idx) && <Chip label="🆕 NEW PROJECT" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 700 }} />}
+                {newProjectIndices.has(idx) && <Chip label="🆕 NEW PROJECT" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 600 }} />}
                 <IconButton size="small" onClick={() => removeProject(idx)} sx={{ color: "#f43f5e", ml: "auto" }}>
                   <DeleteIcon fontSize="inherit" />
                 </IconButton>

@@ -48,7 +48,7 @@ const ProjectsForm = () => {
   return (
     <Stack spacing={3}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>Projects</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>Projects</Typography>
         <Button startIcon={<AddIcon />} onClick={handleAdd} size="small" variant="text" sx={{ color: "black" }}>
           Add Project
         </Button>

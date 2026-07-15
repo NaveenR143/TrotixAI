@@ -541,13 +541,13 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
           <Stack spacing={3}>
             <Grid container spacing={1}>
               <Grid item xs={12} sm={6}>
-                <TextField id="firstName" fullWidth label="First Name *" name="firstName" value={formData.firstName} onChange={handleInputChange} error={!!errors.firstName} helperText={errors.firstName} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+                <TextField id="firstName" fullWidth label="First Name *" name="firstName" value={formData.firstName} onChange={handleInputChange} error={!!errors.firstName} helperText={errors.firstName} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#212121' }} /> }} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField id="lastName" fullWidth label="Last Name *" name="lastName" value={formData.lastName} onChange={handleInputChange} error={!!errors.lastName} helperText={errors.lastName} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+                <TextField id="lastName" fullWidth label="Last Name *" name="lastName" value={formData.lastName} onChange={handleInputChange} error={!!errors.lastName} helperText={errors.lastName} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#212121' }} /> }} />
               </Grid>
             </Grid>
-            <TextField id="email" fullWidth label="Email Address *" name="email" value={formData.email} onChange={handleInputChange} error={!!errors.email} helperText={errors.email} size="small" InputProps={{ startAdornment: <EmailIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+            <TextField id="email" fullWidth label="Email Address *" name="email" value={formData.email} onChange={handleInputChange} error={!!errors.email} helperText={errors.email} size="small" InputProps={{ startAdornment: <EmailIcon sx={{ mr: 1, fontSize: 18, color: '#212121' }} /> }} />
             <Grid container spacing={1} alignItems="flex-start">
               <Grid item sx={{ width: '90px' }}>
                 <TextField fullWidth label="Code" value="+91" disabled size="small" InputProps={{ startAdornment: <WhatsAppIcon sx={{ mr: 0.5, fontSize: 18, color: '#25D366' }} /> }} />
@@ -647,7 +647,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                     </Button>
                   </Stack>
                   {otpVerification.resendAttempts >= 3 && (
-                    <Typography color="warning.main" variant="caption" sx={{ mt: 1, display: 'block', fontWeight: 600 }}>
+                    <Typography color="warning.main" variant="caption" sx={{ mt: 1, display: 'block', fontWeight: 500 }}>
                       ⚠️ Daily resend limit of 3 attempts reached. Please request a new OTP tomorrow.
                     </Typography>
                   )}
@@ -660,14 +660,14 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
               )}
               {isPhoneVerified && (
                 <Grid item xs={12}>
-                  <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <CheckCircleIcon sx={{ fontSize: 14 }} /> Mobile number verified successfully
                   </Typography>
                 </Grid>
               )}
             </Grid>
-            <TextField fullWidth label="Website / Portfolio" name="website" value={formData.website} onChange={handleInputChange} size="small" placeholder="https://..." InputProps={{ startAdornment: <PublicIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
-            <TextField id="preferredLocation" fullWidth label="Job Preferred Location *" name="preferredLocation" value={formData.preferredLocation} onChange={handleInputChange} error={!!errors.preferredLocation} helperText={errors.preferredLocation} size="small" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+            <TextField fullWidth label="Website / Portfolio" name="website" value={formData.website} onChange={handleInputChange} size="small" placeholder="https://..." InputProps={{ startAdornment: <PublicIcon sx={{ mr: 1, fontSize: 18, color: '#212121' }} /> }} />
+            <TextField id="preferredLocation" fullWidth label="Job Preferred Location *" name="preferredLocation" value={formData.preferredLocation} onChange={handleInputChange} error={!!errors.preferredLocation} helperText={errors.preferredLocation} size="small" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: '#212121' }} /> }} />
           </Stack>
         );
       case 1:
@@ -805,7 +805,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
           <Stack spacing={3}>
             <Box>
               <Box id="skills">
-                <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
                   <AutoAwesomeIcon sx={{ fontSize: 18, color: '#6366f1' }} /> SKILLS *
                 </Typography>
                 <Autocomplete
@@ -824,7 +824,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                   }}
                   renderTags={(value, getTagProps) =>
                     value.map((option, index) => (
-                      <Chip variant="filled" label={toTitleCase(option)} {...getTagProps({ index })} sx={{ borderRadius: 1.5, bgcolor: '#eef2ff', color: '#4f46e5', fontWeight: 600, '& .MuiChip-deleteIcon': { color: '#6366f1' } }} />
+                      <Chip variant="filled" label={toTitleCase(option)} {...getTagProps({ index })} sx={{ borderRadius: 1.5, bgcolor: '#eef2ff', color: '#4f46e5', fontWeight: 500, '& .MuiChip-deleteIcon': { color: '#6366f1' } }} />
                     ))
                   }
                   renderInput={(params) => (
@@ -844,7 +844,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
               </Box>
             </Box>
             <Box id="languages">
-              <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LanguageIcon sx={{ fontSize: 18, color: '#0ea5e9' }} /> LANGUAGES *
               </Typography>
               <Autocomplete
@@ -863,7 +863,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                 }}
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
-                    <Chip variant="filled" label={toTitleCase(option)} {...getTagProps({ index })} sx={{ borderRadius: 1.5, bgcolor: '#f0f9ff', color: '#0369a1', fontWeight: 600, '& .MuiChip-deleteIcon': { color: '#0ea5e9' } }} />
+                    <Chip variant="filled" label={toTitleCase(option)} {...getTagProps({ index })} sx={{ borderRadius: 1.5, bgcolor: '#f0f9ff', color: '#0369a1', fontWeight: 500, '& .MuiChip-deleteIcon': { color: '#0ea5e9' } }} />
                   ))
                 }
                 renderInput={(params) => (
@@ -883,7 +883,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
             </Box>
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>About / Professional Summary *</Typography>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>About / Professional Summary *</Typography>
                 {/* <Tooltip title={membership === 'Free' ? "Purchase Credits for AI Improve" : "AI Magic Improve (Credit Benefit)"}>
                   <Button size="small" startIcon={<AutoAwesomeIcon />} onClick={() => handleAiAssist('about')} disabled={aiLoading}
                     sx={{ textTransform: 'none', color: '#6366f1', fontSize: '0.75rem', '&:hover': { bgcolor: '#f5f3ff' } }}>
@@ -897,15 +897,15 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
             <Divider sx={{ my: 1 }} />
 
             <Box>
-              <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PersonIcon sx={{ fontSize: 18, color: '#64748b' }} /> PERSONAL DETAILS
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <PersonIcon sx={{ fontSize: 18, color: '#212121' }} /> PERSONAL DETAILS
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={3}>
-                  <TextField id="dob" fullWidth label="Date of Birth *" name="dob" type="date" value={formData.dob} onChange={handleInputChange} error={!!errors.dob} helperText={errors.dob} size="small" InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <CakeIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+                  <TextField id="dob" fullWidth label="Date of Birth *" name="dob" type="date" value={formData.dob} onChange={handleInputChange} error={!!errors.dob} helperText={errors.dob} size="small" InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <CakeIcon sx={{ mr: 1, fontSize: 18, color: '#212121' }} /> }} />
                 </Grid>
                 <Grid item xs={12} sm={3}>
-                  <TextField fullWidth select label="Gender" name="gender" value={formData.gender} onChange={handleInputChange} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }}>
+                  <TextField fullWidth select label="Gender" name="gender" value={formData.gender} onChange={handleInputChange} size="small" InputProps={{ startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: '#212121' }} /> }}>
                     <MenuItem value="male">Male</MenuItem>
                     <MenuItem value="female">Female</MenuItem>
                     <MenuItem value="other">Other</MenuItem>
@@ -913,7 +913,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                   </TextField>
                 </Grid>
                 <Grid item xs={12} sm={3}>
-                  <TextField fullWidth select label="Marital Status" name="maritalStatus" value={formData.maritalStatus} onChange={handleInputChange} size="small" InputProps={{ startAdornment: <FamilyRestroomIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }}>
+                  <TextField fullWidth select label="Marital Status" name="maritalStatus" value={formData.maritalStatus} onChange={handleInputChange} size="small" InputProps={{ startAdornment: <FamilyRestroomIcon sx={{ mr: 1, fontSize: 18, color: '#212121' }} /> }}>
                     <MenuItem value="Single">Single</MenuItem>
                     <MenuItem value="Married">Married</MenuItem>
                     <MenuItem value="Divorced">Divorced</MenuItem>
@@ -921,7 +921,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                   </TextField>
                 </Grid>
                 <Grid item xs={12} sm={3}>
-                  <TextField fullWidth label="Current Location" name="currentLocation" value={formData.currentLocation} onChange={handleInputChange} size="small" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: '#64748b' }} /> }} />
+                  <TextField fullWidth label="Current Location" name="currentLocation" value={formData.currentLocation} onChange={handleInputChange} size="small" InputProps={{ startAdornment: <LocationOnIcon sx={{ mr: 1, fontSize: 18, color: '#212121' }} /> }} />
                 </Grid>
               </Grid>
             </Box>
@@ -940,20 +940,20 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
     <Box sx={{ minHeight: 'calc(100vh - 64px)', bgcolor: '#f8fafc', py: { xs: 4, md: 8 } }}>
       <Container maxWidth="md">
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-          <Button startIcon={<ArrowBackIcon />} onClick={onBack} sx={{ color: '#64748b', textTransform: 'none' }}>Back</Button>
+          <Button startIcon={<ArrowBackIcon />} onClick={onBack} sx={{ color: '#212121', textTransform: 'none' }}>Back</Button>
           <Box sx={{ flexGrow: 1 }} />
           <Chip
             label={membership === 'Free' ? 'Free Tier' : 'Available Credits'}
             color="primary"
             variant="outlined"
             onClick={() => navigate('/membership')}
-            sx={{ fontWeight: 700, border: '1px solid #c4b5fd', color: '#4f46e5', cursor: 'pointer', '&:hover': { bgcolor: '#f5f3ff' } }}
+            sx={{ fontWeight: 600, border: '1px solid #c4b5fd', color: '#4f46e5', cursor: 'pointer', '&:hover': { bgcolor: '#f5f3ff' } }}
           />
         </Box>
 
         <Paper elevation={0} sx={{ p: { xs: 3, md: 5 }, border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', borderRadius: 4 }}>
-          <Typography variant="h4" sx={{ fontWeight: 800, mb: 1, color: '#0f172a' }}>Build your profile</Typography>
-          <Typography sx={{ color: '#64748b', mb: 4, fontSize: '0.95rem' }}>Manually fill in your details to start finding the best job matches.</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1, color: '#0f172a' }}>Build your profile</Typography>
+          <Typography sx={{ color: '#212121', mb: 4, fontSize: '0.95rem' }}>Manually fill in your details to start finding the best job matches.</Typography>
 
           <Stepper activeStep={activeStep} sx={{ mb: 6, '& .MuiStepIcon-root.Mui-active': { color: '#6366f1' }, '& .MuiStepIcon-root.Mui-completed': { color: '#10b981' } }}>
             {STEPS.map((label) => <Step key={label}><StepLabel>{label}</StepLabel></Step>)}
@@ -970,7 +970,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
           )}
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 6 }}>
-            <Button disabled={activeStep === 0} onClick={handleBack} sx={{ color: '#64748b' }}>Previous</Button>
+            <Button disabled={activeStep === 0} onClick={handleBack} sx={{ color: '#212121' }}>Previous</Button>
             {activeStep === STEPS.length - 1 ? (
               <Button variant="contained" endIcon={!isSubmitting && <CheckCircleIcon />} onClick={handleFinalSave} disabled={isSubmitting}
                 sx={{

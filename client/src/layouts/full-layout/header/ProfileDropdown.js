@@ -178,7 +178,7 @@ const ProfileDropdown = () => {
               >
                 {displayname}
               </Typography>
-              {/* <Typography color="textSecondary" variant="h6" fontWeight="400">
+              {/* <Typography color="textSecondary" variant="h6" fontWeight="300">
               Administrator
             </Typography> */}
               <Box display="flex" alignItems="center">
@@ -244,7 +244,7 @@ const ProfileDropdown = () => {
                 >
                   Change Password
                 </Typography>
-                {/* <Typography color="textSecondary" variant="h6" fontWeight="400">
+                {/* <Typography color="textSecondary" variant="h6" fontWeight="300">
                 To-do and Daily Tasks
               </Typography> */}
               </Box>
@@ -286,7 +286,7 @@ const ProfileDropdown = () => {
             >
               My Profile
             </Typography>
-            <Typography color="textSecondary" variant="h6" fontWeight="400">
+            <Typography color="textSecondary" variant="h6" fontWeight="300">
               Account Settings
             </Typography>
           </Box>
@@ -331,7 +331,7 @@ const ProfileDropdown = () => {
             >
               My Inbox
             </Typography>
-            <Typography color="textSecondary" variant="h6" fontWeight="400">
+            <Typography color="textSecondary" variant="h6" fontWeight="300">
               Messages & Emails
             </Typography>
           </Box>
@@ -376,7 +376,7 @@ const ProfileDropdown = () => {
             >
               My Tasks
             </Typography>
-            <Typography color="textSecondary" variant="h6" fontWeight="400">
+            <Typography color="textSecondary" variant="h6" fontWeight="300">
               To-do and Daily Tasks
             </Typography>
           </Box>

@@ -212,7 +212,7 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhanc
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <SchoolIcon sx={{ fontSize: 20, color: "#0ea5e9" }} />
-          <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
+          <Typography sx={{ fontWeight: 600, fontSize: "0.9rem", color: "#0f172a", textTransform: "uppercase", letterSpacing: "1px" }}>
             Education
           </Typography>
         </Box>
@@ -268,10 +268,10 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhanc
                 variant="outlined"
                 sx={{ p: 2, mb: 2, bgcolor: "#f8fafc", borderStyle: "dashed" }}
               >
-                <Typography sx={{ fontWeight: 700, color: "#0f172a", mb: 0.5, textTransform: "uppercase", letterSpacing: "0.5px", fontSize: "0.95rem" }}>
+                <Typography sx={{ fontWeight: 600, color: "#0f172a", mb: 0.5, textTransform: "uppercase", letterSpacing: "0.5px", fontSize: "0.95rem" }}>
                   {edu.degree}
                 </Typography>
-                <Typography sx={{ textTransform: "uppercase", letterSpacing: "0.5px", fontSize: "0.85rem", color: "#64748b" }}>{edu.school}</Typography>
+                <Typography sx={{ textTransform: "uppercase", letterSpacing: "0.5px", fontSize: "0.85rem", color: "#212121" }}>{edu.school}</Typography>
                 {edu.year && (
                   <Typography sx={{ fontSize: "0.85rem", color: "#94a3b8", mt: 0.5 }}>
                     Year: {edu.year}
@@ -286,7 +286,7 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhanc
           {education.map((edu, idx) => (
             <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed", border: newEducationIndices.has(idx) ? "2px dashed #10b981" : "1px dashed #e2e8f0" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-                {newEducationIndices.has(idx) && <Chip label="🆕 NEW RECORD" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 700 }} />}
+                {newEducationIndices.has(idx) && <Chip label="🆕 NEW RECORD" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 600 }} />}
                 <IconButton size="small" onClick={() => removeEducation(idx)} sx={{ color: "#f43f5e", ml: "auto" }}>
                   <DeleteIcon fontSize="inherit" />
                 </IconButton>

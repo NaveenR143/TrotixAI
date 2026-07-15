@@ -29,7 +29,7 @@ const AIPoweredActions = ({
   const header = (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
       <AutoAwesomeIcon sx={{ color: "#6366f1", fontSize: 20 }} />
-      <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
+      <Typography sx={{ fontWeight: 600, color: "#0f172a" }}>
         AI-Powered Actions
       </Typography>
     </Box>

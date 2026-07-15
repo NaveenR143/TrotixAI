@@ -147,7 +147,7 @@ export default function ContactUsComp(props) {
         <DialogTitle sx={{ pb: 1 }}>
           <Box display="flex" alignItems="center" gap={1}>
             <ContactSupportIcon color="primary" />
-            <Typography variant="h6" component="span" fontWeight={600}>
+            <Typography variant="h6" component="span" fontWeight={500}>
               Contact Us
             </Typography>
           </Box>

@@ -140,10 +140,10 @@ const IndustriesSection = ({ userId, profile, onSuccess }) => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <BusinessCenterIcon sx={{ fontSize: 20, color: "#64748b" }} />
+          <BusinessCenterIcon sx={{ fontSize: 20, color: "#212121" }} />
           <Typography
             sx={{
-              fontWeight: 700,
+              fontWeight: 600,
               fontSize: "0.9rem",
               color: "#0f172a",
               textTransform: "uppercase",
@@ -164,7 +164,7 @@ const IndustriesSection = ({ userId, profile, onSuccess }) => {
             sx={{
               color: isEditing ? "#ef4444" : "#2563EB",
               textTransform: "none",
-              fontWeight: 700,
+              fontWeight: 600,
               "&.Mui-disabled": {
                 color: "#94A3B8",
               },
@@ -178,7 +178,7 @@ const IndustriesSection = ({ userId, profile, onSuccess }) => {
       <Typography
         variant="body2"
         sx={{
-          color: "#64748b",
+          color: "#212121",
           mb: 2,
           fontSize: "0.85rem",
           lineHeight: 1.5,
@@ -210,7 +210,7 @@ const IndustriesSection = ({ userId, profile, onSuccess }) => {
                   sx={{
                     px: 1,
                     py: 0.5,
-                    fontWeight: 600,
+                    fontWeight: 500,
                     fontSize: "0.85rem",
                     bgcolor: "rgba(37, 99, 235, 0.08)",
                     color: "#1D4ED8",
@@ -226,7 +226,7 @@ const IndustriesSection = ({ userId, profile, onSuccess }) => {
               ))}
             </Stack>
           ) : (
-            <Typography sx={{ color: "#64748b", fontStyle: "italic", fontSize: "0.9rem" }}>
+            <Typography sx={{ color: "#212121", fontStyle: "italic", fontSize: "0.9rem" }}>
               No preferred industries selected. Please update your preferences to get matched with the right opportunities.
             </Typography>
           )}
@@ -257,7 +257,7 @@ const IndustriesSection = ({ userId, profile, onSuccess }) => {
                     color: "#1D4ED8",
                     border: "1px solid rgba(37, 99, 235, 0.2)",
                     borderRadius: "8px",
-                    fontWeight: 600,
+                    fontWeight: 500,
                   }}
                 />
               ))
@@ -293,7 +293,7 @@ const IndustriesSection = ({ userId, profile, onSuccess }) => {
                 background: "linear-gradient(135deg, #2563EB, #1D4ED8)",
                 color: "#FFFFFF",
                 textTransform: "none",
-                fontWeight: 700,
+                fontWeight: 600,
                 borderRadius: "8px",
                 "&:hover": {
                   background: "linear-gradient(135deg, #1D4ED8, #1E40AF)",
@@ -313,10 +313,10 @@ const IndustriesSection = ({ userId, profile, onSuccess }) => {
               startIcon={<CancelIcon />}
               disabled={loading}
               sx={{
-                color: "#64748B",
+                color: "#212121",
                 borderColor: "#E2E8F0",
                 textTransform: "none",
-                fontWeight: 700,
+                fontWeight: 600,
                 borderRadius: "8px",
                 "&:hover": {
                   bgcolor: "#F8FAFC",

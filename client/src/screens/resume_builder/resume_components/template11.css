@@ -34,7 +34,7 @@
 
 .t11-header h1 {
     font-size: 26px;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 1px;
     margin-bottom: 6px;
     text-transform: uppercase;
@@ -42,7 +42,7 @@
 
 .t11-job-title {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 500;
     color: #333;
     text-transform: uppercase;
     letter-spacing: 1.5px;
@@ -71,7 +71,7 @@
 
 .t11-section-title {
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     border-bottom: 1px solid #000;
@@ -100,7 +100,7 @@
 }
 
 .t11-skill-category strong {
-    font-weight: 700;
+    font-weight: 600;
     color: #000;
 }
 
@@ -118,13 +118,13 @@
 
 .t11-exp-role {
     font-size: 12.5px;
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
 }
 
 .t11-exp-date {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     color: #333;
 }
 
@@ -160,13 +160,13 @@
 
 .t11-edu-school {
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
 }
 
 .t11-edu-date {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     color: #333;
 }
 
@@ -187,7 +187,7 @@
 }
 
 .t11-lang-item strong {
-    font-weight: 700;
+    font-weight: 600;
 }
 
 /* ===== REFERENCES ===== */
@@ -201,7 +201,7 @@
 }
 
 .t11-ref-name {
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
 }
 

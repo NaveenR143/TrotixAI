@@ -135,10 +135,10 @@ const DropZone = ({ file, onFileChange, disabled, status }) => {
 
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mb: file ? 2 : 0 }}>
         <Box sx={{ textAlign: 'left' }}>
-          <Typography sx={{ fontWeight: 700, color: "#0F172A", fontSize: "0.95rem" }}>
+          <Typography sx={{ fontWeight: 600, color: "#0F172A", fontSize: "0.95rem" }}>
             {file ? file.name : "Drag & drop your resume"}
           </Typography>
-          <Typography sx={{ fontSize: "0.75rem", color: "#64748B", mt: 0.5 }}>
+          <Typography sx={{ fontSize: "0.75rem", color: "#212121", mt: 0.5 }}>
             {file ? `${(file.size / 1024).toFixed(0)} KB` : "PDF & DOCX supported"}
           </Typography>
         </Box>
@@ -161,10 +161,10 @@ const DropZone = ({ file, onFileChange, disabled, status }) => {
         <Box sx={{ width: '100%', mt: 'auto' }}>
           <Box sx={{ bgcolor: 'rgba(255, 255, 255, 0.75)', p: 1.5, borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, color: '#64748B' }}>
+              <Typography sx={{ fontSize: '0.7rem', fontWeight: 500, color: '#212121' }}>
                 {file.name}
               </Typography>
-              <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: status === STATUS.UPLOADING ? '#2563EB' : '#10B981' }}>
+              <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, color: status === STATUS.UPLOADING ? '#2563EB' : '#10B981' }}>
                 {status === STATUS.UPLOADING ? "Scanning" : "Ready"}
               </Typography>
             </Box>
@@ -259,7 +259,7 @@ const ResumeUpload = ({ onSuccess, onError, disabled }) => {
 
       <Collapse in={status === STATUS.ERROR}>
         <Alert severity="error" onClose={handleReset} sx={{ borderRadius: '16px', border: '1px solid #FECACA' }}>
-          <AlertTitle sx={{ fontWeight: 700 }}>Upload Failed</AlertTitle>
+          <AlertTitle sx={{ fontWeight: 600 }}>Upload Failed</AlertTitle>
           {errorMsg}
         </Alert>
       </Collapse>
@@ -278,7 +278,7 @@ const ResumeUpload = ({ onSuccess, onError, disabled }) => {
             }
           }}
         >
-          <AlertTitle sx={{ fontWeight: 700, color: '#854D0E' }}>Multiple Phone Numbers Found</AlertTitle>
+          <AlertTitle sx={{ fontWeight: 600, color: '#854D0E' }}>Multiple Phone Numbers Found</AlertTitle>
           <Typography variant="body2" sx={{ mb: 1.5 }}>
             We detected multiple phone numbers in your resume:
           </Typography>
@@ -291,13 +291,13 @@ const ResumeUpload = ({ onSuccess, onError, disabled }) => {
                 sx={{
                   bgcolor: '#FEF08A',
                   color: '#854D0E',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   border: '1px solid #FDE047'
                 }}
               />
             ))}
           </Box>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
             Please upload a resume containing only your primary phone number.
           </Typography>
         </Alert>
@@ -305,7 +305,7 @@ const ResumeUpload = ({ onSuccess, onError, disabled }) => {
 
       <Collapse in={status === STATUS.SUCCESS}>
         <Alert severity="success" sx={{ borderRadius: '16px', border: '1px solid #A7F3D0' }}>
-          <AlertTitle sx={{ fontWeight: 700 }}>Resume Parsed!</AlertTitle>
+          <AlertTitle sx={{ fontWeight: 600 }}>Resume Parsed!</AlertTitle>
           Your resume was analyzed successfully.
         </Alert>
       </Collapse>
@@ -323,7 +323,7 @@ const ResumeUpload = ({ onSuccess, onError, disabled }) => {
             borderRadius: '16px',
             background: 'linear-gradient(90deg, #2563EB, #7C3AED)',
             color: "white",
-            fontWeight: 700,
+            fontWeight: 600,
             textTransform: 'none',
             fontSize: '1rem',
             "&:hover": {
@@ -343,7 +343,7 @@ const ResumeUpload = ({ onSuccess, onError, disabled }) => {
       )}
 
       {(status === STATUS.SUCCESS || status === STATUS.ERROR || status === STATUS.MULTIPLE_PHONES) && (
-        <Button variant="text" size="small" onClick={handleReset} sx={{ alignSelf: "center", color: "#64748B", fontWeight: 600 }}>
+        <Button variant="text" size="small" onClick={handleReset} sx={{ alignSelf: "center", color: "#212121", fontWeight: 500 }}>
           Upload another file
         </Button>
       )}

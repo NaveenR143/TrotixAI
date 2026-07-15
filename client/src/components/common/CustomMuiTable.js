@@ -43,7 +43,7 @@ const fnMuiTableTheme = (theme) =>
                     root: {
                         whiteSpace: "normal !important",
                         wordBreak: "normal",
-                        fontWeight: 700,
+                        fontWeight: 600,
                         fontSize: "0.85rem",
                         backgroundColor: theme.palette.mode === 'dark'
                             ? alpha(theme.palette.common.white, 0.05)

@@ -155,7 +155,7 @@ const RecruitersScreen = () => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)' }}>
         <CircularProgress size={48} sx={{ color: '#6366f1', mb: 2 }} />
-        <Typography sx={{ color: '#64748b', fontWeight: 600 }}>Loading recruiters...</Typography>
+        <Typography sx={{ color: '#212121', fontWeight: 500 }}>Loading recruiters...</Typography>
       </Box>
     );
   }
@@ -168,14 +168,14 @@ const RecruitersScreen = () => {
             <Button
               startIcon={<ArrowBackIcon />}
               onClick={() => navigate(-1)}
-              sx={{ mb: 1, color: '#64748b', fontWeight: 600, textTransform: 'none', '&:hover': { bgcolor: 'transparent', color: '#0f172a' } }}
+              sx={{ mb: 1, color: '#212121', fontWeight: 500, textTransform: 'none', '&:hover': { bgcolor: 'transparent', color: '#0f172a' } }}
             >
               Back
             </Button>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: '#0f172a', letterSpacing: '-0.02em' }}>
               Recruiters
             </Typography>
-            {/* <Typography variant="subtitle1" sx={{ color: '#64748b', mt: 0.5 }}>
+            {/* <Typography variant="subtitle1" sx={{ color: '#212121', mt: 0.5 }}>
               Connect with {recruiters.length} registered recruiters on the platform.
             </Typography> */}
           </Box>
@@ -217,12 +217,12 @@ const RecruitersScreen = () => {
         {recruiters.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 10, bgcolor: '#ffffff', borderRadius: 4, border: '1px dashed #cbd5e1' }}>
             <BusinessIcon sx={{ fontSize: 64, color: '#cbd5e1', mb: 2 }} />
-            <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f172a', mb: 1 }}>No recruiters found</Typography>
-            <Typography sx={{ color: '#64748b' }}>Check back soon for new recruiters joining the platform.</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>No recruiters found</Typography>
+            <Typography sx={{ color: '#212121' }}>Check back soon for new recruiters joining the platform.</Typography>
           </Box>
         ) : filteredRecruiters.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography sx={{ fontWeight: 600, color: '#64748b' }}>No recruiters found matching your search.</Typography>
+            <Typography sx={{ fontWeight: 500, color: '#212121' }}>No recruiters found matching your search.</Typography>
             <Button variant="text" onClick={() => setSearchQuery("")} sx={{ mt: 1, textTransform: 'none' }}>
               Clear Search
             </Button>
@@ -265,7 +265,7 @@ const RecruitersScreen = () => {
                         {/* Recruiter Info */}
                         <Box sx={{ flex: 1 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f172a', lineHeight: 1.2, mb: 0.5 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a', lineHeight: 1.2, mb: 0.5 }}>
                               {recruiter.name}
                             </Typography>
                             {isMobile && (
@@ -277,15 +277,15 @@ const RecruitersScreen = () => {
                               </IconButton>
                             )}
                           </Box>
-                          <Typography sx={{ color: '#6366f1', fontWeight: 600, fontSize: '0.9rem', mb: 1 }}>
+                          <Typography sx={{ color: '#6366f1', fontWeight: 500, fontSize: '0.9rem', mb: 1 }}>
                             {recruiter.company}
                           </Typography>
 
-                          <Stack direction="row" flexWrap="wrap" gap={2} sx={{ color: '#64748b', fontSize: '0.85rem' }}>
+                          <Stack direction="row" flexWrap="wrap" gap={2} sx={{ color: '#212121', fontSize: '0.85rem' }}>
                             <Tooltip title="Number of jobs posted" placement="top" arrow>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, p: 1, borderRadius: 1.5, bgcolor: '#f0f9ff', cursor: 'help' }}>
                                 <WorkIcon sx={{ fontSize: 16, color: '#0ea5e9' }} />
-                                <span style={{ fontWeight: 600, color: '#0ea5e9' }}>{recruiter.jobsPosted} jobs</span>
+                                <span style={{ fontWeight: 500, color: '#0ea5e9' }}>{recruiter.jobsPosted} jobs</span>
                               </Box>
                             </Tooltip>
                             <Tooltip title="Joined date" placement="top" arrow>

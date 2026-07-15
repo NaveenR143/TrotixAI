@@ -80,7 +80,7 @@ export default function FilterComp(props) {
       }}
     >
       <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+        <Typography variant="h6" component="div" sx={{ fontWeight: 500 }}>
           {props.filterdata.name} Filters
         </Typography>
         <IconButton

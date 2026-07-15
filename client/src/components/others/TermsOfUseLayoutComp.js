@@ -35,8 +35,8 @@ const TermsOfUseLayoutComp = (props) => {
                     indicatorColor="primary"
                     aria-label="legal documents tabs"
                 >
-                    <Tab label="Terms of Use" sx={{ fontWeight: 700, textTransform: 'none', fontSize: '1.05rem', px: 4 }} />
-                    <Tab label="Privacy Policy" sx={{ fontWeight: 700, textTransform: 'none', fontSize: '1.05rem', px: 4 }} />
+                    <Tab label="Terms of Use" sx={{ fontWeight: 600, textTransform: 'none', fontSize: '1.05rem', px: 4 }} />
+                    <Tab label="Privacy Policy" sx={{ fontWeight: 600, textTransform: 'none', fontSize: '1.05rem', px: 4 }} />
                 </Tabs>
             </Box>
             {activeTab === 0 ? <TermsOfUseComp /> : <PrivacyPolicyComp />}

@@ -41,10 +41,10 @@ const LearningPathCard = ({ userPoints, loading, onSuggest }) => {
           <SchoolIcon sx={{ color: "#059669", fontSize: 20 }} />
         </Box>
       </Box>
-      <Typography sx={{ fontWeight: 700, color: "#0f172a", mb: 1, fontSize: "0.95rem" }}>
+      <Typography sx={{ fontWeight: 600, color: "#0f172a", mb: 1, fontSize: "0.95rem" }}>
         Learning Path
       </Typography>
-      <Typography sx={{ fontSize: "0.85rem", color: "#64748b", mb: 2 }}>
+      <Typography sx={{ fontSize: "0.85rem", color: "#212121", mb: 2 }}>
         Personalized resources to improve your skills
       </Typography>
       <Tooltip title="Click to get learning recommendations">

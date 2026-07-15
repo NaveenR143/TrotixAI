@@ -148,7 +148,7 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)', gap: 3 }}>
         <CircularProgress size={50} sx={{ color: '#6366f1' }} />
-        <Typography sx={{ color: '#64748b', fontWeight: 500 }}>
+        <Typography sx={{ color: '#212121', fontWeight: 400 }}>
           {isMatchingMode ? "Finding the best matches for your job..." : "Loading applicants for this job..."}
         </Typography>
       </Box>
@@ -159,10 +159,10 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)', gap: 2 }}>
         <Typography sx={{ fontSize: '3rem' }}>{error ? '⚠️' : '✨'}</Typography>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f172a' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a' }}>
           {error || (isMatchingMode ? "No matching candidates found" : "No applicants yet")}
         </Typography>
-        <Typography sx={{ color: '#64748b', textAlign: 'center', maxWidth: 400 }}>
+        <Typography sx={{ color: '#212121', textAlign: 'center', maxWidth: 400 }}>
           {error
             ? `We encountered an issue fetching ${isMatchingMode ? 'matches' : 'applicants'}.`
             : (isMatchingMode
@@ -196,13 +196,13 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
         />
         <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, flexWrap: 'wrap', gap: 2 }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#111827' }}>{candidate.name}</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: '#111827' }}>{candidate.name}</Typography>
             <Box sx={{ bgcolor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
               <StarIcon sx={{ color: '#2563EB', fontSize: 18 }} />
-              <Typography sx={{ fontWeight: 800, color: '#2563EB', fontSize: '1rem' }}>{candidate.matchScore}% Match</Typography>
+              <Typography sx={{ fontWeight: 700, color: '#2563EB', fontSize: '1rem' }}>{candidate.matchScore}% Match</Typography>
             </Box>
           </Box>
-          <Typography variant="h6" sx={{ color: '#2563EB', fontWeight: 700, mb: 1.5 }}>{candidate.jobTitle}</Typography>
+          <Typography variant="h6" sx={{ color: '#2563EB', fontWeight: 600, mb: 1.5 }}>{candidate.jobTitle}</Typography>
           <Stack direction="row" spacing={3} justifyContent={{ xs: 'center', sm: 'flex-start' }} sx={{ color: '#6B7280' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><LocationOnIcon sx={{ fontSize: 18 }} /> <Typography variant="body2">{candidate.location}</Typography></Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><WorkHistoryIcon sx={{ fontSize: 18 }} /> <Typography variant="body2">{candidate.experience}</Typography></Box>
@@ -211,13 +211,13 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
       </Box>
 
       <Paper elevation={0} sx={{ p: 3, bgcolor: '#f5f3ff', border: '1px solid #e5e0fa', borderRadius: '16px', mb: 4 }}>
-        <Typography variant="subtitle2" sx={{ color: '#7C3AED', fontWeight: 800, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="subtitle2" sx={{ color: '#7C3AED', fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
           <AutoAwesomeIcon fontSize="small" /> Why this match?
         </Typography>
-        <Typography variant="body2" sx={{ color: '#4c1d95', lineHeight: 1.7, fontWeight: 500 }}>{candidate.reason}</Typography>
+        <Typography variant="body2" sx={{ color: '#4c1d95', lineHeight: 1.7, fontWeight: 400 }}>{candidate.reason}</Typography>
       </Paper>
 
-      <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: '#111827' }}>Professional Summary</Typography>
+      <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#111827' }}>Professional Summary</Typography>
       <Typography
         variant="body1"
         sx={{
@@ -235,22 +235,22 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
 
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 2, color: '#111827', display: 'flex', alignItems: 'center', gap: 1 }}>
-            Top Skills <Chip label={candidate.matchedSkills.length} size="small" sx={{ bgcolor: '#dcfce7', color: '#10b981', fontWeight: 800, height: 20 }} />
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2, color: '#111827', display: 'flex', alignItems: 'center', gap: 1 }}>
+            Top Skills <Chip label={candidate.matchedSkills.length} size="small" sx={{ bgcolor: '#dcfce7', color: '#10b981', fontWeight: 700, height: 20 }} />
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {candidate.matchedSkills.map(skill => (
-              <Chip key={skill} label={skill} sx={{ bgcolor: '#eff6ff', color: '#2563EB', fontWeight: 600, border: '1px solid #dbeafe' }} />
+              <Chip key={skill} label={skill} sx={{ bgcolor: '#eff6ff', color: '#2563EB', fontWeight: 500, border: '1px solid #dbeafe' }} />
             ))}
           </Box>
         </Grid>
         <Grid item xs={12} md={6}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 2, color: '#111827', display: 'flex', alignItems: 'center', gap: 1 }}>
-            Gap Analysis <Chip label={candidate.missingSkills.length} size="small" sx={{ bgcolor: '#fef2f2', color: '#ef4444', fontWeight: 800, height: 20 }} />
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2, color: '#111827', display: 'flex', alignItems: 'center', gap: 1 }}>
+            Gap Analysis <Chip label={candidate.missingSkills.length} size="small" sx={{ bgcolor: '#fef2f2', color: '#ef4444', fontWeight: 700, height: 20 }} />
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {candidate.missingSkills.map(skill => (
-              <Chip key={skill} label={skill} sx={{ bgcolor: '#F8FAFC', color: '#6B7280', fontWeight: 600, border: '1px solid #E5E7EB' }} />
+              <Chip key={skill} label={skill} sx={{ bgcolor: '#F8FAFC', color: '#6B7280', fontWeight: 500, border: '1px solid #E5E7EB' }} />
             ))}
           </Box>
         </Grid>
@@ -263,7 +263,7 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
               variant="contained"
               fullWidth
               onClick={() => navigate(`/candidate-profile/${candidate.id}`, { state: { applicant: candidate, jobId, jobTitle } })}
-              sx={{ bgcolor: '#2563EB', py: 1.8, fontWeight: 800, fontSize: '0.95rem' }}
+              sx={{ bgcolor: '#2563EB', py: 1.8, fontWeight: 700, fontSize: '0.95rem' }}
             >
               View Full Profile
             </Button>
@@ -282,7 +282,7 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
           <IconButton onClick={() => navigate(-1)} size="small" sx={{ color: '#6B7280' }}><ArrowBackIcon /></IconButton>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: 1.5, letterSpacing: '-0.02em' }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: 1.5, letterSpacing: '-0.02em' }}>
               {isMatchingMode ? (
                 <>
                   <AutoAwesomeIcon sx={{ color: '#2563EB' }} /> AI Matching
@@ -293,16 +293,16 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
                 </>
               )}
             </Typography>
-            <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 600 }}>{toTitleCase(jobTitle)}</Typography>
+            <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 500 }}>{toTitleCase(jobTitle)}</Typography>
           </Box>
         </Box>
 
         {/* <Stack direction="row" spacing={2} alignItems="center">
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#6B7280' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#6B7280' }}>
             {currentIndex + 1} of {candidates.length} candidates
           </Typography>
           <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1 }}>
-            <Button size="small" sx={{ fontWeight: 700, color: '#6B7280' }}>Export List</Button>
+            <Button size="small" sx={{ fontWeight: 600, color: '#6B7280' }}>Export List</Button>
             <IconButton 
               size="small" 
               sx={{ border: '1px solid #E5E7EB', borderRadius: '10px' }}
@@ -326,10 +326,10 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={handleMenuClose} sx={{ fontWeight: 600, py: 1.5 }}>Share List</MenuItem>
-        <MenuItem onClick={handleMenuClose} sx={{ fontWeight: 600, py: 1.5 }}>Email All</MenuItem>
+        <MenuItem onClick={handleMenuClose} sx={{ fontWeight: 500, py: 1.5 }}>Share List</MenuItem>
+        <MenuItem onClick={handleMenuClose} sx={{ fontWeight: 500, py: 1.5 }}>Email All</MenuItem>
         <Divider />
-        <MenuItem onClick={handleMenuClose} sx={{ fontWeight: 600, py: 1.5, color: '#ef4444' }}>Clear List</MenuItem>
+        <MenuItem onClick={handleMenuClose} sx={{ fontWeight: 500, py: 1.5, color: '#ef4444' }}>Clear List</MenuItem>
       </Menu>
 
       {isDesktop ? (
@@ -350,10 +350,10 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
                   }}
                 >
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography sx={{ fontWeight: 800, color: '#111827', fontSize: '0.95rem' }}>{c.name}</Typography>
-                    <Typography sx={{ fontWeight: 800, color: '#2563EB', fontSize: '0.85rem' }}>{c.matchScore}%</Typography>
+                    <Typography sx={{ fontWeight: 700, color: '#111827', fontSize: '0.95rem' }}>{c.name}</Typography>
+                    <Typography sx={{ fontWeight: 700, color: '#2563EB', fontSize: '0.85rem' }}>{c.matchScore}%</Typography>
                   </Box>
-                  <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 600, display: 'block' }}>{c.jobTitle}</Typography>
+                  <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 500, display: 'block' }}>{c.jobTitle}</Typography>
                 </Box>
               ))}
             </Stack>
@@ -382,7 +382,7 @@ const CandidateListingScreen = ({ mode = "matching" }) => {
             <Box sx={{ height: 6, bgcolor: '#E5E7EB', borderRadius: 3, overflow: 'hidden' }}>
               <Box sx={{ height: '100%', width: `${((currentIndex + 1) / candidates.length) * 100}%`, bgcolor: '#2563EB', transition: 'width 0.3s' }} />
             </Box>
-            <Typography variant="caption" align="center" sx={{ display: 'block', mt: 1, color: '#6B7280', fontWeight: 600 }}>
+            <Typography variant="caption" align="center" sx={{ display: 'block', mt: 1, color: '#6B7280', fontWeight: 500 }}>
               Swipe to browse candidates
             </Typography>
           </Box>

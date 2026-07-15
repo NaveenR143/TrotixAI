@@ -264,7 +264,7 @@ const MobileOTPValidation = ({
                     <Typography
                         variant="h5"
                         sx={{
-                            fontWeight: 800,
+                            fontWeight: 700,
                             color: "#0f172a",
                             mb: 1,
                             letterSpacing: "-0.02em"
@@ -272,7 +272,7 @@ const MobileOTPValidation = ({
                     >
                         {verificationSuccess ? "Verification Complete" : "Verify Your Mobile"}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: "#64748b" }}>
+                    <Typography variant="body2" sx={{ color: "#212121" }}>
                         {verificationSuccess ? (
                             "You're all set! ..."
                         ) : (
@@ -280,7 +280,7 @@ const MobileOTPValidation = ({
                                 Enter the code sent to{" "}
                                 <Box
                                     component="span"
-                                    sx={{ fontWeight: 700, color: "#0f172a", display: "block", mt: 0.5 }}
+                                    sx={{ fontWeight: 600, color: "#0f172a", display: "block", mt: 0.5 }}
                                 >
                                     {formatDisplayNumber(mobileNumber)}
                                 </Box>
@@ -297,7 +297,7 @@ const MobileOTPValidation = ({
                         sx={{ mb: 3, borderRadius: 2, display: error ? "flex" : "none" }}
                         icon={<ErrorOutlineIcon />}
                     >
-                        <AlertTitle sx={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                        <AlertTitle sx={{ fontSize: "0.85rem", fontWeight: 600 }}>
                             Verification Failed
                         </AlertTitle>
                         {error}
@@ -313,7 +313,7 @@ const MobileOTPValidation = ({
                         severity="warning"
                         sx={{ mb: 3, borderRadius: 2 }}
                     >
-                        <AlertTitle sx={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                        <AlertTitle sx={{ fontSize: "0.85rem", fontWeight: 600 }}>
                             Resend Limit Exceeded
                         </AlertTitle>
                         You have exhausted all 3 daily resend attempts. Please request a new code tomorrow.
@@ -331,7 +331,7 @@ const MobileOTPValidation = ({
                             background: "linear-gradient(135deg, #f0fdf4, #dcfce7)"
                         }}
                     >
-                        <AlertTitle sx={{ fontSize: "0.85rem", fontWeight: 700, color: "#166534" }}>
+                        <AlertTitle sx={{ fontSize: "0.85rem", fontWeight: 600, color: "#166534" }}>
                             ✓ Verification Successful!
                         </AlertTitle>
                         <Typography sx={{ fontSize: "0.82rem", color: "#4b5563" }}>
@@ -347,7 +347,7 @@ const MobileOTPValidation = ({
                             {/* Helper Text Before OTP Entry */}
                             <Typography sx={{
                                 fontSize: "0.85rem",
-                                color: "#64748b",
+                                color: "#212121",
                                 textAlign: "center",
                                 lineHeight: 1.5
                             }}>
@@ -385,7 +385,7 @@ const MobileOTPValidation = ({
                                         letterSpacing: "0.2em",
                                         "& input": {
                                             textAlign: "center",
-                                            fontWeight: 700,
+                                            fontWeight: 600,
                                             fontFamily: "monospace",
                                             padding: "16px 8px"
                                         },
@@ -413,7 +413,7 @@ const MobileOTPValidation = ({
                                     fontSize: "1rem",
                                     borderRadius: 2.5,
                                     textTransform: "none",
-                                    fontWeight: 700,
+                                    fontWeight: 600,
                                     background: "black",
                                     color: "white",
                                     boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
@@ -440,7 +440,7 @@ const MobileOTPValidation = ({
                                     disabled={disabled || loading || activeOtp.isCooldownActive || !activeOtp.isEligible || activeOtp.loading}
                                     sx={{
                                         borderRadius: 2.5,
-                                        fontWeight: 700,
+                                        fontWeight: 600,
                                         textTransform: "none",
                                         py: 1.2
                                     }}
@@ -462,8 +462,8 @@ const MobileOTPValidation = ({
                                         onClick={onChangeNumber}
                                         disabled={disabled || loading}
                                         sx={{
-                                            color: "#64748b",
-                                            fontWeight: 600,
+                                            color: "#212121",
+                                            fontWeight: 500,
                                             textTransform: "none",
                                             fontSize: "0.85rem",
                                             "&:hover": {
@@ -509,7 +509,7 @@ const MobileOTPValidation = ({
                                 mb: 1
                             }}>
                                 <CheckCircleOutlineIcon sx={{ color: "#166534", fontSize: 20 }} />
-                                <Typography sx={{ color: "#166534", fontWeight: 700, fontSize: "0.95rem" }}>
+                                <Typography sx={{ color: "#166534", fontWeight: 600, fontSize: "0.95rem" }}>
                                     Mobile Verification Complete
                                 </Typography>
                             </Box>
@@ -536,7 +536,7 @@ const MobileOTPValidation = ({
                         >
                             <Typography sx={{
                                 fontSize: "0.75rem",
-                                fontWeight: 800,
+                                fontWeight: 700,
                                 color: "#6366f1",
                                 textTransform: "uppercase",
                                 letterSpacing: "0.1em",
@@ -552,12 +552,12 @@ const MobileOTPValidation = ({
                                 alignItems: "center",
                                 mb: 2.5
                             }}>
-                                <Typography sx={{ fontSize: "0.82rem", color: "#64748b", fontWeight: 600 }}>
+                                <Typography sx={{ fontSize: "0.82rem", color: "#212121", fontWeight: 500 }}>
                                     {getStatusMessage(processingProgress, resumeStatus)}
                                 </Typography>
                                 <Typography sx={{
                                     fontSize: "0.9rem",
-                                    fontWeight: 800,
+                                    fontWeight: 700,
                                     background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
                                     WebkitBackgroundClip: "text",
                                     WebkitTextFillColor: "transparent",
@@ -597,7 +597,7 @@ const MobileOTPValidation = ({
 
                         {/* <Typography sx={{
                             fontSize: "0.8rem",
-                            color: "#64748b",
+                            color: "#212121",
                             textAlign: "center",
                             lineHeight: 1.5,
                             fontStyle: "italic"

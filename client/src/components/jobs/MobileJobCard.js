@@ -68,7 +68,7 @@ const MobileJobCard = ({
       >
         <Typography
           sx={{
-            fontWeight: 900,
+            fontWeight: 800,
             fontSize: "1.5rem",
             color: "#0f172a",
             lineHeight: 1.15,
@@ -88,22 +88,22 @@ const MobileJobCard = ({
           }}
         >
           <Typography
-            sx={{ fontSize: "1.0rem", color: "#64748b", fontWeight: 600 }}
+            sx={{ fontSize: "1.0rem", color: "#212121", fontWeight: 500 }}
           >
             {job.company}
           </Typography>
           <Stack direction="row" spacing={1} alignItems="center">
             {job.is_viewed && (
               <Chip
-                icon={<VisibilityIcon sx={{ fontSize: "0.85rem !important", color: "#64748b !important" }} />}
+                icon={<VisibilityIcon sx={{ fontSize: "0.85rem !important", color: "#212121 !important" }} />}
                 label="Viewed"
                 size="small"
                 sx={{
                   height: 22,
                   fontSize: "0.7rem",
-                  fontWeight: 700,
+                  fontWeight: 600,
                   bgcolor: "#f1f5f9",
-                  color: "#64748b",
+                  color: "#212121",
                   border: "1px solid #e2e8f0",
                   borderRadius: 1.5,
                   px: 0.5,
@@ -112,7 +112,7 @@ const MobileJobCard = ({
               />
             )}
             {job.posted && (
-              <Typography sx={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: 500 }}>
+              <Typography sx={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: 400 }}>
                 {job.posted}
               </Typography>
             )}
@@ -145,7 +145,7 @@ const MobileJobCard = ({
                 border: "1px solid rgba(16, 185, 129, 0.2)",
                 borderRadius: 2,
                 fontSize: "0.8rem",
-                fontWeight: 700,
+                fontWeight: 600,
                 px: 0.5,
                 py: 1.5,
               }}
@@ -175,7 +175,7 @@ const MobileJobCard = ({
                 border: "1px solid #dcfce7",
                 borderRadius: 2,
                 fontSize: "0.8rem",
-                fontWeight: 700,
+                fontWeight: 600,
                 px: 0.5,
                 py: 1.5,
               }}
@@ -191,7 +191,7 @@ const MobileJobCard = ({
                 border: "1px solid #fee2e2",
                 borderRadius: 2,
                 fontSize: "0.8rem",
-                fontWeight: 700,
+                fontWeight: 600,
                 px: 0.5,
                 py: 1.5,
               }}
@@ -204,7 +204,7 @@ const MobileJobCard = ({
             <Typography
               sx={{
                 fontSize: "0.75rem",
-                fontWeight: 800,
+                fontWeight: 700,
                 color: "#94a3b8",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
@@ -217,7 +217,7 @@ const MobileJobCard = ({
               sx={{
                 fontSize: "0.95rem",
                 color: "#475569",
-                fontWeight: 500,
+                fontWeight: 400,
                 lineHeight: 1.5,
               }}
             >
@@ -231,7 +231,7 @@ const MobileJobCard = ({
             <Typography
               sx={{
                 fontSize: "0.75rem",
-                fontWeight: 800,
+                fontWeight: 700,
                 color: "#94a3b8",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
@@ -253,7 +253,7 @@ const MobileJobCard = ({
                     border: "1px solid rgba(124, 58, 237, 0.15)",
                     borderRadius: 2,
                     fontSize: "0.75rem",
-                    fontWeight: 600,
+                    fontWeight: 500,
                     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5)",
                   }}
                 />
@@ -267,7 +267,7 @@ const MobileJobCard = ({
             <Typography
               sx={{
                 fontSize: "0.75rem",
-                fontWeight: 800,
+                fontWeight: 700,
                 color: "#94a3b8",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
@@ -280,7 +280,7 @@ const MobileJobCard = ({
               sx={{
                 fontSize: "0.95rem",
                 color: "#475569",
-                fontWeight: 500,
+                fontWeight: 400,
                 lineHeight: 1.5,
               }}
             >
@@ -386,7 +386,7 @@ const MobileJobCard = ({
             px: 3,
             borderRadius: 100,
             color: "white",
-            fontWeight: 800,
+            fontWeight: 700,
             fontSize: "0.95rem",
             background:
               "linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #4338ca 100%)",
