@@ -696,6 +696,7 @@ class JobMatcherService:
                         "experience_level": job.experience_level,
                         "summary": job.summary,
                         "recruiter_id": job.recruiter_id,
+                        "direct_url": job.direct_url,
                     }
                 )
 
@@ -840,6 +841,7 @@ class JobMatcherService:
                         "careers_url": job["careers_url"],
                         "hiring_email": job["hiring_email"],
                         "recruiter_id": job["recruiter_id"],
+                        "direct_url": job["direct_url"],
                     }
                 )
 

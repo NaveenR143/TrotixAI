@@ -30,6 +30,7 @@ class JobCreateRequest(BaseModel):
     skills: List[str]
     email: str
     mobile: str
+    direct_url: Optional[str] = None
 
 class JobCreateResponse(BaseModel):
     status: str

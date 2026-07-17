@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchCandidates } from "../../api/profileAPI";
 import CandidateFilters from "../../components/recruiter/CandidateFilters";
 import MobileCandidateCard from "../../components/recruiter/MobileCandidateCard";
+import { toTitleCase } from "../../screens/candidate/utils/profileUtils";
 
 const RecruiterCandidatesScreen = () => {
   const navigate = useNavigate();
@@ -72,8 +73,8 @@ const RecruiterCandidatesScreen = () => {
           location: debouncedFilters.location || undefined,
           industry: debouncedFilters.industry || undefined,
           skills: debouncedFilters.skills || undefined,
-          experience_min: debouncedFilters.experienceRange[0],
-          experience_max: debouncedFilters.experienceRange[1],
+          experience_min: debouncedFilters.experienceRange && debouncedFilters.experienceRange[0] > 0 ? debouncedFilters.experienceRange[0] : undefined,
+          experience_max: debouncedFilters.experienceRange && debouncedFilters.experienceRange[1] < 30 ? debouncedFilters.experienceRange[1] : undefined,
           notice_period_max: debouncedFilters.noticePeriodMax || undefined,
           current_company: debouncedFilters.currentCompany || undefined,
         };
@@ -109,8 +110,8 @@ const RecruiterCandidatesScreen = () => {
         location: debouncedFilters.location || undefined,
         industry: debouncedFilters.industry || undefined,
         skills: debouncedFilters.skills || undefined,
-        experience_min: debouncedFilters.experienceRange[0],
-        experience_max: debouncedFilters.experienceRange[1],
+        experience_min: debouncedFilters.experienceRange && debouncedFilters.experienceRange[0] > 0 ? debouncedFilters.experienceRange[0] : undefined,
+        experience_max: debouncedFilters.experienceRange && debouncedFilters.experienceRange[1] < 30 ? debouncedFilters.experienceRange[1] : undefined,
         notice_period_max: debouncedFilters.noticePeriodMax || undefined,
         current_company: debouncedFilters.currentCompany || undefined,
       };
@@ -169,39 +170,44 @@ const RecruiterCandidatesScreen = () => {
       >
         <Stack spacing={2}>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Avatar
-              src={c.avatar_url}
-              sx={{
-                width: 60,
-                height: 60,
-                borderRadius: "16px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
-              }}
-            />
             <Box sx={{ overflow: "hidden" }}>
               <Typography noWrap sx={{ fontWeight: 700, fontSize: "1.1rem", color: "#111827", letterSpacing: "-0.01em" }}>
-                {c.full_name}
+                {toTitleCase(c.full_name)}
               </Typography>
               <Typography noWrap sx={{ fontSize: "0.85rem", color: "#4f46e5", fontWeight: 600, mt: 0.2 }}>
-                {c.headline}
+                {toTitleCase(
+                  c.years_of_experience > 0
+                    ? (c.last_experience_title || "Fresher")
+                    : (c.last_education_degree || "Fresher")
+                )}
               </Typography>
             </Box>
           </Stack>
-          
+
           <Stack direction="row" spacing={1} alignItems="center">
-            <WorkHistoryIcon sx={{ fontSize: 16, color: "#64748b" }} />
-            <Typography variant="body2" sx={{ color: "#475569", fontWeight: 500 }}>
-              {c.years_of_experience} Yrs Experience
-            </Typography>
+
+
+            {c.years_of_experience > 0 ?
+              <><WorkHistoryIcon sx={{ fontSize: 16, color: "#64748b" }} />
+                <Typography variant="body2" sx={{ color: "#475569", fontWeight: 500 }}>
+                  {c.years_of_experience} Yrs Experience
+                </Typography></>
+
+              : (
+                <Typography variant="body2" sx={{ color: "#475569", fontWeight: 500 }}>
+                  Fresher
+                </Typography>
+              )}
+
           </Stack>
         </Stack>
 
         {c.skills?.length > 0 && (
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 1 }}>
-            {c.skills.slice(0, 3).map((skill) => (
+            {c.skills.slice(0, 7).map((skill) => (
               <Chip
                 key={skill}
-                label={skill}
+                label={toTitleCase(skill)}
                 size="small"
                 sx={{
                   height: 20,
@@ -213,9 +219,9 @@ const RecruiterCandidatesScreen = () => {
                 }}
               />
             ))}
-            {c.skills.length > 3 && (
+            {c.skills.length > 7 && (
               <Typography variant="caption" sx={{ color: "#94a3b8", alignSelf: "center", ml: 0.5, fontWeight: 500 }}>
-                +{c.skills.length - 3}
+                +{c.skills.length - 7}
               </Typography>
             )}
           </Box>

@@ -75,7 +75,8 @@ const PostJobScreen = () => {
     openings: 1,
     industry_id: '',
     department_id: '',
-    education_requirement: ''
+    education_requirement: '',
+    directUrl: ''
   });
 
   const [metadata, setMetadata] = useState({
@@ -149,6 +150,13 @@ const PostJobScreen = () => {
     if (!formData.industry_id) temp.industry_id = "Industry is required";
     if (!formData.education_requirement) temp.education_requirement = "Education is required";
     if (!formData.description || !formData.description.trim() || formData.description === '<p><br></p>') temp.description = "Job Description is required";
+    if (formData.directUrl && formData.directUrl.trim()) {
+      try {
+        new URL(formData.directUrl.trim());
+      } catch (_) {
+        temp.directUrl = "Please enter a valid URL (including http:// or https://)";
+      }
+    }
 
     setErrors(temp);
     return temp;
@@ -189,7 +197,8 @@ const PostJobScreen = () => {
         description: formData.description,
         skills: formData.skills,
         email: email || '',
-        mobile: mobile || ''
+        mobile: mobile || '',
+        direct_url: formData.directUrl || null
       };
 
 
@@ -309,6 +318,14 @@ const PostJobScreen = () => {
                   <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       fullWidth label="No. of Openings *" name="openings" type="number" value={formData.openings} onChange={handleChange}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <TextField
+                      id="directUrl" fullWidth label="Direct Application URL (Optional)" name="directUrl" value={formData.directUrl} onChange={handleChange}
+                      error={!!errors.directUrl} helperText={errors.directUrl}
+                      placeholder="e.g. https://company.com/careers/apply"
                       sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
                     />
                   </Grid>

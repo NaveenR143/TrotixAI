@@ -43,10 +43,11 @@ async def verify_whatsapp_webhook(
     # hub.mode, hub.challenge, hub.verify_token
     # FastAPI can't parse dotted parameters directly as function parameters unless we get them from request.query_params
     query_params = request.query_params
+    mode = query_params.get("hub.mode")
     challenge = query_params.get("hub.challenge")
     verify_token = query_params.get("hub.verify_token")
 
-    LOGGER.info(f"Verification request: challenge={challenge}, verify_token={verify_token}")
+    LOGGER.info(f"Verification request: mode={mode}, challenge={challenge}, verify_token={verify_token}")
 
     # Fallback to function params if query params didn't have dots (e.g. for testing)
     mode = mode or hub_mode

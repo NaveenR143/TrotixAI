@@ -1,6 +1,6 @@
 // components/recruiter/MobileCandidateCard.js
 import React from "react";
-import { Box, Typography, Button, Chip, Stack, Avatar } from "@mui/material";
+import { Box, Typography, Button, Chip, Stack } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import WorkHistoryIcon from "@mui/icons-material/WorkHistory";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -46,15 +46,6 @@ const MobileCandidateCard = ({
         }}
       >
         <Stack direction="row" spacing={2.5} alignItems="center" sx={{ mb: 3 }}>
-          <Avatar
-            src={candidate.avatar_url}
-            sx={{
-              width: 72,
-              height: 72,
-              borderRadius: "16px",
-              boxShadow: "0 8px 16px rgba(0,0,0,0.05)",
-            }}
-          />
           <Box>
             <Typography
               sx={{
@@ -75,7 +66,9 @@ const MobileCandidateCard = ({
                 mt: 0.5,
               }}
             >
-              {candidate.headline}
+              {candidate.years_of_experience > 0 
+                ? (candidate.last_experience_title || "Fresher") 
+                : (candidate.last_education_degree || "Fresher")}
             </Typography>
           </Box>
         </Stack>

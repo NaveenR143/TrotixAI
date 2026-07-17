@@ -2051,7 +2051,7 @@ async def list_candidates(
     session: AsyncSession = Depends(get_db),
     current_user_id: str = Depends(get_current_user),
 ):
-    from ai.models.orm_models import User, UserRoleEnum, UserStatusEnum, JobseekerProfile, JobseekerSkill, Skill, WorkExperience, Company, Industry
+    from ai.models.orm_models import User, UserRoleEnum, UserStatusEnum, JobseekerProfile, JobseekerSkill, Skill, WorkExperience, Company, Industry, Education
     from sqlalchemy import select, func, desc
     
     try:
@@ -2074,9 +2074,11 @@ async def list_candidates(
             )
             
         # Build base query
+        from sqlalchemy.orm import selectinload
         stmt = (
             select(User)
-            .join(JobseekerProfile, User.id == JobseekerProfile.user_id)
+            .options(selectinload(User.jobseeker_profile))
+            .outerjoin(JobseekerProfile, User.id == JobseekerProfile.user_id)
             .where(User.role == UserRoleEnum.jobseeker)
             .where(User.status == UserStatusEnum.active)
         )
@@ -2147,26 +2149,47 @@ async def list_candidates(
             skills_res = await session.execute(skills_query)
             u_skills = [row[0] for row in skills_res.all()]
             
-            # Fetch current designation from current work experience if headline is empty
-            headline = u.jobseeker_profile.headline
-            if not headline:
-                exp_query = (
-                    select(WorkExperience.title)
-                    .where(WorkExperience.user_id == u.id)
-                    .where(WorkExperience.is_current == True)
-                    .limit(1)
+            # Fetch last title from previous experience
+            exp_query = (
+                select(WorkExperience.title)
+                .where(WorkExperience.user_id == u.id)
+                .order_by(
+                    desc(WorkExperience.is_current),
+                    desc(WorkExperience.end_date),
+                    desc(WorkExperience.start_date)
                 )
-                exp_res = await session.execute(exp_query)
-                current_title = exp_res.scalar_one_or_none()
-                headline = current_title or "Jobseeker"
+                .limit(1)
+            )
+            exp_res = await session.execute(exp_query)
+            last_experience_title = exp_res.scalar_one_or_none()
+            
+            # Fetch last graduation degree
+            edu_query = (
+                select(Education.degree)
+                .where(Education.user_id == u.id)
+                .order_by(
+                    desc(Education.is_current),
+                    desc(Education.end_year),
+                    desc(Education.start_year)
+                )
+                .limit(1)
+            )
+            edu_res = await session.execute(edu_query)
+            last_education_degree = edu_res.scalar_one_or_none()
+
+            headline = u.jobseeker_profile.headline if u.jobseeker_profile else None
+            if not headline:
+                headline = last_experience_title or "Jobseeker"
                 
             candidates_data.append({
                 "id": str(u.id),
                 "full_name": u.full_name,
                 "avatar_url": u.avatar_url or f"https://api.dicebear.com/7.x/avataaars/svg?seed={u.full_name}",
                 "headline": headline,
-                "years_of_experience": float(u.jobseeker_profile.years_of_experience) if u.jobseeker_profile.years_of_experience is not None else 0.0,
-                "skills": u_skills
+                "years_of_experience": float(u.jobseeker_profile.years_of_experience) if u.jobseeker_profile and u.jobseeker_profile.years_of_experience is not None else 0.0,
+                "skills": u_skills,
+                "last_experience_title": last_experience_title,
+                "last_education_degree": last_education_degree
             })
             
         return {

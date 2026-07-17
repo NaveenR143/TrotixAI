@@ -120,6 +120,11 @@ const PublicJobDetailScreen = () => {
   };
 
   const handleApply = async () => {
+    if (job.direct_url) {
+      window.open(job.direct_url, "_blank");
+      return;
+    }
+
     if (!userid) {
       setShowPublicApply(true);
       return;

@@ -114,7 +114,14 @@ const JobDetail = ({ job, onBack }) => {
 
             <div className="detail-footer">
                 <button className="btn-skip" style={{ flex: 1 }} onClick={onBack}>← Back</button>
-                <button className="btn-apply" style={{ flex: 2 }} onClick={() => job.apply_url ? window.open(job.apply_url, '_blank', 'noopener') : alert('No application link available.')}>
+                <button className="btn-apply" style={{ flex: 2 }} onClick={() => {
+                    const url = job.direct_url || job.apply_url;
+                    if (url) {
+                        window.open(url, '_blank', 'noopener');
+                    } else {
+                        alert('No application link available.');
+                    }
+                }}>
                     Apply Now →
                 </button>
             </div>

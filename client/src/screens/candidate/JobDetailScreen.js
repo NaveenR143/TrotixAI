@@ -150,6 +150,10 @@ const JobDetailScreen = ({
   };
 
   const handleApply = async () => {
+    if (job.direct_url) {
+      window.open(job.direct_url, "_blank");
+      return;
+    }
     if (job.recruiter_id) {
       // Internal Application
       setApplying(true);

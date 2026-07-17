@@ -44,73 +44,73 @@ export const mapProfileData = (profileData) => {
       : [],
     education: profileData?.education && Array.isArray(profileData.education)
       ? profileData.education
-          .map((edu) => ({
-            id: edu?.id || Date.now() + Math.random(),
-            school: toTitleCase(edu?.institution) || "",
-            degree: toTitleCase(edu?.degree) || "",
-            field: toTitleCase(edu?.field_of_study) || "",
-            grade: edu?.grade || "",
-            year: edu?.end_year || "",
-            isCurrent: edu?.is_current || false,
-            startYear: edu?.start_year || "",
-          }))
-          .sort((a, b) => {
-            // Sort criteria:
-            // 1. isCurrent studies first
-            if (a.isCurrent && !b.isCurrent) return -1;
-            if (!a.isCurrent && b.isCurrent) return 1;
+        .map((edu) => ({
+          id: edu?.id || Date.now() + Math.random(),
+          school: toTitleCase(edu?.institution) || "",
+          degree: toTitleCase(edu?.degree) || "",
+          field: toTitleCase(edu?.field_of_study) || "",
+          grade: edu?.grade || "",
+          year: edu?.end_year || "",
+          isCurrent: edu?.is_current || false,
+          startYear: edu?.start_year || "",
+        }))
+        .sort((a, b) => {
+          // Sort criteria:
+          // 1. isCurrent studies first
+          if (a.isCurrent && !b.isCurrent) return -1;
+          if (!a.isCurrent && b.isCurrent) return 1;
 
-            // 2. year (end_year) descending
-            const yearA = parseInt(a.year) || 0;
-            const yearB = parseInt(b.year) || 0;
-            if (yearB !== yearA) {
-              return yearB - yearA;
-            }
+          // 2. year (end_year) descending
+          const yearA = parseInt(a.year) || 0;
+          const yearB = parseInt(b.year) || 0;
+          if (yearB !== yearA) {
+            return yearB - yearA;
+          }
 
-            // 3. startYear descending
-            const startA = parseInt(a.startYear) || 0;
-            const startB = parseInt(b.startYear) || 0;
-            return startB - startA;
-          })
+          // 3. startYear descending
+          const startA = parseInt(a.startYear) || 0;
+          const startB = parseInt(b.startYear) || 0;
+          return startB - startA;
+        })
       : [],
     projects: profileData?.projects && Array.isArray(profileData.projects)
       ? profileData.projects.map((project) => {
-          const titleVal = toTitleCase(project?.title || "") || "";
-          const urlVal = project?.url || "";
-          
-          // Safely extract the year from end_date, falling back to start_date
-          const dateStr = project?.end_date || project?.start_date || "";
-          const yearMatch = dateStr.match(/\d{4}/);
-          const yearVal = yearMatch ? yearMatch[0] : "";
+        const titleVal = toTitleCase(project?.title || "") || "";
+        const urlVal = project?.url || "";
 
-          return {
-            id: project?.id || Date.now() + Math.random(),
-            title: titleVal,
-            name: titleVal,
-            description: project?.description || "",
-            url: urlVal,
-            link: urlVal,
-            repoUrl: project?.repo_url || "",
-            startDate: project?.start_date || "",
-            endDate: project?.end_date || "",
-            year: yearVal,
-            skills: project?.skills_used && Array.isArray(project.skills_used)
-              ? project.skills_used.map((s) => toTitleCase(typeof s === "string" ? s : s?.name))
-              : [],
-          };
-        })
+        // Safely extract the year from end_date, falling back to start_date
+        const dateStr = project?.end_date || project?.start_date || "";
+        const yearMatch = dateStr.match(/\d{4}/);
+        const yearVal = yearMatch ? yearMatch[0] : "";
+
+        return {
+          id: project?.id || Date.now() + Math.random(),
+          title: titleVal,
+          name: titleVal,
+          description: project?.description || "",
+          url: urlVal,
+          link: urlVal,
+          repoUrl: project?.repo_url || "",
+          startDate: project?.start_date || "",
+          endDate: project?.end_date || "",
+          year: yearVal,
+          skills: project?.skills_used && Array.isArray(project.skills_used)
+            ? project.skills_used.map((s) => toTitleCase(typeof s === "string" ? s : s?.name))
+            : [],
+        };
+      })
       : [],
     skills: profileData?.skills && Array.isArray(profileData.skills)
       ? profileData.skills.map((s) => toTitleCase(typeof s === "string" ? s : s?.name))
       : [],
     languages: profileData?.languages && Array.isArray(profileData.languages)
       ? [...profileData.languages]
-          .sort((a, b) => {
-            const idA = typeof a === "object" && a !== null ? a.id || a.language_id || 0 : 0;
-            const idB = typeof b === "object" && b !== null ? b.id || b.language_id || 0 : 0;
-            return idA - idB;
-          })
-          .map((l) => toTitleCase(typeof l === "string" ? l : l?.language))
+        .sort((a, b) => {
+          const idA = typeof a === "object" && a !== null ? a.id || a.language_id || 0 : 0;
+          const idB = typeof b === "object" && b !== null ? b.id || b.language_id || 0 : 0;
+          return idA - idB;
+        })
+        .map((l) => toTitleCase(typeof l === "string" ? l : l?.language))
       : [],
     achievements: profileData?.achievements && Array.isArray(profileData.achievements)
       ? profileData.achievements.map((l, index) => ({
@@ -127,6 +127,6 @@ export const mapRoleToType = (role) => {
     case 'jobseeker': return 'Candidate';
     case 'recruiter': return 'Recruiter';
     case 'consultant': return 'Consultant';
-    default: return 'Candidate';
+    default: return role;
   }
 };

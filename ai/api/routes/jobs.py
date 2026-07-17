@@ -246,6 +246,7 @@ async def fetch_recruiter_posted_jobs(
                     if job.dept
                     else None
                 ),
+                "direct_url": job.direct_url,
             }
             jobs_data.append(job_dict)
 
@@ -368,6 +369,7 @@ async def create_job(
             department_id=resolved_department_id,
             recruiter_id=uuid.UUID(str(request.userid)) if request.userid else None,
             posted_at=datetime.now(),
+            direct_url=request.direct_url,
         )
 
         db.add(new_job)
@@ -758,6 +760,7 @@ async def get_job_by_id(
             "recruiter_id": str(job.recruiter_id) if job.recruiter_id else None,
             "careers_url": job.company.careers_url if job.company else None,
             "hiring_email": job.company.hiring_email if job.company else None,
+            "direct_url": job.direct_url,
         }
 
         return {"status": "success", "data": job_data}

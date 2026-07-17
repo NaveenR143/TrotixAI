@@ -331,20 +331,54 @@ const CandidateProfileScreen = () => {
     const apiSkills = apiData.skills?.map(s => s.name).filter(Boolean) || [];
 
     const fullPhone = apiData.phone || rawApplicant.phone;
-    const fullEmail = apiData.email || `${(apiData.full_name || rawApplicant.name).toLowerCase().replace(/ /g, ".")}@email.com`;
+    const fallbackName = apiData.full_name || rawApplicant.full_name || rawApplicant.name || "Candidate";
+    const fullEmail = apiData.email || `${fallbackName.toLowerCase().replace(/ /g, ".")}@email.com`;
+
+    // Resolve dynamic title:
+    // 1. Get years of experience
+    const yearsExp = apiData.years_of_experience !== undefined 
+      ? (parseFloat(apiData.years_of_experience) || 0)
+      : (parseFloat(rawApplicant.years_of_experience) || 0);
+
+    // 2. Get last experience title
+    let lastExpTitle = "";
+    if (apiExperience.length > 0) {
+      lastExpTitle = apiExperience[0]?.title || "";
+    } else {
+      lastExpTitle = rawApplicant.last_experience_title || "";
+    }
+
+    // 3. Get last graduation degree
+    let lastEduDegree = "";
+    if (apiEducation.length > 0) {
+      lastEduDegree = apiEducation[0]?.degree || "";
+    } else {
+      lastEduDegree = rawApplicant.last_education_degree || "";
+    }
+
+    // 4. Compute display title
+    const computedJobTitle = yearsExp > 0
+      ? (lastExpTitle || "Fresher")
+      : (lastEduDegree || "Fresher");
 
     return {
       ...rawApplicant,
-      name: toTitleCase(apiData.full_name || rawApplicant.name),
-      jobTitle: toTitleCase(apiData.headline || rawApplicant.jobTitle),
-      location: toTitleCase(apiData.current_location || rawApplicant.location),
-      experience: apiData.years_of_experience ? `${apiData.years_of_experience} yrs` : toTitleCase(rawApplicant.experience),
+      name: toTitleCase(fallbackName),
+      jobTitle: toTitleCase(computedJobTitle),
+      location: toTitleCase(apiData.current_location || rawApplicant.current_location || rawApplicant.location || "Location"),
+      experience: apiData.years_of_experience 
+        ? `${apiData.years_of_experience} yrs` 
+        : (rawApplicant.years_of_experience 
+            ? `${rawApplicant.years_of_experience} yrs` 
+            : toTitleCase(rawApplicant.experience || "0 yrs")),
       about: apiData.summary || rawApplicant.summary || "No summary provided.",
-      keySkills: apiSkills.length > 0 ? apiSkills.map(toTitleCase) : (rawApplicant.allSkills || rawApplicant.keySkills || rawApplicant.matchedSkills || []).map(toTitleCase),
-      company: toTitleCase(apiData.company_name || rawApplicant.company || "Company"),
+      keySkills: apiSkills.length > 0 
+        ? apiSkills.map(toTitleCase) 
+        : (rawApplicant.skills || rawApplicant.allSkills || rawApplicant.keySkills || rawApplicant.matchedSkills || []).map(toTitleCase),
+      company: toTitleCase(apiData.company_name || rawApplicant.current_company || rawApplicant.company_name || rawApplicant.company || "Company"),
       phone: isUnlocked ? fullPhone : "••••••••••",
       email: isUnlocked ? fullEmail : "••••••••••@•••••.com",
-      profileImage: apiData.avatar_url || rawApplicant.profileImage,
+      profileImage: apiData.avatar_url || rawApplicant.avatar_url || rawApplicant.profileImage,
       resume_url: apiData.resume_url || rawApplicant.resume_url || null,
 
       workHistory: apiExperience.length > 0 ? apiExperience.map(exp => ({
@@ -354,9 +388,9 @@ const CandidateProfileScreen = () => {
         description: exp.description
       })) : [
         {
-          title: toTitleCase(rawApplicant.jobTitle || "Senior Developer"),
+          title: toTitleCase(rawApplicant.headline || rawApplicant.jobTitle || "Senior Developer"),
           company_name: "Previous Tech Corp",
-          duration: rawApplicant.experience || "3 years",
+          duration: rawApplicant.years_of_experience ? `${rawApplicant.years_of_experience} years` : (rawApplicant.experience || "3 years"),
           description: "Leading development teams and architecting scalable solutions using modern web technologies."
         }
       ],
@@ -511,22 +545,6 @@ const CandidateProfileScreen = () => {
             {/* Top Profile Card */}
             <Paper elevation={0} sx={{ p: 4, mb: 4, position: 'relative', overflow: 'hidden' }}>
               <Grid container spacing={3} alignItems="center">
-                <Grid item>
-                  <Avatar
-                    src={applicant.profileImage}
-                    variant="square"
-                    sx={{
-                      width: 100,
-                      height: 100,
-                      borderRadius: 0,
-                      boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
-                      border: '4px solid #FFFFFF',
-                      "& img": {
-                        objectFit: "contain"
-                      }
-                    }}
-                  />
-                </Grid>
                 <Grid item xs>
                   <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
                     <Typography variant="h4" sx={{ fontWeight: 700, color: '#111827' }}>

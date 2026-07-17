@@ -857,6 +857,7 @@ CREATE TABLE public.job_postings (
     department text,
     company_id bigint NOT NULL,
     apply_url text,
+    direct_url text,
     ai_summary text,
     ai_tags text[],
     job_embedding public.vector(384),
