@@ -129,7 +129,7 @@ const DashboardScreen = () => {
         },
         {
             icon: PeopleIcon,
-            title: "Talent Pool (Coming Soon)",
+            title: "Talent Pool",
             description: "Discover and manage potential candidates",
             accent: "#7C3AED",
             onClick: () => navigate("/recruiter/candidates"),

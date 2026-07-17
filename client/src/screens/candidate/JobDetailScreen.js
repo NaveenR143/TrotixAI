@@ -684,7 +684,10 @@ const JobDetailScreen = ({
               startIcon={applying ? <CircularProgress size={20} color="inherit" /> : null}
               sx={{
                 flex: 1,
-                py: 1.5, borderRadius: '12px', fontWeight: 700, fontSize: '1rem',
+                py: 1.5,
+                borderRadius: '12px',
+                fontWeight: 700,
+                fontSize: { xs: '1rem', sm: '0.8rem', md: '0.9rem', lg: '1rem' },
                 bgcolor: '#2563EB',
                 boxShadow: '0 10px 25px rgba(37, 99, 235, 0.2)',
                 '&:hover': { bgcolor: '#1e40af', boxShadow: '0 12px 30px rgba(37, 99, 235, 0.3)' },
@@ -708,7 +711,7 @@ const JobDetailScreen = ({
                   py: 1.5,
                   borderRadius: '12px',
                   fontWeight: 700,
-                  fontSize: '1rem',
+                  fontSize: { xs: '1rem', sm: '0.8rem', md: '0.9rem', lg: '1rem' },
                   background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
                   boxShadow: '0 10px 25px rgba(124, 58, 237, 0.2)',
                   textTransform: 'none',
@@ -733,16 +736,28 @@ const JobDetailScreen = ({
                   "Generating..."
                 ) : (
                   <>
-                    <span>Generate with AI</span>
-                    <span
-                      style={{
-                        fontSize: '0.75rem',
+                    <Box
+                      component="span"
+                      sx={{
+                        textAlign: 'center',
+                        lineHeight: 1.2,
+                        display: 'block',
+                        px: { xs: 1, sm: 0.5, md: 1 }
+                      }}
+                    >
+                      Generate with AI for a Higher JD Match Score
+                    </Box>
+                    <Box
+                      component="span"
+                      sx={{
+                        fontSize: { xs: '0.75rem', sm: '0.65rem', md: '0.75rem' },
                         fontWeight: 400,
-                        opacity: 0.9
+                        opacity: 0.9,
+                        mt: 0.5
                       }}
                     >
                       Uses 10 credits
-                    </span>
+                    </Box>
                   </>
                 )}
               </Button>
@@ -760,7 +775,7 @@ const JobDetailScreen = ({
                   py: 1.5,
                   borderRadius: '12px',
                   fontWeight: 700,
-                  fontSize: '1rem',
+                  fontSize: { xs: '1rem', sm: '0.8rem', md: '0.9rem', lg: '1rem' },
                   background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
                   boxShadow: '0 10px 25px rgba(124, 58, 237, 0.2)',
                   textTransform: 'none',
@@ -785,16 +800,28 @@ const JobDetailScreen = ({
                   "Generating..."
                 ) : (
                   <>
-                    <span>Email with AI</span>
-                    <span
-                      style={{
-                        fontSize: '0.75rem',
+                    <Box
+                      component="span"
+                      sx={{
+                        textAlign: 'center',
+                        lineHeight: 1.2,
+                        display: 'block',
+                        px: { xs: 1, sm: 0.5, md: 1 }
+                      }}
+                    >
+                      Email with AI
+                    </Box>
+                    <Box
+                      component="span"
+                      sx={{
+                        fontSize: { xs: '0.75rem', sm: '0.65rem', md: '0.75rem' },
                         fontWeight: 400,
-                        opacity: 0.9
+                        opacity: 0.9,
+                        mt: 0.5
                       }}
                     >
                       Uses 5 credits
-                    </span>
+                    </Box>
                   </>
                 )}
               </Button>

@@ -4,14 +4,15 @@
 // Fallback Font: Inter, sans-serif
 // ============================================================================
 
-const fontFamily = "'Plus Jakarta Sans', 'Inter', sans-serif";
+const headingFontFamily = "'Plus Jakarta Sans', 'Inter', sans-serif";
+const fontFamily = "'Poppins', sans-serif";
 
 const typography = {
   fontFamily: fontFamily,
   
   // Headlines - Bold / ExtraBold
   h1: {
-    fontFamily: fontFamily,
+    fontFamily: headingFontFamily,
     fontWeight: 700,
     fontSize: '2.25rem',
     lineHeight: 1.2,
@@ -19,7 +20,7 @@ const typography = {
     color: '#111827',
   },
   h2: {
-    fontFamily: fontFamily,
+    fontFamily: headingFontFamily,
     fontWeight: 700,
     fontSize: '1.875rem',
     lineHeight: 1.3,
@@ -27,7 +28,7 @@ const typography = {
     color: '#111827',
   },
   h3: {
-    fontFamily: fontFamily,
+    fontFamily: headingFontFamily,
     fontWeight: 600,
     fontSize: '1.5rem',
     lineHeight: 1.4,
@@ -37,21 +38,21 @@ const typography = {
   
   // Subheadings - SemiBold
   h4: {
-    fontFamily: fontFamily,
+    fontFamily: headingFontFamily,
     fontWeight: 600,
     fontSize: '1.125rem',
     lineHeight: 1.5,
     color: '#111827',
   },
   h5: {
-    fontFamily: fontFamily,
+    fontFamily: headingFontFamily,
     fontWeight: 500,
     fontSize: '1rem',
     lineHeight: 1.5,
     color: '#111827',
   },
   h6: {
-    fontFamily: fontFamily,
+    fontFamily: headingFontFamily,
     fontWeight: 500,
     fontSize: '0.875rem',
     lineHeight: 1.5,

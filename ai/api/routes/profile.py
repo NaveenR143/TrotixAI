@@ -2033,3 +2033,157 @@ async def check_unlock_status(
         )
 
 
+@router.get(
+    "/candidates",
+    summary="Get List of Candidates for Recruiter",
+    description="Fetch a paginated list of jobseeker candidates with server-side filtering, returning only non-sensitive data.",
+)
+async def list_candidates(
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    industry: str = Query(None, description="Filter by Industry name"),
+    location: str = Query(None, description="Filter by location (case-insensitive)"),
+    experience_min: float = Query(None, description="Filter by minimum years of experience"),
+    experience_max: float = Query(None, description="Filter by maximum years of experience"),
+    skills: str = Query(None, description="Comma-separated list of skills"),
+    notice_period_max: int = Query(None, description="Filter by maximum notice period in days"),
+    current_company: str = Query(None, description="Filter by current company name"),
+    session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
+    from ai.models.orm_models import User, UserRoleEnum, UserStatusEnum, JobseekerProfile, JobseekerSkill, Skill, WorkExperience, Company, Industry
+    from sqlalchemy import select, func, desc
+    
+    try:
+        # Verify current user role
+        recruiter_uuid = UUID(current_user_id)
+        recruiter_query = select(User).where(User.id == recruiter_uuid)
+        recruiter_res = await session.execute(recruiter_query)
+        recruiter = recruiter_res.scalars().first()
+        
+        if not recruiter:
+            raise HTTPException(
+                status_code=401,
+                detail="Authentication required: Recruiter not found"
+            )
+            
+        if recruiter.role not in [UserRoleEnum.recruiter, UserRoleEnum.consultant, UserRoleEnum.admin]:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: Only recruiters, consultants, or admins can access the talent pool."
+            )
+            
+        # Build base query
+        stmt = (
+            select(User)
+            .join(JobseekerProfile, User.id == JobseekerProfile.user_id)
+            .where(User.role == UserRoleEnum.jobseeker)
+            .where(User.status == UserStatusEnum.active)
+        )
+        
+        # Apply filters
+        # 1. Location
+        if location and location.strip():
+            stmt = stmt.where(JobseekerProfile.current_location.ilike(f"%{location.strip()}%"))
+            
+        # 2. Industry
+        if industry and industry.strip():
+            # Join user's industry
+            stmt = stmt.join(Industry, User.industry_id == Industry.id)
+            stmt = stmt.where(Industry.name.ilike(f"%{industry.strip()}%"))
+            
+        # 3. Experience Range
+        if experience_min is not None:
+            stmt = stmt.where(JobseekerProfile.years_of_experience >= experience_min)
+        if experience_max is not None:
+            stmt = stmt.where(JobseekerProfile.years_of_experience <= experience_max)
+            
+        # 4. Notice Period
+        if notice_period_max is not None:
+            stmt = stmt.where(JobseekerProfile.notice_period_days <= notice_period_max)
+            
+        # 5. Current Company
+        if current_company and current_company.strip():
+            # Join work experiences and companies, checking for current company
+            stmt = (
+                stmt.join(WorkExperience, User.id == WorkExperience.user_id)
+                .join(Company, WorkExperience.company_id == Company.id)
+                .where(WorkExperience.is_current == True)
+                .where(Company.name.ilike(f"%{current_company.strip()}%"))
+            )
+            
+        # 6. Skills
+        if skills and skills.strip():
+            skill_list = [s.strip().lower() for s in skills.split(",") if s.strip()]
+            if skill_list:
+                stmt = (
+                    stmt.join(JobseekerSkill, User.id == JobseekerSkill.user_id)
+                    .join(Skill, JobseekerSkill.skill_id == Skill.id)
+                    .where(func.lower(Skill.name).in_(skill_list))
+                )
+                
+        # Group by User.id to avoid duplicates
+        stmt = stmt.group_by(User.id, JobseekerProfile.id)
+        
+        # Total count query for pagination
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        count_res = await session.execute(count_stmt)
+        total_count = count_res.scalar() or 0
+        
+        # Paginate and order by latest first
+        stmt = stmt.order_by(desc(User.created_at)).limit(limit).offset(offset)
+        
+        res = await session.execute(stmt)
+        users = res.scalars().all()
+        
+        candidates_data = []
+        for u in users:
+            # Fetch skills for this user
+            skills_query = (
+                select(Skill.name)
+                .join(JobseekerSkill, Skill.id == JobseekerSkill.skill_id)
+                .where(JobseekerSkill.user_id == u.id)
+            )
+            skills_res = await session.execute(skills_query)
+            u_skills = [row[0] for row in skills_res.all()]
+            
+            # Fetch current designation from current work experience if headline is empty
+            headline = u.jobseeker_profile.headline
+            if not headline:
+                exp_query = (
+                    select(WorkExperience.title)
+                    .where(WorkExperience.user_id == u.id)
+                    .where(WorkExperience.is_current == True)
+                    .limit(1)
+                )
+                exp_res = await session.execute(exp_query)
+                current_title = exp_res.scalar_one_or_none()
+                headline = current_title or "Jobseeker"
+                
+            candidates_data.append({
+                "id": str(u.id),
+                "full_name": u.full_name,
+                "avatar_url": u.avatar_url or f"https://api.dicebear.com/7.x/avataaars/svg?seed={u.full_name}",
+                "headline": headline,
+                "years_of_experience": float(u.jobseeker_profile.years_of_experience) if u.jobseeker_profile.years_of_experience is not None else 0.0,
+                "skills": u_skills
+            })
+            
+        return {
+            "status": "success",
+            "data": candidates_data,
+            "total": total_count,
+            "limit": limit,
+            "offset": offset
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error listing candidates: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}"
+        )
+
+

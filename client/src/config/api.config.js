@@ -24,6 +24,7 @@ const API_ENDPOINTS = {
   DOWNLOAD_RESUME: '/profile/download-resume',
   UNLOCK_CANDIDATE: '/profile/unlock-candidate',
   CHECK_UNLOCK_STATUS: '/profile/unlock-status',
+  CANDIDATES: '/profile/candidates',
   SEND_OTP: '/otp/send-otp',
   NEW_RECRUITER_OTP: '/otp/new-recruiter-otp',
   NEW_CANDIDATE_OTP: '/otp/new-candidate-otp',

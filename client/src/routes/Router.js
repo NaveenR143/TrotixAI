@@ -38,6 +38,7 @@ const CareerAdvisorScreen = Loadable(lazy(() => import("../screens/career_adviso
 const SkillDevelopmentScreen = Loadable(lazy(() => import("../screens/skill_development/SkillDevelopmentScreen")));
 const CandidateFeedScreen = Loadable(lazy(() => import("../screens/recruiter/CandidateFeedScreen")));
 const CandidateProfileScreen = Loadable(lazy(() => import("../screens/recruiter/CandidateProfileScreen")));
+const RecruiterCandidatesScreen = Loadable(lazy(() => import("../screens/recruiter/RecruiterCandidatesScreen")));
 
 
 
@@ -221,6 +222,7 @@ const Router = [
                   { path: "job-applicants/:jobId", element: <JobApplicantsScreen /> },
                   { path: "recruiter-dashboard", element: <RecruiterDashboardRoute /> },
                   { path: "posted-jobs", element: <PostedJobsScreen /> },
+                  { path: "recruiter/candidates", element: <RecruiterCandidatesScreen /> },
                 ]
               },
             ]

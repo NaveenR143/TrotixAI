@@ -1029,4 +1029,33 @@ export const updateUserIndustries = async (userId, industryIds) => {
 };
 
 
+/**
+ * Fetch candidates list with filters and pagination
+ * @param {object} params - Filter parameters: limit, offset, industry, location, experience_min, experience_max, skills, notice_period_max, current_company
+ */
+export const fetchCandidates = async (params = {}) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}${API_ENDPOINTS.CANDIDATES}`,
+      {
+        params,
+        headers: getHeaders(),
+        timeout: 15000,
+      }
+    );
+
+    return {
+      error: false,
+      data: response.data?.data || [],
+      total: response.data?.total || 0,
+      message: "Candidates fetched successfully",
+    };
+  } catch (error) {
+    console.error("Error fetching candidates:", error);
+    return handleError(error);
+  }
+};
+
+
+
 

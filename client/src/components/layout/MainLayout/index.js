@@ -36,7 +36,7 @@ const theme = createTheme({
     divider: '#e2e8f0',
   },
   typography: {
-    fontFamily: "'Open Sans', Verdana, sans-serif",
+    fontFamily: "'Poppins', sans-serif",
     h1: { fontWeight: 700, letterSpacing: '-0.03em' },
     h2: { fontWeight: 700, letterSpacing: '-0.02em' },
     h3: { fontWeight: 700, letterSpacing: '-0.02em' },
@@ -447,7 +447,7 @@ const MainLayout = () => {
         <title>RightNxt AI — AI Job Career Engine</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </Helmet>
 
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>

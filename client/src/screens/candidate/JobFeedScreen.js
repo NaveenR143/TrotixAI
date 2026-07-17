@@ -17,6 +17,7 @@ import { useSelector } from "react-redux";
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
 import { recordJobView } from "../../api/profileAPI";
 import IndustriesBanner from "./components/IndustriesBanner";
+import JobAnalysisLoader from "./components/JobAnalysisLoader";
 
 // Utility function to convert strings to title case
 const titleCase = (str) => {
@@ -34,8 +35,11 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
 
   const [savedJobs, setSavedJobs] = useState(new Set());
   const [jobs, setJobs] = useState(initialJobs || []);
-  const [loading, setLoading] = useState(!initialJobs || initialJobs.length === 0);
+  const [apiLoading, setApiLoading] = useState(!initialJobs || initialJobs.length === 0);
+  const [loaderComplete, setLoaderComplete] = useState(initialJobs && initialJobs.length > 0);
   const [error, setError] = useState(null);
+
+  const showLoader = apiLoading || !loaderComplete;
   const [selectedDesktopJob, setSelectedDesktopJob] = useState(jobs[0] || null);
   const [selectedMobileJob, setSelectedMobileJob] = useState(null);
   const [filterMode, setFilterMode] = useState('all');
@@ -58,7 +62,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
   useEffect(() => {
     const fetchJobsFromAPI = async () => {
       try {
-        setLoading(true);
+        setApiLoading(true);
         setError(null);
 
         // Use provided userId or default userId
@@ -115,7 +119,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
         // Fallback to initial jobs if API fails
         setJobs(initialJobs || []);
       } finally {
-        setLoading(false);
+        setApiLoading(false);
       }
     };
 
@@ -211,12 +215,13 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
     (filters.hideViewed ? 1 : 0);
 
   if (jobs.length === 0 || (filteredJobs.length === 0 && !isDesktop)) {
-    if (loading) {
+    if (showLoader) {
       return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 3 }}>
-          <CircularProgress size={50} sx={{ color: '#6366f1' }} />
-          <Typography sx={{ color: '#212121', fontWeight: 400 }}>Loading personalized jobs for you...</Typography>
-        </Box>
+        <JobAnalysisLoader
+          apiLoading={apiLoading}
+          onComplete={() => setLoaderComplete(true)}
+          isDesktop={isDesktop}
+        />
       );
     }
 
@@ -318,12 +323,13 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
   }
 
   if (!isDesktop) {
-    if (loading) {
+    if (showLoader) {
       return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100dvh - 64px)', gap: 3 }}>
-          <CircularProgress size={50} sx={{ color: '#6366f1' }} />
-          <Typography sx={{ color: '#212121', fontWeight: 400 }}>Loading personalized jobs for you...</Typography>
-        </Box>
+        <JobAnalysisLoader
+          apiLoading={apiLoading}
+          onComplete={() => setLoaderComplete(true)}
+          isDesktop={isDesktop}
+        />
       );
     }
 
@@ -532,14 +538,13 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
     );
   }
 
-  if (loading) {
+  if (showLoader) {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)', gap: 3 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-          <CircularProgress size={50} sx={{ color: '#6366f1' }} />
-          <Typography sx={{ color: '#212121', fontWeight: 400 }}>Loading personalized jobs for you...</Typography>
-        </Box>
-      </Box>
+      <JobAnalysisLoader
+        apiLoading={apiLoading}
+        onComplete={() => setLoaderComplete(true)}
+        isDesktop={isDesktop}
+      />
     );
   }
 

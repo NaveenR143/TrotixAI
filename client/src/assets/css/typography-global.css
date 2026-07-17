@@ -10,10 +10,10 @@
    Global Font Declarations
    ============================================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 * {
-  font-family: 'Inter', 'Open Sans', Verdana, sans-serif !important;
+  font-family: 'Poppins', sans-serif !important;
 }
 
 /* Crispy Headings Override */
@@ -46,7 +46,7 @@ h6,
 html,
 body,
 #root {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* ============================================================================
@@ -67,7 +67,7 @@ body,
 
 /* Ant Design buttons */
 .ant-btn {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 500;
 }
 
@@ -78,7 +78,7 @@ body,
 .ant-picker,
 .ant-cascader-input,
 .ant-input-textarea {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Ant Design dropdown and menu */
@@ -86,39 +86,39 @@ body,
 .ant-menu,
 .ant-menu-item,
 .ant-menu-submenu-title {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Ant Design table */
 .ant-table,
 .ant-table-cell {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Ant Design modal */
 .ant-modal-header,
 .ant-modal-body,
 .ant-modal-footer {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Ant Design notification and message */
 .ant-notification-notice,
 .ant-message-notice-content,
 .ant-alert {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Ant Design tags and badges */
 .ant-tag,
 .ant-badge,
 .ant-badge-count {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Ant Design tooltip */
 .ant-tooltip-inner {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* ============================================================================
@@ -127,7 +127,7 @@ body,
 
 /* MUI Typography */
 .MuiTypography-root {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* MUI Buttons */
@@ -135,7 +135,7 @@ body,
 .MuiButton-contained,
 .MuiButton-outlined,
 .MuiButton-text {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 500;
 }
 
@@ -144,47 +144,47 @@ body,
 .MuiOutlinedInput-input,
 .MuiFilledInput-input,
 .MuiInput-input {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* MUI Labels */
 .MuiFormLabel-root,
 .MuiInputLabel-root {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* MUI Select dropdown */
 .MuiSelect-select {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* MUI Chips */
 .MuiChip-root {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* MUI Cards */
 .MuiCard-root,
 .MuiCardHeader-title,
 .MuiCardContent-root {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* MUI Dialogs and Modals */
 .MuiDialog-paper,
 .MuiModal-root {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* MUI Tooltips */
 .MuiTooltip-tooltip {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* MUI Menu */
 .MuiMenu-paper,
 .MuiMenuItem-root {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* ============================================================================
@@ -207,7 +207,7 @@ p,
 span,
 div,
 a {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Form elements */
@@ -217,14 +217,14 @@ select,
 button,
 optgroup,
 option {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Lists */
 ul,
 ol,
 li {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Tables */
@@ -234,7 +234,7 @@ tbody,
 tr,
 td,
 th {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* ============================================================================
@@ -329,21 +329,21 @@ samp {
    ============================================================================ */
 
 .body-large {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 300;
   font-size: 0.875rem;
   line-height: 1.6;
 }
 
 .body-regular {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 300;
   font-size: 0.8125rem;
   line-height: 1.6;
 }
 
 .body-small {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 300;
   font-size: 0.75rem;
   line-height: 1.6;
@@ -354,19 +354,19 @@ samp {
    ============================================================================ */
 
 .label-text {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 300;
   font-size: 0.8125rem;
 }
 
 .caption-text {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 300;
   font-size: 0.6875rem;
 }
 
 .overline-text {
-  font-family: 'Open Sans', Verdana, sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 0.6875rem;
   text-transform: uppercase;
