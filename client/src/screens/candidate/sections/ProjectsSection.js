@@ -276,9 +276,7 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
               color: isEditing ? "#ef4444" : "#6366f1",
               textTransform: "none",
               "&.Mui-disabled": {
-                background: "#cdcbcbff",
-                color: "#cfcfcfff",
-                opacity: 0.8,
+                color: "#94A3B8",
               },
             }}
           >
@@ -491,9 +489,8 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
                       background: "linear-gradient(135deg, #6366f1, #4f46e5)",
                       textTransform: "none",
                       "&.Mui-disabled": {
-                        background: "#cdcbcbff",
-                        color: "#cfcfcfff",
-                        opacity: 0.8,
+                        background: "#E2E8F0",
+                        color: "#94A3B8",
                       },
                     }}
                   >
@@ -513,9 +510,8 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
                 background: "linear-gradient(135deg, #6366f1, #4f46e5)",
                 textTransform: "none",
                 "&.Mui-disabled": {
-                  background: "#cdcbcbff",
-                  color: "#cfcfcfff",
-                  opacity: 0.8,
+                  background: "#E2E8F0",
+                  color: "#94A3B8",
                 },
               }}
             >
@@ -526,9 +522,8 @@ const ProjectsSection = ({ userId, profile, initialProjects, onSuccess, enhanced
               sx={{
                 textTransform: "none",
                 "&.Mui-disabled": {
-                  background: "#cdcbcbff",
-                  color: "#cfcfcfff",
-                  opacity: 0.8,
+                  color: "#94A3B8",
+                  borderColor: "#E2E8F0",
                 },
               }}
             >

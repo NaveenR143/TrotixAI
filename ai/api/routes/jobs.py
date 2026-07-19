@@ -2,7 +2,7 @@ from datetime import datetime, date
 from ai.services.message_service import MessageService
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func, update, or_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
 from typing import List, Dict, Any
@@ -36,6 +36,8 @@ from ai.models.job_models import (
     JobCreateResponse,
     JobApplicationRequest,
     JobViewRequest,
+    UpdateDirectUrlRequest,
+    UpdateCompanyUrlsRequest,
 )
 from ai.services.profile_service import ProfileService
 from ai.services.ai_refiner_service import AzureOpenAIResumeRefiner
@@ -666,6 +668,79 @@ async def generate_ats_content(
         raise HTTPException(
             status_code=500, detail=f"Failed to generate ATS content: {str(e)}"
         )
+@router.get("/recent")
+async def get_recent_jobs(
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
+    """
+    Fetch jobs created/posted within the last 24 hours.
+    """
+    try:
+        from datetime import timezone, timedelta
+        time_threshold = datetime.now(timezone.utc) - timedelta(hours=48)
+
+        stmt = (
+            select(JobPosting)
+            .options(
+                joinedload(JobPosting.company),
+                joinedload(JobPosting.industry),
+                joinedload(JobPosting.dept),
+            )
+            .where(
+                or_(
+                    JobPosting.posted_at >= time_threshold,
+                    JobPosting.created_at >= time_threshold
+                )
+            )
+            .order_by(JobPosting.created_at.desc())
+        )
+
+        result = await db.execute(stmt)
+        jobs = result.scalars().all()
+
+        job_ids = [job.id for job in jobs]
+        skills_data = {}
+        if job_ids:
+            skills_stmt = (
+                select(JobSkill.job_posting_id, Skill.name)
+                .join(Skill, Skill.id == JobSkill.skills_id)
+                .where(JobSkill.job_posting_id.in_(job_ids))
+            )
+            skills_result = await db.execute(skills_stmt)
+            for row in skills_result.all():
+                job_id, skill_name = row[0], row[1]
+                if job_id not in skills_data:
+                    skills_data[job_id] = []
+                skills_data[job_id].append(skill_name)
+
+        jobs_data = []
+        for job in jobs:
+            jobs_data.append({
+                "id": job.id,
+                "title": job.title,
+                "description": job.description,
+                "experience_min_yrs": job.experience_min_yrs,
+                "experience_max_yrs": job.experience_max_yrs,
+                "location": job.location,
+                "posted_at": job.posted_at.isoformat() if job.posted_at else (job.created_at.isoformat() if job.created_at else None),
+                "direct_url": job.direct_url,
+                "company": {
+                    "id": job.company.id if job.company else None,
+                    "name": job.company.name if job.company else None,
+                } if job.company else None,
+                "industry": {
+                    "id": job.industry.id if job.industry else None,
+                    "name": job.industry.name if job.industry else None,
+                } if job.industry else None,
+                "skills": skills_data.get(job.id, []),
+            })
+
+        return {"status": "success", "data": jobs_data}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error fetching recent jobs: {str(e)}"
+        )
 
 
 @router.get("/{job_id}")
@@ -809,3 +884,100 @@ async def deactivate_job(
         print(f"DEBUG: Deactivate job unexpected error: {str(e)}")
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Error deactivating job: {str(e)}")
+
+
+@router.post("/{job_id}/update-direct-url")
+async def update_direct_url(
+    job_id: int,
+    request: UpdateDirectUrlRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
+    """
+    Update direct_url for a job posting.
+    """
+    url = request.direct_url.strip()
+    if url and not (url.startswith("http://") or url.startswith("https://")):
+        raise HTTPException(
+            status_code=400, detail="Invalid URL format. Must start with http:// or https://"
+        )
+
+    try:
+        stmt = select(JobPosting).where(JobPosting.id == job_id)
+        result = await db.execute(stmt)
+        job = result.scalar_one_or_none()
+
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+
+        job.direct_url = url
+        await db.commit()
+        await db.refresh(job)
+
+        return {"status": "success", "message": "Direct URL updated successfully", "direct_url": job.direct_url}
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"Error updating direct URL: {str(e)}"
+        )
+
+
+@router.post("/{job_id}/update-company-urls")
+async def update_company_urls(
+    job_id: int,
+    request: UpdateCompanyUrlsRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
+    """
+    Update company website and careers URLs for a job posting's company.
+    """
+    website = request.companyWebsiteUrl.strip() if request.companyWebsiteUrl else ""
+    careers = request.companyCareersUrl.strip() if request.companyCareersUrl else ""
+
+    if website and not (website.startswith("http://") or website.startswith("https://")):
+        raise HTTPException(
+            status_code=400, detail="Invalid Company Website URL format. Must start with http:// or https://"
+        )
+    if careers and not (careers.startswith("http://") or careers.startswith("https://")):
+        raise HTTPException(
+            status_code=400, detail="Invalid Company Careers URL format. Must start with http:// or https://"
+        )
+
+    try:
+        stmt = (
+            select(JobPosting)
+            .options(joinedload(JobPosting.company))
+            .where(JobPosting.id == job_id)
+        )
+        result = await db.execute(stmt)
+        job = result.scalar_one_or_none()
+
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+
+        if not job.company:
+            raise HTTPException(status_code=404, detail="Associated company not found for this job")
+
+        job.company.website = website if website else None
+        job.company.careers_url = careers if careers else None
+
+        await db.commit()
+        await db.refresh(job.company)
+
+        return {
+            "status": "success",
+            "message": "Company URLs updated successfully",
+            "companyWebsiteUrl": job.company.website,
+            "companyCareersUrl": job.company.careers_url,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"Error updating company URLs: {str(e)}"
+        )
+

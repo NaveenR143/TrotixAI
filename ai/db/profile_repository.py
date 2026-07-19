@@ -1265,6 +1265,73 @@ class ProfileRepository:
             raise
 
     @staticmethod
+    async def delete_work_experience(
+        user_id: UUID, experience_id: int, session: AsyncSession
+    ) -> dict:
+        """
+        Delete work experience
+
+        Args:
+            user_id: User UUID
+            experience_id: ID of work experience to delete
+            session: Async database session
+
+        Returns:
+            Updated profile data
+        """
+        try:
+            query = select(WorkExperience).where(
+                WorkExperience.id == experience_id, WorkExperience.user_id == user_id
+            )
+            result = await session.execute(query)
+            experience = result.scalars().first()
+
+            if not experience:
+                raise ValueError("Work experience not found")
+
+            await session.delete(experience)
+            await session.commit()
+            return await ProfileRepository.get_user_profile_by_id(user_id, session)
+
+        except Exception as e:
+            await session.rollback()
+            raise
+
+    @staticmethod
+    async def delete_education(
+        user_id: UUID, education_id: int, session: AsyncSession
+    ) -> dict:
+        """
+        Delete education
+
+        Args:
+            user_id: User UUID
+            education_id: ID of education to delete
+            session: Async database session
+
+        Returns:
+            Updated profile data
+        """
+        try:
+            query = select(Education).where(
+                Education.id == education_id, Education.user_id == user_id
+            )
+            result = await session.execute(query)
+            education = result.scalars().first()
+
+            if not education:
+                raise ValueError("Education not found")
+
+            await session.delete(education)
+            await session.commit()
+            return await ProfileRepository.get_user_profile_by_id(user_id, session)
+
+        except Exception as e:
+            await session.rollback()
+            raise
+
+
+    @staticmethod
     async def update_profile_viewed(user_id: UUID, session: AsyncSession) -> dict:
         """
         Update user's profile_viewed status to True

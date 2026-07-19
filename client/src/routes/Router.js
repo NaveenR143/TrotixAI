@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import RecruiterRoute from "../components/common/RecruiterRoute";
 import CandidateRoute from "../components/common/CandidateRoute";
+import AdminRoute from "../components/common/AdminRoute";
 import { useAuth } from "../authContext";
 import Spinner from "../components/common/Spinner";
 import Loadable from "../layouts/full-layout/loadable/Loadable";
@@ -39,6 +40,8 @@ const SkillDevelopmentScreen = Loadable(lazy(() => import("../screens/skill_deve
 const CandidateFeedScreen = Loadable(lazy(() => import("../screens/recruiter/CandidateFeedScreen")));
 const CandidateProfileScreen = Loadable(lazy(() => import("../screens/recruiter/CandidateProfileScreen")));
 const RecruiterCandidatesScreen = Loadable(lazy(() => import("../screens/recruiter/RecruiterCandidatesScreen")));
+const RecentJobsListScreen = Loadable(lazy(() => import("../screens/admin/RecentJobsListScreen")));
+const JobDetailsScreen = Loadable(lazy(() => import("../screens/admin/JobDetailsScreen")));
 
 
 
@@ -223,6 +226,15 @@ const Router = [
                   { path: "recruiter-dashboard", element: <RecruiterDashboardRoute /> },
                   { path: "posted-jobs", element: <PostedJobsScreen /> },
                   { path: "recruiter/candidates", element: <RecruiterCandidatesScreen /> },
+                ]
+              },
+
+              //Admin
+              {
+                element: <AdminRoute><Outlet /></AdminRoute>,
+                children: [
+                  { path: "admin/recent-jobs", element: <RecentJobsListScreen /> },
+                  { path: "admin/job-detail/:id", element: <JobDetailsScreen /> },
                 ]
               },
             ]

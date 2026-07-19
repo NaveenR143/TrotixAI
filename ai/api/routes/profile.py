@@ -630,6 +630,129 @@ async def delete_achievement(
             status_code=500, detail=f"Internal error: {str(e)}")
 
 
+@router.delete(
+    "/delete/work-experience/{user_id}/{experience_id}",
+    response_model=BlockUpdateResponse,
+    responses={
+        400: {"model": ProfileErrorResponse},
+        404: {"model": ProfileErrorResponse},
+        500: {"model": ProfileErrorResponse},
+    },
+    summary="Delete Work Experience",
+    description="Delete a work experience entry",
+)
+async def delete_work_experience(
+    user_id: UUID,
+    experience_id: int,
+    session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+) -> BlockUpdateResponse:
+    """
+    Delete work experience
+
+    Args:
+        user_id: User UUID
+        experience_id: Work Experience ID
+        session: Database session
+
+    Returns:
+        BlockUpdateResponse with updated profile
+    """
+    try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
+        logger.info(
+            f"Deleting work experience {experience_id} for user: {user_id}")
+
+        # Perform delete
+        updated_profile = await ProfileRepository.delete_work_experience(
+            user_id, experience_id, session
+        )
+
+        logger.info(f"Work experience deleted successfully for user: {user_id}")
+
+        return BlockUpdateResponse(
+            status="success",
+            message="Work experience deleted successfully",
+            data=updated_profile,
+        )
+
+    except ValueError as e:
+        logger.warning(f"Validation error: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting work experience: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail=f"Internal error: {str(e)}")
+
+
+@router.delete(
+    "/delete/education/{user_id}/{education_id}",
+    response_model=BlockUpdateResponse,
+    responses={
+        400: {"model": ProfileErrorResponse},
+        404: {"model": ProfileErrorResponse},
+        500: {"model": ProfileErrorResponse},
+    },
+    summary="Delete Education",
+    description="Delete an education entry",
+)
+async def delete_education(
+    user_id: UUID,
+    education_id: int,
+    session: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+) -> BlockUpdateResponse:
+    """
+    Delete education
+
+    Args:
+        user_id: User UUID
+        education_id: Education ID
+        session: Database session
+
+    Returns:
+        BlockUpdateResponse with updated profile
+    """
+    try:
+        if str(user_id) != current_user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You can only update your own profile",
+            )
+        logger.info(
+            f"Deleting education {education_id} for user: {user_id}")
+
+        # Perform delete
+        updated_profile = await ProfileRepository.delete_education(
+            user_id, education_id, session
+        )
+
+        logger.info(f"Education deleted successfully for user: {user_id}")
+
+        return BlockUpdateResponse(
+            status="success",
+            message="Education deleted successfully",
+            data=updated_profile,
+        )
+
+    except ValueError as e:
+        logger.warning(f"Validation error: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting education: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail=f"Internal error: {str(e)}")
+
+
+
 @router.put(
     "/update/project/{user_id}",
     response_model=BlockUpdateResponse,

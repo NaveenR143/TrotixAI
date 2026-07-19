@@ -475,9 +475,8 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
                       color: "#fff",
                       "&:hover": { background: "linear-gradient(135deg, #9333ea, #4f46e5)" },
                       "&.Mui-disabled": {
-                        color: "#cfcfcfff",
-                        backgroundColor: "#cdcbcbff",
-                        opacity: 0.8,
+                        background: "#E2E8F0",
+                        color: "#94A3B8",
                       },
                     }}
                   >
@@ -501,9 +500,8 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
                     boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3)",
                     "&:hover": { background: "linear-gradient(135deg, #4f46e5, #4338ca)" },
                     "&.Mui-disabled": {
-                      color: "#cfcfcfff",
-                      backgroundColor: "#cdcbcbff",
-                      opacity: 0.8,
+                      background: "#E2E8F0",
+                      color: "#94A3B8",
                     },
                   }}
                 >
@@ -521,9 +519,8 @@ const ProfilePhotoSection = ({ userId, avatarUrl, onSuccess, userPoints }) => {
                     color: "#ef4444",
                     "&:hover": { bgcolor: "#fef2f2" },
                     "&.Mui-disabled": {
-                      color: "#cfcfcfff",
-                      backgroundColor: "#cdcbcbff",
-                      opacity: 0.8,
+                      color: "#94A3B8",
+                      borderColor: "#E2E8F0",
                     },
                   }}
                 >

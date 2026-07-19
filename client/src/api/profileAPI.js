@@ -208,6 +208,49 @@ export const deleteAchievement = async (userId, achievementId) => {
 };
 
 /**
+ * Delete Work Experience
+ */
+export const deleteWorkExperience = async (userId, experienceId) => {
+  try {
+    const response = await axios.delete(
+      `${API_BASE_URL}${API_ENDPOINTS.PROFILE}/delete/work-experience/${userId}/${experienceId}`,
+      { headers: getHeaders(), timeout: 10000 }
+    );
+
+    return {
+      error: false,
+      data: response.data,
+      message: response.data?.message || "Work experience deleted successfully",
+    };
+  } catch (error) {
+    console.error("Error deleting work experience:", error);
+    return handleError(error);
+  }
+};
+
+/**
+ * Delete Education
+ */
+export const deleteEducation = async (userId, educationId) => {
+  try {
+    const response = await axios.delete(
+      `${API_BASE_URL}${API_ENDPOINTS.PROFILE}/delete/education/${userId}/${educationId}`,
+      { headers: getHeaders(), timeout: 10000 }
+    );
+
+    return {
+      error: false,
+      data: response.data,
+      message: response.data?.message || "Education deleted successfully",
+    };
+  } catch (error) {
+    console.error("Error deleting education:", error);
+    return handleError(error);
+  }
+};
+
+
+/**
  * Update Education
  */
 export const updateEducation = async (userId, educationData) => {

@@ -46,3 +46,14 @@ class JobApplicationRequest(BaseModel):
 class JobViewRequest(BaseModel):
     job_id: int
     user_id: UUID
+
+
+class UpdateDirectUrlRequest(BaseModel):
+    direct_url: str
+
+
+class UpdateCompanyUrlsRequest(BaseModel):
+    companyWebsiteUrl: Optional[str] = None
+    companyCareersUrl: Optional[str] = None
+
+

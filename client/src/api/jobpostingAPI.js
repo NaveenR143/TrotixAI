@@ -394,3 +394,78 @@ export const deactivateJob = async (jobId) => {
     }
 };
 
+/**
+ * Fetch jobs created/posted in the last 24 hours
+ */
+export const fetchRecentJobs = async () => {
+    try {
+        const response = await axios.get(
+            `${API_BASE_URL}/jobs/recent`,
+            { headers: getHeaders(), timeout: 10000 }
+        );
+
+        return {
+            error: false,
+            data: response.data?.data || response.data,
+            message: "Recent jobs fetched successfully",
+        };
+    } catch (error) {
+        console.error("Error fetching recent jobs:", error);
+        return handleError(error);
+    }
+};
+
+/**
+ * Update the direct URL for a specific job
+ * @param {string|number} jobId - ID of the job
+ * @param {string} directUrl - The new direct URL
+ */
+export const updateJobDirectUrl = async (jobId, directUrl) => {
+    try {
+        const response = await axios.post(
+            `${API_BASE_URL}/jobs/${jobId}/update-direct-url`,
+            { direct_url: directUrl },
+            { headers: getHeaders(), timeout: 10000 }
+        );
+
+        return {
+            error: false,
+            data: response.data,
+            message: response.data?.message || "Direct URL updated successfully",
+        };
+    } catch (error) {
+        console.error("Error updating job direct URL:", error);
+        return handleError(error);
+    }
+};
+
+/**
+ * Update company URLs (Website and Careers) for a specific job's company
+ * @param {string|number} jobId - ID of the job
+ * @param {string} websiteUrl - The company website URL
+ * @param {string} careersUrl - The company careers URL
+ */
+export const updateJobCompanyUrls = async (jobId, websiteUrl, careersUrl) => {
+    try {
+        const response = await axios.post(
+            `${API_BASE_URL}/jobs/${jobId}/update-company-urls`,
+            {
+                companyWebsiteUrl: websiteUrl,
+                companyCareersUrl: careersUrl
+            },
+            { headers: getHeaders(), timeout: 10000 }
+        );
+
+        return {
+            error: false,
+            data: response.data,
+            message: response.data?.message || "Company URLs updated successfully",
+        };
+    } catch (error) {
+        console.error("Error updating company URLs:", error);
+        return handleError(error);
+    }
+};
+
+
+

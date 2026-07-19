@@ -28,6 +28,8 @@ import { updateUserProfile } from "../../../redux/user/Action";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { sanitizeHtml } from "../../../utils/htmlSanitizer";
+import { mapProfileData } from "../../../utils/profileMapping";
+
 
 const QUILL_MODULES = {
   toolbar: [
@@ -126,23 +128,59 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
     setChangedExperience((prev) => new Set([...prev, newIndex]));
   };
 
-  const removeExperience = (index) => {
-    setExperiences((prev) => prev.filter((_, i) => i !== index));
+  const removeExperience = async (index) => {
+    const exp = experiences[index];
+
+    if (exp && exp.id) {
+      setRecordLoading((prev) => ({ ...prev, [index]: true }));
+      try {
+        const result = await profileAPI.deleteWorkExperience(userId, exp.id);
+        if (result.error) {
+          setRecordErrors((prev) => ({ ...prev, [index]: result.message }));
+          return;
+        }
+        if (onSuccess) onSuccess("Work experience deleted successfully!");
+      } catch (error) {
+        setRecordErrors((prev) => ({ ...prev, [index]: error.message || "Failed to delete" }));
+        return;
+      } finally {
+        setRecordLoading((prev) => ({ ...prev, [index]: false }));
+      }
+    }
+
+    const updatedExperiences = experiences.filter((_, i) => i !== index);
+    setExperiences(updatedExperiences);
+
     setNewExperienceIndices((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(index);
+      const newSet = new Set();
+      prev.forEach(i => {
+        if (i < index) newSet.add(i);
+        if (i > index) newSet.add(i - 1);
+      });
       return newSet;
     });
     setChangedExperience((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(index);
+      const newSet = new Set();
+      prev.forEach(i => {
+        if (i < index) newSet.add(i);
+        if (i > index) newSet.add(i - 1);
+      });
       return newSet;
     });
     setRecordErrors((prev) => {
-      const newObj = { ...prev };
-      delete newObj[index];
+      const newObj = {};
+      Object.keys(prev).forEach((k) => {
+        const keyInt = parseInt(k);
+        if (keyInt < index) newObj[keyInt] = prev[k];
+        if (keyInt > index) newObj[keyInt - 1] = prev[k];
+      });
       return newObj;
     });
+
+    dispatch(updateUserProfile({
+      ...profile,
+      experience: updatedExperiences,
+    }));
   };
 
   const updateExperience = (index, field, value) => {
@@ -228,11 +266,14 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
           });
         }
 
-        // Update Redux
-        dispatch(updateUserProfile({
-          ...profile,
-          experience: experiences,
-        }));
+        const mappedProfile = mapProfileData(result.data?.data);
+        if (mappedProfile && mappedProfile.experience) {
+          setExperiences(mappedProfile.experience);
+          dispatch(updateUserProfile({
+            ...profile,
+            experience: mappedProfile.experience,
+          }));
+        }
       }
     } catch (error) {
       setRecordErrors((prev) => ({ ...prev, [index]: error.message || "Failed to save" }));
@@ -240,6 +281,7 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
       setRecordLoading((prev) => ({ ...prev, [index]: false }));
     }
   };
+
 
   const saveAllExperiences = async () => {
     if (changedExperience.size === 0) return;
@@ -293,9 +335,7 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
               color: isEditing ? "#ef4444" : "#6366f1",
               textTransform: "none",
               "&.Mui-disabled": {
-                color: "#cfcfcfff",
-                backgroundColor: "#cdcbcbff",
-                opacity: 0.8,
+                color: "#94A3B8",
               },
             }}
           >
@@ -438,10 +478,20 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
             <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed", border: newExperienceIndices.has(idx) ? "2px dashed #10b981" : "1px dashed #e2e8f0" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
                 {newExperienceIndices.has(idx) && <Chip label="🆕 NEW RECORD" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 600 }} />}
-                <IconButton size="small" onClick={() => removeExperience(idx)} sx={{ color: "#f43f5e", ml: "auto" }}>
-                  <DeleteIcon fontSize="inherit" />
+                <IconButton
+                  size="small"
+                  onClick={() => removeExperience(idx)}
+                  disabled={recordLoading?.[idx]}
+                  sx={{ color: "#f43f5e", ml: "auto" }}
+                >
+                  {recordLoading?.[idx] ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <DeleteIcon fontSize="inherit" />
+                  )}
                 </IconButton>
               </Box>
+
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
                   <TextField fullWidth label="Company" value={exp.company_name} onChange={(e) => updateExperience(idx, "company_name", e.target.value)} size="small" />
@@ -549,9 +599,8 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
                       background: "linear-gradient(135deg, #6366f1, #4f46e5)",
                       textTransform: "none",
                       "&.Mui-disabled": {
-                        background: "#cdcbcbff",
-                        color: "#cfcfcfff",
-                        opacity: 0.8,
+                        background: "#E2E8F0",
+                        color: "#94A3B8",
                       },
                     }}
                   >
@@ -571,9 +620,8 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
                 background: "linear-gradient(135deg, #6366f1, #4f46e5)",
                 textTransform: "none",
                 "&.Mui-disabled": {
-                  background: "#cdcbcbff",
-                  color: "#cfcfcfff",
-                  opacity: 0.8,
+                  background: "#E2E8F0",
+                  color: "#94A3B8",
                 },
               }}
             >
@@ -584,9 +632,8 @@ const WorkExperienceSection = ({ userId, profile, initialExperiences, onSuccess,
               sx={{
                 textTransform: "none",
                 "&.Mui-disabled": {
-                  background: "#cdcbcbff",
-                  color: "#cfcfcfff",
-                  opacity: 0.8,
+                  color: "#94A3B8",
+                  borderColor: "#E2E8F0",
                 },
               }}
             >

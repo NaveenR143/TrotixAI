@@ -94,24 +94,61 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhanc
     setChangedEducation((prev) => new Set([...prev, newIndex]));
   };
 
-  const removeEducation = (index) => {
-    setEducation((prev) => prev.filter((_, i) => i !== index));
+  const removeEducation = async (index) => {
+    const edu = education[index];
+
+    if (edu && edu.id) {
+      setRecordLoading((prev) => ({ ...prev, [index]: true }));
+      try {
+        const result = await profileAPI.deleteEducation(userId, edu.id);
+        if (result.error) {
+          setRecordErrors((prev) => ({ ...prev, [index]: result.message }));
+          return;
+        }
+        if (onSuccess) onSuccess("Education deleted successfully!");
+      } catch (error) {
+        setRecordErrors((prev) => ({ ...prev, [index]: error.message || "Failed to delete" }));
+        return;
+      } finally {
+        setRecordLoading((prev) => ({ ...prev, [index]: false }));
+      }
+    }
+
+    const updatedEducation = education.filter((_, i) => i !== index);
+    setEducation(updatedEducation);
+
     setNewEducationIndices((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(index);
+      const newSet = new Set();
+      prev.forEach(i => {
+        if (i < index) newSet.add(i);
+        if (i > index) newSet.add(i - 1);
+      });
       return newSet;
     });
     setChangedEducation((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(index);
+      const newSet = new Set();
+      prev.forEach(i => {
+        if (i < index) newSet.add(i);
+        if (i > index) newSet.add(i - 1);
+      });
       return newSet;
     });
     setRecordErrors((prev) => {
-      const newObj = { ...prev };
-      delete newObj[index];
+      const newObj = {};
+      Object.keys(prev).forEach((k) => {
+        const keyInt = parseInt(k);
+        if (keyInt < index) newObj[keyInt] = prev[k];
+        if (keyInt > index) newObj[keyInt - 1] = prev[k];
+      });
       return newObj;
     });
+
+    dispatch(updateUserProfile({
+      ...profile,
+      education: updatedEducation,
+    }));
   };
+
 
   const updateEducation = (index, field, value) => {
     const newEdu = [...education];
@@ -228,9 +265,7 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhanc
               color: isEditing ? "#ef4444" : "#6366f1",
               textTransform: "none",
               "&.Mui-disabled": {
-                color: "#cfcfcfff",
-                backgroundColor: "#cdcbcbff",
-                opacity: 0.8,
+                color: "#94A3B8",
               },
             }}
           >
@@ -287,10 +322,20 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhanc
             <Paper key={idx} variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderStyle: "dashed", border: newEducationIndices.has(idx) ? "2px dashed #10b981" : "1px dashed #e2e8f0" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
                 {newEducationIndices.has(idx) && <Chip label="🆕 NEW RECORD" size="small" sx={{ bgcolor: "#d1fae5", color: "#059669", fontWeight: 600 }} />}
-                <IconButton size="small" onClick={() => removeEducation(idx)} sx={{ color: "#f43f5e", ml: "auto" }}>
-                  <DeleteIcon fontSize="inherit" />
+                <IconButton
+                  size="small"
+                  onClick={() => removeEducation(idx)}
+                  disabled={recordLoading?.[idx]}
+                  sx={{ color: "#f43f5e", ml: "auto" }}
+                >
+                  {recordLoading?.[idx] ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <DeleteIcon fontSize="inherit" />
+                  )}
                 </IconButton>
               </Box>
+
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <TextField fullWidth label="Institution" value={edu.school} onChange={(e) => updateEducation(idx, "school", e.target.value)} size="small" />
@@ -312,9 +357,8 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhanc
                       background: "linear-gradient(135deg, #6366f1, #4f46e5)",
                       textTransform: "none",
                       "&.Mui-disabled": {
-                        background: "#cdcbcbff",
-                        color: "#cfcfcfff",
-                        opacity: 0.8,
+                        background: "#E2E8F0",
+                        color: "#94A3B8",
                       },
                     }}
                   >
@@ -334,9 +378,8 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhanc
                 background: "linear-gradient(135deg, #6366f1, #4f46e5)",
                 textTransform: "none",
                 "&.Mui-disabled": {
-                  background: "#cdcbcbff",
-                  color: "#cfcfcfff",
-                  opacity: 0.8,
+                  background: "#E2E8F0",
+                  color: "#94A3B8",
                 },
               }}
             >
@@ -347,9 +390,8 @@ const EducationSection = ({ userId, profile, initialEducation, onSuccess, enhanc
               sx={{
                 textTransform: "none",
                 "&.Mui-disabled": {
-                  color: "#cfcfcfff",
-                  backgroundColor: "#cdcbcbff",
-                  opacity: 0.8,
+                  color: "#94A3B8",
+                  borderColor: "#E2E8F0",
                 },
               }}
             >

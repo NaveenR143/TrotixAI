@@ -30,7 +30,7 @@ import MultiPageResumePreview from "./MultiPageResumePreview";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-const steps = ["Personal Info", "Education", "Experience", "Projects", "Skills"];
+const steps = ["Personal Info", "Education", "Experience", "Projects", "Skills & Languages"];
 
 const ResumeBuilderScreen = () => {
   const location = useLocation();
