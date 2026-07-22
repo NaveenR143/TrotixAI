@@ -100,6 +100,7 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
             hiring_email: job.hiring_email || '',
             recruiter_id: job.recruiter_id || '',
             direct_url: job.direct_url || '',
+            company_apply: job.company_apply ?? false,
             experience_min_yrs: job.experience_min_yrs,
             experience_max_yrs: job.experience_max_yrs,
             experience: job.experience_min_yrs != null && job.experience_max_yrs != null

@@ -249,6 +249,7 @@ async def fetch_recruiter_posted_jobs(
                     else None
                 ),
                 "direct_url": job.direct_url,
+                "company_apply": getattr(job, "company_apply", False),
             }
             jobs_data.append(job_dict)
 
@@ -372,6 +373,7 @@ async def create_job(
             recruiter_id=uuid.UUID(str(request.userid)) if request.userid else None,
             posted_at=datetime.now(),
             direct_url=request.direct_url,
+            company_apply=request.company_apply if hasattr(request, "company_apply") else False,
         )
 
         db.add(new_job)
@@ -725,6 +727,7 @@ async def get_recent_jobs(
                 "location": job.location,
                 "posted_at": job.posted_at.isoformat() if job.posted_at else (job.created_at.isoformat() if job.created_at else None),
                 "direct_url": job.direct_url,
+                "company_apply": getattr(job, "company_apply", False),
                 "company": {
                     "id": job.company.id if job.company else None,
                     "name": job.company.name if job.company else None,
@@ -836,6 +839,7 @@ async def get_job_by_id(
             "careers_url": job.company.careers_url if job.company else None,
             "hiring_email": job.company.hiring_email if job.company else None,
             "direct_url": job.direct_url,
+            "company_apply": getattr(job, "company_apply", False),
         }
 
         return {"status": "success", "data": job_data}

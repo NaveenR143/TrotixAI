@@ -29,6 +29,8 @@ const templateThemes = {
   template12: { type: "split", sidebarWidth: "220px", sidebarBg: "#F4F1EE", mainBg: "#FDFCFA" },
   template13: { type: "solid", mainBg: "#ffffff" },
   template14: { type: "solid", mainBg: "#ffffff" },
+  template15: { type: "solid", mainBg: "#ffffff" },
+  template15p: { type: "solid", mainBg: "#ffffff" },
 };
 
 const getTemplateTheme = (id) => templateThemes[id] || { type: "solid", mainBg: "#ffffff" };

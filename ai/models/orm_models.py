@@ -773,6 +773,7 @@ class JobPosting(Base):
     country = Column(String, nullable=True)
     apply_url = Column(String, nullable=True)
     direct_url = Column(String, nullable=True)
+    company_apply = Column(Boolean, default=False, nullable=True)
     ai_summary = Column(Text, nullable=True)
     ai_tags = Column(ARRAY(String), nullable=True)
     job_embedding = Column(

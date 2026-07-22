@@ -697,6 +697,7 @@ class JobMatcherService:
                         "summary": job.summary,
                         "recruiter_id": job.recruiter_id,
                         "direct_url": job.direct_url,
+                        "company_apply": getattr(job, "company_apply", False),
                     }
                 )
 
@@ -842,6 +843,7 @@ class JobMatcherService:
                         "hiring_email": job["hiring_email"],
                         "recruiter_id": job["recruiter_id"],
                         "direct_url": job["direct_url"],
+                        "company_apply": job.get("company_apply", False),
                     }
                 )
 

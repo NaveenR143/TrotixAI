@@ -62,6 +62,17 @@ const PersonalDetailsForm = () => {
             onChange={handleChange}
           />
         </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Profile Photo URL"
+            placeholder="https://example.com/photo.jpg"
+            name="avatarUrl"
+            value={personalDetails.avatarUrl || personalDetails.photo || ""}
+            onChange={handleChange}
+            helperText="URL or image link for templates with photo support"
+          />
+        </Grid>
         <Grid item xs={12}>
           <FormControlLabel
             control={

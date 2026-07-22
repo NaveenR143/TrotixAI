@@ -12,6 +12,7 @@ import Template11 from "./template11Screen";
 import Template12 from "./template12Screen";
 import Template13 from "./template13Screen";
 import Template14 from "./template14Screen";
+import Template15 from "./template15Screen";
 
 /**
  * Registry of available resume templates.
@@ -82,6 +83,11 @@ const templateRegistry = {
     name: "Indigo Executive",
     component: Template14,
     thumbnail: "template_14.png",
+  },
+  template15p: {
+    name: "ATS Professional Photo",
+    component: Template15,
+    thumbnail: "template_15_p.png",
   },
   // Add more templates here
 };

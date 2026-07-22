@@ -68,63 +68,63 @@ def send_otp(phone: str) -> str:
     expiry_time = datetime.utcnow() + timedelta(minutes=5)
     otp_store[formattedphone] = (otp, expiry_time)
 
-    print("formattedphone: ", formattedphone)
+    print("formattedphone: ", formattedphone, "otp: ", otp)
 
     message = f"Your OTP for RightNxt is {otp}  ."
 
     # Your OTP for RightNxt is {#num#}  .
 
-    try:
-        # Prepare parameters for the send_text_message API call
+    # try:
+    #     # Prepare parameters for the send_text_message API call
 
-        phonenumber = '+919972566264'
-        params = {
-            "DestinationPhoneNumber": phonenumber,
-            "MessageBody": message,
-            "MessageType": "TRANSACTIONAL",
-        }
+    #     phonenumber = '+919972566264'
+    #     params = {
+    #         "DestinationPhoneNumber": phonenumber,
+    #         "MessageBody": message,
+    #         "MessageType": "TRANSACTIONAL",
+    #     }
 
-        # Check if an origination identity is configured in environment
-        origination_identity = os.environ.get("AWS_SMS_ORIGINATION_IDENTITY")
-        if origination_identity:
-            params["OriginationIdentity"] = origination_identity
+    #     # Check if an origination identity is configured in environment
+    #     origination_identity = os.environ.get("AWS_SMS_ORIGINATION_IDENTITY")
+    #     if origination_identity:
+    #         params["OriginationIdentity"] = origination_identity
 
-        # Add India DLT parameters if configured
-        entity_id = os.environ.get("IN_ENTITY_ID")
-        template_id = os.environ.get("IN_TEMPLATE_ID")
-        if entity_id or template_id:
-            country_params = {}
-            if entity_id:
-                country_params["IN_ENTITY_ID"] = entity_id
-            if template_id:
-                country_params["IN_TEMPLATE_ID"] = template_id
-            params["DestinationCountryParameters"] = country_params
+    #     # Add India DLT parameters if configured
+    #     entity_id = os.environ.get("IN_ENTITY_ID")
+    #     template_id = os.environ.get("IN_TEMPLATE_ID")
+    #     if entity_id or template_id:
+    #         country_params = {}
+    #         if entity_id:
+    #             country_params["IN_ENTITY_ID"] = entity_id
+    #         if template_id:
+    #             country_params["IN_TEMPLATE_ID"] = template_id
+    #         params["DestinationCountryParameters"] = country_params
 
-        logger.info(f"Sending OTP to {phone}")
-        client = get_sms_client()
-        response = client.send_text_message(**params)
+    #     logger.info(f"Sending OTP to {phone}")
+    #     client = get_sms_client()
+    #     response = client.send_text_message(**params)
 
-        message_id = response.get("MessageId")
-        # print("Sender ID :",origination_identity)
-        print("OTP SMS sent successfully to ", phonenumber, ". MessageId: ", message_id, ". OTP : ", otp)
-        logger.info(f"OTP SMS sent successfully to {phonenumber}. MessageId: {message_id}. OTP : {otp}")
+    #     message_id = response.get("MessageId")
+    #     # print("Sender ID :",origination_identity)
+    #     print("OTP SMS sent successfully to ", phonenumber, ". MessageId: ", message_id, ". OTP : ", otp)
+    #     logger.info(f"OTP SMS sent successfully to {phonenumber}. MessageId: {message_id}. OTP : {otp}")
 
-    except NoCredentialsError as e:
-        logger.warning(
-            f"AWS credentials not located. Using fallback mock OTP for {phone}: {otp}"
-        )
-        print(f"AWS credentials not located. Using fallback mock OTP for {phone}: {otp}")
-    except ClientError as e:
-        error_code = e.response.get("Error", {}).get("Code", "Unknown")
-        error_message = e.response.get("Error", {}).get("Message", str(e))
-        logger.error(
-            f"AWS SMS ClientError sending OTP to {phone}: Code={error_code}, Message={error_message}",
-            exc_info=True
-        )
-        raise RuntimeError(f"Failed to send OTP via AWS SMS: {error_message}") from e
-    except Exception as e:
-        logger.error(f"Unexpected error sending OTP to {phone}: {str(e)}", exc_info=True)
-        raise RuntimeError(f"An unexpected error occurred while sending OTP: {str(e)}") from e
+    # except NoCredentialsError as e:
+    #     logger.warning(
+    #         f"AWS credentials not located. Using fallback mock OTP for {phone}: {otp}"
+    #     )
+    #     print(f"AWS credentials not located. Using fallback mock OTP for {phone}: {otp}")
+    # except ClientError as e:
+    #     error_code = e.response.get("Error", {}).get("Code", "Unknown")
+    #     error_message = e.response.get("Error", {}).get("Message", str(e))
+    #     logger.error(
+    #         f"AWS SMS ClientError sending OTP to {phone}: Code={error_code}, Message={error_message}",
+    #         exc_info=True
+    #     )
+    #     raise RuntimeError(f"Failed to send OTP via AWS SMS: {error_message}") from e
+    # except Exception as e:
+    #     logger.error(f"Unexpected error sending OTP to {phone}: {str(e)}", exc_info=True)
+    #     raise RuntimeError(f"An unexpected error occurred while sending OTP: {str(e)}") from e
 
 
     return otp

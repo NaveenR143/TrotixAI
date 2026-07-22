@@ -193,9 +193,14 @@ const JobDetailScreen = ({
         window.open(searchUrl, "_blank");
       };
 
-      if (!job.is_verified) {
+
+
+      if (job.direct_url) {
+        window.open(job.direct_url, "_blank");
+      }
+      else if (!job.is_verified || !job.company_apply) {
         googleSearch();
-      } else if (job.is_verified && job.careers_url) {
+      } else if (job.is_verified && job.careers_url && job.company_apply) {
         window.open(job.careers_url, "_blank");
       } else if (job.is_verified && !job.careers_url && job.hiring_email) {
         setShowEmailDialog(true);
@@ -291,10 +296,14 @@ const JobDetailScreen = ({
         });
         setShowATSContentDialog(true);
 
-        const companyName = (typeof job.company === "object" ? job.company?.name : job.company) || "";
-        const searchQuery = `${companyName} jobs careers`;
-        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
-        window.open(searchUrl, "_blank");
+        if (job.direct_url) {
+          window.open(job.direct_url, "_blank");
+        } else {
+          const companyName = (typeof job.company === "object" ? job.company?.name : job.company) || "";
+          const searchQuery = `${companyName} jobs careers`;
+          const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+          window.open(searchUrl, "_blank");
+        }
       } else {
         setSnackbar({ open: true, message: result.message || "Failed to generate AI content.", severity: "error" });
       }
@@ -492,7 +501,7 @@ const JobDetailScreen = ({
                 <Typography sx={{ fontWeight: 800, color: "#111827", fontSize: { xs: "1.5rem", md: "1.8rem" }, letterSpacing: "-0.03em", mb: 1.5 }}>
                   {job.title}
                 </Typography>
-                
+
                 <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
                   <Avatar
                     sx={{
@@ -703,7 +712,7 @@ const JobDetailScreen = ({
             >
               {applying ? "Applying..." : "Apply Now"}
             </Button>
-            {job && (
+            {job && job.company_apply && job.direct_url && (
               <Button
                 variant="contained"
                 fullWidth

@@ -31,6 +31,7 @@ class JobCreateRequest(BaseModel):
     email: str
     mobile: str
     direct_url: Optional[str] = None
+    company_apply: Optional[bool] = False
 
 class JobCreateResponse(BaseModel):
     status: str

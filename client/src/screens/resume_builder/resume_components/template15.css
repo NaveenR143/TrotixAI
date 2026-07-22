@@ -1,20 +1,18 @@
-.t11-resume-container {
+.t15-resume-container {
     width: 100%;           /* fills the 210mm A4 ResumePreview wrapper */
     min-height: 297mm;
     margin: 0 auto;
     background: #e8e8e8;
-    /* padding: 20px; */
     box-sizing: border-box;
     display: flex;
     justify-content: center;
 }
 
-.t11-resume {
+.t15-resume {
     width: 100%;           /* fills the 210mm A4 wrapper */
     min-height: 297mm;
     background: #ffffff;
     padding: 50px 60px;
-    /* box-shadow removed */
     overflow: visible;     /* never clip long content */
     font-family: 'Arial', 'Helvetica Neue', sans-serif;
     color: #000000;
@@ -25,22 +23,67 @@
 }
 
 /* ===== HEADER ===== */
-.t11-header {
-    text-align: center;
+.t15-header {
     margin-bottom: 24px;
     border-bottom: 2px solid #000;
     padding-bottom: 16px;
 }
 
-.t11-header h1 {
+.t15-header.no-photo {
+    text-align: center;
+}
+
+.t15-header.has-photo {
+    text-align: left;
+}
+
+.t15-header-inner {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.t15-header.no-photo .t15-header-inner {
+    justify-content: center;
+}
+
+.t15-photo-wrapper {
+    flex-shrink: 0;
+    width: 118px;
+    height: 118px;
+    padding: 5px;
+    background-color: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.t15-profile-photo {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    object-fit: cover;
+    display: block;
+}
+
+.t15-header-details {
+    flex: 1;
+}
+
+.t15-header-details h1 {
     font-size: 26px;
     font-weight: 600;
     letter-spacing: 1px;
     margin-bottom: 6px;
+    margin-top: 0;
     text-transform: uppercase;
 }
 
-.t11-job-title {
+.t15-job-title {
     font-size: 14px;
     font-weight: 500;
     color: #333;
@@ -49,27 +92,34 @@
     margin-bottom: 12px;
 }
 
-.t11-contact-info {
+.t15-contact-info {
     font-size: 12px;
     color: #000;
     display: flex;
-    justify-content: center;
     flex-wrap: wrap;
-    gap: 6px 20px;
+    gap: 6px 16px;
 }
 
-.t11-contact-info span {
+.t15-header.no-photo .t15-contact-info {
+    justify-content: center;
+}
+
+.t15-header.has-photo .t15-contact-info {
+    justify-content: flex-start;
+}
+
+.t15-contact-info span {
     display: inline-flex;
     align-items: center;
     gap: 5px;
 }
 
 /* ===== SECTIONS ===== */
-.t11-section {
+.t15-section {
     margin-bottom: 22px;
 }
 
-.t11-section-title {
+.t15-section-title {
     font-size: 14px;
     font-weight: 600;
     text-transform: uppercase;
@@ -80,55 +130,55 @@
 }
 
 /* ===== SUMMARY ===== */
-.t11-summary-text {
+.t15-summary-text {
     font-size: 11.5px;
     line-height: 1.6;
     text-align: justify;
 }
 
 /* ===== SKILLS ===== */
-.t11-skills-list {
+.t15-skills-list {
     display: flex;
     flex-wrap: wrap;
     gap: 8px 24px;
     font-size: 11.5px;
 }
 
-.t11-skill-category {
+.t15-skill-category {
     margin-bottom: 4px;
     width: calc(50% - 12px);
 }
 
-.t11-skill-category strong {
+.t15-skill-category strong {
     font-weight: 600;
     color: #000;
 }
 
 /* ===== EXPERIENCE ===== */
-.t11-exp-item {
+.t15-exp-item {
     margin-bottom: 16px;
 }
 
-.t11-exp-header {
+.t15-exp-header {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     margin-bottom: 4px;
 }
 
-.t11-exp-role {
+.t15-exp-role {
     font-size: 12.5px;
     font-weight: 600;
     text-transform: uppercase;
 }
 
-.t11-exp-date {
+.t15-exp-date {
     font-size: 11px;
     font-weight: 500;
     color: #333;
 }
 
-.t11-exp-company {
+.t15-exp-company {
     font-size: 11.5px;
     font-style: italic;
     margin-bottom: 6px;
@@ -136,83 +186,83 @@
     text-transform: uppercase;
 }
 
-.t11-exp-details {
+.t15-exp-details {
     padding-left: 18px;
     font-size: 11px;
     line-height: 1.6;
 }
 
-.t11-exp-details li {
+.t15-exp-details li {
     margin-bottom: 3px;
 }
 
 /* ===== EDUCATION ===== */
-.t11-edu-item {
+.t15-edu-item {
     margin-bottom: 12px;
 }
 
-.t11-edu-header {
+.t15-edu-header {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     margin-bottom: 2px;
 }
 
-.t11-edu-school {
+.t15-edu-school {
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
 }
 
-.t11-edu-date {
+.t15-edu-date {
     font-size: 11px;
     font-weight: 500;
     color: #333;
 }
 
-.t11-edu-degree {
+.t15-edu-degree {
     font-size: 11.5px;
     margin-left: 0;
     text-transform: uppercase;
 }
 
 /* ===== LANGUAGES ===== */
-.t11-languages {
+.t15-languages {
     font-size: 11.5px;
 }
 
-.t11-lang-item {
+.t15-lang-item {
     display: inline-block;
     margin-right: 30px;
 }
 
-.t11-lang-item strong {
+.t15-lang-item strong {
     font-weight: 600;
 }
 
 /* ===== REFERENCES ===== */
-.t11-ref-grid {
+.t15-ref-grid {
     display: flex;
     gap: 40px;
 }
 
-.t11-ref-item {
+.t15-ref-item {
     font-size: 11.5px;
 }
 
-.t11-ref-name {
+.t15-ref-name {
     font-weight: 600;
     text-transform: uppercase;
 }
 
 @media print {
-    .t11-resume-container {
+    .t15-resume-container {
         padding: 0;
         background: none;
         width: 100%;
     }
 
-    .t11-resume {
+    .t15-resume {
         box-shadow: none;
         margin: 0;
         max-width: 100%;

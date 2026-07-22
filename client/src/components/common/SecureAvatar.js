@@ -15,11 +15,13 @@ const SecureAvatar = ({ avatarUrl, variant = "circle", sx = {}, children, ...pro
         return;
       }
 
-      // If it's already a data URL or blob URL or HTTP URL, use it directly
+      // If it's already a data URL or blob URL or HTTP URL (not from secure storage), use it directly
+      const isSecureBlobUrl = avatarUrl && typeof avatarUrl === "string" && avatarUrl.includes("blob.core.windows.net");
       if (
-        avatarUrl.startsWith("data:") ||
+        (avatarUrl.startsWith("data:") ||
         avatarUrl.startsWith("blob:") ||
-        avatarUrl.startsWith("http")
+        avatarUrl.startsWith("http")) &&
+        !isSecureBlobUrl
       ) {
         setSecureImageUrl(avatarUrl);
         return;
