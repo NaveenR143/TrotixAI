@@ -90,7 +90,7 @@ export default function Template1({ data }) {
                                             </div>
                                         </div>
                                         <div className="company-name exp-company">{exp.company}</div>
-                                        <DescriptionRenderer description={exp.description} />
+                                        <DescriptionRenderer description={exp.description} className="t1-exp-desc" />
                                     </div>
                                 ))}
                             </section>
@@ -110,7 +110,7 @@ export default function Template1({ data }) {
                                                 {proj.link}
                                             </div>
                                         )}
-                                        <DescriptionRenderer description={proj.description} />
+                                        <DescriptionRenderer description={proj.description} className="t1-exp-desc" />
                                     </div>
                                 ))}
                             </section>

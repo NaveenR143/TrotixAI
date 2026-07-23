@@ -130,8 +130,9 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
   useEffect(() => {
     if (isMobile && actionSectionRef.current) {
       const timer = setTimeout(() => {
+
         actionSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 2000);
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [isMobile]);
@@ -260,8 +261,8 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
                     { icon: <ScanSearchIcon />, title: "Skill Gap Analysis", text: "Know what to improve before applying." }
                   ].map((item, i) => (
                     <Grid item xs={12} sm={4} key={i}>
-                      <GlassBox sx={{ p: 2, height: '100%', border: '1px solid rgba(255,255,255,0.4)' }}>
-                        <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: 'rgba(37, 99, 235, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1.5, color: '#2563EB' }}>
+                      <GlassBox sx={{ p: 2, height: '100%', border: '1px solid rgba(255,255,255,0.4)' }} >
+                        <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: 'rgba(37, 99, 235, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1.5, color: '#2563EB', position: "relative" }} ref={actionSectionRef} >
                           {item.icon}
                         </Box>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>{item.title}</Typography>
@@ -277,7 +278,7 @@ const EntryScreen = ({ onUpload, onDirectSearch, onManualEntry, onPostJob }) => 
 
             <Grid item xs={12} md={5}>
               <RevealBox id="hero-visual" className="reveal-trigger" inView={revealed["hero-visual"]}>
-                <Box ref={actionSectionRef} sx={{ position: "relative" }}>
+                <Box >
                   {/* Decorative Elements */}
                   <Box sx={{ position: "absolute", top: -40, left: -40, width: 120, height: 120, background: "rgba(37, 99, 235, 0.1)", borderRadius: "50%", filter: "blur(40px)", zIndex: 0 }} />
                   <Box sx={{ position: "absolute", bottom: -40, right: -40, width: 160, height: 160, background: "rgba(124, 58, 237, 0.1)", borderRadius: "50%", filter: "blur(50px)", zIndex: 0 }} />

@@ -1,5 +1,11 @@
+.resume-container,
+.resume-container * {
+  box-sizing: border-box;
+}
+
 .resume-container {
-  width: 100%;           /* fills the 210mm A4 wrapper in ResumePreview */
+  width: 100%;
+  /* fills the 210mm A4 wrapper in ResumePreview */
   min-height: 297mm;
   margin: 0 auto;
   background: white;
@@ -7,8 +13,8 @@
   color: #333;
   line-height: 1.5;
   box-sizing: border-box;
-  word-break: break-word;
-  overflow-wrap: break-word;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .resume-page {
@@ -18,7 +24,8 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  overflow: visible;     /* never clip long content */
+  overflow: visible;
+  /* never clip long content */
 }
 
 /* Header Section */
@@ -54,7 +61,7 @@
   font-size: 11px;
   color: #666;
   flex-wrap: wrap;
-  word-break: break-word;
+  word-break: normal;
   overflow-wrap: break-word;
 }
 
@@ -90,7 +97,7 @@ h4 {
 }
 
 .section {
-    margin-bottom: 25px;
+  margin-bottom: 25px;
 }
 
 /* Experience & Education Blocks */
@@ -98,7 +105,8 @@ h4 {
   margin-bottom: 20px;
 }
 
-.block strong {
+.block strong.edu-school,
+.block strong.exp-role {
   display: block;
   font-size: 12px;
   color: #333;
@@ -106,10 +114,10 @@ h4 {
 }
 
 .block .year {
-    font-size: 11px;
-    font-weight: 600;
-    color: #444;
-    margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 4px;
 }
 
 .block p {
@@ -118,7 +126,9 @@ h4 {
   color: #555;
 }
 
-.exp-company, .edu-school, .edu-degree {
+.exp-company,
+.edu-school,
+.edu-degree {
   text-transform: uppercase;
 }
 
@@ -130,8 +140,8 @@ h4 {
 }
 
 .exp-header strong {
-    font-size: 12px;
-    text-transform: uppercase;
+  font-size: 12px;
+  text-transform: uppercase;
 }
 
 .exp-date {
@@ -141,10 +151,10 @@ h4 {
 }
 
 .company-name {
-    font-size: 11px;
-    font-weight: 500;
-    color: #666;
-    margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 6px;
 }
 
 ul {
@@ -161,21 +171,21 @@ li {
 
 /* Skills Tags/List */
 .skill-list {
-    list-style: none;
-    padding: 0;
+  list-style: none;
+  padding: 0;
 }
 
 .skill-list li {
-    padding-left: 0;
-    margin-bottom: 8px;
-    font-size: 11px;
-    color: #555;
+  padding-left: 0;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: #555;
 }
 
 .skill-list li::before {
-    content: '• ';
-    color: #333;
-    font-weight: bold;
+  content: '• ';
+  color: #333;
+  font-weight: bold;
 }
 
 /* References */
@@ -200,12 +210,67 @@ li {
   color: #666;
 }
 
+.t1-exp-desc {
+  font-size: 11px;
+  color: #555;
+  line-height: 1.6;
+  width: 100%;
+  min-width: 0;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.t1-exp-desc ul,
+ul.t1-exp-desc {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.t1-exp-desc ul li,
+ul.t1-exp-desc li {
+  position: relative;
+  padding-left: 14px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: #555;
+  line-height: 1.6;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.t1-exp-desc ul li::before,
+ul.t1-exp-desc li::before {
+  content: '• ';
+  position: absolute;
+  left: 0;
+  color: #333;
+  font-weight: bold;
+}
+
+.t1-exp-desc p {
+  font-size: 11px;
+  color: #555;
+  line-height: 1.6;
+  margin: 0 0 6px 0;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.t1-exp-desc strong {
+  display: inline;
+  font-size: inherit;
+  color: inherit;
+  font-weight: bold;
+}
+
 @media print {
   .resume-container {
     width: 100%;
     margin: 0;
     padding: 0;
   }
+
   .resume-page {
     box-shadow: none;
   }

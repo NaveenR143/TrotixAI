@@ -61,7 +61,13 @@ export const AuthProvider = ({ children }) => {
 
       if (response && !response.error && response.data) {
         const userData = response.data;
-        const verifiedType = mapRoleToType(userData.user_type);
+        const verifiedType = mapRoleToType(userData.role || userData.user_type);
+
+        // Save role and userrole in local storage
+        if (verifiedType) {
+          localStorage.setItem("role", verifiedType);
+          localStorage.setItem("userrole", verifiedType);
+        }
 
         // Update Redux state following AuthComponent.js pattern
         dispatch({

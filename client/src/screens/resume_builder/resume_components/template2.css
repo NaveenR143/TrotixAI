@@ -1,3 +1,8 @@
+.t2-resume-container,
+.t2-resume-container * {
+    box-sizing: border-box;
+}
+
 :root {
     --t2-bg-dark: #0A0A0A;
     --t2-bg-sidebar: #111111;
@@ -28,12 +33,12 @@
     min-height: 297mm;
     background: var(--t2-white);
     display: grid;
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: 240px minmax(0, 1fr);
     /* box-shadow removed */
     overflow: visible;     /* never clip long content */
     position: relative;
     box-sizing: border-box;
-    word-break: break-word;
+    word-break: normal;
     overflow-wrap: break-word;
 }
 
@@ -120,7 +125,7 @@
     font-weight: 300;
     color: var(--t2-text-secondary);
     line-height: 1.5;
-    word-break: break-word;
+    word-break: normal;
     overflow-wrap: break-word;
 }
 
@@ -200,6 +205,7 @@
 
 /* RIGHT MAIN */
 .t2-main-content {
+    min-width: 0;
     padding: 40px 35px 30px 40px;
     color: var(--t2-text-dark);
     display: flex;
@@ -298,10 +304,10 @@
 }
 
 .t2-exp-desc {
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 300;
     color: var(--t2-text-dark-secondary);
-    line-height: 1.7;
+    line-height: 1.8;
 }
 
 .t2-exp-desc ul {
@@ -314,6 +320,9 @@
     position: relative;
     padding-left: 18px;
     margin-bottom: 6px;
+    font-size: 0.82rem;
+    font-weight: 300;
+    line-height: 1.8;
 }
 
 .t2-exp-desc ul li::before {
@@ -366,4 +375,8 @@
         width: 100%;
         margin: 0;
     }
+}
+
+.t2-exp-desc p {
+    font-size: 0.82rem; font-weight: 300; color: var(--t2-text-dark-secondary); line-height: 1.8; margin: 0 0 6px 0;
 }

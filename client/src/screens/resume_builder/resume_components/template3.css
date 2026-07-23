@@ -1,3 +1,8 @@
+.t3-resume-container,
+.t3-resume-container * {
+    box-sizing: border-box;
+}
+
 .t3-resume-container {
     width: 100%;           /* fills the 210mm A4 ResumePreview wrapper */
     min-height: 297mm;
@@ -18,7 +23,7 @@
     color: #333333;
     line-height: 1.5;
     box-sizing: border-box;
-    word-break: break-word;
+    word-break: normal;
     overflow-wrap: break-word;
 }
 
@@ -54,7 +59,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px 20px;
-    word-break: break-word;
+    word-break: normal;
     overflow-wrap: break-word;
 }
 
@@ -149,14 +154,17 @@
 
 .t3-exp-details {
     padding-left: 18px;
-    font-size: 11.5px;
+    font-size: 12px;
     line-height: 1.6;
     color: #444;
     margin: 8px 0;
+    text-align: justify;
 }
 
 .t3-exp-details li {
     margin-bottom: 4px;
+    font-size: 12px;
+    line-height: 1.6;
 }
 
 /* ===== EDUCATION ===== */
@@ -256,4 +264,8 @@
         margin: 0;
         max-width: 100%;
     }
+}
+
+.t3-exp-details p {
+    font-size: 12px; line-height: 1.6; color: #444; margin: 0 0 6px 0; text-align: justify;
 }

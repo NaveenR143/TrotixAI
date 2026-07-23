@@ -9,18 +9,40 @@ import { sanitizeHtml } from "../../../utils/htmlSanitizer";
 export default function DescriptionRenderer({ description, className = "" }) {
   if (!description) return null;
 
+  // Helper to replace word-connecting hyphens with non-breaking hyphens (\u2011)
+  // to prevent browsers from breaking hyphenated words across lines
+  const formatDescription = (text) => {
+    if (!text) return "";
+    // If it contains HTML tags, replace hyphens only in text parts to avoid breaking tags/attributes
+    if (/<[a-z][\s\S]*>/i.test(text)) {
+      return text.split(/(<[^>]*>)/g).map((part) => {
+        if (part.startsWith("<")) return part;
+        return part.replace(/(\w)-(\w)/g, "$1\u2011$2");
+      }).join("");
+    }
+    return text.replace(/(\w)-(\w)/g, "$1\u2011$2");
+  };
+
+  const processedDescription = formatDescription(description);
+
   // Regex to check for HTML tags
-  const hasHtml = /<[a-z][\s\S]*>/i.test(description);
+  const hasHtml = /<[a-z][\s\S]*>/i.test(processedDescription);
 
   if (hasHtml) {
-    const sanitized = sanitizeHtml(description);
+    // const sanitized = sanitizeHtml(processedDescription);
+
+    const sanitized = sanitizeHtml(processedDescription).replace(/&nbsp;/g, " ");
+
+    debugger;
+
     return (
       <div
         className={className}
         dangerouslySetInnerHTML={{ __html: sanitized }}
         style={{
-          wordBreak: "break-word",
-          overflowWrap: "anywhere",
+          wordBreak: "normal",
+          overflowWrap: "break-word",
+          whiteSpace: "normal",
         }}
       />
     );
@@ -29,9 +51,9 @@ export default function DescriptionRenderer({ description, className = "" }) {
   // Fallback: split by newlines and render bullets
   return (
     <ul className={className}>
-      {description.split("\n").map((point, idx) => (
+      {processedDescription.split("\n").map((point, idx) => (
         point.trim() && (
-          <li key={idx} style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}>
+          <li key={idx} style={{ wordBreak: "keep-all", overflowWrap: "normal" }}>
             {point.replace(/^[•\-\*]\s?/, "")}
           </li>
         )

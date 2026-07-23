@@ -149,10 +149,15 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
     try {
       const resp = await verifyOTP(formData.mobile, otpToVerify);
       if (!resp.error) {
-        const verifiedType = mapRoleToType(resp.data.user_type);
+        const verifiedType = mapRoleToType(resp.data.role || resp.data.user_type);
 
         // Refresh React Auth Context before navigating to populate the context user state
         await refreshAuth(formData.mobile);
+
+        if (verifiedType) {
+          localStorage.setItem("role", verifiedType);
+          localStorage.setItem("userrole", verifiedType);
+        }
 
         dispatch({
           type: UPDATE_USER_PROFILE,

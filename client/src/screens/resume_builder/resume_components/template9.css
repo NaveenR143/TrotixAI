@@ -1,3 +1,8 @@
+.t9-resume-container,
+.t9-resume-container * {
+    box-sizing: border-box;
+}
+
 .t9-resume-container {
     width: 100%;           /* fills the 210mm A4 ResumePreview wrapper */
     min-height: 297mm;
@@ -19,7 +24,7 @@
     color: #2d3436;
     line-height: 1.5;
     box-sizing: border-box;
-    word-break: break-word;
+    word-break: normal;
     overflow-wrap: break-word;
 }
 
@@ -68,7 +73,7 @@
     border: 1px solid #d8f3dc;
     flex-wrap: wrap;
     gap: 10px;
-    word-break: break-word;
+    word-break: normal;
     overflow-wrap: break-word;
 }
 
@@ -116,7 +121,7 @@
     line-height: 1.7;
     color: #444;
     text-align: justify;
-    word-break: break-word;
+    word-break: normal;
     overflow-wrap: break-word;
 }
 
@@ -193,14 +198,17 @@
 
 .t9-exp-details {
     padding-left: 18px;
-    font-size: 12px;
-    line-height: 1.6;
+    font-size: 12.5px;
+    line-height: 1.7;
     color: #444;
     margin: 8px 0;
+    text-align: justify;
 }
 
 .t9-exp-details li {
     margin-bottom: 4px;
+    font-size: 12.5px;
+    line-height: 1.7;
 }
 
 /* ===== EDUCATION ===== */
@@ -309,4 +317,8 @@
         margin: 0;
         max-width: 100%;
     }
+}
+
+.t9-exp-details p {
+    font-size: 12.5px; line-height: 1.7; color: #444; margin: 0 0 6px 0; text-align: justify;
 }

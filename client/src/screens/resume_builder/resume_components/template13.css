@@ -1,3 +1,8 @@
+.t13-resume-container,
+.t13-resume-container * {
+    box-sizing: border-box;
+}
+
 :root {
     --t13-accent: #D97706;
     --t13-accent-dark: #B45309;
@@ -32,7 +37,7 @@
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    word-break: break-word;
+    word-break: normal;
     overflow-wrap: break-word;
 }
 
@@ -94,7 +99,7 @@
     font-size: 0.72rem;
     color: var(--t13-text-secondary);
     font-weight: 400;
-    word-break: break-word;
+    word-break: normal;
     overflow-wrap: break-word;
 }
 
@@ -109,13 +114,14 @@
 .t13-body-grid {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 240px;
+    grid-template-columns: minmax(0, 1fr) 240px;
     padding: 28px 40px 32px;
     gap: 32px;
 }
 
 /* LEFT COLUMN */
 .t13-left-col {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 26px;
@@ -155,7 +161,7 @@
 /* EXPERIENCE */
 .t13-exp-item {
     display: grid;
-    grid-template-columns: 110px 1fr;
+    grid-template-columns: 110px minmax(0, 1fr);
     gap: 16px;
     margin-bottom: 20px;
     padding-bottom: 20px;
@@ -200,9 +206,10 @@
 }
 
 .t13-exp-desc {
-    font-size: 0.72rem;
+    font-size: 0.78rem;
+    font-weight: 300;
     color: var(--t13-text-secondary);
-    line-height: 1.7;
+    line-height: 1.75;
 }
 
 .t13-exp-desc ul,
@@ -217,6 +224,9 @@ ul.t13-exp-desc li {
     position: relative;
     padding-left: 12px;
     margin-bottom: 4px;
+    font-size: 0.78rem;
+    font-weight: 300;
+    line-height: 1.75;
 }
 
 .t13-exp-desc li::before,
@@ -374,4 +384,8 @@ ul.t13-exp-desc li::before {
         width: 100%;
         margin: 0;
     }
+}
+
+.t13-exp-desc p {
+    font-size: 0.78rem; font-weight: 300; color: var(--t13-text-secondary); line-height: 1.75; margin: 0 0 6px 0;
 }

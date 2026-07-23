@@ -169,6 +169,7 @@ class UserProfileResponse(BaseModel):
     is_email_verified: bool = False
     is_phone_verified: bool = False
     profile_viewed: bool = False
+    role: Optional[str] = None
 
     # Jobseeker Profile
     headline: Optional[str] = None

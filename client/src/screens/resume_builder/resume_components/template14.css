@@ -1,3 +1,8 @@
+.t14-resume-container,
+.t14-resume-container * {
+    box-sizing: border-box;
+}
+
 :root {
     --t14-accent: #4F46E5;
     --t14-accent-light: #EEF2FF;
@@ -33,7 +38,7 @@
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    word-break: break-word;
+    word-break: normal;
     overflow-wrap: break-word;
 }
 
@@ -104,7 +109,7 @@
     padding: 5px 12px;
     border-radius: 6px;
     border: 1px solid var(--t14-border-light);
-    word-break: break-word;
+    word-break: normal;
     overflow-wrap: break-word;
 }
 
@@ -127,7 +132,7 @@
 .t14-body-layout {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 250px;
+    grid-template-columns: minmax(0, 1fr) 250px;
     padding: 28px 36px 32px;
     gap: 32px;
 }
@@ -221,9 +226,10 @@
 }
 
 .t14-exp-desc {
-    font-size: 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 300;
     color: var(--t14-text-secondary);
-    line-height: 1.7;
+    line-height: 1.8;
 }
 
 .t14-exp-desc ul,
@@ -237,6 +243,9 @@ ul.t14-exp-desc li {
     position: relative;
     padding-left: 14px;
     margin-bottom: 4px;
+    font-size: 0.78rem;
+    font-weight: 300;
+    line-height: 1.8;
 }
 
 .t14-exp-desc li::before,
@@ -244,7 +253,7 @@ ul.t14-exp-desc li::before {
     content: '';
     position: absolute;
     left: 0;
-    top: 8px;
+    top: 10px;
     width: 5px;
     height: 5px;
     border-radius: 50%;
@@ -253,6 +262,7 @@ ul.t14-exp-desc li::before {
 
 /* RIGHT SIDEBAR */
 .t14-sidebar-col {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -414,4 +424,8 @@ ul.t14-exp-desc li::before {
         width: 100%;
         margin: 0;
     }
+}
+
+.t14-exp-desc p {
+    font-size: 0.78rem; font-weight: 300; color: var(--t14-text-secondary); line-height: 1.8; margin: 0 0 6px 0;
 }
