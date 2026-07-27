@@ -86,6 +86,25 @@ class DBWorker:
             logger.info(
                 f"DB save completed for user {user_id} in {save_time:.2f}s")
 
+            if update_status == "N/A":
+                try:
+                    async with db_session_manager.session() as fetch_session:
+                        fetch_repo = ResumeRepository(fetch_session)
+                        user_details = await fetch_repo.get_user_details(user_id)
+                    
+                    if user_details:
+                        from whatsapp.whatsapp_service import send_profile_update_notification
+                        send_profile_update_notification(user_details)
+                    else:
+                        logger.warning(
+                            f"Could not send WhatsApp notification: user details not found for ID {user_id}"
+                        )
+                except Exception as wa_err:
+                    logger.error(
+                        f"Error handling WhatsApp notification for user {user_id}: {wa_err}",
+                        exc_info=True
+                    )
+
         except Exception as e:
             save_time = time.perf_counter() - save_start
             print(f"   Database save failed after {save_time:.2f}s")

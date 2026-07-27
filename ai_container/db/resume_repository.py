@@ -79,6 +79,36 @@ class ResumeRepository:
             LOGGER.error(f"Error fetching user by phone: {str(e)}")
             raise
 
+    async def get_user_details(self, user_id: UUID) -> Optional[dict]:
+        """
+        Fetch user details (phone, email, full_name) from users table using user ID.
+
+        Args:
+            user_id: User UUID to search for
+
+        Returns:
+            Dictionary containing user details if found, None otherwise
+        """
+        try:
+            query = text("SELECT id, phone, email, full_name FROM users WHERE id = :user_id LIMIT 1")
+            result = await self.session.execute(query, {"user_id": str(user_id)})
+            row = result.fetchone()
+
+            if row:
+                return {
+                    "id": UUID(str(row[0])),
+                    "phone": row[1],
+                    "email": row[2],
+                    "full_name": row[3]
+                }
+
+            LOGGER.warning(f"No user found with ID: {user_id}")
+            return None
+
+        except Exception as e:
+            LOGGER.error(f"Error fetching user details by ID: {str(e)}")
+            raise
+
     async def user_exists(self, user_id: UUID) -> bool:
         """
         Check if a user exists in the database.
