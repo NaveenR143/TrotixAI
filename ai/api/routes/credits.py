@@ -92,6 +92,11 @@ FEATURE_CONFIG = {
         "description": "AI Apply (Generate Email)",
         "cost": 10,
     },
+    "apply_with_ai_resume": {
+        "tx_type": CreditTxTypeEnum.ats_resume,
+        "description": "AI Apply (Generate ATS Resume)",
+        "cost": 10,
+    },
     "unlock_candidate": {
         "tx_type": CreditTxTypeEnum.purchase,
         "description": "Unlock Candidate Contact Details",

@@ -66,8 +66,8 @@
 
 .t4-header-right {
     text-align: right;
-    font-size: 12px;
-    color: #555;
+    font-size: 12.42px;
+    color: #191919;
     line-height: 1.7;
 }
 
@@ -95,10 +95,10 @@
 
 /* ===== SUMMARY ===== */
 .t4-summary-text {
-    font-size: 12px;
+    font-size: 12.42px;
     line-height: 1.7;
     text-align: justify;
-    color: #444;
+    color: #191919;
 }
 
 /* ===== SKILLS ===== */
@@ -106,7 +106,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px 30px;
-    font-size: 12px;
+    font-size: 12.42px;
 }
 
 .t4-skill-category {
@@ -114,7 +114,7 @@
     border: 1px solid #f0f0f0;
     padding: 10px 15px;
     border-radius: 4px;
-    color: #444;
+    color: #191919;
 }
 
 .t4-skill-category strong {
@@ -152,13 +152,13 @@
 }
 
 .t4-exp-role {
-    font-size: 13.5px;
+    font-size: 12.42px;
     font-weight: 600;
     color: #2c3e50;
 }
 
 .t4-exp-date {
-    font-size: 11.5px;
+    font-size: 12.42px;
     font-weight: 500;
     color: #3498db;
     background: #ecf5fb;
@@ -167,10 +167,10 @@
 }
 
 .t4-exp-company {
-    font-size: 12.5px;
+    font-size: 12.42px;
     font-style: italic;
     margin-bottom: 8px;
-    color: #666;
+    color: #191919;
     text-transform: uppercase;
 }
 
@@ -181,16 +181,16 @@
 
 .t4-exp-details {
     padding-left: 16px;
-    font-size: 12px;
+    font-size: 11.5px;
     line-height: 1.7;
-    color: #444;
+    color: #191919;
     margin: 8px 0;
     text-align: justify;
 }
 
 .t4-exp-details li {
     margin-bottom: 4px;
-    font-size: 12px;
+    font-size: 11.5px;
     line-height: 1.7;
 }
 
@@ -207,21 +207,21 @@
 }
 
 .t4-edu-school {
-    font-size: 13px;
+    font-size: 12.42px;
     font-weight: 600;
     color: #2c3e50;
     text-transform: uppercase;
 }
 
 .t4-edu-degree {
-    font-size: 12px;
-    color: #555;
+    font-size: 12.42px;
+    color: #191919;
     margin-top: 2px;
     text-transform: uppercase;
 }
 
 .t4-edu-date {
-    font-size: 11.5px;
+    font-size: 12.42px;
     font-weight: 500;
     color: #3498db;
     white-space: nowrap;
@@ -241,13 +241,13 @@
 }
 
 .t4-proj-name {
-    font-size: 13.5px;
+    font-size: 12.42px;
     font-weight: 600;
     color: #2c3e50;
 }
 
 .t4-proj-year {
-    font-size: 11.5px;
+    font-size: 12.42px;
     font-weight: 500;
     color: #3498db;
     background: #ecf5fb;
@@ -256,7 +256,7 @@
 }
 
 .t4-proj-link {
-    font-size: 11px;
+    font-size: 12.42px;
     color: #3498db;
     text-decoration: none;
     display: block;
@@ -269,13 +269,13 @@
     padding-left: 16px;
     font-size: 11.5px;
     line-height: 1.6;
-    color: #444;
+    color: #191919;
     margin: 5px 0;
 }
 
 /* ===== LANGUAGES ===== */
 .t4-languages {
-    font-size: 12px;
+    font-size: 12.42px;
     display: flex;
     flex-wrap: wrap;
     gap: 15px 30px;
@@ -301,5 +301,9 @@
 }
 
 .t4-exp-details p {
-    font-size: 12px; line-height: 1.7; color: #444; margin: 0 0 6px 0; text-align: justify;
+    font-size: 11.5px; line-height: 1.7; color: #191919; margin: 0 0 6px 0; text-align: justify;
+}
+/* Override PersonalDetailsGrid value labels */
+.t4-resume div[style*="grid"] span:nth-child(2) {
+    font-size: 12.42px !important;
 }

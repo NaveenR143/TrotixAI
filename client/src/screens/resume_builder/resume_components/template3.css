@@ -54,7 +54,7 @@
 }
 
 .t3-contact-info {
-    font-size: 12.5px;
+    font-size: 12.42px;
     color: #2c3e50;
     display: flex;
     flex-wrap: wrap;
@@ -91,10 +91,10 @@
 
 /* ===== SUMMARY ===== */
 .t3-summary-text {
-    font-size: 12px;
+    font-size: 12.42px;
     line-height: 1.6;
     text-align: justify;
-    color: #444;
+    color: #191919;
 }
 
 /* ===== SKILLS ===== */
@@ -102,11 +102,11 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px 30px;
-    font-size: 12px;
+    font-size: 12.42px;
 }
 
 .t3-skill-category {
-    color: #444;
+    color: #191919;
 }
 
 .t3-skill-category strong {
@@ -127,23 +127,23 @@
 }
 
 .t3-exp-role {
-    font-size: 13px;
+    font-size: 12.42px;
     font-weight: 600;
     color: #1a2633;
     text-transform: uppercase;
 }
 
 .t3-exp-date {
-    font-size: 11.5px;
+    font-size: 12.42px;
     font-weight: 500;
     color: #2980b9;
 }
 
 .t3-exp-company {
-    font-size: 12px;
+    font-size: 12.42px;
     font-style: italic;
     margin-bottom: 8px;
-    color: #555;
+    color: #191919;
     text-transform: uppercase;
 }
 
@@ -154,16 +154,16 @@
 
 .t3-exp-details {
     padding-left: 18px;
-    font-size: 12px;
+    font-size: 11.5px;
     line-height: 1.6;
-    color: #444;
+    color: #191919;
     margin: 8px 0;
     text-align: justify;
 }
 
 .t3-exp-details li {
     margin-bottom: 4px;
-    font-size: 12px;
+    font-size: 11.5px;
     line-height: 1.6;
 }
 
@@ -180,21 +180,21 @@
 }
 
 .t3-edu-school {
-    font-size: 13px;
+    font-size: 12.42px;
     font-weight: 600;
     color: #1a2633;
     text-transform: uppercase;
 }
 
 .t3-edu-date {
-    font-size: 11.5px;
+    font-size: 12.42px;
     font-weight: 500;
     color: #2980b9;
 }
 
 .t3-edu-degree {
-    font-size: 12px;
-    color: #555;
+    font-size: 12.42px;
+    color: #191919;
     text-transform: uppercase;
 }
 
@@ -210,19 +210,19 @@
 }
 
 .t3-proj-name {
-    font-size: 13px;
+    font-size: 12.42px;
     font-weight: 600;
     color: #1a2633;
 }
 
 .t3-proj-year {
-    font-size: 11.5px;
+    font-size: 12.42px;
     font-weight: 500;
     color: #2980b9;
 }
 
 .t3-proj-link {
-    font-size: 11px;
+    font-size: 12.42px;
     color: #2980b9;
     text-decoration: none;
     display: block;
@@ -235,13 +235,13 @@
     padding-left: 18px;
     font-size: 11.5px;
     line-height: 1.6;
-    color: #444;
+    color: #191919;
     margin: 5px 0;
 }
 
 /* ===== LANGUAGES ===== */
 .t3-languages {
-    font-size: 12px;
+    font-size: 12.42px;
     display: flex;
     flex-wrap: wrap;
     gap: 15px 30px;
@@ -267,5 +267,9 @@
 }
 
 .t3-exp-details p {
-    font-size: 12px; line-height: 1.6; color: #444; margin: 0 0 6px 0; text-align: justify;
+    font-size: 11.5px; line-height: 1.6; color: #191919; margin: 0 0 6px 0; text-align: justify;
+}
+/* Override PersonalDetailsGrid value labels */
+.t3-resume div[style*="grid"] span:nth-child(2) {
+    font-size: 12.42px !important;
 }

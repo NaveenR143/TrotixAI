@@ -64,8 +64,8 @@
 
 .t7-header-right {
     text-align: right;
-    font-size: 11.5px;
-    color: #555;
+    font-size: 12.42px;
+    color: #191919;
     line-height: 1.8;
 }
 
@@ -108,9 +108,9 @@
 
 /* ===== SUMMARY ===== */
 .t7-summary-text {
-    font-size: 12px;
+    font-size: 12.42px;
     line-height: 1.7;
-    color: #444;
+    color: #191919;
     text-align: justify;
 }
 
@@ -118,7 +118,7 @@
 .t7-skills-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 12px;
+    font-size: 12.42px;
     margin-top: 10px;
 }
 
@@ -138,7 +138,7 @@
 }
 
 .t7-skills-table .t7-skill-list {
-    color: #444;
+    color: #191919;
 }
 
 /* ===== EXPERIENCE ===== */
@@ -154,24 +154,24 @@
 }
 
 .t7-exp-role {
-    font-size: 13px;
+    font-size: 12.42px;
     font-weight: 600;
     color: #005f73;
 }
 
 .t7-exp-date {
-    font-size: 11px;
+    font-size: 12.42px;
     font-weight: 600;
-    color: #555;
+    color: #191919;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .t7-exp-company {
-    font-size: 12px;
+    font-size: 12.42px;
     font-weight: 400;
     margin-bottom: 8px;
-    color: #666;
+    color: #191919;
     text-transform: uppercase;
 }
 
@@ -182,15 +182,15 @@
 
 .t7-exp-details {
     padding-left: 18px;
-    font-size: 12px;
+    font-size: 11.5px;
     line-height: 1.7;
-    color: #444;
+    color: #191919;
     margin: 8px 0;
 }
 
 .t7-exp-details li {
     margin-bottom: 4px;
-    font-size: 12px;
+    font-size: 11.5px;
     line-height: 1.7;
 }
 
@@ -207,23 +207,23 @@
 }
 
 .t7-edu-school {
-    font-size: 13px;
+    font-size: 12.42px;
     font-weight: 600;
     color: #005f73;
     text-transform: uppercase;
 }
 
 .t7-edu-degree {
-    font-size: 12px;
-    color: #555;
+    font-size: 12.42px;
+    color: #191919;
     margin-top: 2px;
     text-transform: uppercase;
 }
 
 .t7-edu-date {
-    font-size: 11px;
+    font-size: 12.42px;
     font-weight: 600;
-    color: #555;
+    color: #191919;
     text-transform: uppercase;
     white-space: nowrap;
     margin-left: 20px;
@@ -242,20 +242,20 @@
 }
 
 .t7-proj-name {
-    font-size: 13px;
+    font-size: 12.42px;
     font-weight: 600;
     color: #005f73;
 }
 
 .t7-proj-year {
-    font-size: 11px;
+    font-size: 12.42px;
     font-weight: 600;
-    color: #555;
+    color: #191919;
     text-transform: uppercase;
 }
 
 .t7-proj-link {
-    font-size: 11px;
+    font-size: 12.42px;
     color: #005f73;
     text-decoration: none;
     display: block;
@@ -268,17 +268,17 @@
     padding-left: 18px;
     font-size: 11.5px;
     line-height: 1.6;
-    color: #444;
+    color: #191919;
     margin: 5px 0;
 }
 
 /* ===== LANGUAGES ===== */
 .t7-languages {
-    font-size: 12px;
+    font-size: 12.42px;
     display: flex;
     flex-wrap: wrap;
     gap: 15px 30px;
-    color: #444;
+    color: #191919;
 }
 
 .t7-lang-item strong {
@@ -301,5 +301,9 @@
 }
 
 .t7-exp-details p {
-    font-size: 12px; line-height: 1.7; color: #444; margin: 0 0 6px 0; text-align: justify;
+    font-size: 11.5px; line-height: 1.7; color: #191919; margin: 0 0 6px 0; text-align: justify;
+}
+/* Override PersonalDetailsGrid value labels */
+.t7-resume div[style*="grid"] span:nth-child(2) {
+    font-size: 12.42px !important;
 }

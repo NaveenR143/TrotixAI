@@ -84,45 +84,55 @@ export default function Template13({ data }) {
                         {experience && experience.length > 0 && (
                             <div className="t13-section" style={getSpacingStyle(spacingConfig, 'experience')}>
                                 <div className="t13-section-title">Work Experience</div>
-                                {experience.map((exp, i) => (
-                                    <div key={i} className="t13-exp-item">
-                                        <div className="t13-exp-date-col">
-                                            <span className="t13-exp-date">
-                                                {exp.startDate} — {exp.isCurrent ? 'PRESENT' : exp.endDate?.toUpperCase()}
-                                            </span>
+                                {experience.map((exp, i) => {
+                                    const hasDate = exp.startDate || exp.endDate || exp.isCurrent;
+                                    return (
+                                        <div key={i} className={`t13-exp-item ${!hasDate ? 'no-date' : ''}`}>
+                                            {hasDate && (
+                                                <div className="t13-exp-date-col">
+                                                    <span className="t13-exp-date">
+                                                        {exp.startDate}{exp.startDate && (exp.endDate || exp.isCurrent) ? " — " : ""}{exp.isCurrent ? 'PRESENT' : exp.endDate?.toUpperCase()}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <div className="t13-exp-content">
+                                                <div className="t13-exp-role">{exp.role}</div>
+                                                <div className="t13-exp-company">{exp.company}</div>
+                                                <DescriptionRenderer description={exp.description} className="t13-exp-desc" />
+                                            </div>
                                         </div>
-                                        <div className="t13-exp-content">
-                                            <div className="t13-exp-role">{exp.role}</div>
-                                            <div className="t13-exp-company">{exp.company}</div>
-                                            <DescriptionRenderer description={exp.description} className="t13-exp-desc" />
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
 
                         {projects && projects.length > 0 && (
                             <div className="t13-section" style={getSpacingStyle(spacingConfig, 'projects')}>
                                 <div className="t13-section-title">Key Projects</div>
-                                {projects.map((proj, i) => (
-                                    <div key={i} className="t13-exp-item">
-                                        <div className="t13-exp-date-col">
-                                            <span className="t13-exp-date">{proj.year}</span>
+                                {projects.map((proj, i) => {
+                                    const hasProjDate = !!proj.year;
+                                    return (
+                                        <div key={i} className={`t13-exp-item ${!hasProjDate ? 'no-date' : ''}`}>
+                                            {hasProjDate && (
+                                                <div className="t13-exp-date-col">
+                                                    <span className="t13-exp-date">{proj.year}</span>
+                                                </div>
+                                            )}
+                                            <div className="t13-exp-content">
+                                                <div className="t13-exp-role">{proj.name}</div>
+                                                {proj.link && <div className="t13-exp-company" style={{ fontSize: '0.78rem', textTransform: 'none' }}>{proj.link}</div>}
+                                                <DescriptionRenderer description={proj.description} className="t13-exp-desc" />
+                                            </div>
                                         </div>
-                                        <div className="t13-exp-content">
-                                            <div className="t13-exp-role">{proj.name}</div>
-                                            {proj.link && <div className="t13-exp-company" style={{ fontSize: '0.65rem' }}>{proj.link}</div>}
-                                            <DescriptionRenderer description={proj.description} className="t13-exp-desc" />
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
 
                         {(user.showPersonalDetails !== false && (user.date_of_birth || user.gender || user.maritalStatus || user.location)) && (
                             <div className="t13-section" style={getSpacingStyle(spacingConfig, 'personalDetails')}>
                                 <div className="t13-section-title">Personal Details</div>
-                                <PersonalDetailsGrid user={user} />
+                                <PersonalDetailsGrid user={user} labelColor="#191919" valueColor="#191919" />
                             </div>
                         )}
                     </div>

@@ -43,12 +43,18 @@ import ShareIcon from "@mui/icons-material/Share";
 import MatchBadge from "../../components/jobs/MatchBadge";
 import { getWorkModeIcon } from "../../utils/themeUtils";
 import { useSelector, useDispatch } from "react-redux";
-import { applyJob, generateTailoredJobEmail, generateATSContent } from "../../api/jobpostingAPI";
+import { applyJob, generateTailoredJobEmail, generateATSContent, generateATSResume } from "../../api/jobpostingAPI";
 import * as profileAPI from "../../api/profileAPI";
 import { updateUserProfile } from "../../redux/user/Action";
 import InsufficientCreditsDialog from "./components/dialogs/InsufficientCreditsDialog";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import SendIcon from "@mui/icons-material/Send";
+import MultiPageResumePreview from "../resume_builder/MultiPageResumePreview";
+import { mapProfileData } from "../../utils/profileMapping";
+import { useReactToPrint } from "react-to-print";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 
 const formatEducation = (educationList) => {
   if (!educationList || !Array.isArray(educationList) || educationList.length === 0) return "";
@@ -91,6 +97,57 @@ const JobDetailScreen = ({
   const [atsContent, setAtsContent] = useState({ project_details: "", experience_details: "", skills: "" });
   const [showProviderDialog, setShowProviderDialog] = useState(false);
   const [emailToOpen, setEmailToOpen] = useState({ to: "", subject: "", body: "" });
+
+  const exportPagesRef = React.useRef(null);
+  const [generatingATSResume, setGeneratingATSResume] = useState(false);
+  const [showATSResumeDialog, setShowATSResumeDialog] = useState(false);
+  const [atsResumeData, setAtsResumeData] = useState(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const handlePrint = useReactToPrint({
+    content: () => exportPagesRef.current,
+    onBeforePrint: () => {
+      const fullName = atsResumeData?.personalDetails?.fullName || "Resume";
+      document.title = `Resume - ${fullName.replace(/[^a-z0-9]/gi, "_")}`;
+      return Promise.resolve();
+    },
+    onAfterPrint: () => {
+      setDownloading(false);
+    },
+    pageStyle: `
+      @page {
+        size: 210mm 297mm;
+        margin: 0;
+      }
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .resume-pdf-page {
+        width: 210mm !important;
+        height: 297mm !important;
+        overflow: hidden !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        position: relative;
+      }
+      .resume-pdf-page:last-child {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      [data-pdf-hide="true"] {
+        display: none !important;
+      }
+    `,
+  });
 
   const user = useSelector((state) => state.UserReducer);
   const { userid } = user;
@@ -312,6 +369,116 @@ const JobDetailScreen = ({
       setSnackbar({ open: true, message: "An unexpected error occurred.", severity: "error" });
     } finally {
       setGeneratingATS(false);
+    }
+  };
+
+  const downloadPDFMobile = async () => {
+    const container = exportPagesRef.current;
+    if (!container) return;
+
+    const pages = container.querySelectorAll(".resume-pdf-page");
+    if (pages.length === 0) return;
+
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i];
+      const canvas = await html2canvas(page, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        onclone: (clonedDoc) => {
+          const el = clonedDoc.getElementById("pdf-export-container");
+          if (el) {
+            el.style.visibility = "visible";
+          }
+        }
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.8);
+
+      if (i > 0) {
+        pdf.addPage();
+      }
+
+      pdf.addImage(imgData, "JPEG", 0, 0, 210, 297, undefined, 'FAST');
+    }
+
+    const fullName = atsResumeData?.personalDetails?.fullName || "Resume";
+    pdf.save(`Resume_${fullName.replace(/[^a-z0-9]/gi, "_")}.pdf`);
+  };
+
+  const triggerPrint = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) || isMobile;
+
+    if (isMobileDevice) {
+      try {
+        await downloadPDFMobile();
+      } catch (err) {
+        console.error("Mobile download failed:", err);
+        setSnackbar({ open: true, message: "Failed to generate PDF. Please try again.", severity: "error" });
+      } finally {
+        setDownloading(false);
+      }
+    } else {
+      handlePrint();
+    }
+  };
+
+  const handleDownloadATSResume = async () => {
+    setDownloading(true);
+    await triggerPrint();
+  };
+
+  const handleGenerateATSResume = async () => {
+    if (!userid) {
+      setSnackbar({ open: true, message: "User ID not found. Please refresh.", severity: "error" });
+      return;
+    }
+
+    if (!userPoints || userPoints < 15) {
+      setInsufficientCreditsDialogOpen(true);
+      return;
+    }
+
+    setGeneratingATSResume(true);
+    try {
+      const creditResult = await profileAPI.deductFeatureCredits(userid, "apply_with_ai_resume");
+
+      if (!creditResult || creditResult.error || creditResult.success === false) {
+        setInsufficientCreditsDialogOpen(true);
+        return;
+      }
+
+      if (creditResult.balance !== undefined) {
+        dispatch(updateUserProfile({ points: creditResult.balance }));
+      }
+
+      const result = await generateATSResume(job.id, userid);
+      if (!result.error) {
+        const mappedData = mapProfileData(result.data);
+        setAtsResumeData(mappedData);
+        setShowATSResumeDialog(true);
+        setSnackbar({ open: true, message: "ATS resume generated successfully!", severity: "success" });
+
+        if (job.direct_url) {
+          window.open(job.direct_url, "_blank");
+        }
+      } else {
+        setSnackbar({ open: true, message: result.message || "Failed to generate ATS resume.", severity: "error" });
+      }
+    } catch (error) {
+      console.error("Generate ATS resume error:", error);
+      setSnackbar({ open: true, message: "An unexpected error occurred.", severity: "error" });
+    } finally {
+      setGeneratingATSResume(false);
     }
   };
 
@@ -712,12 +879,13 @@ const JobDetailScreen = ({
             >
               {applying ? "Applying..." : "Apply Now"}
             </Button>
-            {job && job.company_apply && job.direct_url && (
+            {/* {job && job.company_apply && job.direct_url && ( */}
+            {job && (
               <Button
                 variant="contained"
                 fullWidth
                 startIcon={generatingATS ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
-                onClick={handleApplyWithAI}
+                onClick={handleGenerateATSResume}
                 disabled={applying || generatingEmail || generatingATS}
                 sx={{
                   flex: 1,
@@ -839,6 +1007,68 @@ const JobDetailScreen = ({
                 )}
               </Button>
             )}
+
+            {/* <Button
+              variant="contained"
+              fullWidth
+              startIcon={generatingATSResume ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
+              onClick={handleGenerateATSResume}
+              disabled={applying || generatingEmail || generatingATS || generatingATSResume}
+              sx={{
+                flex: 1,
+                py: 1.5,
+                borderRadius: '12px',
+                fontWeight: 700,
+                fontSize: { xs: '1rem', sm: '0.8rem', md: '0.9rem', lg: '1rem' },
+                background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                boxShadow: '0 10px 25px rgba(16, 185, 129, 0.2)',
+                textTransform: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 0.2,
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  boxShadow: '0 12px 30px rgba(16, 185, 129, 0.3)',
+                  transform: 'translateY(-2px)'
+                },
+                transition: 'all 0.3s ease',
+                "&.Mui-disabled": {
+                  background: "#E2E8F0",
+                  color: "#475569"
+                }
+              }}
+            >
+              {generatingATSResume ? (
+                "Generating..."
+              ) : (
+                <>
+                  <Box
+                    component="span"
+                    sx={{
+                      textAlign: 'center',
+                      lineHeight: 1.2,
+                      display: 'block',
+                      px: { xs: 1, sm: 0.5, md: 1 }
+                    }}
+                  >
+                    Generate ATS Resume
+                  </Box>
+                  <Box
+                    component="span"
+                    sx={{
+                      fontSize: { xs: '0.75rem', sm: '0.65rem', md: '0.75rem' },
+                      fontWeight: 400,
+                      opacity: 0.9,
+                      mt: 0.5
+                    }}
+                  >
+                    Uses 15 credits
+                  </Box>
+                </>
+              )}
+            </Button> */}
           </Stack>
           <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2, color: '#94A3B8', fontWeight: 500 }}>
             Posted {job.posted}
@@ -1633,6 +1863,96 @@ const JobDetailScreen = ({
           </Button>
         </Box>
       </Dialog>
+
+      {/* ATS-Optimized Resume Dialog */}
+      <Dialog
+        open={showATSResumeDialog}
+        onClose={() => setShowATSResumeDialog(false)}
+        maxWidth="lg"
+        fullWidth
+        scroll="paper"
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+            p: 1,
+            maxHeight: '94vh',
+            display: 'flex',
+            flexDirection: 'column'
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.5rem', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <AutoAwesomeIcon sx={{ color: '#10B981' }} />
+            ATS-Optimized Resume Preview
+          </Box>
+          <Button
+            variant="contained"
+            disabled={downloading}
+            startIcon={downloading ? <CircularProgress size={18} sx={{ color: "#fff" }} /> : <FileDownloadIcon />}
+            onClick={handleDownloadATSResume}
+            sx={{
+              borderRadius: '12px',
+              px: 3,
+              py: 1,
+              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+              fontWeight: 600,
+              textTransform: 'none',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                transform: 'translateY(-1px)'
+              }
+            }}
+          >
+            {downloading ? "Preparing PDF..." : "Download Resume PDF"}
+          </Button>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 0, bgcolor: '#f1f5f9', overflow: 'auto', display: 'flex', justifyContent: 'center' }}>
+          {atsResumeData && (
+            <Box sx={{
+              p: 3,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'flex-start',
+              minWidth: '850px'
+            }}>
+              <MultiPageResumePreview templateId="template11p" data={atsResumeData} />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 3, gap: 2 }}>
+          <Button
+            onClick={() => setShowATSResumeDialog(false)}
+            sx={{ fontWeight: 600, color: '#475569' }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Hidden export container for print capture */}
+      <div
+        id="pdf-export-container"
+        style={{
+          position: "fixed",
+          left: "-9999px",
+          top: 0,
+          width: "210mm",
+          visibility: "hidden",
+          pointerEvents: "none",
+          zIndex: -9999,
+        }}
+      >
+        {atsResumeData && (
+          <MultiPageResumePreview
+            templateId="template11p"
+            data={atsResumeData}
+            isExport={true}
+            pagesRef={exportPagesRef}
+          />
+        )}
+      </div>
     </Box>
   );
 };

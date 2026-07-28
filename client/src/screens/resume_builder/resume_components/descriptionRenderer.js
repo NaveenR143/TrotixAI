@@ -28,36 +28,53 @@ export default function DescriptionRenderer({ description, className = "" }) {
   // Regex to check for HTML tags
   const hasHtml = /<[a-z][\s\S]*>/i.test(processedDescription);
 
+  // Dynamic style override to ensure child elements (p, li, etc.) inside the templates scale up slightly
+  const styleTag = className ? (
+    <style>{`
+      .${className} p,
+      .${className} li,
+      .${className} span,
+      .${className} div {
+        font-size: .8em !important;
+      }
+    `}</style>
+  ) : null;
+
   if (hasHtml) {
     // const sanitized = sanitizeHtml(processedDescription);
 
     const sanitized = sanitizeHtml(processedDescription).replace(/&nbsp;/g, " ");
 
-    debugger;
-
     return (
-      <div
-        className={className}
-        dangerouslySetInnerHTML={{ __html: sanitized }}
-        style={{
-          wordBreak: "normal",
-          overflowWrap: "break-word",
-          whiteSpace: "normal",
-        }}
-      />
+      <>
+        {styleTag}
+        <div
+          className={className}
+          dangerouslySetInnerHTML={{ __html: sanitized }}
+          style={{
+            wordBreak: "normal",
+            overflowWrap: "break-word",
+            whiteSpace: "normal",
+            fontSize: "1.08em",
+          }}
+        />
+      </>
     );
   }
 
   // Fallback: split by newlines and render bullets
   return (
-    <ul className={className}>
-      {processedDescription.split("\n").map((point, idx) => (
-        point.trim() && (
-          <li key={idx} style={{ wordBreak: "keep-all", overflowWrap: "normal" }}>
-            {point.replace(/^[•\-\*]\s?/, "")}
-          </li>
-        )
-      ))}
-    </ul>
+    <>
+      {styleTag}
+      <ul className={className} style={{ fontSize: "1.08em" }}>
+        {processedDescription.split("\n").map((point, idx) => (
+          point.trim() && (
+            <li key={idx} style={{ wordBreak: "keep-all", overflowWrap: "normal", fontSize: "1.08em" }}>
+              {point.replace(/^[•\-\*]\s?/, "")}
+            </li>
+          )
+        ))}
+      </ul>
+    </>
   );
 }

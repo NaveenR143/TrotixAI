@@ -5,11 +5,11 @@
     --t12-sidebar-bg: #F4F1EE;
     --t12-sidebar-border: #E0DBD5;
     --t12-text-dark: #1A1A1A;
-    --t12-text-dark-secondary: #444444;
-    --t12-text-muted: #888888;
+    --t12-text-dark-secondary: #191919;
+    --t12-text-muted: #191919;
     --t12-text-sidebar: #2C2C2C;
-    --t12-text-sidebar-secondary: #5A5A5A;
-    --t12-text-sidebar-muted: #8A8A8A;
+    --t12-text-sidebar-secondary: #191919;
+    --t12-text-sidebar-muted: #191919;
     --t12-white: #FFFFFF;
     --t12-main-bg: #FDFCFA;
     --t12-section-line: #E8E4DF;
@@ -127,7 +127,7 @@
 }
 
 .t12-contact-text {
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     font-weight: 300;
     color: var(--t12-text-sidebar-secondary);
     line-height: 1.5;
@@ -140,7 +140,7 @@
 }
 
 .t12-edu-degree {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     font-weight: 500;
     color: var(--t12-text-sidebar);
     line-height: 1.4;
@@ -148,7 +148,7 @@
 }
 
 .t12-edu-school {
-    font-size: 0.7rem;
+    font-size: 0.78rem;
     font-weight: 300;
     color: var(--t12-text-sidebar-secondary);
     margin-bottom: 2px;
@@ -156,7 +156,7 @@
 }
 
 .t12-edu-year {
-    font-size: 0.65rem;
+    font-size: 0.78rem;
     font-weight: 400;
     color: var(--t12-text-sidebar-muted);
 }
@@ -166,7 +166,7 @@
 }
 
 .t12-skill-name {
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     font-weight: 400;
     color: var(--t12-text-sidebar);
     margin-bottom: 5px;
@@ -194,13 +194,13 @@
 }
 
 .t12-lang-name {
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     font-weight: 400;
     color: var(--t12-text-sidebar);
 }
 
 .t12-lang-level {
-    font-size: 0.62rem;
+    font-size: 0.78rem;
     font-weight: 400;
     color: var(--t12-text-sidebar-muted);
     background: var(--t12-white);
@@ -216,7 +216,7 @@
 }
 
 .t12-interest-tag {
-    font-size: 0.62rem;
+    font-size: 0.78rem;
     font-weight: 400;
     color: var(--t12-text-sidebar-secondary);
     background: var(--t12-white);
@@ -309,21 +309,21 @@
 }
 
 .t12-exp-role {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--t12-text-dark);
     margin-bottom: 2px;
 }
 
 .t12-exp-company {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     font-weight: 500;
     color: var(--t12-accent);
     margin-bottom: 2px;
 }
 
 .t12-exp-date {
-    font-size: 0.62rem;
+    font-size: 0.78rem;
     font-weight: 500;
     color: var(--t12-text-muted);
     letter-spacing: 0.05em;
@@ -331,7 +331,7 @@
 }
 
 .t12-exp-desc {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 300;
     color: var(--t12-text-dark-secondary);
     line-height: 1.7;
@@ -356,7 +356,7 @@ ul.t12-exp-desc li {
     position: relative;
     padding-left: 14px;
     margin-bottom: 4px;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 300;
     line-height: 1.7;
 }
@@ -382,21 +382,21 @@ ul.t12-exp-desc li::before {
 }
 
 .t12-ref-name {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--t12-text-dark);
     margin-bottom: 1px;
 }
 
 .t12-ref-role {
-    font-size: 0.65rem;
+    font-size: 0.78rem;
     font-weight: 400;
     color: var(--t12-text-muted);
     margin-bottom: 2px;
 }
 
 .t12-ref-contact {
-    font-size: 0.62rem;
+    font-size: 0.78rem;
     color: var(--t12-text-dark-secondary);
 }
 
@@ -414,9 +414,13 @@ ul.t12-exp-desc li::before {
 }
 
 .t12-exp-desc p {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 300;
     color: var(--t12-text-dark-secondary);
     line-height: 1.7;
     margin: 0 0 6px 0;
+}
+/* Override PersonalDetailsGrid value labels */
+.t12-resume-page div[style*="grid"] span:nth-child(2) {
+    font-size: 0.78rem !important;
 }

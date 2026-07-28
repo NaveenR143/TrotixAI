@@ -11,8 +11,8 @@
     --t13-page-bg: #FFFFFF;
     --t13-header-bg: #F8FAFC;
     --t13-text-primary: #1E293B;
-    --t13-text-secondary: #475569;
-    --t13-text-muted: #94A3B8;
+    --t13-text-secondary: #191919;
+    --t13-text-muted: #191919;
     --t13-border: #E2E8F0;
     --t13-border-light: #F1F5F9;
 }
@@ -44,7 +44,7 @@
 /* HEADER */
 .t13-header {
     background: var(--t13-header-bg);
-    padding: 36px 40px 28px;
+    padding: 24px 40px 20px;
     border-bottom: 3px solid var(--t13-accent);
 }
 
@@ -53,6 +53,7 @@
     justify-content: space-between;
     align-items: flex-end;
     margin-bottom: 18px;
+    gap: 20px;
 }
 
 .t13-header-name {
@@ -84,6 +85,7 @@
     font-size: 1.3rem;
     font-weight: 600;
     letter-spacing: -0.02em;
+    flex-shrink: 0;
 }
 
 .t13-contact-row {
@@ -96,7 +98,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     color: var(--t13-text-secondary);
     font-weight: 400;
     word-break: normal;
@@ -115,8 +117,8 @@
     flex: 1;
     display: grid;
     grid-template-columns: minmax(0, 1fr) 240px;
-    padding: 28px 40px 32px;
-    gap: 32px;
+    padding: 20px 40px 20px;
+    gap: 24px;
 }
 
 /* LEFT COLUMN */
@@ -124,7 +126,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 26px;
+    gap: 16px;
 }
 
 .t13-section {
@@ -138,7 +140,7 @@
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--t13-accent);
-    margin-bottom: 16px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -161,11 +163,15 @@
 /* EXPERIENCE */
 .t13-exp-item {
     display: grid;
-    grid-template-columns: 110px minmax(0, 1fr);
-    gap: 16px;
-    margin-bottom: 20px;
-    padding-bottom: 20px;
+    grid-template-columns: 130px minmax(0, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
     border-bottom: 1px solid var(--t13-border-light);
+}
+
+.t13-exp-item.no-date {
+    grid-template-columns: 1fr;
 }
 
 .t13-exp-item:last-child {
@@ -179,7 +185,7 @@
 }
 
 .t13-exp-date {
-    font-size: 0.65rem;
+    font-size: 0.78rem;
     font-weight: 500;
     color: var(--t13-accent);
     background: var(--t13-accent-light);
@@ -191,22 +197,22 @@
 }
 
 .t13-exp-role {
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--t13-text-primary);
     margin-bottom: 1px;
 }
 
 .t13-exp-company {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     font-weight: 500;
     color: var(--t13-text-secondary);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     text-transform: uppercase;
 }
 
 .t13-exp-desc {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 300;
     color: var(--t13-text-secondary);
     line-height: 1.75;
@@ -224,7 +230,7 @@ ul.t13-exp-desc li {
     position: relative;
     padding-left: 12px;
     margin-bottom: 4px;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 300;
     line-height: 1.75;
 }
@@ -242,7 +248,7 @@ ul.t13-exp-desc li::before {
 .t13-right-col {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 16px;
 }
 
 .t13-skill-group {
@@ -250,7 +256,7 @@ ul.t13-exp-desc li::before {
 }
 
 .t13-skill-group-title {
-    font-size: 0.65rem;
+    font-size: 0.78rem;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -265,7 +271,7 @@ ul.t13-exp-desc li::before {
 }
 
 .t13-skill-pill {
-    font-size: 0.65rem;
+    font-size: 0.78rem;
     font-weight: 500;
     color: var(--t13-accent-dark);
     background: var(--t13-accent-light);
@@ -274,8 +280,8 @@ ul.t13-exp-desc li::before {
 }
 
 .t13-edu-item {
-    margin-bottom: 16px;
-    padding-bottom: 16px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--t13-border-light);
 }
 
@@ -295,14 +301,14 @@ ul.t13-exp-desc li::before {
 }
 
 .t13-edu-school {
-    font-size: 0.7rem;
+    font-size: 0.78rem;
     color: var(--t13-text-secondary);
     margin-bottom: 2px;
     text-transform: uppercase;
 }
 
 .t13-edu-year {
-    font-size: 0.62rem;
+    font-size: 0.78rem;
     font-weight: 500;
     color: var(--t13-accent);
 }
@@ -313,7 +319,7 @@ ul.t13-exp-desc li::before {
     align-items: center;
     padding: 6px 0;
     border-bottom: 1px solid var(--t13-border-light);
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     color: var(--t13-text-secondary);
 }
 
@@ -324,7 +330,7 @@ ul.t13-exp-desc li::before {
 .t13-lang-level {
     font-weight: 500;
     color: var(--t13-text-primary);
-    font-size: 0.65rem;
+    font-size: 0.78rem;
 }
 
 .t13-ref-card {
@@ -332,7 +338,7 @@ ul.t13-exp-desc li::before {
     border: 1px solid var(--t13-border-light);
     border-radius: 8px;
     padding: 12px 14px;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
 }
 
 .t13-ref-card:last-child {
@@ -340,20 +346,20 @@ ul.t13-exp-desc li::before {
 }
 
 .t13-ref-name {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--t13-text-primary);
     text-transform: uppercase;
 }
 
 .t13-ref-role {
-    font-size: 0.62rem;
+    font-size: 0.78rem;
     color: var(--t13-text-muted);
     margin-bottom: 4px;
 }
 
 .t13-ref-contact {
-    font-size: 0.62rem;
+    font-size: 0.78rem;
     color: var(--t13-text-secondary);
 }
 
@@ -364,7 +370,7 @@ ul.t13-exp-desc li::before {
 }
 
 .t13-interest-chip {
-    font-size: 0.6rem;
+    font-size: 0.78rem;
     font-weight: 400;
     color: var(--t13-text-secondary);
     background: #fff;
@@ -387,5 +393,9 @@ ul.t13-exp-desc li::before {
 }
 
 .t13-exp-desc p {
-    font-size: 0.78rem; font-weight: 300; color: var(--t13-text-secondary); line-height: 1.75; margin: 0 0 6px 0;
+    font-size: 0.72rem; font-weight: 300; color: var(--t13-text-secondary); line-height: 1.75; margin: 0 0 6px 0;
+}
+/* Override PersonalDetailsGrid value labels */
+.t13-resume-page div[style*="grid"] span:nth-child(2) {
+    font-size: 0.78rem !important;
 }

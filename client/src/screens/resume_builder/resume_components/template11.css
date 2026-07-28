@@ -55,7 +55,7 @@
 }
 
 .t11-contact-info {
-    font-size: 12px;
+    font-size: 12.42px;
     color: #000;
     display: flex;
     justify-content: center;
@@ -86,7 +86,7 @@
 
 /* ===== SUMMARY ===== */
 .t11-summary-text {
-    font-size: 11.5px;
+    font-size: 12.42px;
     line-height: 1.6;
     text-align: justify;
 }
@@ -96,7 +96,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px 24px;
-    font-size: 11.5px;
+    font-size: 12.42px;
 }
 
 .t11-skill-category {
@@ -122,19 +122,19 @@
 }
 
 .t11-exp-role {
-    font-size: 12.5px;
+    font-size: 12.42px;
     font-weight: 600;
     text-transform: uppercase;
 }
 
 .t11-exp-date {
-    font-size: 11px;
+    font-size: 12.42px;
     font-weight: 500;
     color: #333;
 }
 
 .t11-exp-company {
-    font-size: 11.5px;
+    font-size: 12.42px;
     font-style: italic;
     margin-bottom: 6px;
     color: #333;
@@ -167,26 +167,26 @@
 }
 
 .t11-edu-school {
-    font-size: 12px;
+    font-size: 12.42px;
     font-weight: 600;
     text-transform: uppercase;
 }
 
 .t11-edu-date {
-    font-size: 11px;
+    font-size: 12.42px;
     font-weight: 500;
     color: #333;
 }
 
 .t11-edu-degree {
-    font-size: 11.5px;
+    font-size: 12.42px;
     margin-left: 0;
     text-transform: uppercase;
 }
 
 /* ===== LANGUAGES ===== */
 .t11-languages {
-    font-size: 11.5px;
+    font-size: 12.42px;
 }
 
 .t11-lang-item {
@@ -205,7 +205,7 @@
 }
 
 .t11-ref-item {
-    font-size: 11.5px;
+    font-size: 12.42px;
 }
 
 .t11-ref-name {
@@ -229,4 +229,9 @@
 
 .t11-exp-details p {
     font-size: 11.5px; line-height: 1.6; color: #000; margin: 0 0 6px 0; text-align: justify;
+}
+
+/* Override PersonalDetailsGrid value labels to match uniform font size */
+.t11-resume div[style*="grid"] span:nth-child(2) {
+    font-size: 12.42px !important;
 }

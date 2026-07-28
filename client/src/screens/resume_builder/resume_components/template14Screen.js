@@ -125,7 +125,7 @@ export default function Template14({ data }) {
                                             <div className="t14-exp-role">{proj.name}</div>
                                             <div className="t14-exp-date-badge">{proj.year}</div>
                                         </div>
-                                        {proj.link && <div className="t14-exp-company" style={{ fontSize: '0.65rem' }}>{proj.link}</div>}
+                                        {proj.link && <div className="t14-exp-company" style={{ fontSize: '0.78rem' }}>{proj.link}</div>}
                                         <DescriptionRenderer description={proj.description} className="t14-exp-desc" />
                                     </div>
                                 ))}

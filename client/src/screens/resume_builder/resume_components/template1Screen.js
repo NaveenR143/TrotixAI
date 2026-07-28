@@ -72,7 +72,7 @@ export default function Template1({ data }) {
                         {user.summary && (
                             <section className="section" style={getSpacingStyle(spacingConfig, 'summary')}>
                                 <h4>SUMMARY:</h4>
-                                <p className="t2-profile-text" style={{ fontSize: '11px', textAlign: 'justify', lineHeight: 1.6 }}>
+                                <p className="t2-profile-text" style={{ fontSize: '12.42px', textAlign: 'justify', lineHeight: 1.6 }}>
                                     {user.summary}
                                 </p>
                             </section>
@@ -106,7 +106,7 @@ export default function Template1({ data }) {
                                             {proj.year && <div className="exp-date">{proj.year}</div>}
                                         </div>
                                         {proj.link && (
-                                            <div style={{ fontSize: '10px', color: '#666', fontStyle: 'italic', marginBottom: '4px' }}>
+                                            <div style={{ fontSize: '12.42px', color: '#191919', fontStyle: 'italic', marginBottom: '4px' }}>
                                                 {proj.link}
                                             </div>
                                         )}

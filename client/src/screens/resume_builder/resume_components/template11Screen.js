@@ -81,7 +81,7 @@ export default function Template11({ data }) {
                                     {proj.year && <div className="t11-exp-date">{proj.year}</div>}
                                 </div>
                                 {proj.link && (
-                                    <div style={{ fontSize: '11px', color: '#333', fontStyle: 'italic', marginBottom: '4px' }}>
+                                    <div style={{ fontSize: '12.42px', color: '#333', fontStyle: 'italic', marginBottom: '4px' }}>
                                         {proj.link}
                                     </div>
                                 )}

@@ -44,6 +44,7 @@ const API_ENDPOINTS = {
   APPLY_JOB: '/jobs/apply-job',
   TAILORING_JOB_EMAIL: '/jobs/tailoring-job-email',
   GENERATE_ATS_CONTENT: '/jobs/generate-ats-content',
+  GENERATE_ATS_RESUME: '/jobs/generate-ats-resume',
   MANUAL_SUBMISSION: '/profile/manual-submission',
   GET_JOB: '/jobs/',
   LOGOUT: '/otp/logout',

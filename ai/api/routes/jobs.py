@@ -42,7 +42,7 @@ from ai.models.job_models import (
 from ai.services.profile_service import ProfileService
 from ai.services.ai_refiner_service import AzureOpenAIResumeRefiner
 from ai.services.ats_optimizer_service import ATSOptimizerService
-from ai.models.ats_models import ATSGenerationResponse, ATSContentResponse
+from ai.models.ats_models import ATSGenerationResponse, ATSContentResponse, ATSResumeGenerationResponse
 
 router = APIRouter()
 
@@ -670,6 +670,119 @@ async def generate_ats_content(
         raise HTTPException(
             status_code=500, detail=f"Failed to generate ATS content: {str(e)}"
         )
+
+@router.get("/generate-ats-resume", response_model=ATSResumeGenerationResponse)
+async def generate_ats_resume(
+    job_id: str,
+    user_id: str = None,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
+    if not user_id:
+        user_id = current_user_id
+    try:
+        # 1. Fetch job description
+        try:
+            job_id_int = int(job_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid job_id format")
+
+        job_result = await db.execute(
+            select(JobPosting)
+            .options(
+                joinedload(JobPosting.company),
+                joinedload(JobPosting.industry),
+                joinedload(JobPosting.dept),
+            )
+            .where(JobPosting.id == job_id_int)
+        )
+        job = job_result.scalar_one_or_none()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+
+        # Fetch skills for the job
+        skills_query = (
+            select(Skill.name)
+            .join(JobSkill, Skill.id == JobSkill.skills_id)
+            .where(JobSkill.job_posting_id == job_id_int)
+        )
+        skills_result = await db.execute(skills_query)
+        job_skills = [row[0] for row in skills_result.all()]
+
+        job_data = {
+            "title": job.title,
+            "description": job.description,
+            "summary": job.summary,
+            "company": job.company.name if job.company else None,
+            "location": job.location,
+            "industry": job.industry.name if job.industry else None,
+            "department": job.dept.name if job.dept else None,
+            "skills": job_skills,
+        }
+
+        # 2. Fetch user profile
+        try:
+            user_uuid = uuid.UUID(user_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid user_id format")
+
+        profile_data = await ProfileService.fetch_user_profile(
+            user_id=user_uuid, session=db
+        )
+
+        # 3. Call AI resume optimizer service
+        optimizer = ATSOptimizerService()
+        content = await optimizer.generate_ats_resume(
+            user_profile=profile_data, job_details=job_data
+        )
+
+        # 4. Merge optimized content back into a cloned dictionary
+        import copy
+        optimized_profile = copy.deepcopy(profile_data)
+
+        # Update summary
+        optimized_profile["summary"] = content.get("summary", "")
+
+        # Update skills
+        ai_skills_str = content.get("skills", "")
+        if ai_skills_str:
+            ai_skills_list = [s.strip() for s in ai_skills_str.split(",") if s.strip()]
+            # Reconstruct skills list of dicts to match ProfileRepository structure
+            optimized_profile["skills"] = [
+                {
+                    "id": idx,
+                    "name": s,
+                    "level": "intermediate",
+                    "years": None,
+                    "is_primary": True
+                }
+                for idx, s in enumerate(ai_skills_list)
+            ]
+
+        # Update experience descriptions matching by index
+        ai_experience = content.get("experience") or []
+        for i, exp in enumerate(optimized_profile.get("experience") or []):
+            if i < len(ai_experience):
+                exp["description"] = ai_experience[i].get("description", exp.get("description", ""))
+
+        # Update project descriptions matching by index
+        ai_projects = content.get("projects") or []
+        for i, proj in enumerate(optimized_profile.get("projects") or []):
+            if i < len(ai_projects):
+                proj["description"] = ai_projects[i].get("description", proj.get("description", ""))
+
+        return ATSResumeGenerationResponse(
+            status="success",
+            data=optimized_profile
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate ATS resume: {str(e)}"
+        )
+
 @router.get("/recent")
 async def get_recent_jobs(
     db: AsyncSession = Depends(get_db),
@@ -693,7 +806,8 @@ async def get_recent_jobs(
                 or_(
                     JobPosting.posted_at >= time_threshold,
                     JobPosting.created_at >= time_threshold
-                )
+                ),
+                JobPosting.company_apply == True
             )
             .order_by(JobPosting.created_at.desc())
         )

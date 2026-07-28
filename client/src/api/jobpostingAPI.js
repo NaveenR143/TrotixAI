@@ -346,6 +346,33 @@ export const generateATSContent = async (jobId, userId) => {
 };
 
 /**
+ * Generate ATS-optimized resume
+ */
+export const generateATSResume = async (jobId, userId) => {
+    try {
+        const response = await axios.get(
+            `${API_BASE_URL}${API_ENDPOINTS.GENERATE_ATS_RESUME}`,
+            {
+                params: {
+                    job_id: jobId,
+                    user_id: userId
+                },
+                headers: getHeaders(),
+            }
+        );
+
+        return {
+            error: false,
+            data: response.data?.data || response.data,
+            message: "ATS resume generated successfully",
+        };
+    } catch (error) {
+        console.error("Error generating ATS resume:", error);
+        return handleError(error);
+    }
+};
+
+/**
  * Fetch Job Details by ID
  * @param {string|number} jobId - ID of the job to fetch
  */

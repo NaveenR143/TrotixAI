@@ -264,3 +264,9 @@ For security, credentials (like connection strings and OpenAI keys) must be save
 2. Select the container replica to view live startup and queue processing logs.
 
 
+### Save Environment Variables on Container
+Go to your Container App.
+Select Containers.
+Under Environment variables, add your key-value pairs.
+Save and deploy a new revision.
+
