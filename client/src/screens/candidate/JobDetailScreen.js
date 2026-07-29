@@ -30,6 +30,7 @@ import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import WorkIcon from "@mui/icons-material/Work";
+import WorkHistoryIcon from "@mui/icons-material/WorkHistory";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import SchoolIcon from "@mui/icons-material/School";
 import BusinessIcon from "@mui/icons-material/Business";
@@ -207,10 +208,7 @@ const JobDetailScreen = ({
   };
 
   const handleApply = async () => {
-    if (job.direct_url) {
-      window.open(job.direct_url, "_blank");
-      return;
-    }
+
     if (job.recruiter_id) {
       // Internal Application
       setApplying(true);
@@ -243,14 +241,14 @@ const JobDetailScreen = ({
         setApplying(false);
       }
     } else {
+
+
       const companyName = (typeof job.company === "object" ? job.company?.name : job.company) || "";
       const googleSearch = () => {
         const searchQuery = `${companyName} careers jobs`;
         const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
         window.open(searchUrl, "_blank");
       };
-
-
 
       if (job.direct_url) {
         window.open(job.direct_url, "_blank");
@@ -702,6 +700,20 @@ const JobDetailScreen = ({
                     variant="outlined"
                     sx={{ borderRadius: '10px', fontWeight: 500, color: '#212121', borderColor: '#E5E7EB' }}
                   />
+                  {((job.experience_min_yrs != null && job.experience_max_yrs != null) || job.experience) && (
+                    <Chip
+                      icon={<WorkHistoryIcon sx={{ fontSize: '16px !important' }} />}
+                      label={
+                        job.experience_min_yrs != null && job.experience_max_yrs != null
+                          ? (job.experience_min_yrs === job.experience_max_yrs
+                            ? `${job.experience_min_yrs} Yrs`
+                            : `${job.experience_min_yrs}-${job.experience_max_yrs} Yrs`)
+                          : job.experience
+                      }
+                      variant="outlined"
+                      sx={{ borderRadius: '10px', fontWeight: 500, color: '#212121', borderColor: '#E5E7EB' }}
+                    />
+                  )}
                   {job.salary && (
                     <Chip label={job.salary} sx={{ borderRadius: '10px', fontWeight: 700, bgcolor: '#dcfce7', color: '#16a34a' }} />
                   )}

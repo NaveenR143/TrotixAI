@@ -52,8 +52,8 @@ const ProcessingScreen = ({ onComplete }) => {
   const [statusAlertMessage, setStatusAlertMessage] = useState("");
   const [autoApplyStatus, setAutoApplyStatus] = useState("idle"); // idle, applying, success, error
   const [verifiedUserId, setVerifiedUserId] = useState(null);
-
-
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const delayNoticeRef = React.useRef(null);
 
   // Log resume data when component mounts or data changes
   // Cycle steps during initial phase
@@ -159,36 +159,47 @@ const ProcessingScreen = ({ onComplete }) => {
         : (statusData.message || "Resume processing failed or timed out.");
       setProcessingError(displayMessage);
     }
-  }, [location.state, verifiedUserId]);
+  }, [location.state, verifiedUserId, resumeData?.phone, refreshAuth, handleContinue]);
+
+  // Define checkStatus helper
+  const checkStatus = useCallback(async () => {
+    const phone = resumeData?.phone;
+    if (!phone) return;
+
+    console.log("⏳ Checking resume status from backend...");
+    const response = await axios.get(
+      `${API_BASE_URL}${API_ENDPOINTS.RESUME_STATUS}`,
+      { params: { phone: phone.replace(/\D/g, '') } }
+    );
+
+    const status = response.data?.resume_status || response.data?.status;
+    if (status) {
+      handleResumeStatusUpdate({
+        status: status.toLowerCase(),
+        user_id: response.data?.user_id,
+        message: response.data?.message
+      });
+    }
+    return response.data;
+  }, [resumeData, handleResumeStatusUpdate]);
 
   // Polling for resume status - Updated to wait for long-running backend output
   useEffect(() => {
-    if (!otpVerified || resumeProcessingStatus === "completed" || resumeProcessingStatus === "failed" || processingError) return;
+    if (
+      !otpVerified ||
+      resumeProcessingStatus === "completed" ||
+      resumeProcessingStatus === "failed" ||
+      resumeProcessingStatus === "incomplete" ||
+      processingError
+    ) {
+      return;
+    }
 
     let isActive = true;
 
-    const checkStatus = async () => {
+    const runCheck = async () => {
       try {
-        const phone = resumeData?.phone;
-        if (!phone) return;
-
-        console.log("⏳ Waiting for resume status from backend (handling long-polling)...");
-
-        const response = await axios.get(
-          `${API_BASE_URL}${API_ENDPOINTS.RESUME_STATUS}`,
-          { params: { phone: phone.replace(/\D/g, '') } }
-        );
-
-        if (!isActive) return;
-
-        const status = response.data?.resume_status || response.data?.status;
-        if (status) {
-          handleResumeStatusUpdate({
-            status: status.toLowerCase(),
-            user_id: response.data?.user_id,
-            message: response.data?.message
-          });
-        }
+        await checkStatus();
       } catch (err) {
         if (isActive) {
           console.error("Status check error:", err);
@@ -200,12 +211,32 @@ const ProcessingScreen = ({ onComplete }) => {
       }
     };
 
-    checkStatus();
+    runCheck();
 
     return () => {
       isActive = false;
     };
-  }, [otpVerified, resumeData, handleResumeStatusUpdate]);
+  }, [otpVerified, resumeProcessingStatus, processingError, checkStatus]);
+
+  // Auto-scroll to processing error/warning alert when it becomes visible
+  useEffect(() => {
+    if (processingError && delayNoticeRef.current) {
+      delayNoticeRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [processingError]);
+
+  // Manual status check retry handler
+  const handleManualStatusCheck = async () => {
+    setIsCheckingStatus(true);
+    try {
+      await checkStatus();
+    } catch (err) {
+      console.error("Manual status check error:", err);
+      setProcessingError("Failed to check status. Please try again.");
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
 
   const handleOTPSuccess = async (verificationData) => {
     console.log("✓ OTP Verification Successful:", {
@@ -395,46 +426,45 @@ const ProcessingScreen = ({ onComplete }) => {
             {/* Error Alert if Failed during Processing */}
             {processingError && (
               <Fade in timeout={600}>
-                <Alert severity="warning" sx={{
-                  borderRadius: 2.5,
-                  p: 2,
-                  border: "1px solid #fee2e2",
-                  bgcolor: "#fef2f2"
-                }}>
-                  <AlertTitle sx={{ fontWeight: 600, }}>
-                    Processing Delay Notice
-                  </AlertTitle>
-                  <Typography sx={{ fontSize: "0.85rem", mb: 1.5, fontWeight: 400 }}>
-                    {processingError}
-                  </Typography>
-                  {/* <Stack direction="row" spacing={1.5}>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="error"
-                      onClick={handleResendOtp}
-                      disabled={activeOtp.isCooldownActive || activeOtp.loading || !activeOtp.isEligible}
-                      sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
-                    >
-                      {activeOtp.loading
-                        ? "Resending..."
-                        : activeOtp.isCooldownActive
-                          ? `Resend in ${activeOtp.remainingSeconds}s`
-                          : activeOtp.resendAttempts >= 3
-                            ? "Daily Limit Reached"
-                            : "Resend OTP"}
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="text"
-                      color="error"
-                      onClick={handleRetry}
-                      sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
-                    >
-                      Cancel & Retry
-                    </Button>
-                  </Stack> */}
-                </Alert>
+                <Box ref={delayNoticeRef}>
+                  <Alert severity="warning" sx={{
+                    borderRadius: 2.5,
+                    p: 2,
+                    border: "1px solid #fee2e2",
+                    bgcolor: "#fef2f2"
+                  }}>
+                    <AlertTitle sx={{ fontWeight: 600, }}>
+                      Processing Delay Notice
+                    </AlertTitle>
+                    <Typography sx={{ fontSize: "0.85rem", mb: 1.5, fontWeight: 400 }}>
+                      {processingError}
+                    </Typography>
+                    
+                    {resumeProcessingStatus === "incomplete" && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        onClick={handleManualStatusCheck}
+                        disabled={isCheckingStatus}
+                        startIcon={isCheckingStatus ? <CircularProgress size={16} color="inherit" /> : <ReplayIcon />}
+                        sx={{
+                          textTransform: "none",
+                          borderRadius: 2,
+                          fontWeight: 600,
+                          mt: 1,
+                          background: "linear-gradient(135deg, #f97316, #ea580c)",
+                          color: "#fff",
+                          boxShadow: "0 2px 4px rgba(249,115,22,0.2)",
+                          "&:hover": {
+                            background: "linear-gradient(135deg, #ea580c, #c2410c)",
+                          }
+                        }}
+                      >
+                        {isCheckingStatus ? "Checking..." : "Retry Check"}
+                      </Button>
+                    )}
+                  </Alert>
+                </Box>
               </Fade>
             )}
 

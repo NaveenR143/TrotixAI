@@ -28,6 +28,7 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ShareIcon from "@mui/icons-material/Share";
 import WorkIcon from "@mui/icons-material/Work";
+import WorkHistoryIcon from "@mui/icons-material/WorkHistory";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import SchoolIcon from "@mui/icons-material/School";
 import BusinessIcon from "@mui/icons-material/Business";
@@ -120,13 +121,15 @@ const PublicJobDetailScreen = () => {
   };
 
   const handleApply = async () => {
-    if (job.direct_url) {
-      window.open(job.direct_url, "_blank");
-      return;
-    }
+
 
     if (!userid) {
       setShowPublicApply(true);
+      return;
+    }
+
+    if (job.direct_url) {
+      window.open(job.direct_url, "_blank");
       return;
     }
 
@@ -434,6 +437,20 @@ const PublicJobDetailScreen = () => {
                       variant="outlined"
                       sx={{ borderRadius: '10px', fontWeight: 500, color: '#212121', borderColor: '#E5E7EB' }}
                     />
+                    {((job.experience_min_yrs != null && job.experience_max_yrs != null) || job.experience) && (
+                      <Chip
+                        icon={<WorkHistoryIcon sx={{ fontSize: '16px !important' }} />}
+                        label={
+                          job.experience_min_yrs != null && job.experience_max_yrs != null
+                            ? (job.experience_min_yrs === job.experience_max_yrs
+                              ? `${job.experience_min_yrs} Yrs`
+                              : `${job.experience_min_yrs}-${job.experience_max_yrs} Yrs`)
+                            : job.experience
+                        }
+                        variant="outlined"
+                        sx={{ borderRadius: '10px', fontWeight: 500, color: '#212121', borderColor: '#E5E7EB' }}
+                      />
+                    )}
                     {job.salary && <Chip label={job.salary} sx={{ borderRadius: '10px', fontWeight: 700, bgcolor: '#dcfce7', color: '#16a34a' }} />}
                   </Stack>
                 </Box>
@@ -471,6 +488,36 @@ const PublicJobDetailScreen = () => {
                   {(job.skills || []).map(s => (
                     <Chip key={s} label={s} sx={{ bgcolor: '#eff6ff', color: '#2563EB', fontWeight: 600, borderRadius: '8px' }} />
                   ))}
+                </Stack>
+              </Paper>
+
+              <Paper elevation={0} sx={{ p: 4, borderRadius: '20px' }}>
+                <Typography sx={{ fontWeight: 700, fontSize: { xs: "1.0rem", md: "1.15rem" }, mb: 3 }}>Job Summary</Typography>
+                <Stack spacing={3}>
+                  {((job.experience_min_yrs != null && job.experience_max_yrs != null) || job.experience) && (
+                    <Box>
+                      <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 500 }}>EXPERIENCE</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {job.experience_min_yrs != null && job.experience_max_yrs != null
+                          ? (job.experience_min_yrs === job.experience_max_yrs
+                            ? `${job.experience_min_yrs} Years`
+                            : `${job.experience_min_yrs} - ${job.experience_max_yrs} Years`)
+                          : job.experience}
+                      </Typography>
+                    </Box>
+                  )}
+                  {(job.type || job.job_type) && (
+                    <Box>
+                      <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 500 }}>JOB TYPE</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{job.type || job.job_type}</Typography>
+                    </Box>
+                  )}
+                  {(job.workMode || job.work_mode) && (
+                    <Box>
+                      <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 500 }}>WORK MODE</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{job.workMode || job.work_mode}</Typography>
+                    </Box>
+                  )}
                 </Stack>
               </Paper>
             </Stack>
