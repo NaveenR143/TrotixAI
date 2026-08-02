@@ -19,6 +19,7 @@ import {
   TextField,
   MenuItem,
   InputAdornment,
+  Tooltip,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -27,9 +28,10 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import WorkHistoryIcon from "@mui/icons-material/WorkHistory";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { fetchRecentJobs } from "../../api/jobpostingAPI";
 
 const RecentJobsListScreen = () => {
@@ -523,7 +525,7 @@ const RecentJobsListScreen = () => {
                       <TableCell sx={{ fontWeight: 700, color: "#475569", py: 2 }}>Experience</TableCell>
                       <TableCell sx={{ fontWeight: 700, color: "#475569", py: 2 }}>Location</TableCell>
                       <TableCell sx={{ fontWeight: 700, color: "#475569", py: 2 }}>Posted Time</TableCell>
-                      <TableCell sx={{ width: 40 }}></TableCell>
+                      <TableCell sx={{ width: 90 }}></TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -560,9 +562,22 @@ const RecentJobsListScreen = () => {
                           </Stack>
                         </TableCell>
                         <TableCell sx={{ py: 2.5 }}>
-                          <Typography sx={{ fontWeight: 600, color: "#3B82F6", mb: job.skills?.length ? 0.8 : 0 }}>
-                            {job.title}
-                          </Typography>
+                          <Link
+                            to={`/admin/job-detail/${job.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ textDecoration: "none" }}
+                          >
+                            <Typography
+                              sx={{
+                                fontWeight: 600,
+                                color: "#3B82F6",
+                                mb: job.skills?.length ? 0.8 : 0,
+                                "&:hover": { textDecoration: "underline" }
+                              }}
+                            >
+                              {job.title}
+                            </Typography>
+                          </Link>
                           {job.skills && job.skills.length > 0 && (
                             <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
                               {job.skills.map((skill, index) => (
@@ -618,8 +633,33 @@ const RecentJobsListScreen = () => {
                         <TableCell sx={{ py: 2.5, color: "#64748B", fontWeight: 500 }}>
                           {formatDateTime(job.posted_at)}
                         </TableCell>
-                        <TableCell sx={{ py: 2.5 }}>
-                          <ArrowForwardIosIcon sx={{ fontSize: 14, color: "#CBD5E1" }} />
+                        <TableCell sx={{ py: 1.5, px: 2 }} onClick={(e) => e.stopPropagation()}>
+                          <Stack direction="row" spacing={0.5} justifyContent="flex-end" alignItems="center">
+                            <Tooltip title="Open in New Tab" arrow>
+                              <IconButton
+                                size="small"
+                                onClick={() => window.open(`/admin/job-detail/${job.id}`, "_blank")}
+                                sx={{
+                                  color: "#64748B",
+                                  "&:hover": { color: "#3B82F6", bgcolor: "#EFF6FF" }
+                                }}
+                              >
+                                <OpenInNewIcon sx={{ fontSize: 18 }} />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="View Details" arrow>
+                              <IconButton
+                                size="small"
+                                onClick={() => navigate(`/admin/job-detail/${job.id}`)}
+                                sx={{
+                                  color: "#CBD5E1",
+                                  "&:hover": { color: "#3B82F6", bgcolor: "#EFF6FF" }
+                                }}
+                              >
+                                <ArrowForwardIosIcon sx={{ fontSize: 12 }} />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
                         </TableCell>
                       </TableRow>
                     ))}

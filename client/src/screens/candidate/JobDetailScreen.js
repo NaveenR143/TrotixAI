@@ -891,8 +891,8 @@ const JobDetailScreen = ({
             >
               {applying ? "Applying..." : "Apply Now"}
             </Button>
-            {/* {job && job.company_apply && job.direct_url && ( */}
-            {job && (
+            {/* {job && ( */}
+            {job && job.company_apply && job.direct_url && (
               <Button
                 variant="contained"
                 fullWidth

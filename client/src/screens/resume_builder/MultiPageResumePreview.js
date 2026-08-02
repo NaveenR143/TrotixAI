@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 
 const A4_RATIO = 297 / 210;
 const PAGE_GAP_PX = 20;
@@ -41,7 +42,12 @@ const MultiPageResumePreview = ({
   isExport = false,
   pagesRef = null,
 }) => {
-  const measureRef = useRef(null);
+  const [measureElement, setMeasureElement] = useState(null);
+  const measureRef = useCallback((node) => {
+    if (node !== null) {
+      setMeasureElement(node);
+    }
+  }, []);
   const [layout, setLayout] = useState({
     pageCount: 1,
     pageHeightPx: 1122,
@@ -51,7 +57,7 @@ const MultiPageResumePreview = ({
   });
 
   const recompute = useCallback(() => {
-    const el = measureRef.current;
+    const el = measureElement;
     if (!el) return;
     const widthPx = el.offsetWidth;
     if (!widthPx) return;
@@ -114,9 +120,9 @@ const MultiPageResumePreview = ({
 
       while (currentY < totalHeight && safety < 100) {
         safety++;
-        const usable = currentY === 0
+        const usable = (currentY === 0
           ? pageHeight - bpad
-          : pageHeight - tpad - bpad;
+          : pageHeight - tpad - bpad) - 12; // 12px safety buffer to prevent text/bullet clipping in print/PDF due to font size variations
         const hardCut = currentY + usable;
 
         if (hardCut >= totalHeight) {
@@ -129,7 +135,10 @@ const MultiPageResumePreview = ({
         for (let i = 0; i < rects.length; i++) {
           const { top, bottom } = rects[i];
           if (top < hardCut && bottom > hardCut) {
-            if (top > currentY + 20 && top < breakY) {
+            // Only break before a block if it is relatively short (height <= 240px).
+            // For tall blocks (like long experience items), we allow breaking inside them (at child boundaries).
+            const isTallBlock = (bottom - top > 240);
+            if (!isTallBlock && top > currentY + 20 && top < breakY) {
               breakY = top;
             }
           }
@@ -162,16 +171,15 @@ const MultiPageResumePreview = ({
       bottomPaddingPx: bottomPad,
       breaks: computedBreaks,
     });
-  }, []);
+  }, [measureElement]);
 
   useEffect(() => {
-    const el = measureRef.current;
-    if (!el) return;
+    if (!measureElement) return;
     const ro = new ResizeObserver(recompute);
-    ro.observe(el);
+    ro.observe(measureElement);
     recompute();
     return () => ro.disconnect();
-  }, [recompute]);
+  }, [measureElement, recompute]);
 
   useEffect(() => {
     const id = setTimeout(recompute, 50);
@@ -206,30 +214,13 @@ const MultiPageResumePreview = ({
       <div
         ref={pagesRef}
         style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: `${PAGE_GAP_PX}px`,
+          display: isExport ? "block" : "flex",
+          flexDirection: isExport ? undefined : "column",
+          alignItems: isExport ? undefined : "center",
+          gap: isExport ? 0 : `${PAGE_GAP_PX}px`,
           animation: isExport ? "none" : "mpFadeIn 0.5s cubic-bezier(0.4,0,0.2,1)",
         }}
       >
-        {/* Hidden measurement element — always 210mm wide, off-screen */}
-        <div
-          ref={measureRef}
-          aria-hidden="true"
-          style={{
-            position: "fixed",
-            left: "-9999px",
-            top: 0,
-            width: "210mm",
-            zIndex: -9999,
-            pointerEvents: "none",
-            visibility: "hidden",
-            boxSizing: "border-box",
-          }}
-        >
-          <TemplateComponent data={data} />
-        </div>
 
         {/* A4 page frames */}
         {Array.from({ length: pageCount }, (_, pageIndex) => {
@@ -346,6 +337,7 @@ const MultiPageResumePreview = ({
                 width: "100%",
                 height: `${maxContentHeight}px`,
                 overflow: "hidden",
+                contain: "paint",
                 boxSizing: "border-box",
                 zIndex: 1,
               }}>
@@ -401,6 +393,34 @@ const MultiPageResumePreview = ({
         {/* Bottom breathing room */}
         <div style={{ height: "8px" }} />
       </div>
+
+      {/* Hidden measurement element — always 210mm wide, off-screen, rendered outside any scale/zoom container */}
+      {typeof document !== "undefined" && createPortal(
+        <div
+          ref={measureRef}
+          className="resume-measure-container"
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            left: "-9999px",
+            top: 0,
+            width: "210mm",
+            zIndex: -9999,
+            pointerEvents: "none",
+            visibility: "hidden",
+            boxSizing: "border-box",
+          }}
+        >
+          <style>{`
+            .resume-measure-container * {
+              min-height: 0 !important;
+              min-height: auto !important;
+            }
+          `}</style>
+          <TemplateComponent data={data} />
+        </div>,
+        document.body
+      )}
     </>
   );
 };

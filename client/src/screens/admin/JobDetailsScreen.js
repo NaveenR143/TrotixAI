@@ -297,7 +297,7 @@ const JobDetailsScreen = () => {
                       Posted Date/Time
                     </Typography>
                     <Typography sx={{ fontWeight: 600, color: "#1E293B", mt: 0.5 }}>
-                      {job.posted_at ? new Date(job.posted_at).toLocaleString() : "N/A"}
+                      {job.posted_at ? new Date(job.posted_at).toLocaleString() : ""}
                     </Typography>
                   </Grid>
                 </Grid>
