@@ -41,11 +41,28 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Listen for WebOTP SMS on mobile devices when step is 2
   useEffect(() => {
-    if (step === 2 && formData.otp.length === 4) {
-      handleVerifyOtp(null, formData.otp);
-    }
-  }, [formData.otp, step]);
+    if (step !== 2 || !('OTPCredential' in window)) return;
+
+    const ac = new AbortController();
+    navigator.credentials.get({
+      otp: { transport: ['sms'] },
+      signal: ac.signal
+    }).then(otpObj => {
+      if (otpObj && otpObj.code) {
+        const digits = otpObj.code.replace(/\D/g, '').slice(0, 4);
+        setFormData(prev => ({ ...prev, otp: digits }));
+        handleVerifyOtp(null, digits);
+      }
+    }).catch(err => {
+      console.log("WebOTP API Error/Aborted in AuthComponent:", err);
+    });
+
+    return () => {
+      ac.abort();
+    };
+  }, [step]);
 
   useEffect(() => {
     if (step === 1) {
@@ -285,6 +302,9 @@ const AuthComponent = ({ userType = 'Candidate', invokedFrom = '', onSuccess }) 
                   onChange={(e) => {
                     const val = e.target.value.replace(/\D/g, '').slice(0, 4);
                     setFormData({ ...formData, otp: val });
+                    if (val.length === 4) {
+                      handleVerifyOtp(null, val);
+                    }
                   }}
                   inputProps={{
                     autoComplete: 'one-time-code',

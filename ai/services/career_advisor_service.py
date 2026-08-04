@@ -274,25 +274,6 @@ class CareerAdvisorService:
             from ai.db.resume_repository import ResumeRepository
             resume_repo = ResumeRepository(session)
 
-            # if force_refresh:
-            #     has_requested_today = await resume_repo.check_daily_ai_limit(str(user_id), "skill_analysis")
-            #     if has_requested_today:
-            #         logger.warning(
-            #             f"Daily skill_analysis limit reached for user: {user_id}")
-            #         cached_data = await CareerAdvisorRepository.get_user_skill_analysis(user_id, session)
-            #         if cached_data:
-            #             return cached_data
-
-            # ✅ Step 1: Check cache
-            # if not force_refresh:
-            #     cached_data = await CareerAdvisorRepository.get_user_skill_analysis(
-            #         user_id, session
-            #     )
-            #     if cached_data:
-            #         logger.info(
-            #             f"Returning cached skill analysis for user: {user_id}")
-            #         return cached_data
-
             # 2. Fetch complete profile
             profile_data = await ProfileService.fetch_user_profile(
                 user_id=user_id, session=session
@@ -319,35 +300,67 @@ class CareerAdvisorService:
                 )
             )
 
-            # 3.1 Fetch recent relevant job postings (last 15 days) and identify missing skills
+            # 1. Fetch User Skills from profile, work experience, and projects (profile + resume)
+            user_skills_set = set()
+            user_skills_with_levels = {}
+
+            # Explicit profile skills
+            for skill in (profile_data.get("skills") or []):
+                if skill.get("name"):
+                    name = skill["name"].strip().lower()
+                    user_skills_set.add(name)
+                    # Get level (default to intermediate)
+                    user_skills_with_levels[name] = skill.get("level") or "intermediate"
+
+            # Experiences (representing resume content)
+            for exp in (profile_data.get("experience") or []):
+                for skill in (exp.get("skills_used") or []):
+                    name = skill.strip().lower()
+                    user_skills_set.add(name)
+                    if name not in user_skills_with_levels:
+                        user_skills_with_levels[name] = "intermediate"
+
+            # Projects (representing resume content)
+            for proj in (profile_data.get("projects") or []):
+                for skill in (proj.get("skills_used") or []):
+                    name = skill.strip().lower()
+                    user_skills_set.add(name)
+                    if name not in user_skills_with_levels:
+                        user_skills_with_levels[name] = "intermediate"
+
+            # 2. Fetch Matching Jobs
             missing_skills = []
+            weak_skills = []
             try:
-                user_matcher_data = await JobMatcherService._fetch_user_data(
-                    str(user_id), session
+                # Retrieve job opportunities that best match the user's current profile
+                matched_jobs = await JobMatcherService.get_matching_jobs(
+                    str(user_id), session, limit=20
                 )
-                if user_matcher_data:
-                    candidate_jobs = await JobMatcherService._fetch_candidate_jobs(
-                        user_matcher_data, session, limit=50
-                    )
 
-                    user_skills = set(
-                        s.lower() for s in user_matcher_data.get("skills", [])
-                    )
+                # 3. Identify and Categorize Skill Gaps (missing or weak)
+                missing_skills_counter = Counter()
+                weak_skills_counter = Counter()
 
-                    all_job_skills = []
-                    for job in candidate_jobs:
-                        job_skills = job.get("skills", [])
-                        for skill in job_skills:
-                            if skill.lower() not in user_skills:
-                                all_job_skills.append(skill)
+                for job in matched_jobs:
+                    job_skills = job.get("skills") or []
+                    for skill in job_skills:
+                        skill_lower = skill.strip().lower()
+                        if skill_lower not in user_skills_set:
+                            missing_skills_counter[skill] += 1
+                        elif user_skills_with_levels.get(skill_lower) == "beginner":
+                            weak_skills_counter[skill] += 1
 
-                    skill_counts = Counter(all_job_skills)
-                    missing_skills = [
-                        skill for skill, count in skill_counts.most_common(15)
-                    ]
+                # Prioritize most common gaps limiting eligibility
+                missing_skills = [
+                    skill for skill, count in missing_skills_counter.most_common(15)
+                ]
+                weak_skills = [
+                    skill for skill, count in weak_skills_counter.most_common(10)
+                ]
             except Exception as e:
                 logger.warning(
-                    f"Error fetching candidate jobs for skill analysis: {e}")
+                    f"Error fetching matching jobs / computing gaps for skill analysis: {e}"
+                )
 
             # 4. Prepare data for AI
             gpt_input = cls._build_gpt_input(profile_data)
@@ -358,6 +371,7 @@ class CareerAdvisorService:
                 profile_data=gpt_input,
                 market_skills=market_skills,
                 missing_skills=missing_skills,
+                weak_skills=weak_skills,
             )
 
             # 6. Normalize and format

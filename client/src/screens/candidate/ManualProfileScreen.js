@@ -217,11 +217,7 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
     }));
   }, [formData, activeStep, isPhoneVerified]);
 
-  useEffect(() => {
-    if (otpSent && !isPhoneVerified && otp.length === 4) {
-      handleVerifyOtp(null, otp);
-    }
-  }, [otp, otpSent, isPhoneVerified]);
+
 
   const validateStep = (step) => {
     const newErrors = {};
@@ -601,7 +597,13 @@ const ManualProfileScreen = ({ onSave, onBack }) => {
                       placeholder="4-digit OTP"
                       size="small"
                       value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                        setOtp(val);
+                        if (val.length === 4) {
+                          handleVerifyOtp(null, val);
+                        }
+                      }}
                       inputProps={{
                         autoComplete: 'one-time-code',
                         inputMode: 'numeric',

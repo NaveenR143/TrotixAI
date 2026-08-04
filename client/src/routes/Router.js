@@ -24,6 +24,8 @@ const JobFeedScreen = Loadable(lazy(() => import("../screens/candidate/JobFeedSc
 const JobDetailScreen = Loadable(lazy(() => import("../screens/candidate/JobDetailScreen")));
 const PublicJobDetailScreen = Loadable(lazy(() => import("../screens/candidate/PublicJobDetailScreen")));
 const MembershipScreen = Loadable(lazy(() => import("../screens/candidate/MembershipScreen")));
+const PremiumCheckoutScreen = Loadable(lazy(() => import("../screens/candidate/PremiumCheckoutScreen")));
+const OrderStatusScreen = Loadable(lazy(() => import("../screens/candidate/OrderStatusScreen")));
 const LoginScreen = Loadable(lazy(() => import("../screens/candidate/LoginWrapper")));
 const DashboardScreen = Loadable(lazy(() => import("../screens/candidate/DashboardScreen")));
 const RecruiterDashboardScreen = Loadable(lazy(() => import("../screens/recruiter/DashboardScreen")));
@@ -42,6 +44,7 @@ const CandidateProfileScreen = Loadable(lazy(() => import("../screens/recruiter/
 const RecruiterCandidatesScreen = Loadable(lazy(() => import("../screens/recruiter/RecruiterCandidatesScreen")));
 const RecentJobsListScreen = Loadable(lazy(() => import("../screens/admin/RecentJobsListScreen")));
 const JobDetailsScreen = Loadable(lazy(() => import("../screens/admin/JobDetailsScreen")));
+const AdminPostJobScreen = Loadable(lazy(() => import("../screens/admin/PostJobScreen")));
 
 
 
@@ -165,6 +168,14 @@ const MembershipRoute = () => {
   return <MembershipScreen />;
 };
 
+const PremiumCheckoutRoute = () => {
+  return <PremiumCheckoutScreen />;
+};
+
+const OrderStatusRoute = () => {
+  return <OrderStatusScreen />;
+};
+
 const DashboardRoute = () => {
   // const navigate = useNavigate();
   return <DashboardScreen />;
@@ -212,6 +223,8 @@ const Router = [
                   { path: "career-advice", element: <CareerAdvisorScreen /> },
                   { path: "skill-development", element: <SkillDevelopmentScreen /> },
                   { path: "learning", element: <div>Learning Screen (Coming Soon)</div> },
+                  { path: "premium/upgrade", element: <PremiumCheckoutRoute /> },
+                  { path: "orders/:orderId/status", element: <OrderStatusRoute /> },
                   { path: "govt-job-detail/:id", element: <GovtJobDetailScreen /> },
                 ]
               },
@@ -235,6 +248,7 @@ const Router = [
                 children: [
                   { path: "admin/recent-jobs", element: <RecentJobsListScreen /> },
                   { path: "admin/job-detail/:id", element: <JobDetailsScreen /> },
+                  { path: "admin/post-new-job", element: <AdminPostJobScreen /> },
                 ]
               },
             ]

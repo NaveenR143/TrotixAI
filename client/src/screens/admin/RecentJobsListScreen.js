@@ -23,6 +23,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import AddIcon from "@mui/icons-material/Add";
 import BusinessIcon from "@mui/icons-material/Business";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import WorkHistoryIcon from "@mui/icons-material/WorkHistory";
@@ -197,25 +198,45 @@ const RecentJobsListScreen = () => {
               </Typography>
             </Box>
           </Stack>
-          <Button
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={loadRecentJobs}
-            disabled={loading}
-            sx={{
-              borderRadius: "12px",
-              borderColor: "#CBD5E1",
-              color: "#475569",
-              textTransform: "none",
-              fontWeight: 600,
-              px: 3,
-              py: 1,
-              bgcolor: "#FFFFFF",
-              "&:hover": { borderColor: "#94A3B8", bgcolor: "#F8FAFC" }
-            }}
-          >
-            Refresh
-          </Button>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => navigate("/admin/post-new-job")}
+              sx={{
+                borderRadius: "12px",
+                textTransform: "none",
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                bgcolor: "#3B82F6",
+                color: "#FFFFFF",
+                boxShadow: "0 4px 10px rgba(59, 130, 246, 0.2)",
+                "&:hover": { bgcolor: "#2563EB", boxShadow: "0 6px 14px rgba(59, 130, 246, 0.3)" }
+              }}
+            >
+              Post New Job
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<RefreshIcon />}
+              onClick={loadRecentJobs}
+              disabled={loading}
+              sx={{
+                borderRadius: "12px",
+                borderColor: "#CBD5E1",
+                color: "#475569",
+                textTransform: "none",
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                bgcolor: "#FFFFFF",
+                "&:hover": { borderColor: "#94A3B8", bgcolor: "#F8FAFC" }
+              }}
+            >
+              Refresh
+            </Button>
+          </Stack>
         </Box>
 
         {/* Main Content Area */}

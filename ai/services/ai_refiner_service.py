@@ -165,6 +165,7 @@ class AzureOpenAIResumeRefiner:
         profile_data: Dict[str, Any],
         market_skills: List[str],
         missing_skills: List[str] = None,
+        weak_skills: List[str] = None,
     ) -> Dict[str, Any]:
         """
         Generate structured skill development analysis using Azure OpenAI
@@ -177,6 +178,14 @@ class AzureOpenAIResumeRefiner:
             missing_skills_context = (
                 "\nRecent job postings relevant to the candidate frequently require these skills that they currently lack:\n"
                 f"{json.dumps(clean_dict(missing_skills), ensure_ascii=False)}\n"
+            )
+
+        # Build weak skills context if available
+        weak_skills_context = ""
+        if weak_skills:
+            weak_skills_context = (
+                "\nThe candidate already lists these skills on their profile, but they are at a beginner level and require reinforcement:\n"
+                f"{json.dumps(clean_dict(weak_skills), ensure_ascii=False)}\n"
             )
 
         messages = [
@@ -209,7 +218,11 @@ class AzureOpenAIResumeRefiner:
                     "14. Ensure a mix of 'free' and 'paid' resources where possible.\n"
                     "15. Avoid generic placeholders like 'search online' or 'various courses'.\n"
                     "ROADMAP RULE:\n"
-                    "16. Assign 'short-term' or 'long-term' priority for each skill.\n"
+                    "16. Assign one of these priorities for each skill:\n"
+                    "    - 'immediate': High-priority skills the candidate needs to acquire immediately.\n"
+                    "    - 'job-match': Skills that will directly improve the candidate's job match scores and eligibility.\n"
+                    "    - 'future-ready': Skills required for long-term career growth and future-readiness.\n"
+                    "    - 'long-term': General skills for long-term professional development.\n"
                 ),
             },
             {
@@ -221,6 +234,7 @@ class AzureOpenAIResumeRefiner:
                     "Top in-demand skills in user's industry that they lack:\n"
                     f"{json.dumps(clean_dict(market_skills), ensure_ascii=False)}\n"
                     f"{missing_skills_context}"
+                    f"{weak_skills_context}"
                 ),
             },
         ]

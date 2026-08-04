@@ -2203,7 +2203,7 @@ async def list_candidates(
             .options(selectinload(User.jobseeker_profile))
             .outerjoin(JobseekerProfile, User.id == JobseekerProfile.user_id)
             .where(User.role == UserRoleEnum.jobseeker)
-            .where(User.status == UserStatusEnum.active)
+            # .where(User.status == UserStatusEnum.active)
         )
         
         # Apply filters
@@ -2256,7 +2256,7 @@ async def list_candidates(
         total_count = count_res.scalar() or 0
         
         # Paginate and order by latest first
-        stmt = stmt.order_by(desc(User.created_at)).limit(limit).offset(offset)
+        stmt = stmt.order_by(desc(User.updated_at)).limit(limit).offset(offset)
         
         res = await session.execute(stmt)
         users = res.scalars().all()

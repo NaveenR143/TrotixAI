@@ -299,6 +299,31 @@ async def get_job_metadata(
         )
 
 
+@router.get("/companies")
+async def get_companies(
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
+    """Fetch all companies for selection dropdown"""
+    try:
+        stmt = select(Company.id, Company.name, Company.website, Company.careers_url).order_by(Company.name.asc())
+        result = await db.execute(stmt)
+        companies = [
+            {
+                "id": row.id,
+                "name": row.name,
+                "website": row.website,
+                "careers_url": row.careers_url
+            }
+            for row in result.all()
+        ]
+        return {"status": "success", "data": companies}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error fetching companies: {str(e)}"
+        )
+
+
 @router.post("/create", response_model=JobCreateResponse)
 async def create_job(
     request: JobCreateRequest,
@@ -311,16 +336,27 @@ async def create_job(
         request.userid = current_user_id
     try:
         # 1. Resolve company_id by name
+        company_name = request.company.strip() if request.company else "Confidential"
         company_result = await db.execute(
-            select(Company).where(Company.name == request.company)
+            select(Company).where(Company.name == company_name)
         )
         company = company_result.scalar_one_or_none()
 
         if not company:
             # Auto-insert a new company record and use its generated id
-            company = Company(name=request.company)
+            company = Company(
+                name=company_name,
+                website=request.company_website,
+                careers_url=request.company_careers_url
+            )
             db.add(company)
             await db.flush()  # populate company.id without committing yet
+        else:
+            # Update URLs if they are provided
+            if request.company_website is not None:
+                company.website = request.company_website
+            if request.company_careers_url is not None:
+                company.careers_url = request.company_careers_url
 
         # 2. Resolve department_id — only use if it exists in DB
         resolved_department_id: int | None = None
@@ -342,16 +378,27 @@ async def create_job(
             if industry:
                 resolved_industry_id = industry.id
 
+        # Resolve Enums
+        work_mode_val = None
+        if request.work_mode and request.work_mode in [mode.value for mode in WorkModeEnum]:
+            work_mode_val = WorkModeEnum(request.work_mode)
+
+        job_type_val = None
+        if request.job_type and request.job_type in [jt.value for jt in JobTypeEnum]:
+            job_type_val = JobTypeEnum(request.job_type)
+
+        exp_level_val = None
+        if request.experience_level and request.experience_level in [el.value for el in ExpLevelEnum]:
+            exp_level_val = ExpLevelEnum(request.experience_level)
+
         # 5. Build and insert the job posting
         new_job = JobPosting(
-            title=request.title,
-            description=request.description,
+            title=request.title or "Untitled Job",
+            description=request.description or "",
             status=JobStatusEnum.active,
-            experience_min_yrs=request.experience_min,
-            experience_max_yrs=request.experience_max,
-            experience_level=(
-                request.experience_level if request.experience_level else None
-            ),
+            experience_min_yrs=request.experience_min if request.experience_min is not None else 0,
+            experience_max_yrs=request.experience_max if request.experience_max is not None else 0,
+            experience_level=exp_level_val,
             salary_min=(
                 request.salary_min
                 if request.salary_min and request.salary_min > 0
@@ -362,8 +409,9 @@ async def create_job(
                 if request.salary_max and request.salary_max > 0
                 else None
             ),
-            work_mode=request.work_mode,
-            openings=request.openings,
+            work_mode=work_mode_val,
+            job_type=job_type_val,
+            openings=request.openings if request.openings is not None else 1,
             education_requirement=request.education_requirement,
             company_id=company.id,
             location=request.location,

@@ -47,11 +47,7 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
   const [verificationLoading, setVerificationLoading] = useState(false);
   const [verificationError, setVerificationError] = useState("");
 
-  useEffect(() => {
-    if (otpSent && !otpVerified && otp.length === 4) {
-      handleVerifyOtp(null, otp);
-    }
-  }, [otp, otpSent, otpVerified]);
+
 
   // Sync with profile prop when not editing
   useEffect(() => {
@@ -401,7 +397,13 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
                       placeholder="4-digit OTP"
                       size="small"
                       value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                        setOtp(val);
+                        if (val.length === 4) {
+                          handleVerifyOtp(null, val);
+                        }
+                      }}
                       inputProps={{
                         autoComplete: 'one-time-code',
                         inputMode: 'numeric',

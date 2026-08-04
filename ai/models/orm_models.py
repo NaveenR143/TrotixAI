@@ -1088,3 +1088,89 @@ class RecruiterUnlockedCandidate(Base):
     recruiter = relationship("User", foreign_keys=[recruiter_id], backref="unlocked_candidates")
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Premium Reports System (NEW)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class PremiumReportStatusEnum(str, enum.Enum):
+    QUEUED = "QUEUED"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+
+class PremiumReportTypeEnum(str, enum.Enum):
+    ATS_RESUME = "ATS_RESUME"
+    ENHANCED_RESUME = "ENHANCED_RESUME"
+    SKILL_ANALYSIS = "SKILL_ANALYSIS"
+    CAREER_ENHANCEMENT = "CAREER_ENHANCEMENT"
+
+
+class PremiumOrder(Base):
+    __tablename__ = "premium_orders"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    amount = Column(Numeric(10, 2), nullable=False)
+    payment_status = Column(String(50), nullable=False, default="pending")
+    gateway = Column(String(50), nullable=True)
+    gateway_order_id = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    # Relationships
+    user = relationship("User", backref="premium_orders")
+    reports = relationship("ReportGeneration", back_populates="order", cascade="all, delete-orphan")
+
+
+class ReportGeneration(Base):
+    __tablename__ = "report_generations"
+    __table_args__ = (
+        UniqueConstraint("order_id", "report_type", name="uq_order_report_type"),
+    )
+
+    id = Column(Integer, primary_key=True)
+    order_id = Column(
+        Integer,
+        ForeignKey("premium_orders.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    report_type = Column(
+        Enum(PremiumReportTypeEnum, name="premium_report_type", create_type=False),
+        nullable=False,
+    )
+    status = Column(
+        Enum(PremiumReportStatusEnum, name="premium_report_status", create_type=False),
+        nullable=False,
+        default=PremiumReportStatusEnum.QUEUED,
+    )
+    progress = Column(Integer, nullable=False, default=0)
+    download_url = Column(Text, nullable=True)
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    error_message = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    # Relationships
+    order = relationship("PremiumOrder", back_populates="reports")
+    user = relationship("User", backref="report_generations")
+
+
+

@@ -807,13 +807,17 @@ async def payu_callback(
 ):
     """
     Public endpoint for PayU POST callback/redirect logic.
-    Verifies payment signature and updates credits atomically.
+    Verifies payment signature and updates credits/premium orders atomically.
     """
     try:
         form_data = await request.form()
         params = dict(form_data)
         
         logger.info(f"PayU Callback received params: {params}")
+        
+        txnid = params.get("txnid")
+        udf3 = params.get("udf3")
+        is_premium_order = (udf3 == "premium_reports_booster") or (txnid and txnid.startswith("tx_premium_"))
         
         payu_client, _, _, _ = get_payu_client()
         is_valid_hash = False
@@ -826,12 +830,19 @@ async def payu_callback(
         
         if not is_valid_hash:
             logger.error(f"PayU payment hash validation failed for params: {params}")
-            return RedirectResponse(
-                url=f"{frontend_url}/membership?status=failure&message=Payment validation failed. Invalid signature.",
-                status_code=303
-            )
+            msg = "Payment validation failed. Invalid signature."
+            if is_premium_order:
+                premium_order_id = params.get("udf2") or ""
+                return RedirectResponse(
+                    url=f"{frontend_url}/premium/upgrade?status=failure&order_id={premium_order_id}&txnid={txnid or ''}&message={msg}",
+                    status_code=303
+                )
+            else:
+                return RedirectResponse(
+                    url=f"{frontend_url}/membership?status=failure&message={msg}",
+                    status_code=303
+                )
             
-        txnid = params.get("txnid")
         status_val = params.get("status")
         amount = params.get("amount", "0.0")
         mihpayid = params.get("mihpayid")
@@ -840,15 +851,125 @@ async def payu_callback(
         
         if not txnid or not user_id_str or not credits_to_add_str:
             logger.error(f"Missing essential parameters in PayU callback: {params}")
-            return RedirectResponse(
-                url=f"{frontend_url}/membership?status=failure&message=Missing callback parameters",
-                status_code=303
-            )
+            msg = "Missing callback parameters"
+            if is_premium_order:
+                premium_order_id = credits_to_add_str or ""
+                return RedirectResponse(
+                    url=f"{frontend_url}/premium/upgrade?status=failure&order_id={premium_order_id}&txnid={txnid or ''}&message={msg}",
+                    status_code=303
+                )
+            else:
+                return RedirectResponse(
+                    url=f"{frontend_url}/membership?status=failure&message={msg}",
+                    status_code=303
+                )
             
         user_id = UUID(user_id_str)
-        credits_to_add = int(credits_to_add_str)
         
-        async with db.begin_nested():
+        if is_premium_order:
+            from ai.models.orm_models import PremiumOrder, ReportGeneration, PremiumReportStatusEnum, PremiumReportTypeEnum
+            from ai.api.routes.premium import enqueue_report_job, trigger_whatsapp_notification
+            
+            premium_order_id = int(credits_to_add_str)
+            
+            order_query = select(PremiumOrder).where(PremiumOrder.gateway_order_id == txnid).with_for_update()
+            order_result = await db.execute(order_query)
+            db_order = order_result.scalars().first()
+            
+            if not db_order:
+                # Fallback lookup by id
+                order_query = select(PremiumOrder).where(PremiumOrder.id == premium_order_id).with_for_update()
+                order_result = await db.execute(order_query)
+                db_order = order_result.scalars().first()
+                
+            if not db_order:
+                logger.error(f"PayU PremiumOrder not found for txnid {txnid} or id {premium_order_id}")
+                return RedirectResponse(
+                    url=f"{frontend_url}/premium/upgrade?status=failure&order_id={premium_order_id}&txnid={txnid}&message=Order not found",
+                    status_code=303
+                )
+                
+            if db_order.payment_status in ["paid", "completed"]:
+                logger.info(f"PayU premium payment already processed for txnid {txnid}")
+                return RedirectResponse(
+                    url=f"{frontend_url}/premium/upgrade?status=success&order_id={db_order.id}&txnid={txnid}",
+                    status_code=303
+                )
+                
+            if status_val == "success":
+                db_order.payment_status = "paid"
+                if not db_order.gateway_order_id:
+                    db_order.gateway_order_id = txnid
+                
+                # Idempotently create report generations
+                report_types = [
+                    PremiumReportTypeEnum.ATS_RESUME,
+                    PremiumReportTypeEnum.ENHANCED_RESUME,
+                    PremiumReportTypeEnum.SKILL_ANALYSIS,
+                    PremiumReportTypeEnum.CAREER_ENHANCEMENT
+                ]
+                
+                created_reports = []
+                for r_type in report_types:
+                    stmt_r = select(ReportGeneration).where(
+                        ReportGeneration.order_id == db_order.id,
+                        ReportGeneration.report_type == r_type
+                    )
+                    res_r = await db.execute(stmt_r)
+                    existing_report = res_r.scalars().first()
+                    
+                    if not existing_report:
+                        new_report = ReportGeneration(
+                            order_id=db_order.id,
+                            user_id=user_id,
+                            report_type=r_type,
+                            status=PremiumReportStatusEnum.QUEUED,
+                            progress=0
+                        )
+                        db.add(new_report)
+                        created_reports.append(new_report)
+                        
+                await db.commit()
+                
+                # Queue Jobs
+                for report in created_reports:
+                    await db.refresh(report)
+                    enqueue_report_job(
+                        report_gen_id=report.id,
+                        order_id=db_order.id,
+                        user_id=user_id,
+                        report_type=report.report_type
+                    )
+                    
+                # Send Webhook payment success alert
+                stmt_u = select(User).where(User.id == user_id)
+                res_u = await db.execute(stmt_u)
+                user_record = res_u.scalars().first()
+                if user_record and user_record.phone:
+                    track_link = f"{frontend_url}/orders/{db_order.id}/status"
+                    trigger_whatsapp_notification(
+                        phone=user_record.phone,
+                        template_type="premium_payment_success",
+                        variables=[user_record.full_name or "Candidate", track_link]
+                    )
+                    
+                logger.info(f"Successfully processed PayU premium payment for user {user_id}. Order ID: {db_order.id}")
+                
+                return RedirectResponse(
+                    url=f"{frontend_url}/premium/upgrade?status=success&order_id={db_order.id}&txnid={txnid}",
+                    status_code=303
+                )
+            else:
+                db_order.payment_status = "failed"
+                await db.commit()
+                logger.warning(f"PayU premium payment failed for txnid {txnid}: status={status_val}")
+                
+                return RedirectResponse(
+                    url=f"{frontend_url}/premium/upgrade?status=failure&order_id={db_order.id}&txnid={txnid}&message={params.get('error_Message') or 'Payment failed'}",
+                    status_code=303
+                )
+        else:
+            credits_to_add = int(credits_to_add_str)
             order_query = select(PaymentOrder).where(PaymentOrder.order_id == txnid).with_for_update()
             order_result = await db.execute(order_query)
             db_order = order_result.scalars().first()
@@ -903,6 +1024,9 @@ async def payu_callback(
                 db_order.error_code = params.get("error") or "PAYMENT_FAILED"
                 db_order.error_description = params.get("error_Message") or f"Payment failed with status {status_val}"
                 
+                # Make sure the status update to failed is persisted to DB
+                await db.commit()
+                
                 logger.warning(f"PayU payment failed for txnid {txnid}: status={status_val}, error={params.get('error_Message')}")
                 
                 return RedirectResponse(
@@ -911,10 +1035,9 @@ async def payu_callback(
                 )
     except Exception as e:
         logger.error(f"Error handling PayU callback redirect: {str(e)}")
-        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-        return RedirectResponse(
-            url=f"{frontend_url}/membership?status=failure&message=An error occurred during callback verification",
-            status_code=303
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error checking transaction status: {str(e)}"
         )
 
 
@@ -928,45 +1051,164 @@ async def get_payu_transaction_status(
     Fetch the database state of a transaction. Synchronizes with PayU postservice API if pending.
     """
     try:
-        stmt = select(PaymentOrder).where(PaymentOrder.order_id == txnid)
-        res = await db.execute(stmt)
-        db_order = res.scalars().first()
+        is_premium = txnid.startswith("tx_premium_")
         
-        if not db_order:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Transaction order not found"
-            )
+        if is_premium:
+            from ai.models.orm_models import PremiumOrder, ReportGeneration, PremiumReportStatusEnum, PremiumReportTypeEnum
+            from ai.api.routes.premium import enqueue_report_job, trigger_whatsapp_notification
             
-        if str(db_order.user_id) != current_user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Forbidden: You can only view status of your own transactions"
-            )
+            stmt = select(PremiumOrder).where(PremiumOrder.gateway_order_id == txnid)
+            res = await db.execute(stmt)
+            db_order = res.scalars().first()
             
-        credits_to_add = 0
-        if db_order.notes and "credits_to_add" in db_order.notes:
-            try:
-                credits_to_add = int(db_order.notes["credits_to_add"])
-            except ValueError:
-                pass
+            if not db_order:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Premium transaction order not found"
+                )
                 
-        if db_order.order_status in ["created", "pending"]:
-            try:
-                payu_client, _, _, _ = get_payu_client()
-                response_text = payu_client.verifyPayment(txnid)
-                logger.info(f"Manual PayU verification response for {txnid}: {response_text}")
+            if str(db_order.user_id) != current_user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Forbidden: You can only view status of your own transactions"
+                )
                 
-                import json
-                res_data = json.loads(response_text)
-                
-                if res_data.get("status") == 1:
-                    details = res_data.get("transaction_details", {})
-                    txn_details = details.get(txnid, {})
-                    payu_status = txn_details.get("status")
+            if db_order.payment_status in ["created", "pending"]:
+                try:
+                    payu_client, _, _, _ = get_payu_client()
+                    response_text = payu_client.verifyPayment(txnid)
+                    logger.info(f"Manual PayU verification response for premium {txnid}: {response_text}")
                     
-                    if payu_status == "success":
-                        async with db.begin_nested():
+                    import json
+                    res_data = json.loads(response_text)
+                    
+                    if res_data.get("status") == 1:
+                        details = res_data.get("transaction_details", {})
+                        txn_details = details.get(txnid, {})
+                        payu_status = txn_details.get("status")
+                        
+                        if payu_status == "success":
+                            frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+                            stmt_lock = select(PremiumOrder).where(PremiumOrder.gateway_order_id == txnid).with_for_update()
+                            res_lock = await db.execute(stmt_lock)
+                            db_order_locked = res_lock.scalars().first()
+                            
+                            if db_order_locked and db_order_locked.payment_status not in ["paid", "completed"]:
+                                db_order_locked.payment_status = "paid"
+                                
+                                # Idempotently create report generations
+                                report_types = [
+                                    PremiumReportTypeEnum.ATS_RESUME,
+                                    PremiumReportTypeEnum.ENHANCED_RESUME,
+                                    PremiumReportTypeEnum.SKILL_ANALYSIS,
+                                    PremiumReportTypeEnum.CAREER_ENHANCEMENT
+                                ]
+                                
+                                created_reports = []
+                                for r_type in report_types:
+                                    stmt_r = select(ReportGeneration).where(
+                                        ReportGeneration.order_id == db_order_locked.id,
+                                        ReportGeneration.report_type == r_type
+                                    )
+                                    res_r = await db.execute(stmt_r)
+                                    existing_report = res_r.scalars().first()
+                                    
+                                    if not existing_report:
+                                        new_report = ReportGeneration(
+                                            order_id=db_order_locked.id,
+                                            user_id=db_order_locked.user_id,
+                                            report_type=r_type,
+                                            status=PremiumReportStatusEnum.QUEUED,
+                                            progress=0
+                                        )
+                                        db.add(new_report)
+                                        created_reports.append(new_report)
+                                        
+                                await db.commit()
+                                
+                                # Queue Jobs
+                                for report in created_reports:
+                                    await db.refresh(report)
+                                    enqueue_report_job(
+                                        report_gen_id=report.id,
+                                        order_id=db_order_locked.id,
+                                        user_id=db_order_locked.user_id,
+                                        report_type=report.report_type
+                                    )
+                                    
+                                # Send Webhook payment success alert
+                                stmt_u = select(User).where(User.id == db_order_locked.user_id)
+                                res_u = await db.execute(stmt_u)
+                                user_record = res_u.scalars().first()
+                                if user_record and user_record.phone:
+                                    track_link = f"{frontend_url}/orders/{db_order_locked.id}/status"
+                                    trigger_whatsapp_notification(
+                                        phone=user_record.phone,
+                                        template_type="premium_payment_success",
+                                        variables=[user_record.full_name or "Candidate", track_link]
+                                    )
+                                    
+                                db_order.payment_status = "paid"
+                                
+                        elif payu_status in ["failure", "failed"]:
+                            stmt_lock = select(PremiumOrder).where(PremiumOrder.gateway_order_id == txnid).with_for_update()
+                            res_lock = await db.execute(stmt_lock)
+                            db_order_locked = res_lock.scalars().first()
+                            if db_order_locked and db_order_locked.payment_status not in ["paid", "completed", "failed"]:
+                                db_order_locked.payment_status = "failed"
+                                await db.commit()
+                                db_order.payment_status = "failed"
+                except Exception as e:
+                    logger.error(f"Error syncing PayU premium transaction status for {txnid}: {e}")
+                    
+            return PayUTxnStatusResponse(
+                success=True,
+                txnid=txnid,
+                status=db_order.payment_status,
+                amount=float(db_order.amount) if db_order.amount else 0.0,
+                credits_to_add=0,
+                request_status="success" if db_order.payment_status in ["paid", "completed"] else "pending"
+            )
+            
+        else:
+            stmt = select(PaymentOrder).where(PaymentOrder.order_id == txnid)
+            res = await db.execute(stmt)
+            db_order = res.scalars().first()
+            
+            if not db_order:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Transaction order not found"
+                )
+                
+            if str(db_order.user_id) != current_user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Forbidden: You can only view status of your own transactions"
+                )
+                
+            credits_to_add = 0
+            if db_order.notes and "credits_to_add" in db_order.notes:
+                try:
+                    credits_to_add = int(db_order.notes["credits_to_add"])
+                except ValueError:
+                    pass
+                    
+            if db_order.order_status in ["created", "pending"]:
+                try:
+                    payu_client, _, _, _ = get_payu_client()
+                    response_text = payu_client.verifyPayment(txnid)
+                    logger.info(f"Manual PayU verification response for {txnid}: {response_text}")
+                    
+                    import json
+                    res_data = json.loads(response_text)
+                    
+                    if res_data.get("status") == 1:
+                        details = res_data.get("transaction_details", {})
+                        txn_details = details.get(txnid, {})
+                        payu_status = txn_details.get("status")
+                        
+                        if payu_status == "success":
                             stmt_lock = select(PaymentOrder).where(PaymentOrder.order_id == txnid).with_for_update()
                             res_lock = await db.execute(stmt_lock)
                             db_order_locked = res_lock.scalars().first()
@@ -995,8 +1237,7 @@ async def get_payu_transaction_status(
                                 db_order.order_status = "paid"
                                 db_order.request_status = "success"
                                 
-                    elif payu_status in ["failure", "failed"]:
-                        async with db.begin_nested():
+                        elif payu_status in ["failure", "failed"]:
                             stmt_lock = select(PaymentOrder).where(PaymentOrder.order_id == txnid).with_for_update()
                             res_lock = await db.execute(stmt_lock)
                             db_order_locked = res_lock.scalars().first()
@@ -1009,18 +1250,18 @@ async def get_payu_transaction_status(
                                 db_order_locked.error_description = txn_details.get("error_Message") or "Payment failed"
                                 await db.commit()
                                 db_order.order_status = "failed"
-            except Exception as e:
-                logger.error(f"Error syncing PayU transaction status for {txnid}: {e}")
-                
-        return PayUTxnStatusResponse(
-            success=True,
-            txnid=txnid,
-            status=db_order.order_status,
-            amount=float(db_order.amount / 100) if db_order.amount else 0.0,
-            credits_to_add=credits_to_add,
-            request_status=db_order.request_status
-        )
-        
+                except Exception as e:
+                    logger.error(f"Error syncing PayU transaction status for {txnid}: {e}")
+                    
+            return PayUTxnStatusResponse(
+                success=True,
+                txnid=txnid,
+                status=db_order.order_status,
+                amount=float(db_order.amount / 100) if db_order.amount else 0.0,
+                credits_to_add=credits_to_add,
+                request_status=db_order.request_status
+            )
+            
     except HTTPException:
         raise
     except Exception as e:
@@ -1029,5 +1270,3 @@ async def get_payu_transaction_status(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error checking transaction status: {str(e)}"
         )
-
-

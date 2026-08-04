@@ -296,6 +296,83 @@ const SkillDevelopmentScreen = () => {
     const data = fullResponse?.data || fullResponse || {};
     const { skills_analysis, industry, timestamp = new Date().toISOString() } = data;
 
+    // Sorting priorities order: immediate -> job-match -> future-ready -> long-term
+    const priorityOrder = {
+        'immediate': 1,
+        'job-match': 2,
+        'future-ready': 3,
+        'long-term': 4,
+        'short-term': 5
+    };
+
+    const sortedSkillsAnalysis = skills_analysis ? [...skills_analysis].sort((a, b) => {
+        const pA = priorityOrder[a.roadmap_priority?.toLowerCase()] || 99;
+        const pB = priorityOrder[b.roadmap_priority?.toLowerCase()] || 99;
+        return pA - pB;
+    }) : [];
+
+    const getPriorityStyle = (priority) => {
+        const p = priority?.toLowerCase() || '';
+        if (p === 'immediate') {
+            return {
+                borderColor: '#fca5a5',
+                color: '#b91c1c',
+                bgcolor: '#fee2e2',
+                fontWeight: 700,
+                borderRadius: 1.5,
+                textTransform: 'uppercase',
+                fontSize: '0.675rem',
+                letterSpacing: 0.5
+            };
+        }
+        if (p === 'job-match') {
+            return {
+                borderColor: '#93c5fd',
+                color: '#1d4ed8',
+                bgcolor: '#dbeafe',
+                fontWeight: 700,
+                borderRadius: 1.5,
+                textTransform: 'uppercase',
+                fontSize: '0.675rem',
+                letterSpacing: 0.5
+            };
+        }
+        if (p === 'future-ready') {
+            return {
+                borderColor: '#c084fc',
+                color: '#6d28d9',
+                bgcolor: '#f3e8ff',
+                fontWeight: 700,
+                borderRadius: 1.5,
+                textTransform: 'uppercase',
+                fontSize: '0.675rem',
+                letterSpacing: 0.5
+            };
+        }
+        if (p === 'long-term') {
+            return {
+                borderColor: '#6ee7b7',
+                color: '#047857',
+                bgcolor: '#d1fae5',
+                fontWeight: 700,
+                borderRadius: 1.5,
+                textTransform: 'uppercase',
+                fontSize: '0.675rem',
+                letterSpacing: 0.5
+            };
+        }
+        return {
+            borderColor: '#f59e0b',
+            color: '#b45309',
+            bgcolor: '#fef3c7',
+            fontWeight: 700,
+            borderRadius: 1.5,
+            textTransform: 'uppercase',
+            fontSize: '0.675rem',
+            letterSpacing: 0.5
+        };
+    };
+
     return (
         <Box sx={{ bgcolor: "#f8fafc", minHeight: "100vh", py: { xs: 2, md: 4 } }}>
             <Container maxWidth="lg">
@@ -358,17 +435,17 @@ const SkillDevelopmentScreen = () => {
                             <TrendingUpIcon sx={{ position: "absolute", right: -30, bottom: -30, fontSize: 240, opacity: 0.04, transform: "rotate(-10deg)" }} />
                         </Paper>
                     </Grid>
-
+ 
                     {/* Content Section */}
                     <Grid item xs={12}>
                         <SectionTitle
-                            icon={<LightbulbIcon />}
-                            title="Missing Skills & Recommendations"
-                            subtitle={`Identified ${skills_analysis?.length || 0} key areas for development to excel in ${industry}.`}
+                             icon={<LightbulbIcon />}
+                             title="Missing Skills & Recommendations"
+                             subtitle={`Identified ${sortedSkillsAnalysis?.length || 0} key areas for development to excel in ${industry || "your industry"}.`}
                         />
                     </Grid>
-
-                    {skills_analysis?.map((item, index) => (
+ 
+                    {sortedSkillsAnalysis?.map((item, index) => (
                         <Grid item xs={12} key={index}>
                             <Card sx={{ borderRadius: 5, border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)", overflow: 'hidden' }}>
                                 <Grid container>
@@ -376,7 +453,7 @@ const SkillDevelopmentScreen = () => {
                                     <Grid item xs={12} md={4} sx={{ bgcolor: '#f8fafc', p: 4, borderRight: { md: '1px solid #e2e8f0' } }}>
                                         <Stack spacing={2}>
                                             <Box>
-                                                <Typography variant="h5" fontWeight={800} color="#0f172a" gutterBottom>
+                                                <Typography variant="h5" fontWeight={800} color="#0f172a" gutterBottom sx={{ letterSpacing: -0.5 }}>
                                                     {item.skill}
                                                 </Typography>
                                                 <Stack direction="row" spacing={1}>
@@ -384,13 +461,7 @@ const SkillDevelopmentScreen = () => {
                                                     <Chip
                                                         label={item.roadmap_priority}
                                                         size="small"
-                                                        variant="outlined"
-                                                        sx={{
-                                                            borderColor: item.roadmap_priority === 'short-term' ? '#f59e0b' : '#10b981',
-                                                            color: item.roadmap_priority === 'short-term' ? '#b45309' : '#047857',
-                                                            fontWeight: 600,
-                                                            borderRadius: 1.5
-                                                        }}
+                                                        sx={getPriorityStyle(item.roadmap_priority)}
                                                     />
                                                 </Stack>
                                             </Box>
@@ -405,7 +476,7 @@ const SkillDevelopmentScreen = () => {
                                             </Box>
                                         </Stack>
                                     </Grid>
-
+ 
                                     {/* Right Side - Suggestions & Resources */}
                                     <Grid item xs={12} md={8} sx={{ p: 4 }}>
                                         <Grid container spacing={4}>
@@ -433,33 +504,51 @@ const SkillDevelopmentScreen = () => {
                                                 </Typography>
                                                 <Stack spacing={2}>
                                                     {item.resources?.map((res, idx) => (
-                                                        <Paper
-                                                            key={idx}
-                                                            variant="outlined"
-                                                            sx={{
-                                                                p: 1.5,
-                                                                borderRadius: 3,
-                                                                transition: 'all 0.2s',
-                                                                '&:hover': { borderColor: '#6366f1', bgcolor: '#f5f3ff' }
-                                                            }}
-                                                        >
-                                                            <Stack direction="row" spacing={1.5} alignItems="center">
-                                                                <Avatar sx={{ bgcolor: 'white', border: '1px solid #e2e8f0', color: '#6366f1', width: 32, height: 32 }}>
-                                                                    {res.type === 'course' ? <SchoolIcon fontSize="small" /> : res.type === 'book' ? <BookIcon fontSize="small" /> : <LanguageIcon fontSize="small" />}
-                                                                </Avatar>
-                                                                <Box sx={{ flex: 1 }}>
-                                                                    <Typography variant="caption" fontWeight={700} color="text.secondary" display="block">
-                                                                        {res.provider} • {res.cost}
-                                                                    </Typography>
-                                                                    <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1.2 }}>
-                                                                        {res.name}
-                                                                    </Typography>
-                                                                </Box>
-                                                                <IconButton size="small" component="a" href={res.url} target="_blank" sx={{ color: '#6366f1' }}>
-                                                                    <LaunchIcon fontSize="small" />
-                                                                </IconButton>
-                                                            </Stack>
-                                                        </Paper>
+                                                        <Tooltip key={idx} title={res.description || "Open learning resource"} arrow placement="top">
+                                                            <Paper
+                                                                variant="outlined"
+                                                                sx={{
+                                                                    p: 1.5,
+                                                                    borderRadius: 3,
+                                                                    transition: 'all 0.2s',
+                                                                    cursor: 'pointer',
+                                                                    '&:hover': { borderColor: '#6366f1', bgcolor: '#f5f3ff', transform: 'translateY(-1px)' }
+                                                                }}
+                                                            >
+                                                                <Stack direction="row" spacing={1.5} alignItems="center">
+                                                                    <Avatar sx={{ bgcolor: 'white', border: '1px solid #e2e8f0', color: '#6366f1', width: 32, height: 32 }}>
+                                                                        {res.type === 'course' ? <SchoolIcon fontSize="small" /> : res.type === 'book' ? <BookIcon fontSize="small" /> : <LanguageIcon fontSize="small" />}
+                                                                    </Avatar>
+                                                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                                        <Stack direction="row" spacing={1} alignItems="center" mb={0.25} flexWrap="wrap">
+                                                                            <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '100px' }}>
+                                                                                {res.provider}
+                                                                            </Typography>
+                                                                            <Chip 
+                                                                                label={res.cost} 
+                                                                                size="small" 
+                                                                                sx={{ 
+                                                                                    height: 16, 
+                                                                                    fontSize: '0.6rem', 
+                                                                                    fontWeight: 800, 
+                                                                                    textTransform: 'uppercase',
+                                                                                    bgcolor: res.cost?.toLowerCase() === 'free' ? '#d1fae5' : '#e2e8f0',
+                                                                                    color: res.cost?.toLowerCase() === 'free' ? '#065f46' : '#334155',
+                                                                                    borderRadius: 1,
+                                                                                    px: 0.5
+                                                                                }} 
+                                                                            />
+                                                                        </Stack>
+                                                                        <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1.2, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                                                                            {res.name}
+                                                                        </Typography>
+                                                                    </Box>
+                                                                    <IconButton size="small" component="a" href={res.url} target="_blank" sx={{ color: '#6366f1' }}>
+                                                                        <LaunchIcon fontSize="small" />
+                                                                    </IconButton>
+                                                                </Stack>
+                                                            </Paper>
+                                                        </Tooltip>
                                                     ))}
                                                 </Stack>
                                             </Grid>

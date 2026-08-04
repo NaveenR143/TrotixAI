@@ -494,5 +494,26 @@ export const updateJobCompanyUrls = async (jobId, websiteUrl, careersUrl) => {
     }
 };
 
+/**
+ * Fetch all companies for selection dropdown
+ */
+export const fetchCompanies = async () => {
+    try {
+        const response = await axios.get(
+            `${API_BASE_URL}/jobs/companies`,
+            { headers: getHeaders(), timeout: 10000 }
+        );
+
+        return {
+            error: false,
+            data: response.data?.data || [],
+            message: "Companies fetched successfully",
+        };
+    } catch (error) {
+        console.error("Error fetching companies:", error);
+        return handleError(error);
+    }
+};
+
 
 

@@ -22,6 +22,38 @@ const SkillDevelopmentReport = ({ data, profile, timestamp }) => {
 
     const { skills_analysis, industry } = data;
 
+    // Sorting priorities order: immediate -> job-match -> future-ready -> long-term
+    const priorityOrder = {
+        'immediate': 1,
+        'job-match': 2,
+        'future-ready': 3,
+        'long-term': 4,
+        'short-term': 5
+    };
+
+    const sortedSkillsAnalysis = skills_analysis ? [...skills_analysis].sort((a, b) => {
+        const pA = priorityOrder[a.roadmap_priority?.toLowerCase()] || 99;
+        const pB = priorityOrder[b.roadmap_priority?.toLowerCase()] || 99;
+        return pA - pB;
+    }) : [];
+
+    const getPriorityPdfStyle = (priority) => {
+        const p = priority?.toLowerCase() || '';
+        if (p === 'immediate') {
+            return { bgcolor: '#fef2f2', color: '#b91c1c', border: '1px solid #fca5a5' };
+        }
+        if (p === 'job-match') {
+            return { bgcolor: '#eff6ff', color: '#1d4ed8', border: '1px solid #93c5fd' };
+        }
+        if (p === 'future-ready') {
+            return { bgcolor: '#f5f3ff', color: '#6d28d9', border: '1px solid #c084fc' };
+        }
+        if (p === 'long-term') {
+            return { bgcolor: '#f0fdf4', color: '#047857', border: '1px solid #6ee7b7' };
+        }
+        return { bgcolor: '#fef3c7', color: '#92400e', border: '1px solid #f59e0b' };
+    };
+
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
         const date = new Date(dateString);
@@ -77,14 +109,14 @@ const SkillDevelopmentReport = ({ data, profile, timestamp }) => {
                     Skill Analysis Overview
                 </Typography>
                 <Typography variant="body1" sx={{ color: '#475569', lineHeight: 1.6 }}>
-                    This report identifies key skills required to stay competitive in the {industry} sector.
+                    This report identifies key skills required to stay competitive in the {industry || "your industry"} sector.
                     It provides rationales for each skill, practical learning suggestions, and curated resources
                     to accelerate your professional growth.
                 </Typography>
             </Box>
 
             {/* Skills Details Section */}
-            {skills_analysis?.map((item, index) => (
+            {sortedSkillsAnalysis?.map((item, index) => (
                 <Box key={index} className="report-section" sx={{ border: '1px solid #e2e8f0', borderRadius: 3, p: 3, bgcolor: index % 2 === 0 ? '#f8fafc' : 'white' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
                         <Box>
@@ -95,7 +127,7 @@ const SkillDevelopmentReport = ({ data, profile, timestamp }) => {
                                 <Typography variant="caption" sx={{ px: 1.5, py: 0.5, bgcolor: '#e0e7ff', color: '#4338ca', borderRadius: 1, fontWeight: 600, textTransform: 'uppercase' }}>
                                     {item.category}
                                 </Typography>
-                                <Typography variant="caption" sx={{ px: 1.5, py: 0.5, bgcolor: item.roadmap_priority === 'short-term' ? '#fef3c7' : '#dcfce7', color: item.roadmap_priority === 'short-term' ? '#92400e' : '#166534', borderRadius: 1, fontWeight: 600, textTransform: 'uppercase' }}>
+                                <Typography variant="caption" sx={{ px: 1.5, py: 0.5, borderRadius: 1, fontWeight: 600, textTransform: 'uppercase', ...getPriorityPdfStyle(item.roadmap_priority) }}>
                                     {item.roadmap_priority}
                                 </Typography>
                             </Stack>

@@ -23,7 +23,7 @@ const AdminRoute = ({ children }) => {
   }
 
   const userrole = user?.role || user?.userrole;
-  const isAdmin = userrole?.toLowerCase() === "admin";
+  const isAdmin = userrole?.toLowerCase() === "recruiter";
 
   if (!isAdmin) {
     return <Navigate to="/dashboard" replace />;

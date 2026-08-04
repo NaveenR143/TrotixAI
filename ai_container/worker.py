@@ -54,6 +54,17 @@ class QueueWorker:
         self.queue_client = QueueClient.from_connection_string(
             conn_str=QUEUE_CONNECTION_STRING, queue_name=QUEUE_NAME
         )
+        self.report_queue_client = QueueClient.from_connection_string(
+            conn_str=QUEUE_CONNECTION_STRING, queue_name="reportgeneration-queue"
+        )
+        
+        # Ensure report queue exists
+        try:
+            self.report_queue_client.create_queue()
+        except Exception as e:
+            if "QueueAlreadyExists" not in str(e):
+                logger.debug("reportgeneration-queue already exists.")
+                
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
 
     # ----------------------------
@@ -78,9 +89,25 @@ class QueueWorker:
         try:
             data = json.loads(message_text)
 
+            # Check if this is a premium report generation task
+            report_gen_id = data.get("report_generation_id")
+            if report_gen_id:
+                logger.info(f"📊 Processing report generation request ID={report_gen_id}")
+                
+                from db.session_manager import db_session_manager
+                from ProcessPDF.premium_report_service import PremiumReportService
+                
+                async def run_report_generation():
+                    async with db_session_manager.session() as session:
+                        service = PremiumReportService(session)
+                        await service.process_report_generation(report_gen_id)
+                        
+                self._run_async(run_report_generation())
+                logger.info("✅ Premium report task processed.")
+                return
+
             blob_url = data.get("blob_url")
             user_id = data.get("user_id")
-
             job_id = data.get("job_id")
             resume_id = data.get("resume_id")
 
@@ -101,7 +128,6 @@ class QueueWorker:
 
                 logger.info("✅ Resume processed successfully")
             elif job_id:
-
                 job_handler = ProcessJobHandler(job_id=job_id, user_id=user_id)
 
                 # Execute job processing logic safely asynchronously
@@ -111,7 +137,6 @@ class QueueWorker:
                     f"✅ Job handler processed successfully for job_id={job_id}"
                 )
             else:
-
                 resume_handler = UpdateResumeHandler(
                     resume_id=resume_id, user_id=user_id
                 )
@@ -126,7 +151,6 @@ class QueueWorker:
         except json.JSONDecodeError as e:
             logger.exception(f"❌ JSON parsing failed: {e}")
             raise
-
         except Exception as e:
             logger.exception(f"❌ Processing failed: {e}")
             raise
@@ -134,7 +158,7 @@ class QueueWorker:
     # ----------------------------
     # Handle Each Queue Message
     # ----------------------------
-    def _handle_message(self, msg):
+    def _handle_message(self, msg, queue_client):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         logger.info(f"[{timestamp}] Processing message ID: {msg.id}")
@@ -145,7 +169,7 @@ class QueueWorker:
         # ----------------------------
         if msg.dequeue_count > MAX_RETRIES:
             logger.error(f"☠️ Poison message detected: {msg.id}")
-            self.queue_client.delete_message(msg)
+            queue_client.delete_message(msg)
             return
 
         # ----------------------------
@@ -168,7 +192,7 @@ class QueueWorker:
             # ----------------------------
             # Delete only if SUCCESS
             # ----------------------------
-            self.queue_client.delete_message(msg)
+            queue_client.delete_message(msg)
             logger.info(f"🗑️ Message deleted: {msg.id}")
 
         except Exception as e:
@@ -179,18 +203,27 @@ class QueueWorker:
     # Start Worker
     # ----------------------------
     def start(self):
-        logger.info("🚀 Worker started. Listening to queue...")
+        logger.info("🚀 Worker started. Listening to queues (resumes-queue, reportgeneration-queue)...")
 
         while True:
             try:
+                # 1. Check resumes-queue
                 messages = self.queue_client.receive_messages(
                     messages_per_page=10, visibility_timeout=VISIBILITY_TIMEOUT
                 )
 
                 for msg_batch in messages.by_page():
                     for msg in msg_batch:
-                        # Submit to thread pool
-                        self.executor.submit(self._handle_message, msg)
+                        self.executor.submit(self._handle_message, msg, self.queue_client)
+
+                # 2. Check reportgeneration-queue
+                report_messages = self.report_queue_client.receive_messages(
+                    messages_per_page=10, visibility_timeout=VISIBILITY_TIMEOUT
+                )
+
+                for msg_batch in report_messages.by_page():
+                    for msg in msg_batch:
+                        self.executor.submit(self._handle_message, msg, self.report_queue_client)
 
                 time.sleep(POLL_INTERVAL)
 

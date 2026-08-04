@@ -62,7 +62,7 @@ class SkillAnalysisItem(BaseModel):
     importance_rationale: str
     learning_suggestions: List[str]
     resources: List[SkillResource] = []
-    roadmap_priority: str = Field(..., description="short-term or long-term")
+    roadmap_priority: str = Field(..., description="immediate, job-match, future-ready, or long-term")
 
 class SkillDevelopmentAnalysis(BaseModel):
     user_id: Optional[UUID] = None

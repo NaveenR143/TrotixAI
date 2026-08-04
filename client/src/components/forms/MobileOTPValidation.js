@@ -85,13 +85,10 @@ const MobileOTPValidation = ({
         setOtp(val);
         setError(""); // Clear error when user starts typing
 
-        // // Auto-submit when OTP reaches desired length
-        // if (val.length === otpLength) {
-        //     setTimeout(() => {
-        //         // Auto-trigger verification
-        //         handleVerify({ preventDefault: () => { }, target: { form: e.target.form } });
-        //     }, 300);
-        // }
+        // Auto-submit when OTP reaches desired length
+        if (val.length === otpLength) {
+            verifyOTP(val);
+        }
     };
 
     // Handle paste events for better UX
@@ -104,11 +101,7 @@ const MobileOTPValidation = ({
 
         // Auto-submit if pasted value reaches desired length
         if (digits.length === otpLength) {
-            setTimeout(() => {
-
-
-                handleVerify({ preventDefault: () => { } });
-            }, 200);
+            verifyOTP(digits);
         }
     };
 
@@ -120,9 +113,13 @@ const MobileOTPValidation = ({
             return;
         }
 
+        await verifyOTP(otp);
     };
 
-    const verifyOTP = async () => {
+    const verifyOTP = async (otpToVerify) => {
+        const otpVal = otpToVerify || otp;
+        if (otpVal.length !== otpLength) return;
+
         setLoading(true);
         setError("");
 
@@ -137,7 +134,7 @@ const MobileOTPValidation = ({
 
             const payload = {
                 phone: cleanPhone,
-                otp: otp
+                otp: otpVal
             };
 
             console.log(`🔐 Calling OTP endpoint (${newUser ? "New User" : "Existing User"}):`, {
@@ -154,28 +151,22 @@ const MobileOTPValidation = ({
                 userType: newUser ? "New User" : "Existing User"
             });
 
+            // Show success state immediately for instant feedback
+            setVerificationSuccess(true);
+            setLoading(false);
 
-
-            // Wait for 5 seconds so the user has time to read the success message before transition
+            // Wait for 1.5 seconds so the user has time to read the success message before transition
             setTimeout(() => {
                 if (onSuccess) {
-
-                    // Show success state immediately for instant feedback
-                    setVerificationSuccess(true);
-                    setLoading(false);
                     onSuccess({
-                        otp,
+                        otp: otpVal,
                         mobileNumber,
                         verificationData: verifyResult,
                         newUser,
                         resumeData,
                     });
-                } else {
-                    // Show success state immediately for instant feedback
-                    setVerificationSuccess(true);
-                    setLoading(false);
                 }
-            }, 5000);
+            }, 1500);
         } catch (err) {
             setLoading(false);
             const errorMsg = err?.response?.data?.detail || err?.message || "Verification failed. Please try again.";
@@ -188,12 +179,28 @@ const MobileOTPValidation = ({
         }
     };
 
+    // Listen for WebOTP SMS on mobile devices
     useEffect(() => {
-        if (otp.length === otpLength) {
-            verifyOTP();
-        }
+        if (!('OTPCredential' in window)) return;
 
-    }, [otp]);
+        const ac = new AbortController();
+        navigator.credentials.get({
+            otp: { transport: ['sms'] },
+            signal: ac.signal
+        }).then(otpObj => {
+            if (otpObj && otpObj.code) {
+                const digits = otpObj.code.replace(/\D/g, '').slice(0, otpLength);
+                setOtp(digits);
+                verifyOTP(digits);
+            }
+        }).catch(err => {
+            console.log("WebOTP API Error/Aborted:", err);
+        });
+
+        return () => {
+            ac.abort();
+        };
+    }, []);
 
     const handleRetry = () => {
         setOtp("");

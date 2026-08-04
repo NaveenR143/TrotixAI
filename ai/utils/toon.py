@@ -276,7 +276,7 @@ class TOONFormatter:
             "Suggest practical ways to learn each skill (projects, practice, courses, certifications).\n"
             "Additionally, include concrete learning resources such as URLs, course names, certifications, and institutions.\n"
             "Ensure resources include a mix of free and paid options where possible.\n"
-            "Recommend a priority for the learning roadmap (short-term vs long-term).\n\n"
+            "Recommend a priority for the learning roadmap (immediate, job-match, future-ready, long-term) based on categorization.\n\n"
             "SkillDevelopmentTOON(\n"
             "  skills_analysis: [\n"
             "    SkillAnalysisTOON(\n"
@@ -294,7 +294,7 @@ class TOONFormatter:
             '          description: "str"\n'
             "        )\n"
             "      ],\n"
-            '      roadmap_priority: "short-term|long-term"\n'
+            '      roadmap_priority: "immediate|job-match|future-ready|long-term"\n'
             "    )\n"
             "  ]\n"
             ")\n"

@@ -815,7 +815,7 @@ const PublicJobDetailScreen = () => {
                   }
                 }}
               >
-                {generatingEmail ? "Generating..." : "Apply with AI"}
+                {generatingEmail ? "Generating..." : "Email with AI"}
               </Button>
             )}
           </Stack>
