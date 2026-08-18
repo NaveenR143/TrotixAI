@@ -44,7 +44,7 @@ import ShareIcon from "@mui/icons-material/Share";
 import MatchBadge from "../../components/jobs/MatchBadge";
 import { getWorkModeIcon } from "../../utils/themeUtils";
 import { useSelector, useDispatch } from "react-redux";
-import { applyJob, generateTailoredJobEmail, generateATSContent, generateATSResume } from "../../api/jobpostingAPI";
+import { applyJob, generateTailoredJobEmail, generateATSContent, generateATSResume, recordDirectUrlClick } from "../../api/jobpostingAPI";
 import * as profileAPI from "../../api/profileAPI";
 import { updateUserProfile } from "../../redux/user/Action";
 import InsufficientCreditsDialog from "./components/dialogs/InsufficientCreditsDialog";
@@ -251,6 +251,7 @@ const JobDetailScreen = ({
       };
 
       if (job.direct_url) {
+        recordDirectUrlClick(job.id, userid).catch(err => console.error("Tracking error:", err));
         window.open(job.direct_url, "_blank");
       }
       else if (!job.is_verified || !job.company_apply) {
@@ -352,6 +353,7 @@ const JobDetailScreen = ({
         setShowATSContentDialog(true);
 
         if (job.direct_url) {
+          recordDirectUrlClick(job.id, userid).catch(err => console.error("Tracking error:", err));
           window.open(job.direct_url, "_blank");
         } else {
           const companyName = (typeof job.company === "object" ? job.company?.name : job.company) || "";
@@ -467,6 +469,7 @@ const JobDetailScreen = ({
         setSnackbar({ open: true, message: "ATS resume generated successfully!", severity: "success" });
 
         if (job.direct_url) {
+          recordDirectUrlClick(job.id, userid).catch(err => console.error("Tracking error:", err));
           window.open(job.direct_url, "_blank");
         }
       } else {

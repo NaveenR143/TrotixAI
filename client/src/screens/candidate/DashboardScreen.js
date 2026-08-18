@@ -605,13 +605,13 @@ const DashboardScreen = () => {
           ) : premiumPurchases.length > 0 ? (
             <Stack spacing={3}>
               {premiumPurchases.map((purchase) => (
-                <Box 
-                  key={purchase.order_id} 
-                  sx={{ 
-                    p: 3, 
-                    borderRadius: "16px", 
-                    border: "1px solid #F3F4F6", 
-                    bgcolor: "#FAF9F6" 
+                <Box
+                  key={purchase.order_id}
+                  sx={{
+                    p: 3,
+                    borderRadius: "16px",
+                    border: "1px solid #F3F4F6",
+                    bgcolor: "#FAF9F6"
                   }}
                 >
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
@@ -624,17 +624,17 @@ const DashboardScreen = () => {
                       </Typography>
                     </Box>
                     <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Chip 
-                        label={purchase.overall_status} 
-                        size="small" 
-                        sx={{ 
+                      <Chip
+                        label={purchase.overall_status}
+                        size="small"
+                        sx={{
                           bgcolor: purchase.overall_status === "Completed" ? "rgba(16, 185, 129, 0.1)" : "rgba(124, 58, 237, 0.1)",
                           color: purchase.overall_status === "Completed" ? "#10B981" : "#7C3AED",
                           fontWeight: 700
-                        }} 
+                        }}
                       />
-                      <Button 
-                        size="small" 
+                      <Button
+                        size="small"
                         onClick={() => navigate(`/orders/${purchase.order_id}/status`)}
                         sx={{ fontWeight: 700, textTransform: "none", color: "#2563EB" }}
                       >
@@ -642,18 +642,18 @@ const DashboardScreen = () => {
                       </Button>
                     </Stack>
                   </Stack>
-                  
+
                   <Grid2 container spacing={2}>
                     {purchase.reports
-                      .filter((report) => report.report_type.toUpperCase() !== "ENHANCED_RESUME")
+                      // .filter((report) => report.report_type.toUpperCase() !== "ENHANCED_RESUME")
                       .map((report) => (
                         <Grid2 key={report.id} size={{ xs: 12, sm: 6, md: 3 }}>
-                          <Paper 
+                          <Paper
                             elevation={0}
-                            sx={{ 
-                              p: 2, 
-                              border: "1px solid #E5E7EB", 
-                              bgcolor: "#FFFFFF", 
+                            sx={{
+                              p: 2,
+                              border: "1px solid #E5E7EB",
+                              bgcolor: "#FFFFFF",
                               borderRadius: "10px",
                               display: "flex",
                               flexDirection: "column",
@@ -664,16 +664,16 @@ const DashboardScreen = () => {
                             <Typography variant="caption" sx={{ fontWeight: 700, color: "#111827", mb: 1, display: "block" }}>
                               {report.report_type.replace("_", " ")}
                             </Typography>
-                            
+
                             {report.status === "COMPLETED" ? (
-                              <Button 
+                              <Button
                                 size="small"
                                 startIcon={downloadingReportId === report.id ? <CircularProgress size={14} color="inherit" /> : <DownloadIcon />}
                                 disabled={downloadingReportId !== null}
                                 onClick={() => handleDownloadReport(report)}
-                                sx={{ 
-                                  textTransform: "none", 
-                                  color: downloadingReportId === report.id ? "#9CA3AF" : "#10B981", 
+                                sx={{
+                                  textTransform: "none",
+                                  color: downloadingReportId === report.id ? "#9CA3AF" : "#10B981",
                                   fontWeight: 700,
                                   alignSelf: "flex-start",
                                   p: 0

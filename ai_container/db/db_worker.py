@@ -93,8 +93,10 @@ class DBWorker:
                         user_details = await fetch_repo.get_user_details(user_id)
                     
                     if user_details:
-                        from whatsapp.whatsapp_service import send_profile_update_notification
+                        from whatsapp.whatsapp_service import send_profile_update_notification,send_premium_package_notification
                         send_profile_update_notification(user_details)
+
+                        # send_premium_package_notification(user_details)
                     else:
                         logger.warning(
                             f"Could not send WhatsApp notification: user details not found for ID {user_id}"

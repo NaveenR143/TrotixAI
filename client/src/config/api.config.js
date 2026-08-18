@@ -8,9 +8,9 @@
  */
 
 // ─── Base URL Configuration ────────────────────────────────────────────────────
-const API_BASE_URL = 'http://localhost:8000';
+// const API_BASE_URL = 'http://localhost:8000';
 // const API_BASE_URL = 'http://192.168.1.7:8000';
-// const API_BASE_URL = 'https://rightnxtai-bkdudpehedfwffgy.centralindia-01.azurewebsites.net';
+const API_BASE_URL = 'https://rightnxtai-bkdudpehedfwffgy.centralindia-01.azurewebsites.net';
 
 // ─── API Endpoints ────────────────────────────────────────────────────────────
 const API_ENDPOINTS = {
@@ -56,6 +56,7 @@ const API_ENDPOINTS = {
   SAVE_ENHANCED_PHOTO: '/profile/save-enhanced-photo',
   GET_PHOTO: '/profile/get-photo',
   RECORD_VIEW: '/jobs/record-view',
+  TRACK_DIRECT_URL_CLICK: '/jobs/record-direct-url-click',
   CREDITS_USE_FEATURE: '/credits/use-feature',
   CREDITS_WALLET: '/credits',
   ADD_CREDITS: '/credits/add',

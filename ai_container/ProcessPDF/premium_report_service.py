@@ -54,10 +54,39 @@ class PremiumReportService:
             # Update progress to 30%
             await self.db.update_progress(report_id, 30)
             await self.db.commit()
+
+            missing_skills = []
+            weak_skills = []
+            market_skills = []
+
+            if report_type == "SKILL_ANALYSIS":
+                try:
+                    # 1. Fetch industry IDs from candidate profile_data
+                    user_industries = profile_data.get("industries") or []
+                    industry_ids = [ind.get("id") for ind in user_industries if ind.get("id")]
+                    
+                    # 2. Fetch market trend skills
+                    market_skills = await self.db.get_market_trend_skills_by_industries(user_id, industry_ids)
+
+                    # 3. Get matched jobs using pgvector/filters matching
+                    matched_jobs = await self.db.get_matching_jobs(user_id)
+                    if not matched_jobs:
+                        matched_jobs = await self.db.get_latest_job_postings()
+
+                    # 4. Compute missing and weak skills
+                    missing_skills, weak_skills = self._compute_skill_gaps(profile_data, matched_jobs)
+                except Exception as e:
+                    logger.warning(f"Error executing gaps check inside ai_container: {e}")
             
             # 2. Call LLM to generate report text/JSON
             logger.info(f"Generating content for {report_type} via LLM...")
-            generated_content = await self._generate_report_content(report_type, profile_data)
+            generated_content = await self._generate_report_content(
+                report_type,
+                profile_data,
+                missing_skills=missing_skills,
+                weak_skills=weak_skills,
+                market_skills=market_skills
+            )
             
             # Update progress to 60%
             await self.db.update_progress(report_id, 60)
@@ -97,45 +126,23 @@ class PremiumReportService:
                 )
             return False
 
-    async def _generate_report_content(self, report_type: str, profile_data: dict) -> str:
+    async def _generate_report_content(
+        self,
+        report_type: str,
+        profile_data: dict,
+        missing_skills: list = None,
+        weak_skills: list = None,
+        market_skills: list = None
+    ) -> str:
         """
         Orchestrates LLM query preparation (e.g. skill gaps computation) and calls LLM service.
         """
-        missing_skills = []
-        weak_skills = []
-        market_skills = []
-
-        if report_type == "SKILL_ANALYSIS":
-            email = profile_data.get("user", {}).get("email")
-            user_id_from_email = None
-            if email:
-                user_id_from_email = await self.db.get_user_id_by_email(email)
-
-            if user_id_from_email:
-                try:
-                    # 1. Fetch industry IDs from candidate profile_data
-                    user_industries = profile_data.get("industries") or []
-                    industry_ids = [ind.get("id") for ind in user_industries if ind.get("id")]
-                    
-                    # 2. Fetch market trend skills
-                    market_skills = await self.db.get_market_trend_skills_by_industries(user_id_from_email, industry_ids)
-
-                    # 3. Get matched jobs using pgvector/filters matching
-                    matched_jobs = await self.db.get_matching_jobs(user_id_from_email)
-                    if not matched_jobs:
-                        matched_jobs = await self.db.get_latest_job_postings()
-
-                    # 4. Compute missing and weak skills
-                    missing_skills, weak_skills = self._compute_skill_gaps(profile_data, matched_jobs)
-                except Exception as e:
-                    logger.warning(f"Error executing gaps check inside ai_container: {e}")
-
         return await self.llm.generate_llm_content(
             report_type=report_type,
             data=profile_data,
-            missing_skills=missing_skills,
-            weak_skills=weak_skills,
-            market_skills=market_skills
+            missing_skills=missing_skills or [],
+            weak_skills=weak_skills or [],
+            market_skills=market_skills or []
         )
 
     def _compute_skill_gaps(self, data: dict, matched_jobs: list[dict]) -> tuple[list[str], list[str]]:
@@ -322,6 +329,13 @@ class PremiumReportService:
         """
         Extracts the summary section or cleaned fallback text from the generated resume.
         """
+        try:
+            data = json.loads(generated_content)
+            if isinstance(data, dict) and "summary" in data:
+                return data["summary"]
+        except Exception:
+            pass
+
         summary_text = ""
         content_lower = generated_content.lower()
         if "professional summary" in content_lower:

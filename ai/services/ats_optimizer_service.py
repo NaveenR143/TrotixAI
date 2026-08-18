@@ -27,7 +27,7 @@ class ATSOptimizerService:
         headline_summary_str = f"Headline: {headline}\nSummary: {summary}\n" if (headline or summary) else "No headline or summary listed.\n"
 
         # Format candidate projects
-        projects_list = user_profile.get("projects") or []
+        projects_list = [p for p in (user_profile.get("projects") or []) if p.get('title') or p.get('description')]
         projects_str = ""
         for i, proj in enumerate(projects_list):
             projects_str += f"Project {i+1}:\n"
@@ -47,7 +47,7 @@ class ATSOptimizerService:
             projects_str = "No projects listed.\n"
 
         # Format candidate experience
-        exp_list = user_profile.get("experience") or []
+        exp_list = [e for e in (user_profile.get("experience") or []) if e.get('company_name') or e.get('title')]
         exp_str = ""
         for i, exp in enumerate(exp_list):
             exp_str += f"Experience {i+1}:\n"
@@ -187,7 +187,7 @@ class ATSOptimizerService:
         headline_summary_str = f"Headline: {headline}\nSummary: {summary}\n" if (headline or summary) else "No headline or summary listed.\n"
 
         # Format candidate projects
-        projects_list = user_profile.get("projects") or []
+        projects_list = [p for p in (user_profile.get("projects") or []) if p.get('title') or p.get('description')]
         projects_str = ""
         for i, proj in enumerate(projects_list):
             projects_str += f"Project {i+1}:\n"
@@ -207,7 +207,7 @@ class ATSOptimizerService:
             projects_str = "No projects listed.\n"
 
         # Format candidate experience
-        exp_list = user_profile.get("experience") or []
+        exp_list = [e for e in (user_profile.get("experience") or []) if e.get('company_name') or e.get('title')]
         exp_str = ""
         for i, exp in enumerate(exp_list):
             exp_str += f"Experience {i+1}:\n"

@@ -855,6 +855,29 @@ class JobsViewed(Base):
     user = relationship("User", backref="job_views")
 
 
+class JobAppliedDirectUrl(Base):
+    __tablename__ = "job_applied_directurl"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    job_posting_id = Column(
+        Integer,
+        ForeignKey("job_postings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    applied_at = Column(Date, server_default=func.now())
+
+    # Relationships
+    job = relationship("JobPosting", backref="applied_direct_urls")
+    user = relationship("User", backref="applied_direct_urls")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Industries Table (NEW)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1100,7 +1123,6 @@ class PremiumReportStatusEnum(str, enum.Enum):
 
 
 class PremiumReportTypeEnum(str, enum.Enum):
-    ATS_RESUME = "ATS_RESUME"
     ENHANCED_RESUME = "ENHANCED_RESUME"
     SKILL_ANALYSIS = "SKILL_ANALYSIS"
     CAREER_ENHANCEMENT = "CAREER_ENHANCEMENT"

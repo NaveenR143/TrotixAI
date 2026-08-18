@@ -20,7 +20,8 @@ WHATSAPP_API_URL = f"https://graph.facebook.com/v25.0/{PHONE_NUMBER_ID}/messages
 # Default Template Configuration
 DEFAULT_TEMPLATE_NAME = "resume_upload_status"
 DEFAULT_IMAGE_ID = "1700081481284628"  # Header image ID from test_watsapp.py
-
+PACKAGE_TEMPLATE_NAME = "profile_ready_upgrade"
+PACKAGE_IMAGE_ID = "1550875050167475"
 
 def format_phone_number(phone: str) -> str:
     """
@@ -195,6 +196,60 @@ def send_profile_update_notification(user: Dict[str, Any]) -> bool:
             template_name=DEFAULT_TEMPLATE_NAME,
             parameters=parameters,
             header_image_id=DEFAULT_IMAGE_ID
+        )
+        LOGGER.info("WhatsApp notification sent successfully to %s. Response: %s", phone, response_data)
+        return True
+
+    except Exception as e:
+        LOGGER.exception("Failed to send WhatsApp profile update notification to %s: %s", user.get('phone'), e)
+        # Return False to let caller know it failed, but do not raise to preserve profile save status
+        return False
+
+def send_premium_package_notification(user: Dict[str, Any]) -> bool:
+    """
+    Send a WhatsApp notification to the user after a successful profile update.
+    This uses the predefined template 'resume_upload_status'.
+    
+    Args:
+        user: A dictionary containing user details, e.g.:
+              {
+                  "phone": "9972566264",
+                  "full_name": "John Doe"
+              }
+              
+    Returns:
+        bool: True if sent successfully, False otherwise.
+    """
+    try:
+        phone = user.get("phone")
+        # phone = '919972566264'
+        full_name = user.get("full_name") or user.get("name") or "Candidate"
+        
+        if not phone:
+            LOGGER.warning("Cannot send WhatsApp notification: user has no phone number.")
+            return False
+
+        try:
+            phone = format_phone_number(phone)
+        except ValueError as val_err:
+            LOGGER.error("Phone number validation failed: %s", val_err)
+            return False
+
+        # Build parameters for 'resume_upload_status' template
+        # The template expects a 'candidate' body text parameter.
+        parameters = [
+            {
+                "type": "text",
+                "parameter_name": "candidate",
+                "text": full_name
+            }
+        ]
+
+        response_data = send_whatsapp_template_message(
+            to_phone=phone,
+            template_name=PACKAGE_TEMPLATE_NAME,
+            parameters=parameters,
+            header_image_id=PACKAGE_IMAGE_ID
         )
         LOGGER.info("WhatsApp notification sent successfully to %s. Response: %s", phone, response_data)
         return True

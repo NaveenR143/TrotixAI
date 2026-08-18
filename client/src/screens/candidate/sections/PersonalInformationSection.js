@@ -18,6 +18,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PublicIcon from "@mui/icons-material/Public";
+import WorkIcon from "@mui/icons-material/Work";
 import { API_BASE_URL, API_ENDPOINTS } from "../../../config/api.config";
 import * as profileAPI from "../../../api/profileAPI";
 import { updateUserProfile } from "../../../redux/user/Action";
@@ -76,6 +77,12 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
       newErrors.mobile = "Mobile must be 10 digits";
     }
     if (!formData.preferredLocation?.trim()) newErrors.preferredLocation = "Preferred location is required";
+    if (formData.headline?.trim() && formData.headline.trim().length > 100) {
+      newErrors.headline = "Headline must not exceed 100 characters";
+    }
+    if (formData.headline?.trim() && /<[^>]*>/g.test(formData.headline)) {
+      newErrors.headline = "Headline cannot contain HTML tags";
+    }
     
     setFormErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -275,6 +282,16 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
           <Grid item xs={12}>
             <Box>
               <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#212121", mb: 0.5, textTransform: "uppercase" }}>
+                Headline
+              </Typography>
+              <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 400 }}>
+                {profile?.headline || "—"}
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12}>
+            <Box>
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#212121", mb: 0.5, textTransform: "uppercase" }}>
                 Email
               </Typography>
               <Typography sx={{ fontSize: "0.95rem", color: "#0f172a", fontWeight: 400 }}>
@@ -331,6 +348,22 @@ const PersonalInformationSection = ({ userId, profile, onSuccess }) => {
               size="small"
               InputProps={{
                 startAdornment: <PersonIcon sx={{ mr: 1, fontSize: 18, color: "#212121" }} />,
+              }}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Headline"
+              name="headline"
+              value={formData.headline || ""}
+              onChange={handleInputChange}
+              error={!!formErrors.headline}
+              helperText={formErrors.headline}
+              size="small"
+              placeholder="e.g. Software Engineer at Trotix"
+              InputProps={{
+                startAdornment: <WorkIcon sx={{ mr: 1, fontSize: 18, color: "#212121" }} />,
               }}
             />
           </Grid>

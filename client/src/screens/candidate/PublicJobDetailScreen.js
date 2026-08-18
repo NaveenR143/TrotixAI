@@ -47,7 +47,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
 import { useSelector, useDispatch } from "react-redux";
-import { getJobDetailsById, applyJob, generateTailoredJobEmail, generateATSContent, generateATSResume } from "../../api/jobpostingAPI";
+import { getJobDetailsById, applyJob, generateTailoredJobEmail, generateATSContent, generateATSResume, recordDirectUrlClick } from "../../api/jobpostingAPI";
 import MatchBadge from "../../components/jobs/MatchBadge";
 import ResumeUpload from "../../components/upload/ResumeUpload";
 import * as profileAPI from "../../api/profileAPI";
@@ -197,6 +197,7 @@ const PublicJobDetailScreen = () => {
     }
 
     if (job.direct_url) {
+      recordDirectUrlClick(job.id, userid).catch(err => console.error("Tracking error:", err));
       window.open(job.direct_url, "_blank");
       return;
     }
@@ -380,6 +381,7 @@ const PublicJobDetailScreen = () => {
         setSnackbar({ open: true, message: "ATS resume generated successfully!", severity: "success" });
 
         if (job.direct_url) {
+          recordDirectUrlClick(job.id, userid).catch(err => console.error("Tracking error:", err));
           window.open(job.direct_url, "_blank");
         }
       } else {

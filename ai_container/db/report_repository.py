@@ -409,16 +409,11 @@ class ReportRepository:
         res_ind = await self.session.execute(stmt_ind, {"user_id": str(user_id)})
         industries = [{"id": r[0], "name": r[1]} for r in res_ind.fetchall()]
         
-        # Recent job application context (target job description fallback)
-        stmt_job = text("""
-            SELECT j.description, j.title 
-            FROM job_applications ja 
-            JOIN job_postings j ON ja.job_posting_id = j.id 
-            WHERE ja.user_id = :user_id 
-            ORDER BY ja.id DESC LIMIT 1
-        """)
-        res_job = await self.session.execute(stmt_job, {"user_id": str(user_id)})
-        job_context = res_job.fetchone()
+        # # Fetch relevant jobs context
+        # matched_jobs = await self.get_matching_jobs(user_id)
+        # if not matched_jobs:
+        #     matched_jobs = await self.get_latest_job_postings()
+        # job_context = matched_jobs[0] if matched_jobs else None
         
         return {
             "user": {
@@ -470,10 +465,11 @@ class ReportRepository:
             "skills": skills,
             "skills_with_levels": skills_with_levels,
             "industries": industries,
-            "target_job": {
-                "title": job_context[1] if job_context else "",
-                "description": job_context[0] if job_context else ""
-            }
+            # "target_job": {
+            #     "title": job_context.get("title") if job_context else "",
+            #     "description": job_context.get("description") if job_context else "",
+            #     "skills": job_context.get("skills") if job_context else []
+            # }
         }
 
     async def commit(self) -> None:

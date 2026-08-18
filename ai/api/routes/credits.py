@@ -904,7 +904,6 @@ async def payu_callback(
                 # Idempotently create report generations
                 report_types = [
                     PremiumReportTypeEnum.ATS_RESUME,
-                    PremiumReportTypeEnum.ENHANCED_RESUME,
                     PremiumReportTypeEnum.SKILL_ANALYSIS,
                     PremiumReportTypeEnum.CAREER_ENHANCEMENT
                 ]
@@ -1099,7 +1098,6 @@ async def get_payu_transaction_status(
                                 # Idempotently create report generations
                                 report_types = [
                                     PremiumReportTypeEnum.ATS_RESUME,
-                                    PremiumReportTypeEnum.ENHANCED_RESUME,
                                     PremiumReportTypeEnum.SKILL_ANALYSIS,
                                     PremiumReportTypeEnum.CAREER_ENHANCEMENT
                                 ]

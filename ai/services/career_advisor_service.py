@@ -189,6 +189,7 @@ class CareerAdvisorService:
                         "skills": exp.get("skills_used", []),
                     }
                     for exp in (profile_data.get("experience") or [])
+                    if exp.get("company_name") or exp.get("title")
                 ],
                 "education": [
                     {
@@ -198,11 +199,13 @@ class CareerAdvisorService:
                         "year": edu.get("end_year"),
                     }
                     for edu in (profile_data.get("education") or [])
+                    if edu.get("institution") or edu.get("degree")
                 ],
                 "skills": list(
                     {
                         json_serializable(skill.get("name"))
                         for skill in (profile_data.get("skills") or [])
+                        if skill.get("name")
                     }
                 ),
                 "projects": [
@@ -212,6 +215,7 @@ class CareerAdvisorService:
                         "skills": proj.get("skills_used", []),
                     }
                     for proj in (profile_data.get("projects") or [])
+                    if proj.get("title") or proj.get("description")
                 ],
                 "current_role": profile_data.get("current_role"),
                 "career_goal": profile_data.get("career_goal"),

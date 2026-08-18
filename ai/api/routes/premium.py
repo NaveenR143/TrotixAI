@@ -329,7 +329,7 @@ async def verify_premium_payment(
         # Idempotently create report generations
         report_types = [
             PremiumReportTypeEnum.ATS_RESUME,
-            PremiumReportTypeEnum.ENHANCED_RESUME,
+            # PremiumReportTypeEnum.ENHANCED_RESUME,
             PremiumReportTypeEnum.SKILL_ANALYSIS,
             PremiumReportTypeEnum.CAREER_ENHANCEMENT
         ]
@@ -370,8 +370,11 @@ async def verify_premium_payment(
         stmt_u = select(User).where(User.id == user_id)
         res_u = await db.execute(stmt_u)
         user_record = res_u.scalars().first()
+
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000") 
+
         if user_record and user_record.phone:
-            track_link = f"http://localhost:3000/orders/{db_order.id}/status"
+            track_link = f"{frontend_url}/orders/{db_order.id}/status"
             trigger_whatsapp_notification(
                 phone=user_record.phone,
                 template_type="premium_payment_success",

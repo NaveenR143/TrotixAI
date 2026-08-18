@@ -29,6 +29,7 @@ from ai.models.orm_models import (
     JobApplication,
     GovtJob,
     JobsViewed,
+    JobAppliedDirectUrl,
 )
 from ai.models.job_models import (
     JobMetadataResponse,
@@ -574,6 +575,40 @@ async def record_view(
         raise HTTPException(
             status_code=500, detail=f"Error recording job view: {str(e)}"
         )
+
+
+@router.post("/record-direct-url-click")
+async def record_direct_url_click(
+    request: JobViewRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: str = Depends(get_current_user),
+):
+    """
+    Record that a user has clicked the direct application URL of a job.
+    """
+    if not request.user_id:
+        request.user_id = current_user_id
+
+    try:
+        # Create record in job_applied_directurl
+        new_click = JobAppliedDirectUrl(
+            job_posting_id=request.job_id,
+            user_id=request.user_id
+        )
+        db.add(new_click)
+        await db.commit()
+
+        return {
+            "status": "success",
+            "message": "Direct URL click recorded successfully",
+        }
+
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"Error recording direct URL click: {str(e)}"
+        )
+
 
 
 @router.get("/tailoring-job-email")

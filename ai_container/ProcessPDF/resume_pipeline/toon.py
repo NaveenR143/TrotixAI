@@ -278,6 +278,84 @@ class TOONFormatter:
             ")\n"
         )
 
+    @staticmethod
+    def build_skill_development_instructions() -> str:
+        return (
+            "Return ONLY this TOON object and nothing else.\n"
+            "Identify 8-10 key skills the user should develop to stay competitive based on market trends.\n"
+            "Categorize each skill as 'technical', 'soft', or 'domain-specific'.\n"
+            "Provide a clear rationale for why each skill is important.\n"
+            "Suggest practical ways to learn each skill (projects, practice, courses, certifications).\n"
+            "Additionally, include concrete learning resources such as URLs, course names, certifications, and institutions.\n"
+            "Ensure resources include a mix of free and paid options where possible.\n"
+            "Recommend a priority for the learning roadmap (immediate, job-match, future-ready, long-term) based on categorization.\n\n"
+            "SkillDevelopmentTOON(\n"
+            "  skills_analysis: [\n"
+            "    SkillAnalysisTOON(\n"
+            '      skill: "str",\n'
+            '      category: "technical|soft|domain-specific",\n'
+            '      importance_rationale: "str",\n'
+            '      learning_suggestions: ["str", "str"],\n'
+            "      resources: [\n"
+            "        ResourceTOON(\n"
+            '          name: "str",\n'
+            '          type: "course|certification|website|book|project",\n'
+            '          provider: "str",\n'
+            '          url: "str",\n'
+            '          cost: "free|paid",\n'
+            '          description: "str"\n'
+            "        )\n"
+            "      ],\n"
+            '      roadmap_priority: "immediate|job-match|future-ready|long-term"\n'
+            "    )\n"
+            "  ]\n"
+            ")\n"
+        )
+
+    @staticmethod
+    def build_resume_enhancement_instructions() -> str:
+        return (
+            "You are a premium resume enhancement and ATS optimization engine.\n"
+            "STRICT OUTPUT RULES:\n"
+            "- Output ONLY a valid EnhancedResumeTOON object.\n"
+            "- Do NOT include explanations, markdown, or extra text.\n"
+            "- Follow the structure EXACTLY.\n\n"
+            "TASK:\n"
+            "Transform the user's raw profile into a world-class, ATS-optimized resume.\n"
+            "Identify missing skills that are standard for the candidate's target role and domain.\n\n"
+            "GUIDELINES:\n"
+            "- Professional Summary: 60–100 words. Focus on unique value proposition, years of experience, and key impact. Make it punchy and modern.\n"
+            "- Skills: Group skills logically. Add 3-5 highly relevant 'missing' skills that the candidate likely possesses but hasn't listed (e.g., if they know React, they likely know Redux/Hooks).\n"
+            "- Work Experience: Use the STAR method (Situation, Task, Action, Result). Start every bullet with a strong action verb (Spearheaded, Orchestrated, Optimized). Quantify results where possible (e.g., 'reduced latency by 30%').\n"
+            "- Projects: Highlight technical complexity and real-world impact. List specific technologies used.\n"
+            "- Languages: List all languages provided by the user.\n"
+            "- Tone: Professional, achievement-oriented, and authoritative.\n\n"
+            "OUTPUT SCHEMA (must match exactly):\n"
+            "EnhancedResumeTOON(\n"
+            '  summary: "str",\n'
+            '  skills: ["str", ...],\n'
+            "  workExperience: [\n"
+            "    ExperienceEnhancementTOON(\n"
+            '      company_name: "str",\n'
+            '      title: "str",\n'
+            '      original_description: "str",\n'
+            '      enhanced_description: "str",\n'
+            '      key_achievements: ["str", ...]\n'
+            "    )\n"
+            "  ],\n"
+            "  projects: [\n"
+            "    ProjectEnhancementTOON(\n"
+            '      name: "str",\n'
+            '      original_description: "str",\n'
+            '      enhanced_description: "str",\n'
+            '      technologies: ["str", ...],\n'
+            '      impact: "str"\n'
+            "    )\n"
+            "  ],\n"
+            '  languages: ["str", ...]\n'
+            ")\n"
+        )
+
     def toon_to_json(self, toon_str: str) -> dict:
         """
         Convert a TOON-formatted string to a Python dict.

@@ -515,5 +515,29 @@ export const fetchCompanies = async () => {
     }
 };
 
+/**
+ * Record click on direct URL of a job posting
+ * @param {string|number} jobId - ID of the job posting
+ * @param {string} userId - ID of the user
+ */
+export const recordDirectUrlClick = async (jobId, userId) => {
+    try {
+        const response = await axios.post(
+            `${API_BASE_URL}${API_ENDPOINTS.TRACK_DIRECT_URL_CLICK}`,
+            { job_id: jobId, user_id: userId },
+            { headers: getHeaders(), timeout: 10000 }
+        );
+
+        return {
+            error: false,
+            data: response.data,
+            message: response.data?.message || "Direct URL click tracked successfully",
+        };
+    } catch (error) {
+        console.error("Error tracking direct URL click:", error);
+        return handleError(error);
+    }
+};
+
 
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Container,
@@ -15,6 +15,10 @@ import {
   CircularProgress
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { useReactToPrint } from "react-to-print";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import ErrorRoundedIcon from "@mui/icons-material/ErrorRounded";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
@@ -22,6 +26,11 @@ import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
 import HourglassEmptyRoundedIcon from "@mui/icons-material/HourglassEmptyRounded";
 import * as premiumAPI from "../../api/premiumAPI";
+import * as profileAPI from "../../api/profileAPI";
+import { fetchAndStoreProfile } from "../../redux/profile/ProfileAction";
+import SkillDevelopmentReport from "../skill_development/SkillDevelopmentReport";
+import CareerAdviceReport from "../career_advisor/CareerAdviceReport";
+import MultiPageResumePreview from "../resume_builder/MultiPageResumePreview";
 
 const COLORS = {
   primaryBlue: "#2563EB",
@@ -39,9 +48,23 @@ const COLORS = {
 const OrderStatusScreen = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // Redux state
+  const { id: userid, mobile, fullname } = useSelector((state) => state.UserReducer);
+  const profile = useSelector((state) => state.ProfileReducer.data);
+
   const [loading, setLoading] = useState(true);
   const [orderData, setOrderData] = useState(null);
   const [pollingActive, setPollingActive] = useState(true);
+
+  // Download states
+  const [downloadingReportId, setDownloadingReportId] = useState(null);
+  const [activeSkillAnalysisData, setActiveSkillAnalysisData] = useState(null);
+  const [activeCareerAdviceData, setActiveCareerAdviceData] = useState(null);
+  const [activeReportTimestamp, setActiveReportTimestamp] = useState(null);
+
+  const exportPagesRef = useRef(null);
 
   // Poll status function
   const fetchStatus = async () => {
@@ -80,10 +103,313 @@ const OrderStatusScreen = () => {
     };
   }, [orderId, pollingActive]);
 
-  const handleDownload = (reportId) => {
-    const downloadUrl = `/api/premium/reports/${reportId}/download`;
-    // Standard secure file streaming via browser link trigger
-    window.open(downloadUrl, "_blank");
+  const handlePrint = useReactToPrint({
+    content: () => exportPagesRef.current,
+    onBeforePrint: () => {
+      const fullName = profile?.personalDetails?.fullName || "Resume";
+      document.title = `Resume - ${fullName.replace(/[^a-z0-9]/gi, "_")}`;
+      return Promise.resolve();
+    },
+    onAfterPrint: () => {
+      setDownloadingReportId(null);
+    },
+    pageStyle: `
+      @page {
+        size: 210mm 297mm;
+        margin: 0;
+      }
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .resume-pdf-page {
+        width: 210mm !important;
+        height: 297mm !important;
+        overflow: hidden !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        position: relative;
+      }
+      .resume-pdf-page:last-child {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      [data-pdf-hide="true"] {
+        display: none !important;
+      }
+    `,
+  });
+
+  const ensureProfileLoaded = async () => {
+    if (profile && profile.id) return profile;
+    const phone = mobile || localStorage.getItem("mobile_number") || "9789502974";
+    const result = await dispatch(fetchAndStoreProfile(phone));
+    if (result && result.success && result.data) {
+      return result.data;
+    }
+    return null;
+  };
+
+  const downloadResumePDFMobile = async (currentProfile) => {
+    const container = exportPagesRef.current;
+    if (!container) {
+      setDownloadingReportId(null);
+      return;
+    }
+
+    const pages = container.querySelectorAll(".resume-pdf-page");
+    if (pages.length === 0) {
+      setDownloadingReportId(null);
+      return;
+    }
+
+    try {
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+      });
+
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+        const canvas = await html2canvas(page, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          logging: false,
+          onclone: (clonedDoc) => {
+            const el = clonedDoc.getElementById("pdf-export-container");
+            if (el) {
+              el.style.visibility = "visible";
+            }
+          }
+        });
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.8);
+
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        pdf.addImage(imgData, "JPEG", 0, 0, 210, 297, undefined, 'FAST');
+      }
+
+      const fullName = currentProfile?.personalDetails?.fullName || "Resume";
+      pdf.save(`Resume_${fullName.replace(/[^a-z0-9]/gi, "_")}.pdf`);
+    } catch (err) {
+      console.error("Mobile download failed:", err);
+      alert("Failed to generate PDF resume. Please try again.");
+    } finally {
+      setDownloadingReportId(null);
+    }
+  };
+
+  const triggerResumePrint = async (currentProfile) => {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+
+    if (isMobileDevice) {
+      try {
+        await downloadResumePDFMobile(currentProfile);
+      } catch (err) {
+        console.error("Mobile download failed:", err);
+        setDownloadingReportId(null);
+      }
+    } else {
+      handlePrint();
+    }
+  };
+
+  const triggerSkillReportDownload = async (currentProfile) => {
+    const reportContainer = document.getElementById("skill-development-report");
+    if (!reportContainer) {
+      setDownloadingReportId(null);
+      return;
+    }
+
+    try {
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+      });
+
+      const sections = reportContainer.querySelectorAll(".report-section");
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 20;
+      const contentWidth = pageWidth - (margin * 2);
+
+      let currentY = margin;
+      let firstPage = true;
+
+      for (let i = 0; i < sections.length; i++) {
+        const section = sections[i];
+        const canvas = await html2canvas(section, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          logging: false
+        });
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.8);
+        const imgHeight = (canvas.height * contentWidth) / canvas.width;
+
+        if (!firstPage && (currentY + imgHeight > pageHeight - margin)) {
+          pdf.addPage();
+          currentY = margin;
+        }
+
+        pdf.addImage(imgData, 'JPEG', margin, currentY, contentWidth, imgHeight, undefined, 'FAST');
+        currentY += imgHeight + 10;
+        firstPage = false;
+      }
+
+      const name = currentProfile?.personalDetails?.fullName || "Candidate";
+      pdf.save(`SkillEnhancement_${name.replace(/ /g, '_')}.pdf`);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+    } finally {
+      setDownloadingReportId(null);
+      setActiveSkillAnalysisData(null);
+    }
+  };
+
+  const triggerCareerReportDownload = async (currentProfile) => {
+    const reportContainer = document.getElementById("career-advice-report");
+    if (!reportContainer) {
+      setDownloadingReportId(null);
+      return;
+    }
+
+    try {
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+      });
+
+      const sections = reportContainer.querySelectorAll(".report-section");
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 20;
+      const contentWidth = pageWidth - (margin * 2);
+
+      let currentY = margin;
+      let firstPage = true;
+
+      for (let i = 0; i < sections.length; i++) {
+        const section = sections[i];
+        const canvas = await html2canvas(section, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          logging: false
+        });
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.8);
+        const imgHeight = (canvas.height * contentWidth) / canvas.width;
+
+        if (!firstPage && (currentY + imgHeight > pageHeight - margin)) {
+          pdf.addPage();
+          currentY = margin;
+        }
+
+        pdf.addImage(imgData, 'JPEG', margin, currentY, contentWidth, imgHeight, undefined, 'FAST');
+        currentY += imgHeight + 10;
+        firstPage = false;
+      }
+
+      const footer = reportContainer.lastElementChild;
+      if (footer && !footer.classList.contains('report-section')) {
+        const footerCanvas = await html2canvas(footer, { scale: 2, backgroundColor: "#ffffff" });
+        const footerImgData = footerCanvas.toDataURL("image/jpeg", 0.8);
+        const footerImgHeight = (footerCanvas.height * contentWidth) / footerCanvas.width;
+
+        if (currentY + footerImgHeight > pageHeight - margin) {
+          pdf.addPage();
+          currentY = margin;
+        }
+        pdf.addImage(footerImgData, 'JPEG', margin, currentY, contentWidth, footerImgHeight, undefined, 'FAST');
+      }
+
+      const name = currentProfile?.personalDetails?.fullName || "Career";
+      pdf.save(`CareerAdvice_${name.replace(/ /g, '_')}.pdf`);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+    } finally {
+      setDownloadingReportId(null);
+      setActiveCareerAdviceData(null);
+    }
+  };
+
+  const handleDownloadReport = async (report) => {
+    if (downloadingReportId) return;
+
+    setDownloadingReportId(report.id);
+
+    try {
+      const currentProfile = await ensureProfileLoaded();
+      if (!currentProfile) {
+        alert("Failed to load profile. Please complete your profile first.");
+        setDownloadingReportId(null);
+        return;
+      }
+
+      const userId = currentProfile.id;
+      const type = report.report_type.toUpperCase();
+
+      if (type === "SKILL_ANALYSIS") {
+        const result = await profileAPI.fetchExistingSkillAnalysis(userId);
+        if (!result.error && result.data && result.data !== "none") {
+          const reportData = result.data.data || result.data;
+          const timestamp = result.data.timestamp || new Date().toISOString();
+          setActiveSkillAnalysisData(reportData);
+          setActiveReportTimestamp(timestamp);
+
+          setTimeout(async () => {
+            await triggerSkillReportDownload(currentProfile);
+          }, 800);
+        } else {
+          alert("Could not load skill report content.");
+          setDownloadingReportId(null);
+        }
+      } else if (type === "CAREER_ENHANCEMENT") {
+        const phone = currentProfile.personalDetails?.phone || mobile || localStorage.getItem("mobile_number");
+        const result = await profileAPI.fetchExistingCareerAdvice(phone, userId);
+        if (!result.error && result.data && result.data !== "none") {
+          const reportData = result.data.data || result.data;
+          const timestamp = result.data.timestamp || new Date().toISOString();
+          setActiveCareerAdviceData(reportData);
+          setActiveReportTimestamp(timestamp);
+
+          setTimeout(async () => {
+            await triggerCareerReportDownload(currentProfile);
+          }, 800);
+        } else {
+          alert("Could not load career report content.");
+          setDownloadingReportId(null);
+        }
+      } else if (type === "ATS_RESUME" || type === "ENHANCED_RESUME") {
+        await triggerResumePrint(currentProfile);
+      } else {
+        window.open(`/api/premium/reports/${report.id}/download`, "_blank");
+        setDownloadingReportId(null);
+      }
+    } catch (err) {
+      console.error("Error downloading report:", err);
+      alert("An error occurred while downloading the report.");
+      setDownloadingReportId(null);
+    }
   };
 
   const handleRetry = async (reportId) => {
@@ -123,6 +449,9 @@ const OrderStatusScreen = () => {
   };
 
   const formatReportName = (type) => {
+    if (type && type.toUpperCase() === "ENHANCED_RESUME") {
+      return "Enhanced ATS Resume";
+    }
     return type
       .replace("_", " ")
       .split(" ")
@@ -254,8 +583,9 @@ const OrderStatusScreen = () => {
                     <Button
                       fullWidth
                       variant="contained"
-                      onClick={() => handleDownload(report.id)}
-                      startIcon={<DownloadRoundedIcon />}
+                      disabled={downloadingReportId !== null}
+                      onClick={() => handleDownloadReport(report)}
+                      startIcon={downloadingReportId === report.id ? <CircularProgress size={16} sx={{ color: "#FFFFFF" }} /> : <DownloadRoundedIcon />}
                       sx={{
                         py: 1.2,
                         borderRadius: "8px",
@@ -264,13 +594,18 @@ const OrderStatusScreen = () => {
                         fontFamily: "Inter",
                         boxShadow: "none",
                         bgcolor: COLORS.primaryBlue,
+                        color: "#FFFFFF",
                         "&:hover": {
                           bgcolor: "#1d4ed8",
                           boxShadow: "none",
+                        },
+                        "&.Mui-disabled": {
+                          bgcolor: downloadingReportId === report.id ? COLORS.primaryBlue : "rgba(0, 0, 0, 0.08)",
+                          color: downloadingReportId === report.id ? "#FFFFFF" : "rgba(0, 0, 0, 0.38)",
                         }
                       }}
                     >
-                      Download PDF
+                      {downloadingReportId === report.id ? "Downloading..." : "Download PDF"}
                     </Button>
                   )}
 
@@ -282,6 +617,7 @@ const OrderStatusScreen = () => {
                       <Button
                         fullWidth
                         variant="outlined"
+                        disabled={downloadingReportId !== null}
                         onClick={() => handleRetry(report.id)}
                         startIcon={<ReplayRoundedIcon />}
                         sx={{
@@ -295,6 +631,10 @@ const OrderStatusScreen = () => {
                           "&:hover": {
                             borderColor: "#dc2626",
                             bgcolor: "rgba(239, 68, 68, 0.04)",
+                          },
+                          "&.Mui-disabled": {
+                            borderColor: "rgba(0, 0, 0, 0.12)",
+                            color: "rgba(0, 0, 0, 0.38)",
                           }
                         }}
                       >
@@ -314,6 +654,10 @@ const OrderStatusScreen = () => {
                         fontWeight: 700,
                         textTransform: "none",
                         fontFamily: "Inter",
+                        "&.Mui-disabled": {
+                          borderColor: "rgba(0, 0, 0, 0.12)",
+                          color: "rgba(0, 0, 0, 0.38)",
+                        }
                       }}
                     >
                       Generating...
@@ -337,6 +681,45 @@ const OrderStatusScreen = () => {
         </Box>
 
       </Container>
+
+      {/* Hidden structures for client-side report download & PDF generation */}
+      {activeSkillAnalysisData && (
+        <SkillDevelopmentReport
+          data={activeSkillAnalysisData}
+          profile={profile}
+          timestamp={activeReportTimestamp || new Date().toISOString()}
+        />
+      )}
+      {activeCareerAdviceData && (
+        <CareerAdviceReport
+          data={activeCareerAdviceData}
+          profile={profile}
+          timestamp={activeReportTimestamp || new Date().toISOString()}
+        />
+      )}
+
+      {/* Hidden export container for print capture of template11p resume */}
+      <div
+        id="pdf-export-container"
+        style={{
+          position: "fixed",
+          left: "-9999px",
+          top: 0,
+          width: "210mm",
+          visibility: "hidden",
+          pointerEvents: "none",
+          zIndex: -9999,
+        }}
+      >
+        {profile && profile.id && (
+          <MultiPageResumePreview
+            templateId="template11p"
+            data={profile}
+            isExport={true}
+            pagesRef={exportPagesRef}
+          />
+        )}
+      </div>
     </Box>
   );
 };

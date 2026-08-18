@@ -27,15 +27,22 @@ def clean_dict(value: Any) -> Any:
     """
     Recursively clean a dictionary/list by:
     1. Converting non-serializable objects to strings
-    2. Removing None, empty strings, and empty lists
+    2. Removing None, empty strings, empty lists, and empty dicts
     """
     if isinstance(value, dict):
-        return {
-            k: clean_dict(v) for k, v in value.items() 
-            if v not in [None, "", []]
-        }
+        cleaned = {}
+        for k, v in value.items():
+            cleaned_v = clean_dict(v)
+            if cleaned_v not in [None, "", [], {}]:
+                cleaned[k] = cleaned_v
+        return cleaned
     elif isinstance(value, list):
-        return [clean_dict(v) for v in value if v not in [None, "", []]]
+        cleaned_list = []
+        for v in value:
+            cleaned_v = clean_dict(v)
+            if cleaned_v not in [None, "", [], {}]:
+                cleaned_list.append(cleaned_v)
+        return cleaned_list
     else:
         return json_serializable(value)
 

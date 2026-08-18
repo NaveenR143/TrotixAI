@@ -32,12 +32,12 @@ from ai.api.routes.credits import get_razorpay_client
 
 
 # ── Optional deps ─────────────────────────────────────────────────────────────
-try:
-    import PyPDF2
+# try:
+#     import PyPDF2
 
-    PDF_SUPPORT = True
-except ImportError:
-    PDF_SUPPORT = False
+#     PDF_SUPPORT = True
+# except ImportError:
+#     PDF_SUPPORT = False
 
 try:
     from docx import Document as DocxDocument
