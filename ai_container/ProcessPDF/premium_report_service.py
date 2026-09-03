@@ -10,6 +10,9 @@ from ProcessPDF.llm_service import ReportLLMService
 
 logger = logging.getLogger(__name__)
 
+from contextlib import asynccontextmanager
+from db.session_manager import db_session_manager
+
 class PremiumReportService:
     """
     Worker-side Premium Report Orchestrator.
@@ -17,68 +20,82 @@ class PremiumReportService:
     and database state updates for premium reports.
     """
     
-    def __init__(self, session):
-        self.db = ReportRepository(session)
+    def __init__(self, session=None):
+        self.session = session
+        if session:
+            self.db = ReportRepository(session)
+        else:
+            self.db = None
         self.llm = ReportLLMService()
         self.whatsapp_service = WhatsAppNotificationService()
+
+    @asynccontextmanager
+    async def _get_session(self):
+        if self.session:
+            yield self.db
+        else:
+            async with db_session_manager.session() as session:
+                yield ReportRepository(session)
         
     async def process_report_generation(self, report_id: int) -> bool:
         """
         Main execution workflow for generating a single report.
         """
         # Fetch report details
-        report = await self.db.fetch_report(report_id)
-        
-        if not report:
-            logger.error(f"Report generation record with ID {report_id} not found.")
-            return False
+        async with self._get_session() as db:
+            report = await db.fetch_report(report_id)
             
-        order_id = report["order_id"]
-        user_id = report["user_id"]
-        report_type = report["report_type"]
-        status = report["status"]
-        
-        if status in ["COMPLETED", "PROCESSING"]:
-            logger.info(f"Report {report_id} is already in {status} status. Skipping.")
-            return True
+            if not report:
+                logger.error(f"Report generation record with ID {report_id} not found.")
+                return False
+                
+            order_id = report["order_id"]
+            user_id = report["user_id"]
+            report_type = report["report_type"]
+            status = report["status"]
             
-        # Update to PROCESSING
-        logger.info(f"Starting report generation for ID: {report_id} (Type: {report_type})")
-        await self.db.update_status_to_processing(report_id)
-        await self.db.commit()
+            if status in ["COMPLETED", "PROCESSING"]:
+                logger.info(f"Report {report_id} is already in {status} status. Skipping.")
+                return True
+                
+            # Update to PROCESSING
+            logger.info(f"Starting report generation for ID: {report_id} (Type: {report_type})")
+            await db.update_status_to_processing(report_id)
+            await db.commit()
         
         try:
-            # 1. Fetch Candidate Profile Data
-            profile_data = await self.db.fetch_candidate_data(user_id)
+            # 1. Fetch Candidate Profile Data & Market trend skills
+            async with self._get_session() as db:
+                profile_data = await db.fetch_candidate_data(user_id)
+                
+                # Update progress to 30%
+                await db.update_progress(report_id, 30)
+                await db.commit()
+
+                missing_skills = []
+                weak_skills = []
+                market_skills = []
+
+                if report_type == "SKILL_ANALYSIS":
+                    try:
+                        # 1. Fetch industry IDs from candidate profile_data
+                        user_industries = profile_data.get("industries") or []
+                        industry_ids = [ind.get("id") for ind in user_industries if ind.get("id")]
+                        
+                        # 2. Fetch market trend skills
+                        market_skills = await db.get_market_trend_skills_by_industries(user_id, industry_ids)
+
+                        # 3. Get matched jobs using pgvector/filters matching
+                        matched_jobs = await db.get_matching_jobs(user_id)
+                        if not matched_jobs:
+                            matched_jobs = await db.get_latest_job_postings()
+
+                        # 4. Compute missing and weak skills
+                        missing_skills, weak_skills = self._compute_skill_gaps(profile_data, matched_jobs)
+                    except Exception as e:
+                        logger.warning(f"Error executing gaps check inside ai_container: {e}")
             
-            # Update progress to 30%
-            await self.db.update_progress(report_id, 30)
-            await self.db.commit()
-
-            missing_skills = []
-            weak_skills = []
-            market_skills = []
-
-            if report_type == "SKILL_ANALYSIS":
-                try:
-                    # 1. Fetch industry IDs from candidate profile_data
-                    user_industries = profile_data.get("industries") or []
-                    industry_ids = [ind.get("id") for ind in user_industries if ind.get("id")]
-                    
-                    # 2. Fetch market trend skills
-                    market_skills = await self.db.get_market_trend_skills_by_industries(user_id, industry_ids)
-
-                    # 3. Get matched jobs using pgvector/filters matching
-                    matched_jobs = await self.db.get_matching_jobs(user_id)
-                    if not matched_jobs:
-                        matched_jobs = await self.db.get_latest_job_postings()
-
-                    # 4. Compute missing and weak skills
-                    missing_skills, weak_skills = self._compute_skill_gaps(profile_data, matched_jobs)
-                except Exception as e:
-                    logger.warning(f"Error executing gaps check inside ai_container: {e}")
-            
-            # 2. Call LLM to generate report text/JSON
+            # 2. Call LLM to generate report text/JSON (NO session active during LLM request)
             logger.info(f"Generating content for {report_type} via LLM...")
             generated_content = await self._generate_report_content(
                 report_type,
@@ -88,35 +105,39 @@ class PremiumReportService:
                 market_skills=market_skills
             )
             
-            # Update progress to 60%
-            await self.db.update_progress(report_id, 60)
-            await self.db.commit()
-            
-            # 3. Save to database based on report type
-            logger.info(f"Saving {report_type} data to database...")
-            await self._save_report_data(report_type, user_id, generated_content, profile_data=profile_data)
+            # 3. Save report and complete
+            async with self._get_session() as db:
+                # Update progress to 60%
+                await db.update_progress(report_id, 60)
+                await db.commit()
+                
+                # Save to database based on report type
+                logger.info(f"Saving {report_type} data to database...")
+                await self._save_report_data(db, report_type, user_id, generated_content, profile_data=profile_data)
 
-            # Update progress to 80%
-            await self.db.update_progress(report_id, 80)
-            await self.db.commit()
-            
-            # 5. Mark COMPLETED
-            await self.db.update_status_to_completed(report_id)
-            await self.db.commit()
-            logger.info(f"Successfully completed report {report_id}!")
-            
-            # 6. Check if all reports for this order are completed
-            await self._check_and_trigger_order_completion(order_id, user_id)
-            return True
-            
+                # Update progress to 80%
+                await db.update_progress(report_id, 80)
+                await db.commit()
+                
+                # 5. Mark COMPLETED
+                await db.update_status_to_completed(report_id)
+                await db.commit()
+                logger.info(f"Successfully completed report {report_id}!")
+                
+                # 6. Check if all reports for this order are completed
+                await self._check_and_trigger_order_completion(db, order_id, user_id)
+                return True
+                
         except Exception as e:
             logger.error(f"Error generating premium report {report_id}: {e}", exc_info=True)
-            # Mark FAILED
-            await self.db.update_status_to_failed(report_id, str(e))
-            await self.db.commit()
-            
-            # Trigger failure notification
-            user_rec = await self.db.get_user_contact_info(user_id)
+            async with self._get_session() as db:
+                # Mark FAILED
+                await db.update_status_to_failed(report_id, str(e))
+                await db.commit()
+                
+                # Trigger failure notification
+                user_rec = await db.get_user_contact_info(user_id)
+                
             if user_rec and user_rec.get("phone"):
                 track_link = f"http://localhost:3000/orders/{order_id}/status"
                 self.whatsapp_service.send_reports_failed(
@@ -191,7 +212,7 @@ class PremiumReportService:
         weak_skills = [s for s, count in weak_skills_counter.most_common(10)]
         return missing_skills, weak_skills
 
-    async def _save_report_data(self, report_type: str, user_id: UUID, generated_content: str, profile_data: dict = None) -> None:
+    async def _save_report_data(self, db, report_type: str, user_id: UUID, generated_content: str, profile_data: dict = None) -> None:
         """
         Saves the generated report content to the appropriate database tables based on report type.
         """
@@ -205,7 +226,7 @@ class PremiumReportService:
             # Fetch candidate profile data to resolve industry name if not provided
             if not profile_data:
                 try:
-                    profile_data = await self.db.fetch_candidate_data(user_id)
+                    profile_data = await db.fetch_candidate_data(user_id)
                 except Exception as e:
                     logger.warning(f"Could not fetch profile_data in save_report_data: {e}")
                     profile_data = {}
@@ -219,7 +240,7 @@ class PremiumReportService:
                 "industry": industry_str,
                 "skills_analysis": llm_data.get("skills_analysis") if isinstance(llm_data, dict) else []
             }
-            await self.db.save_skill_analysis(user_id, analysis_data)
+            await db.save_skill_analysis(user_id, analysis_data)
 
         elif report_type == "CAREER_ENHANCEMENT":
             try:
@@ -228,7 +249,7 @@ class PremiumReportService:
             except Exception as json_err:
                 logger.warning(f"Failed to parse or normalize CAREER_ENHANCEMENT JSON: {json_err}. Storing as raw content.")
                 advice_data = {"raw_content": generated_content}
-            await self.db.save_career_advice(user_id, advice_data)
+            await db.save_career_advice(user_id, advice_data)
 
         elif report_type in ["ENHANCED_RESUME", "ATS_RESUME"]:
             summary_text = self._extract_resume_summary(generated_content)
@@ -237,7 +258,7 @@ class PremiumReportService:
             processor = ResumeProcessor()
             profile_embedding = processor._generate_embedding(summary_text)
 
-            await self.db.save_jobseeker_profile_summary(user_id, summary_text, profile_embedding)
+            await db.save_jobseeker_profile_summary(user_id, summary_text, profile_embedding)
 
     def _normalize_career_advice(self, advice_data: dict, profile_data: dict) -> dict:
         """
@@ -350,14 +371,14 @@ class PremiumReportService:
 
         return re.sub(r"\*\*|##|#", "", summary_text).strip()
 
-    async def _check_and_trigger_order_completion(self, order_id: int, user_id: UUID) -> None:
+    async def _check_and_trigger_order_completion(self, db, order_id: int, user_id: UUID) -> None:
         """
         Checks if all reports under the order are COMPLETED. If yes, fires WhatsApp alert.
         """
-        statuses = await self.db.get_order_report_statuses(order_id)
+        statuses = await db.get_order_report_statuses(order_id)
         
         if all(s == "COMPLETED" for s in statuses):
-            user_rec = await self.db.get_user_contact_info(user_id)
+            user_rec = await db.get_user_contact_info(user_id)
             if user_rec and user_rec.get("phone"):
                 dashboard_link = "http://localhost:3000/dashboard"
                 self.whatsapp_service.send_reports_completed(

@@ -73,14 +73,20 @@ class QueueWorker:
     def _run_async(self, coro):
         """
         Runs async coroutine safely inside a thread.
-        Creates a fresh event loop per execution.
+        Retrieves and reuses the thread's event loop to utilize connection pooling.
         """
-        loop = asyncio.new_event_loop()
         try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            return loop.run_until_complete(coro)
-        finally:
-            loop.close()
+
+        # If loop is closed, create a new one
+        if loop.is_closed():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+        return loop.run_until_complete(coro)
 
     # ----------------------------
     # Process Message (Business Logic)
@@ -94,13 +100,11 @@ class QueueWorker:
             if report_gen_id:
                 logger.info(f"📊 Processing report generation request ID={report_gen_id}")
                 
-                from db.session_manager import db_session_manager
                 from ProcessPDF.premium_report_service import PremiumReportService
                 
                 async def run_report_generation():
-                    async with db_session_manager.session() as session:
-                        service = PremiumReportService(session)
-                        await service.process_report_generation(report_gen_id)
+                    service = PremiumReportService()
+                    await service.process_report_generation(report_gen_id)
                         
                 self._run_async(run_report_generation())
                 logger.info("✅ Premium report task processed.")

@@ -4,3 +4,16 @@ Adding train Questions and Queries for the model
 Authentication implementation
 Security Aspects
 FastAPI Deployment
+
+
+DELETE FROM job_postings
+WHERE created_at < NOW() - INTERVAL '45 days';
+
+ALTER TABLE jobs_viewed
+DROP CONSTRAINT jobs_viewed_job_id_fkey;
+
+ALTER TABLE jobs_viewed
+ADD CONSTRAINT jobs_viewed_job_id_fkey
+FOREIGN KEY (job_id)
+REFERENCES job_postings(id)
+ON DELETE CASCADE;

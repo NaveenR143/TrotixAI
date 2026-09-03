@@ -105,7 +105,7 @@ async def upload_resume(file: UploadFile = File(...)):
 
     # Send OTP
     try:
-        send_otp(primary_phone)
+        await send_otp(primary_phone)
     except Exception as e:
         # We might still want to proceed if OTP fails, or fail the request.
         # Given it's a critical step, let's fail it.

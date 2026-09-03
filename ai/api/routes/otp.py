@@ -27,7 +27,7 @@ async def verify_otp_update_handler(req: OTPVerifyRequest, response: Response):
     Updates user status in database is_phone_verified = True.
     Sets a secure HTTP-only cookie with the access token.
     """
-    if not verify_otp(req.phone, req.otp):
+    if not await verify_otp(req.phone, req.otp):
         raise HTTPException(status_code=400, detail="Invalid or expired OTP")
 
     try:
@@ -95,7 +95,7 @@ async def validate_otp_alt(req: OTPVerifyRequest):
     Verify OTP sent to the user.
     Returns success if OTP matches and deletes it from memory.
     """
-    if not verify_otp(req.phone, req.otp):
+    if not await verify_otp(req.phone, req.otp):
         raise HTTPException(status_code=400, detail="Invalid or expired OTP")
 
     return {
@@ -116,7 +116,7 @@ async def send_otp_to_primary(req: OTPSendRequest):
         if not exists:
             raise HTTPException(status_code=404, detail="User not found")
 
-    send_otp(req.phone)
+    await send_otp(req.phone)
     return {"message": f"OTP sent to {req.phone}"}
 
 
@@ -137,7 +137,7 @@ async def new_recruiter_otp_handler(req: OTPSendRequest):
 
     # Send OTP
     try:
-        send_otp(req.phone)
+        await send_otp(req.phone)
     except Exception as e:
         # We might still want to proceed if OTP fails, or fail the request.
         # Given it's a critical step, let's fail it.
@@ -168,7 +168,7 @@ async def new_candidate_otp_handler(req: OTPSendRequest):
 
     # Send OTP
     try:
-        send_otp(req.phone)
+        await send_otp(req.phone)
     except Exception as e:
         # We might still want to proceed if OTP fails, or fail the request.
         # Given it's a critical step, let's fail it.

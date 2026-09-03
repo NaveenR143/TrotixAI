@@ -131,13 +131,16 @@ class ResumeProcessor:
         if _INDUSTRIES_CACHE:
             return
 
-        if not self._repository:
-            LOGGER.warning("No repository available to load industries")
-            return
-
         try:
             print("Loading industries from database...")
-            industries = await self._repository.get_industries()
+            if self._repository:
+                industries = await self._repository.get_industries()
+            else:
+                from db.session_manager import db_session_manager
+                async with db_session_manager.session() as session:
+                    repo = ResumeRepository(session=session)
+                    industries = await repo.get_industries()
+
             if not industries:
                 LOGGER.warning("No industries found in database")
                 return

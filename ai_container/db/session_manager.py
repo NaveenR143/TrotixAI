@@ -1,10 +1,10 @@
+import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 import logging
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from .database import AsyncSessionLocal, engine
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from .database import DATABASE_URL
 
 logger = logging.getLogger(__name__)
 
@@ -12,18 +12,57 @@ logger = logging.getLogger(__name__)
 class DatabaseSessionManager:
     """
     Manages async DB sessions safely for long-running workers.
+    Utilizes per-event-loop connection pooling for high availability and performance.
     """
 
     def __init__(self):
-        self._session_factory = AsyncSessionLocal
-        self._engine = engine
+        self._engines = {}
+        self._session_factories = {}
+
+    def _get_current_loop(self):
+        try:
+            return asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.get_event_loop()
+
+    def get_engine_and_factory(self):
+        loop = self._get_current_loop()
+        loop_id = id(loop)
+
+        if loop_id not in self._engines:
+            logger.info(f"Creating new AsyncEngine with connection pool for loop {loop_id}")
+            engine = create_async_engine(
+                DATABASE_URL,
+                echo=False,
+                pool_size=5,
+                max_overflow=10,
+                pool_recycle=1800,
+                pool_pre_ping=True,
+                future=True,
+                connect_args={
+                    "timeout": 30,
+                    "command_timeout": 30,
+                    "server_settings": {"application_name": f"trotixai_worker_{loop_id}"},
+                },
+            )
+            session_factory = async_sessionmaker(
+                bind=engine,
+                class_=AsyncSession,
+                expire_on_commit=False,
+                autoflush=False,
+            )
+            self._engines[loop_id] = engine
+            self._session_factories[loop_id] = session_factory
+
+        return self._engines[loop_id], self._session_factories[loop_id]
 
     async def init(self) -> None:
         """
-        Optional: test DB connectivity at startup.
+        Test DB connectivity at startup.
         """
         try:
-            async with self._engine.begin() as conn:
+            engine, _ = self.get_engine_and_factory()
+            async with engine.begin() as conn:
                 await conn.run_sync(lambda conn: None)
             logger.info("✅ Database connection initialized")
         except Exception as e:
@@ -32,17 +71,16 @@ class DatabaseSessionManager:
 
     async def close(self) -> None:
         """
-        Dispose engine safely.
+        Dispose all managed engines safely.
         """
-        if self._engine:
+        for loop_id, engine in list(self._engines.items()):
             try:
-                await self._engine.dispose()
-                logger.info("🧹 Database engine disposed")
+                await engine.dispose()
+                logger.info(f"🧹 Database engine disposed for loop {loop_id}")
             except Exception as e:
                 logger.warning(f"⚠️ Engine disposal warning: {e}")
-            finally:
-                self._engine = None
-                self._session_factory = None
+        self._engines.clear()
+        self._session_factories.clear()
 
     @asynccontextmanager
     async def session(self) -> AsyncGenerator[AsyncSession, None]:
@@ -51,11 +89,8 @@ class DatabaseSessionManager:
         - Auto commit on success
         - Auto rollback on failure
         """
-
-        if self._session_factory is None:
-            raise RuntimeError("❌ DB Session Manager not initialized")
-
-        session: AsyncSession = self._session_factory()
+        _, session_factory = self.get_engine_and_factory()
+        session: AsyncSession = session_factory()
 
         try:
             yield session
@@ -66,7 +101,6 @@ class DatabaseSessionManager:
             raise
 
         finally:
-            # ✅ Important: close AFTER commit/rollback
             await session.close()
 
 

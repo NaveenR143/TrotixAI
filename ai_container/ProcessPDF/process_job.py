@@ -87,10 +87,30 @@ class ProcessJobHandler:
 
     async def save_embedding(self):
         try:
+            # 1. Fetch job description using a short-lived session
             async with db_session_manager.session() as session:
                 repo = ResumeRepository(session=session)
-                job_embedding = await self.generate_embeddings(repo)
-                if job_embedding:
+                job_description = await self.fetch_job_description(repo)
+
+            if not job_description or not str(job_description).strip():
+                print(f"⚠️ Job description is missing or empty for job ID {self.job_id}. Skipping embedding generation.")
+                return
+
+            clean_description = ProcessJobHandler.html_to_embedding_text(
+                job_description
+            )
+
+            if not clean_description:
+                print(f"⚠️ Cleaned job description is empty for job ID {self.job_id}. Skipping embedding generation.")
+                return
+
+            # 2. Generate embedding (CPU-bound, no session held)
+            job_embedding = self.resume_processor._generate_embedding(clean_description)
+
+            # 3. Save embedding using another short-lived session
+            if job_embedding:
+                async with db_session_manager.session() as session:
+                    repo = ResumeRepository(session=session)
                     await repo.save_job_embedding(self.job_id, job_embedding)
         except Exception as e:
             raise Exception(f"Failed to save embedding: {str(e)}")

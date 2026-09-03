@@ -28,6 +28,7 @@ import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import axios from "axios";
 import { RESET_INITIAL_STATE } from "./redux/constants";
 import { API_BASE_URL } from "./config/api.config";
+import versioncheck from "./versioncheck";
 
 // Set withCredentials to true globally for Axios to handle cookies
 axios.defaults.withCredentials = true;

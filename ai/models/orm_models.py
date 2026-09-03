@@ -1195,4 +1195,19 @@ class ReportGeneration(Base):
     user = relationship("User", backref="report_generations")
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# OTP Store Table
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class OTPStore(Base):
+    __tablename__ = "otp_store"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    phone = Column(String, nullable=False, index=True)
+    otp = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+
 

@@ -62,9 +62,22 @@ class UpdateResumeHandler:
 
     async def save_embedding(self):
         try:
+            # 1. Fetch summary using a short-lived session
             async with db_session_manager.session() as session:
-                summary, profile_embedding = await self.generate_embeddings(session)
-                if profile_embedding:
+                summary = await self.fetch_resume_summary(session)
+
+            if not summary or not str(summary).strip():
+                print(
+                    f"⚠️ Resume summary is missing or empty for resume ID {self.resume_id}. Skipping embedding generation."
+                )
+                return
+
+            # 2. Generate embedding (CPU-bound, no session held)
+            profile_embedding = self.resume_processor._generate_embedding(summary)
+
+            # 3. Save embedding using another short-lived session
+            if profile_embedding:
+                async with db_session_manager.session() as session:
                     from sqlalchemy import text
                     query = text("""
                         UPDATE jobseeker_profiles 

@@ -179,37 +179,34 @@ class ProcessPDFHandler:
         """
         try:
             print("\n📄 Starting resume processing...")
+            start_time = time.perf_counter()
 
-            async with db_session_manager.session() as session:
-                try:
-                    start_time = time.perf_counter()
+            # Initialize processor with AI refiner and session=None to avoid holding DB connections open
+            processor = ResumeProcessor(
+                session=None,
+                ai_refiner=AzureOpenAIResumeRefiner(),
+            )
 
-                    # Initialize processor with AI refiner and session
-                    processor = ResumeProcessor(
-                        session=session,
-                        ai_refiner=AzureOpenAIResumeRefiner(),
-                    )
+            # Process resume (CPU/Network bound)
+            result = await processor.process_resume(
+                user_id=self.user_id,
+                file_name=self.file_name,
+                file_bytes=self.file_stream,
+                raw_bytes=self.file_bytes,
+                mime_type=self.mime_type,
+            )
 
-                    # Process resume
-                    result = await processor.process_resume(
-                        user_id=self.user_id,
-                        file_name=self.file_name,
-                        file_bytes=self.file_stream,
-                        raw_bytes=self.file_bytes,
-                        mime_type=self.mime_type,
-                    )
+            end_time = time.perf_counter()
+            duration = end_time - start_time
 
-                    end_time = time.perf_counter()
-                    duration = end_time - start_time
+            print(f"✅ Resume processing completed successfully")
+            print(f"⏱️  Total processing time: {duration:.2f} seconds")
 
-                    print(f"✅ Resume processing completed successfully")
-                    print(f"⏱️  Total processing time: {duration:.2f} seconds")
+            return result
 
-                    return result
-
-                except Exception as e:
-                    print(f"❌ Resume processing failed: {str(e)}")
-                    raise
+        except Exception as e:
+            print(f"❌ Resume processing failed: {str(e)}")
+            raise
                 
 
         except Exception as e:

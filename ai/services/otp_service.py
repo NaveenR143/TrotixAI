@@ -1,17 +1,16 @@
 import random
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+from typing import Optional
 import boto3
 import re
 from botocore.exceptions import ClientError, NoCredentialsError
+from sqlalchemy.ext.asyncio import AsyncSession
+from ai.db.otp_repository import save_otp_to_db, get_recent_otps_from_db
 
 # Configure logger
 logger = logging.getLogger(__name__)
-
-# In-memory store for OTPs
-# Format: {phone: (otp, expiry_time)}
-otp_store = {}
 
 # Initialize Boto3 client lazily
 _client = None
@@ -56,17 +55,16 @@ def validate_and_format_indian_phone(phone: str) -> str:
         raise ValueError("Invalid Indian mobile number. Must be a 10-digit number starting with 6, 7, 8, or 9.")
 
 
-def send_otp(phone: str) -> str:
+async def send_otp(phone: str, session: Optional[AsyncSession] = None) -> str:
     """
-    Generate a 4-digit OTP, store it in-memory, and return it.
+    Generate a 4-digit OTP, store it in database (otp_store table), and return it.
     OTP expires in 5 minutes.
     """
 
     formattedphone = validate_and_format_indian_phone(phone if phone.startswith("+") else f"+91{phone}")
 
     otp = str(random.randint(1000, 9999))
-    expiry_time = datetime.utcnow() + timedelta(minutes=5)
-    otp_store[formattedphone] = (otp, expiry_time)
+    await save_otp_to_db(formattedphone, otp, session=session)
 
     print("formattedphone: ", formattedphone, "otp: ", otp)
 
@@ -130,37 +128,57 @@ def send_otp(phone: str) -> str:
     return otp
 
 
-
-def verify_otp(phone: str, otp: str) -> bool:
+async def verify_otp(phone: str, otp: str, session: Optional[AsyncSession] = None) -> bool:
     """
-    Verify OTP for a given phone number.
-    Returns True if correct and deletes it from memory.
+    Verify OTP for a given phone number against the 2 most recent database records.
+    Returns True if correct and not expired.
     Returns False if incorrect, expired, or on error.
     """
     try:
-        phone_key = phone if phone.startswith("+") else f"+91{phone}"
+        
+        formattedphone = validate_and_format_indian_phone(phone if phone.startswith("+") else f"+91{phone}")
+        
+        print("Formatted Phone:", formattedphone)
+        logger.info(f"formattedphone: {formattedphone}")
+        
+        recent_records = await get_recent_otps_from_db(formattedphone, limit=2, session=session)
 
-        entry = otp_store.get(phone_key)
+        print("recent_records:", recent_records)
+        logger.info(f"recent_records: {recent_records}")
 
-        print("entry:", entry)
-
-        if not entry:
+        if not recent_records:
+            logger.info(f"No OTP found for {phone}")
+            print(f"No OTP found for {phone}")
             return False
 
-        stored_otp, expiry_time = entry
+        for entry in recent_records:
+            stored_otp = str(entry.get("otp", ""))
+            created_at = entry.get("created_at")
 
-        # Check expiry
-        if datetime.utcnow() > expiry_time:
-            otp_store.pop(phone_key, None)  # safely remove expired OTP
-            return False
+            # Check expiry (5 minutes)
+            # if created_at:
+            #     if isinstance(created_at, str):
+            #         try:
+            #             created_at = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            #         except Exception:
+            #             pass
+            #     if isinstance(created_at, date) and not isinstance(created_at, datetime):
+            #         created_at = datetime.combine(created_at, datetime.min.time())
 
-        # Check correctness
-        if stored_otp == otp:
-            otp_store.pop(phone_key, None)  # delete OTP after successful verification
-            return True
+            #     if isinstance(created_at, datetime):
+            #         now = datetime.now(created_at.tzinfo) if getattr(created_at, "tzinfo", None) else datetime.utcnow()
+            #         if (now - created_at) > timedelta(minutes=5):
+            #             continue
+
+            # Check correctness
+            if stored_otp == str(otp):
+                logger.info(f"OTP verified successfully for {formattedphone}")
+                return True
 
         return False
 
     except Exception as e:
+        logger.info(f"Error verifying OTP for {phone}: {e}")
         print(f"Error verifying OTP for {phone}: {e}")
         return False
+

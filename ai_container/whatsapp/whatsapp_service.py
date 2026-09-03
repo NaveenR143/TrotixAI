@@ -19,7 +19,7 @@ WHATSAPP_API_URL = f"https://graph.facebook.com/v25.0/{PHONE_NUMBER_ID}/messages
 
 # Default Template Configuration
 DEFAULT_TEMPLATE_NAME = "resume_upload_status"
-DEFAULT_IMAGE_ID = "1700081481284628"  # Header image ID from test_watsapp.py
+DEFAULT_IMAGE_ID = "1460819949430912"  # Header image ID from test_watsapp.py
 PACKAGE_TEMPLATE_NAME = "profile_ready_upgrade"
 PACKAGE_IMAGE_ID = "1550875050167475"
 
