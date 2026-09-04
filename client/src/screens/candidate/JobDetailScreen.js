@@ -52,6 +52,7 @@ import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import SendIcon from "@mui/icons-material/Send";
 import MultiPageResumePreview from "../resume_builder/MultiPageResumePreview";
 import { mapProfileData } from "../../utils/profileMapping";
+import { toTitleCase } from "../../utils/stringUtils";
 import { useReactToPrint } from "react-to-print";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -571,42 +572,111 @@ const JobDetailScreen = ({
 
     // Check if the description contains HTML tags
     const hasHtml = /<[a-z][\s\S]*>/i.test(description);
+
     if (hasHtml) {
       return (
         <Box
           dangerouslySetInnerHTML={{ __html: description }}
           sx={{
             color: "#475569",
-            lineHeight: 1.8,
             fontSize: "1rem",
-            textAlign: "justify",
-            '& p': { mb: 2, textAlign: "justify" },
-            '& ul, & ol': { mb: 2, pl: 3 },
-            '& li': { mb: 1 },
-            '& img': { maxWidth: '100%', height: 'auto', borderRadius: '8px' }
+            lineHeight: 1.7,
+
+            // Paragraphs
+            "& p": {
+              margin: "0 0 16px 0",
+              lineHeight: 1.7,
+            },
+
+            // Headings
+            "& h1, & h2, & h3, & h4, & h5, & h6": {
+              color: "#1e293b",
+              margin: "20px 0 10px 0",
+              lineHeight: 1.4,
+            },
+
+            // Lists
+            "& ul, & ol": {
+              margin: "0 0 16px 0",
+              paddingLeft: "24px",
+            },
+
+            "& li": {
+              marginBottom: "8px",
+              lineHeight: 1.7,
+            },
+
+            // Links
+            "& a": {
+              color: "#2563eb",
+              textDecoration: "underline",
+            },
+
+            // Bold text
+            "& strong, & b": {
+              color: "#334155",
+              fontWeight: 600,
+            },
+
+            // Images
+            "& img": {
+              maxWidth: "100%",
+              height: "auto",
+              display: "block",
+              margin: "16px 0",
+              borderRadius: "8px",
+            },
+
+            // Tables
+            "& table": {
+              width: "100%",
+              borderCollapse: "collapse",
+              margin: "16px 0",
+            },
+
+            "& th, & td": {
+              border: "1px solid #e2e8f0",
+              padding: "8px 12px",
+              textAlign: "left",
+            },
+
+            "& blockquote": {
+              margin: "16px 0",
+              padding: "10px 16px",
+              borderLeft: "4px solid #cbd5e1",
+              color: "#64748b",
+            },
           }}
         />
       );
     }
 
-    // Split plain text by double newlines for paragraph separation
+    // Plain text
     const paragraphs = description.split(/\n\s*\n+/);
 
     return (
-      <Box>
+      <Box
+        sx={{
+          color: "#475569",
+          fontSize: "1rem",
+          lineHeight: 1.7,
+        }}
+      >
         {paragraphs.map((para, index) => {
           const trimmed = para.trim();
+
           if (!trimmed) return null;
+
           return (
             <Typography
               key={index}
+              component="p"
               sx={{
-                mb: 2,
+                margin: "0 0 16px 0",
                 color: "#475569",
-                lineHeight: 1.8,
                 fontSize: "1rem",
+                lineHeight: 1.7,
                 whiteSpace: "pre-line",
-                textAlign: "justify",
               }}
             >
               {trimmed}
@@ -682,10 +752,10 @@ const JobDetailScreen = ({
                       boxShadow: "0 4px 12px rgba(37, 99, 235, 0.12)",
                     }}
                   >
-                    {job.company?.[0]}
+                    {(job.company?.name || job.company)?.[0]?.toUpperCase()}
                   </Avatar>
                   <Typography sx={{ color: "#2563EB", fontWeight: 600, fontSize: { xs: "1.0rem", md: "1.15rem" } }}>
-                    {job.company}
+                    {(job.company?.name || job.company)?.toUpperCase()}
                   </Typography>
                 </Stack>
 
@@ -693,13 +763,13 @@ const JobDetailScreen = ({
                   <MatchBadge score={job.matchScore} size="lg" />
                   <Chip
                     icon={<LocationOnIcon sx={{ fontSize: '16px !important' }} />}
-                    label={job.location}
+                    label={toTitleCase(job.location)}
                     variant="outlined"
                     sx={{ borderRadius: '10px', fontWeight: 500, color: '#212121', borderColor: '#E5E7EB' }}
                   />
                   <Chip
                     icon={<WorkIcon sx={{ fontSize: '16px !important' }} />}
-                    label={job.workMode}
+                    label={toTitleCase(job.workMode)}
                     variant="outlined"
                     sx={{ borderRadius: '10px', fontWeight: 500, color: '#212121', borderColor: '#E5E7EB' }}
                   />
@@ -711,7 +781,7 @@ const JobDetailScreen = ({
                           ? (job.experience_min_yrs === job.experience_max_yrs
                             ? `${job.experience_min_yrs} Yrs`
                             : `${job.experience_min_yrs}-${job.experience_max_yrs} Yrs`)
-                          : job.experience
+                          : toTitleCase(job.experience)
                       }
                       variant="outlined"
                       sx={{ borderRadius: '10px', fontWeight: 500, color: '#212121', borderColor: '#E5E7EB' }}
@@ -841,13 +911,13 @@ const JobDetailScreen = ({
                         ? (job.experience_min_yrs === job.experience_max_yrs
                           ? `${job.experience_min_yrs} Years`
                           : `${job.experience_min_yrs} - ${job.experience_max_yrs} Years`)
-                        : (job.experience || "Not specified")}
+                        : (toTitleCase(job.experience) || "Not Specified")}
                     </Typography>
                   </Box>
                   {job.jobType && (
                     <Box>
                       <Typography variant="caption" sx={{ display: 'block', color: '#6B7280', mb: 0.5, fontWeight: 500 }}>JOB TYPE</Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{job.jobType}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{toTitleCase(job.jobType)}</Typography>
                     </Box>
                   )}
                   {job.teamSize && (

@@ -1391,8 +1391,8 @@ class ResumeRepository:
             async with self.session.begin_nested():
                 # First, delete existing industries for this user to avoid duplicates
                 # and handle updates (simple approach)
-                delete_query = text("DELETE FROM user_industries WHERE user_id = :user_id")
-                await self.session.execute(delete_query, {"user_id": str(user_id)})
+                # delete_query = text("DELETE FROM user_industries WHERE user_id = :user_id")
+                # await self.session.execute(delete_query, {"user_id": str(user_id)})
 
                 if industry_ids:
                     # Bulk insert new industry mappings
@@ -1400,6 +1400,7 @@ class ResumeRepository:
                         """
                         INSERT INTO user_industries (user_id, industry_id)
                         VALUES (:user_id, :industry_id)
+                        ON CONFLICT (user_id, industry_id) DO NOTHING
                     """
                     )
 

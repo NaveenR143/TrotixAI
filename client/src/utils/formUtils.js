@@ -23,12 +23,6 @@ export const scrollToFirstError = (errors, fieldOrder) => {
   }
 };
 
-/**
- * Converts a string to Title Case.
- * @param {string} str - The string to convert.
- * @returns {string} - The title cased string.
- */
-export const toTitleCase = (str) => {
-  if (!str || typeof str !== 'string') return str;
-  return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
-};
+import { toTitleCase } from "./stringUtils";
+
+export { toTitleCase };

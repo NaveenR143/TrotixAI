@@ -1,19 +1,6 @@
-/**
- * Utility function to convert text to title case
- * @param {string} str - The string to convert
- * @returns {string} - The title cased string
- */
-export const toTitleCase = (str) => {
-  if (!str) return "";
-  const stringValue = typeof str === "string" ? str : String(str);
-  if (!stringValue.trim()) return "";
+import { toTitleCase } from "../../../utils/stringUtils";
 
-  return stringValue
-    .toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
+export { toTitleCase };
 
 /**
  * Utility function to convert text to all capitals

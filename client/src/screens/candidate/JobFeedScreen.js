@@ -242,11 +242,11 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
 
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)', overflow: 'hidden' }}>
-        {hasNoIndustries && (
+        {/* {hasNoIndustries && (
           <Box sx={{ p: 2, borderBottom: '1px solid #e2e8f0', bgcolor: '#fff' }}>
             <IndustriesBanner autoNavigate={true} onNavigate={onViewProfile} />
           </Box>
-        )}
+        )} */}
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 2, px: 4, textAlign: 'center' }}>
           <Typography sx={{ fontSize: '3rem' }}>{filteredJobs.length === 0 && activeFilterCount > 0 ? '🔍' : '✨'}</Typography>
           <Typography sx={{ fontWeight: 700, fontSize: '1.5rem', color: '#0f172a', mb: 0.5 }}>
@@ -365,11 +365,11 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
 
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)', position: 'relative', overflow: 'hidden' }}>
-        {hasNoIndustries && (
+        {/* {hasNoIndustries && (
           <Box sx={{ p: 2, borderBottom: '1px solid #e2e8f0', bgcolor: '#fff' }}>
             <IndustriesBanner autoNavigate={true} onNavigate={onViewProfile} />
           </Box>
-        )}
+        )} */}
         {/* Mobile Filter Header */}
         <Box sx={{
           p: 2,
@@ -567,11 +567,11 @@ const JobFeedScreen = ({ jobs: initialJobs, onOpenDetail, onGoBack, onViewProfil
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)' }}>
-      {hasNoIndustries && (
+      {/* {hasNoIndustries && (
         <Box sx={{ p: 2, borderBottom: '1px solid #e2e8f0', bgcolor: '#fff' }}>
           <IndustriesBanner autoNavigate={true} onNavigate={onViewProfile} />
         </Box>
-      )}
+      )} */}
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <Box sx={{ width: 340, flexShrink: 0, borderRight: '1px solid #e2e8f0', bgcolor: '#f8fafc', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <Box sx={{ p: 2.5, borderBottom: '1px solid #e2e8f0', bgcolor: '#fff' }}>

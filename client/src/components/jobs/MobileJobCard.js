@@ -10,11 +10,7 @@ import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import MatchBadge from "./MatchBadge";
 import { getWorkModeIcon } from "../../utils/themeUtils";
-
-const toTitleCase = (str) => {
-  if (!str) return "";
-  return str.replace(/\b\w/g, (char) => char.toUpperCase());
-};
+import { toTitleCase } from "../../utils/stringUtils";
 
 const CARD_HEADER_H = 51;
 const CARD_FOOTER_H = 82;

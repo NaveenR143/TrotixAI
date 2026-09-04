@@ -4,11 +4,7 @@ import { Box, Typography, Button, Chip, Stack } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import WorkHistoryIcon from "@mui/icons-material/WorkHistory";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-
-const toTitleCase = (str) => {
-  if (!str) return "";
-  return str.replace(/\b\w/g, (char) => char.toUpperCase());
-};
+import { toTitleCase } from "../../utils/stringUtils";
 
 const CARD_FOOTER_H = 82;
 

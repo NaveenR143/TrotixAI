@@ -12,12 +12,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 import TranslateIcon from "@mui/icons-material/Translate";
 import * as profileAPI from "../../../api/profileAPI";
-
-// Helper function to format input values beautifully
-const toTitleCase = (str) => {
-  if (typeof str !== "string") return "";
-  return str.replace(/\b\w/g, (char) => char.toUpperCase());
-};
+import { toTitleCase } from "../../../utils/stringUtils";
 
 const ReorderableList = ({ items, type, onRemove, onReorder }) => {
   const [draggedIndex, setDraggedIndex] = useState(null);

@@ -166,7 +166,7 @@ const MobileOTPValidation = ({
                         resumeData,
                     });
                 }
-            }, 1500);
+            }, 500);
         } catch (err) {
             setLoading(false);
             const errorMsg = err?.response?.data?.detail || err?.message || "Verification failed. Please try again.";
@@ -297,11 +297,11 @@ const MobileOTPValidation = ({
                 </Box>
 
                 {/* Error Alert with Better Messaging */}
-                <Fade in={!!error && !verificationSuccess}>
+                <Fade in={!!error && !verificationSuccess} unmountOnExit>
                     <Alert
                         severity="error"
                         onClose={() => setError("")}
-                        sx={{ mb: 3, borderRadius: 2, display: error ? "flex" : "none" }}
+                        sx={{ mb: 3, borderRadius: 2 }}
                         icon={<ErrorOutlineIcon />}
                     >
                         <AlertTitle sx={{ fontSize: "0.85rem", fontWeight: 600 }}>
@@ -315,7 +315,7 @@ const MobileOTPValidation = ({
                 </Fade>
 
                 {/* Daily limit exhausted warning */}
-                <Fade in={!activeOtp.isEligible && !verificationSuccess}>
+                <Fade in={!activeOtp.isEligible && !verificationSuccess} unmountOnExit>
                     <Alert
                         severity="warning"
                         sx={{ mb: 3, borderRadius: 2 }}
@@ -328,13 +328,12 @@ const MobileOTPValidation = ({
                 </Fade>
 
                 {/* Success Alert */}
-                <Fade in={verificationSuccess}>
+                <Fade in={verificationSuccess} unmountOnExit>
                     <Alert
                         severity="success"
                         sx={{
                             mb: 3,
                             borderRadius: 2,
-                            display: verificationSuccess ? "flex" : "none",
                             background: "linear-gradient(135deg, #f0fdf4, #dcfce7)"
                         }}
                     >

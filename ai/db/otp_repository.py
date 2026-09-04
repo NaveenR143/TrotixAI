@@ -59,7 +59,7 @@ async def get_recent_otps_from_db(
     stmt = (
         select(OTPStore)
         .where(OTPStore.phone == phone)
-        .order_by(OTPStore.created_at.desc())
+        .order_by(OTPStore.id.desc())
         .limit(limit)
     )
 

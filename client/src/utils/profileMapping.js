@@ -1,4 +1,4 @@
-import { toTitleCase } from "../screens/candidate/utils/profileUtils";
+import { toTitleCase } from "./stringUtils";
 
 /**
  * Maps raw API profile data to the application's Redux state structure
