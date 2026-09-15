@@ -17,6 +17,17 @@ logger = logging.getLogger(__name__)
 db_queue = Queue()
 
 
+def _send_delayed_premium_package_notification(user_details: dict):
+    """Sends premium package WhatsApp notification after a delay."""
+    try:
+        from whatsapp.whatsapp_service import send_premium_package_notification
+        user_id = user_details.get("id") or user_details.get("user_id", "unknown")
+        logger.info(f"Executing scheduled 30-minute premium package notification for user {user_id}")
+        send_premium_package_notification(user_details)
+    except Exception as err:
+        logger.error(f"Error in scheduled premium package notification: {err}", exc_info=True)
+
+
 class DBWorker:
 
     def __init__(self):
@@ -93,10 +104,14 @@ class DBWorker:
                         user_details = await fetch_repo.get_user_details(user_id)
                     
                     if user_details:
-                        from whatsapp.whatsapp_service import send_profile_update_notification,send_premium_package_notification
+                        from whatsapp.whatsapp_service import send_profile_update_notification
                         send_profile_update_notification(user_details)
 
-                        # send_premium_package_notification(user_details)
+                        # Schedule premium package notification after 30 minutes (1800 seconds)
+                        timer = threading.Timer(1800.0, _send_delayed_premium_package_notification, args=[user_details])
+                        timer.daemon = True
+                        timer.start()
+                        logger.info(f"Scheduled premium package notification for user {user_id} to send in 30 minutes.")
                     else:
                         logger.warning(
                             f"Could not send WhatsApp notification: user details not found for ID {user_id}"

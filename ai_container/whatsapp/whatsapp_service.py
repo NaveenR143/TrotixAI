@@ -23,6 +23,9 @@ DEFAULT_IMAGE_ID = "1460819949430912"  # Header image ID from test_watsapp.py
 PACKAGE_TEMPLATE_NAME = "profile_ready_upgrade"
 PACKAGE_IMAGE_ID = "1550875050167475"
 
+DEFAULT_IMAGE_LINK="https://rightnxt-media.s3.ap-south-2.amazonaws.com/launch.jpg"
+PACKAGE_IMAGE_LINK="https://rightnxt-media.s3.ap-south-2.amazonaws.com/package.png"
+
 def format_phone_number(phone: str) -> str:
     """
     Format and validate phone number to the format required by WhatsApp API.
@@ -75,7 +78,7 @@ def send_whatsapp_template_message(
     to_phone: str,
     template_name: str,
     parameters: List[Dict[str, Any]],
-    header_image_id: Optional[str] = None,
+    image_link: Optional[str] = None,
     language_code: str = "en"
 ) -> Dict[str, Any]:
     """
@@ -85,7 +88,7 @@ def send_whatsapp_template_message(
         to_phone: Recipient phone number
         template_name: Name of the registered WhatsApp template
         parameters: List of parameter dictionaries for the template body
-        header_image_id: Optional media ID for template header image
+        image_link: Optional URL for template header image
         language_code: Two-letter language code (default 'en')
 
     Returns:
@@ -111,14 +114,14 @@ def send_whatsapp_template_message(
     components = []
     
     # If a header image is provided, add the header component
-    if header_image_id:
+    if image_link:
         components.append({
             "type": "header",
             "parameters": [
                 {
                     "type": "image",
                     "image": {
-                        "id": header_image_id
+                        "link": image_link
                     }
                 }
             ]
@@ -195,7 +198,7 @@ def send_profile_update_notification(user: Dict[str, Any]) -> bool:
             to_phone=phone,
             template_name=DEFAULT_TEMPLATE_NAME,
             parameters=parameters,
-            header_image_id=DEFAULT_IMAGE_ID
+            image_link=DEFAULT_IMAGE_LINK
         )
         LOGGER.info("WhatsApp notification sent successfully to %s. Response: %s", phone, response_data)
         return True
@@ -249,7 +252,7 @@ def send_premium_package_notification(user: Dict[str, Any]) -> bool:
             to_phone=phone,
             template_name=PACKAGE_TEMPLATE_NAME,
             parameters=parameters,
-            header_image_id=PACKAGE_IMAGE_ID
+            image_link=PACKAGE_IMAGE_LINK
         )
         LOGGER.info("WhatsApp notification sent successfully to %s. Response: %s", phone, response_data)
         return True
