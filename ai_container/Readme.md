@@ -50,25 +50,26 @@ docker images
 
 ## On the overview page copy the login server on azure portal 
 
-rightnxtcontainerregistry.azurecr.io
+
+crrightnxtai.azurecr.io
 
 ## In your Azure Container Registry, go to Settings > Access keys.
 
 Enable Admin User : checkbox
 
-Username : rightnxtcontainerregistry 
-pwd : CBVE2ER6c8MjJgK6hpVynElZpBDCujUXw1LD7bAXeo0mj6boSvkoJQQJ99CFAC77bzfEqg7NAAACAZCRq4m3
+Username : crrightnxtai 
+pwd : 1QUjG178BuBUlj4jdGYqi3K9lvPpQWzJPXhV0jdB3XrRbF8eKS6RJQQJ99CIACGhslBEqg7NAAACAZCRzhXX
 
-Registry Name : rightnxtcontainerregistry
-Login Server : rightnxtcontainerregistry.azurecr.io
+Registry Name : crrightnxtai
+Login Server : crrightnxtai.azurecr.io
 
 ## Log in to the registry from Docker
 
-docker login rightnxtcontainerregistry.azurecr.io
+docker login crrightnxtai.azurecr.io
 
 ## Tag your local image
 
-docker tag rightnxt-container-worker:latest rightnxtcontainerregistry.azurecr.io/rightnxt-container-worker:latest
+docker tag rightnxt-container-worker:latest crrightnxtai.azurecr.io/rightnxt-container-worker:latest
 
 ## Verify It
 
@@ -76,7 +77,7 @@ docker images
 
 ## Push the image
 
-docker push rightnxtcontainerregistry.azurecr.io/rightnxt-container-worker:latest
+docker push crrightnxtai.azurecr.io/rightnxt-container-worker:latest
 
 ## When finished, you will see
 
@@ -270,3 +271,8 @@ Select Containers.
 Under Environment variables, add your key-value pairs.
 Save and deploy a new revision.
 
+
+### To view all the containers with date to delete
+docker ps -a 
+delete the container in docker-desktop with name found here
+then delete the images which is in light in color

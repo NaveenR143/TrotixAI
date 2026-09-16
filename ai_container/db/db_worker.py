@@ -17,15 +17,18 @@ logger = logging.getLogger(__name__)
 db_queue = Queue()
 
 
-def _send_delayed_premium_package_notification(user_details: dict):
-    """Sends premium package WhatsApp notification after a delay."""
+async def _send_delayed_premium_package_notification(user_details: dict, delay_seconds: float = 300.0):
+    """Sends premium package WhatsApp notification after a delay using asyncio."""
     try:
-        from whatsapp.whatsapp_service import send_premium_package_notification
         user_id = user_details.get("id") or user_details.get("user_id", "unknown")
-        logger.info(f"Executing scheduled 30-minute premium package notification for user {user_id}")
-        send_premium_package_notification(user_details)
+        logger.info(f"Waiting {delay_seconds / 60:.0f} minutes before sending premium package notification for user {user_id}...")
+        await asyncio.sleep(delay_seconds)
+        from whatsapp.whatsapp_service import send_premium_package_notification
+        logger.info(f"Executing scheduled premium package notification for user {user_id}")
+        await asyncio.to_thread(send_premium_package_notification, user_details)
     except Exception as err:
         logger.error(f"Error in scheduled premium package notification: {err}", exc_info=True)
+
 
 
 class DBWorker:
@@ -33,6 +36,7 @@ class DBWorker:
     def __init__(self):
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.loop = None  # persistent loop
+        self.background_tasks = set()
 
     def start(self):
         self.thread.start()
@@ -49,7 +53,8 @@ class DBWorker:
 
     async def _run(self):
         while True:
-            task = db_queue.get()
+            # Run blocking db_queue.get() in a thread so the asyncio event loop is not blocked
+            task = await asyncio.to_thread(db_queue.get)
 
             if task is None:
                 break
@@ -107,11 +112,13 @@ class DBWorker:
                         from whatsapp.whatsapp_service import send_profile_update_notification
                         send_profile_update_notification(user_details)
 
-                        # Schedule premium package notification after 30 minutes (1800 seconds)
-                        timer = threading.Timer(1800.0, _send_delayed_premium_package_notification, args=[user_details])
-                        timer.daemon = True
-                        timer.start()
-                        logger.info(f"Scheduled premium package notification for user {user_id} to send in 30 minutes.")
+                        logger.info(f"Whatsapp notification sent successfully for user {user_id}")
+
+                        # Schedule premium package notification after 5 minutes (300 seconds) using asyncio
+                        bg_task = asyncio.create_task(_send_delayed_premium_package_notification(user_details, 300.0))
+                        self.background_tasks.add(bg_task)
+                        bg_task.add_done_callback(self.background_tasks.discard)
+                        logger.info(f"Scheduled premium package notification for user {user_id} to send in 5 minutes.")
                     else:
                         logger.warning(
                             f"Could not send WhatsApp notification: user details not found for ID {user_id}"
@@ -128,3 +135,4 @@ class DBWorker:
             logger.error(
                 f"DB save failed for user {user_id} after {save_time:.2f}s: {e}")
             raise
+

@@ -258,6 +258,6 @@ def send_premium_package_notification(user: Dict[str, Any]) -> bool:
         return True
 
     except Exception as e:
-        LOGGER.exception("Failed to send WhatsApp profile update notification to %s: %s", user.get('phone'), e)
+        LOGGER.exception("Failed to send WhatsApp package notification to %s: %s", user.get('phone'), e)
         # Return False to let caller know it failed, but do not raise to preserve profile save status
         return False
